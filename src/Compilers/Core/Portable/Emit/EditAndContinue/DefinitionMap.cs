@@ -291,14 +291,15 @@ namespace Microsoft.CodeAnalysis.Emit
                     debugInfo = Baseline.DebugInformationProvider(methodHandle);
                     localSignature = Baseline.LocalSignatureProvider(methodHandle);
                 }
-                catch (Exception e) when (e is InvalidDataException or IOException)
+                catch (Exception e) when (e is InvalidDataException or IOException or BadImageFormatException)
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(
                         MessageProvider.ERR_InvalidDebugInfo,
                         method.Locations.First(),
                         method,
                         MetadataTokens.GetToken(methodHandle),
-                        method.ContainingAssembly
+                        method.ContainingAssembly,
+                        e.Message
                     ));
 
                     return null;
@@ -382,7 +383,8 @@ namespace Microsoft.CodeAnalysis.Emit
                             method.Locations.First(),
                             method,
                             MetadataTokens.GetToken(localSignature),
-                            method.ContainingAssembly
+                            method.ContainingAssembly,
+                            e.Message
                         ));
 
                         return null;
@@ -418,9 +420,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
-                MessageProvider.ERR_EncUpdateFailedMissingAttribute,
+                MessageProvider.ERR_EncUpdateFailedMissingSymbol,
                 method.Locations.First(),
-                MessageProvider.GetErrorDisplayString(method.GetISymbol()),
+                CodeAnalysisResources.Attribute,
                 stateMachineAttributeFullName));
         }
 
@@ -588,7 +590,14 @@ namespace Microsoft.CodeAnalysis.Emit
                             Debug.Assert(!containingDisplayClassId.HasValue);
 
                             var displayClass = (INamedTypeSymbolInternal)member;
-                            var displayClassMembers = (synthesizedMemberMap != null) ? synthesizedMemberMap[displayClass] : displayClass.GetMembers();
+
+                            // Synthesized member map, if given, contains all the synthesized members that implement lambdas and closures.
+                            // If not given (for PE symbols) the members are defined on the type symbol directly.
+                            // If the display class doesn't have any synthesized members it won't be present in the map.
+                            // See https://github.com/dotnet/roslyn/issues/73365
+                            var displayClassMembers = synthesizedMemberMap != null
+                                ? (synthesizedMemberMap.TryGetValue(displayClass, out var m) ? m : [])
+                                : displayClass.GetMembers();
 
                             if (displayClass.TypeKind == TypeKind.Struct)
                             {
@@ -683,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 provider = Baseline.DebugInformationProvider(MetadataTokens.MethodDefinitionHandle(methodRowId));
             }
-            catch (Exception e) when (e is InvalidDataException or IOException)
+            catch (Exception e) when (e is InvalidDataException or IOException or BadImageFormatException)
             {
                 return [];
             }

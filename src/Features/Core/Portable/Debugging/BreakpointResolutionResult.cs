@@ -4,27 +4,26 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Debugging
+namespace Microsoft.CodeAnalysis.Debugging;
+
+internal sealed class BreakpointResolutionResult
 {
-    internal sealed class BreakpointResolutionResult
+    public Document Document { get; }
+    public TextSpan TextSpan { get; }
+    public string? LocationNameOpt { get; }
+    public bool IsLineBreakpoint { get; }
+
+    private BreakpointResolutionResult(Document document, TextSpan textSpan, string? locationNameOpt, bool isLineBreakpoint)
     {
-        public Document Document { get; }
-        public TextSpan TextSpan { get; }
-        public string? LocationNameOpt { get; }
-        public bool IsLineBreakpoint { get; }
-
-        private BreakpointResolutionResult(Document document, TextSpan textSpan, string? locationNameOpt, bool isLineBreakpoint)
-        {
-            Document = document;
-            TextSpan = textSpan;
-            LocationNameOpt = locationNameOpt;
-            IsLineBreakpoint = isLineBreakpoint;
-        }
-
-        internal static BreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
-            => new(document, textSpan, locationNameOpt, isLineBreakpoint: false);
-
-        internal static BreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
-            => new(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
+        Document = document;
+        TextSpan = textSpan;
+        LocationNameOpt = locationNameOpt;
+        IsLineBreakpoint = isLineBreakpoint;
     }
+
+    internal static BreakpointResolutionResult CreateSpanResult(Document document, TextSpan textSpan, string? locationNameOpt = null)
+        => new(document, textSpan, locationNameOpt, isLineBreakpoint: false);
+
+    internal static BreakpointResolutionResult CreateLineResult(Document document, string? locationNameOpt = null)
+        => new(document, new TextSpan(), locationNameOpt, isLineBreakpoint: true);
 }

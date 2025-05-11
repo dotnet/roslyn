@@ -2,27 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.InlineHints
+namespace Microsoft.CodeAnalysis.InlineHints;
+
+/// <summary>
+/// Used as a tiebreaker to position coincident type and parameter hints.
+/// </summary>
+internal static class InlineHintsConstants
 {
     /// <summary>
-    /// Used as a tiebreaker to position coincident type and parameter hints.
+    /// Parameter hints will always appear first.
     /// </summary>
-    internal static class InlineHintsConstants
+    public static readonly double ParameterRanking;
+
+    /// <summary>
+    /// Type hints will always appear second.
+    /// </summary>
+    public static readonly double TypeRanking;
+
+    static InlineHintsConstants()
     {
-        /// <summary>
-        /// Parameter hints will always appear first.
-        /// </summary>
-        public static readonly double ParameterRanking;
-
-        /// <summary>
-        /// Type hints will always appear second.
-        /// </summary>
-        public static readonly double TypeRanking;
-
-        static InlineHintsConstants()
-        {
-            ParameterRanking = 0.0;
-            TypeRanking = 1.0;
-        }
+        ParameterRanking = 0.0;
+        TypeRanking = 1.0;
     }
 }

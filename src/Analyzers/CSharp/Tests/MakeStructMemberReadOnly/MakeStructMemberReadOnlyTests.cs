@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
@@ -53,7 +52,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -69,7 +67,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -85,7 +82,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -104,7 +100,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -125,7 +120,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -149,7 +143,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -295,7 +288,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -315,7 +307,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -337,7 +328,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -359,7 +349,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -379,7 +368,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -403,7 +391,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -428,7 +415,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -453,7 +439,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -469,7 +454,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -507,7 +491,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -919,7 +902,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -944,7 +926,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -966,7 +947,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -991,7 +971,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -1016,7 +995,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -1167,7 +1145,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         }.RunAsync();
     }
 
@@ -1194,7 +1171,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         }.RunAsync();
     }
 
@@ -1252,7 +1228,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         }.RunAsync();
     }
 
@@ -1270,7 +1245,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = testCode,
-            FixedCode = testCode,
         }.RunAsync();
     }
 
@@ -1310,7 +1284,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -1329,7 +1302,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -1348,7 +1320,6 @@ public sealed class MakeStructMemberReadOnlyTests
         await new VerifyCS.Test
         {
             TestCode = test,
-            FixedCode = test,
         }.RunAsync();
     }
 
@@ -2543,6 +2514,40 @@ public sealed class MakeStructMemberReadOnlyTests
                 internal struct Values
                 {
                     private int _field;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71500")]
+    public async Task TestMultipleAccessors()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct S
+                {
+                    public int M;
+
+                    public int Z
+                    {
+                        [|get|] => M;
+                        set => M = value;
+                    }
+                }
+                """,
+            FixedCode = """
+                struct S
+                {
+                    public int M;
+
+                    public int Z
+                    {
+                        readonly get => M;
+                        set => M = value;
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

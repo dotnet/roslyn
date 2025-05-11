@@ -13,7 +13,7 @@ using System.Text;
 
 namespace OverflowSensitivity
 {
-    public class Program
+    public static class Program
     {
         [DllImport("kernel32.dll")]
         private static extern ErrorModes SetErrorMode(ErrorModes uMode);

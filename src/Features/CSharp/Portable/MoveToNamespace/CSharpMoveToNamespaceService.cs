@@ -7,36 +7,42 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MoveToNamespace;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
+namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
+
+[ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpMoveToNamespaceService(
+    [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService) :
+    AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>(optionsService)
 {
-    [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class CSharpMoveToNamespaceService(
-        [Import(AllowDefault = true)] IMoveToNamespaceOptionsService optionsService) :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, BaseNamespaceDeclarationSyntax, BaseTypeDeclarationSyntax>(optionsService)
-    {
-        protected override string GetNamespaceName(SyntaxNode container)
-            => container switch
-            {
-                BaseNamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
-                CompilationUnitSyntax _ => string.Empty,
-                _ => throw ExceptionUtilities.UnexpectedValue(container)
-            };
-
-        protected override bool IsContainedInNamespaceDeclaration(BaseNamespaceDeclarationSyntax baseNamespace, int position)
+    protected override BaseTypeDeclarationSyntax? GetNamedTypeDeclarationSyntax(SyntaxNode node)
+        => node switch
         {
-            var namespaceDeclarationStart = baseNamespace.NamespaceKeyword.SpanStart;
-            var namespaceDeclarationEnd = baseNamespace switch
-            {
-                NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.OpenBraceToken.SpanStart,
-                FileScopedNamespaceDeclarationSyntax fileScopedNamespace => fileScopedNamespace.SemicolonToken.Span.End,
-                _ => throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind()),
-            };
+            BaseTypeDeclarationSyntax namedTypeDeclaration => namedTypeDeclaration,
+            ParameterListSyntax parameterList => parameterList.Parent as BaseTypeDeclarationSyntax,
+            _ => null
+        };
 
-            return position >= namespaceDeclarationStart && position < namespaceDeclarationEnd;
-        }
+    protected override string GetNamespaceName(SyntaxNode container)
+        => container switch
+        {
+            BaseNamespaceDeclarationSyntax namespaceSyntax => namespaceSyntax.Name.ToString(),
+            CompilationUnitSyntax _ => string.Empty,
+            _ => throw ExceptionUtilities.UnexpectedValue(container)
+        };
+
+    protected override bool IsContainedInNamespaceDeclaration(BaseNamespaceDeclarationSyntax baseNamespace, int position)
+    {
+        var namespaceDeclarationStart = baseNamespace.NamespaceKeyword.SpanStart;
+        var namespaceDeclarationEnd = baseNamespace switch
+        {
+            NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.OpenBraceToken.SpanStart,
+            FileScopedNamespaceDeclarationSyntax fileScopedNamespace => fileScopedNamespace.SemicolonToken.Span.End,
+            _ => throw ExceptionUtilities.UnexpectedValue(baseNamespace.Kind()),
+        };
+
+        return position >= namespaceDeclarationStart && position < namespaceDeclarationEnd;
     }
 }

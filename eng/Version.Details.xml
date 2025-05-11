@@ -1,82 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="58950550c5c2c7a2431595699b38fd0360fd63e9" BarId="265646" />
   <ProductDependencies>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23570.1">
-      <Uri>https://github.com/dotnet/source-build-externals</Uri>
-      <Sha>e844aa02a05b90d8cbe499676ec6ee0f19ec4980</Sha>
-      <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
+    <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
+    <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
+      <Uri>https://github.com/dotnet/roslyn</Uri>
+      <Sha>ae1fff344d46976624e68ae17164e0607ab68b10</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="9.0.0-alpha.1.23627.2">
-      <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>2a008ae4f42c0db384db5a4864752b2ff52d720b</Sha>
-      <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
-    </Dependency>
-    <Dependency Name="System.CommandLine" Version="2.0.0-beta4.23407.1">
+    <Dependency Name="System.CommandLine" Version="2.0.0-beta5.25210.1">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>a045dd54a4c44723c215d992288160eb1401bb7f</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.command-line-api" Version="0.1.440701">
-      <Uri>https://github.com/dotnet/command-line-api</Uri>
-      <Sha>a045dd54a4c44723c215d992288160eb1401bb7f</Sha>
-      <SourceBuild RepoName="command-line-api" ManagedOnly="true" />
+      <Sha>e9b0511d7f1128e2bc3be7a658a2a4ea977e602d</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
-    <Dependency Name="System.IO.Pipelines" Version="7.0.0">
+    <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="7.0.0">
+    <Dependency Name="Microsoft.Extensions.Configuration" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0">
+    <Dependency Name="Microsoft.Extensions.DependencyInjection" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="7.0.0">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="System.Text.Json" Version="7.0.3">
+    <Dependency Name="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>0a2bda10e81d901396c3cff95533529e3a93ad47</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="System.Reflection.Metadata" Version="8.0.0">
+    <Dependency Name="Microsoft.Extensions.Logging.Console" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Extensions.Options.ConfigurationExtension" Version="8.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
-    <Dependency Name="System.Collections.Immutable" Version="8.0.0">
+    <Dependency Name="Microsoft.Extensions.Options" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Extensions.Primitives" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Collections.Immutable" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.ComponentModel.Composition" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Diagnostics.DiagnosticSource" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.IO.Hashing" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.IO.Pipelines" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Resources.Extensions" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Text.Encodings.Web" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Text.Json" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Threading.Tasks.Dataflow" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Reflection.Metadata" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Configuration.ConfigurationManager" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Diagnostics.EventLog" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Security.Cryptography.ProtectedData" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Security.Permissions" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
+    </Dependency>
+    <Dependency Name="System.Windows.Extensions" Version="9.0.0">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.24059.4">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.25255.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>61ae141d2bf3534619265c8f691fd55dc3e75147</Sha>
-      <SourceBuild RepoName="arcade" ManagedOnly="true" />
+      <Sha>1cfa39f82d00b3659a3d367bc344241946e10681</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="1.0.0-beta.23475.1" CoherentParentDependency="Microsoft.DotNet.Arcade.Sdk">
-      <Uri>https://github.com/dotnet/xliff-tasks</Uri>
-      <Sha>73f0850939d96131c28cf6ea6ee5aacb4da0083a</Sha>
-      <SourceBuild RepoName="xliff-tasks" ManagedOnly="true" />
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="9.0.0-beta.25255.5">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>1cfa39f82d00b3659a3d367bc344241946e10681</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.0.0">
       <Uri>https://github.com/dotnet/symreader</Uri>
       <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.symreader" Version="2.0.0-beta-23228-04">
-      <Uri>https://github.com/dotnet/symreader</Uri>
-      <Sha>27e584661980ee6d82c419a2a471ae505b7d122e</Sha>
-      <SourceBuild RepoName="symreader" ManagedOnly="true" />
-    </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.1.0-5.22128.4">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.10.0-1.24061.4">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>5d10d428050c0d6afef30a072c4ae68776621877</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.24059.4">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="9.0.0-beta.25255.5">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>61ae141d2bf3534619265c8f691fd55dc3e75147</Sha>
+      <Sha>1cfa39f82d00b3659a3d367bc344241946e10681</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0-preview.23468.1">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
@@ -84,13 +136,13 @@
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
-    <Dependency Name="System.Composition" Version="7.0.0">
+    <Dependency Name="System.Composition" Version="9.0.0">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>d099f075e45d2aa6007a22b71b45a08758559f80</Sha>
+      <Sha>9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>22ea6422f85b05ca0793cc3b76375487be407f5d</Sha>
+      <Sha>f2384e61845314d0e8ad74cc0fe67d1bd4e9f102</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>

@@ -8,68 +8,68 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
-{
-    using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToProgramMainCodeRefactoringProvider>;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
 
-    public class ConvertToProgramMainRefactoringTests
+using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToProgramMainCodeRefactoringProvider>;
+
+[UseExportProvider]
+public sealed class ConvertToProgramMainRefactoringTests
+{
+    [Fact]
+    public async Task TestNotOnFileWithNoGlobalStatements()
     {
-        [Fact]
-        public async Task TestNotOnFileWithNoGlobalStatements()
-        {
-            var code = @"
+        var code = @"
 $$
 class C
 {
 }
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                ExpectedDiagnostics =
-                {
-                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                    DiagnosticResult.CompilerError("CS5001"),
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNotOnEmptyFile()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            ExpectedDiagnostics =
+            {
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                DiagnosticResult.CompilerError("CS5001"),
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnEmptyFile()
+    {
+        var code = @"
 $$
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                ExpectedDiagnostics =
-                {
-                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                    DiagnosticResult.CompilerError("CS5001"),
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
+        await new VerifyCS.Test
         {
-            // default preference is to prefer top level namespaces.  As such, we only offer to convert to the alternative as a refactoring.
-            await new VerifyCS.Test
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            ExpectedDiagnostics =
             {
-                TestCode = @"
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                DiagnosticResult.CompilerError("CS5001"),
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestConvertToProgramMainWithDefaultTopLevelStatementPreference()
+    {
+        // default preference is to prefer top level namespaces.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 $$System.Console.WriteLine(0);
 ",
-                FixedCode = @"
+            FixedCode = @"
 internal class Program
 {
     private static void Main(string[] args)
@@ -77,35 +77,34 @@ internal class Program
         System.Console.WriteLine(0);
     }
 }",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestNotOfferedInLibrary()
-        {
-            var code = @"
+    [Fact]
+    public async Task TestNotOfferedInLibrary()
+    {
+        var code = @"
 $${|CS8805:System.Console.WriteLine(0);|}
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
+        await new VerifyCS.Test
         {
-            // user actually prefers top level statements.  As such, we only offer to convert to the alternative as a refactoring.
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp10,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestConvertToProgramMainWithTopLevelStatementPreferenceSuggestion()
+    {
+        // user actually prefers top level statements.  As such, we only offer to convert to the alternative as a refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 $$System.Console.WriteLine(0);
 ",
-                FixedCode = @"
+            FixedCode = @"
 internal class Program
 {
     private static void Main(string[] args)
@@ -113,63 +112,61 @@ internal class Program
         System.Console.WriteLine(0);
     }
 }",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion },
-                }
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
-        {
-            var code = @"
+    [Fact]
+    public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSuggestion()
+    {
+        var code = @"
 $$System.Console.WriteLine(0);
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Suggestion },
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNoConvertToProgramMainWithProgramMainPreferenceSilent()
+    {
+        var code = @"
 $$System.Console.WriteLine(0);
 ";
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent },
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestConvertToProgramMainWithProgramMainPreferenceSuppress()
+        await new VerifyCS.Test
         {
-            // if the user has the analyzer suppressed, then we want to supply teh refactoring.
-            await new VerifyCS.Test
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
             {
-                TestCode = @"
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.Silent },
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestConvertToProgramMainWithProgramMainPreferenceSuppress()
+    {
+        // if the user has the analyzer suppressed, then we want to supply teh refactoring.
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 $$System.Console.WriteLine(0);
 ",
-                FixedCode = @"
+            FixedCode = @"
 internal class Program
 {
     private static void Main(string[] args)
@@ -177,13 +174,12 @@ internal class Program
         System.Console.WriteLine(0);
     }
 }",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None },
-                }
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, false, NotificationOption2.None },
+            }
+        }.RunAsync();
     }
 }

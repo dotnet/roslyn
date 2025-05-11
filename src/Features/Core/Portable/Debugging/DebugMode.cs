@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Debugging
+namespace Microsoft.CodeAnalysis.Debugging;
+
+internal enum DebugMode
 {
-    internal enum DebugMode
-    {
-        Design,
-        Break,
-        Run
-    }
+    Design,
+    Break,
+    Run
 }

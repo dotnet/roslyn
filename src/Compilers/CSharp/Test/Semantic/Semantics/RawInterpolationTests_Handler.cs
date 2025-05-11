@@ -645,7 +645,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -683,7 +683,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -725,7 +725,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -770,7 +770,7 @@ value:1,alignment:2:format:Y";
   .locals init (System.ReadOnlySpan<char> V_0, //a
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_1
   IL_000d:  ldc.i4.4
@@ -820,7 +820,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -862,7 +862,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -911,7 +911,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -957,7 +957,7 @@ value:1,alignment:2:format:Y";
                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1,
                 bool V_2)
   IL_0000:  ldstr      ""1""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.4
   IL_000c:  ldc.i4.4
@@ -2025,22 +2025,22 @@ ref struct S
         if (expression.Contains('+'))
         {
             comp.VerifyDiagnostics(
-            // (6,13): error CS0306: The type 'int*' may not be used as a type argument
+            // 0.cs(6,13): error CS0306: The type 'int*' may not be used as a type argument
             //     _ = $"""{i}""" + $"""{s}""";
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 13),
-            // (6,26): error CS0306: The type 'S' may not be used as a type argument
+            // 0.cs(6,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)'
             //     _ = $"""{i}""" + $"""{s}""";
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 26));
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "T", "S").WithLocation(6, 26));
         }
         else
         {
             comp.VerifyDiagnostics(
-            // (6,13): error CS0306: The type 'int*' may not be used as a type argument
+            // 0.cs(6,13): error CS0306: The type 'int*' may not be used as a type argument
             //     _ = $"""{i}{s}""";
             Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 13),
-            // (6,16): error CS0306: The type 'S' may not be used as a type argument
+            // 0.cs(6,16): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)'
             //     _ = $"""{i}{s}""";
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 16));
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "T", "S").WithLocation(6, 16));
         }
     }
 
@@ -2506,9 +2506,10 @@ ref struct S
 
         var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp);
         comp.VerifyDiagnostics(
-            // (5,21): error CS0306: The type 'S' may not be used as a type argument
-            // Console.WriteLine($"{s}");
-            Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(5, 23));
+            // 0.cs(5,23): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T)'
+            // Console.WriteLine($"""{s}""");
+            Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T)", "T", "S").WithLocation(5, 23)
+            );
     }
 
     [Theory]
@@ -3632,6 +3633,7 @@ literal:Literal");
 using System;
 CultureInfoNormalizer.Normalize();
 C.M(() => " + expression + @");
+CultureInfoNormalizer.Reset();
 
 class C
 {
@@ -3901,6 +3903,7 @@ C.M(b =>
         if (b) return default(CustomHandler);
         else return " + expression + @";
     });
+CultureInfoNormalizer.Reset();
 
 static class C
 {
@@ -4177,6 +4180,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : " + expression + @";
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4189,7 +4193,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4207,12 +4211,13 @@ public partial struct CustomHandler
   IL_002c:  ldloc.0
   IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_0037:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003c:  ret
 }
 "
 : @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4232,7 +4237,8 @@ public partial struct CustomHandler
   IL_0036:  ldloc.0
   IL_0037:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_003c:  call       ""void System.Console.WriteLine(string)""
-  IL_0041:  ret
+  IL_0041:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0046:  ret
 }
 ");
     }
@@ -4442,6 +4448,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -4454,7 +4461,7 @@ public partial struct CustomHandler
 
         verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4476,12 +4483,13 @@ public partial struct CustomHandler
   IL_0033:  stloc.0
   IL_0034:  ldloc.0
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003f:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -4505,7 +4513,8 @@ public partial struct CustomHandler
   IL_003d:  stloc.0
   IL_003e:  ldloc.0
   IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0044:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0049:  ret
 }
 ");
     }
@@ -6752,7 +6761,7 @@ o in M
         verifier.VerifyDiagnostics(modifier == "ref readonly"
             ? new[]
             {
-                // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                // 0.cs(8,5): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                 // C.M(i, ref s, out o, $"""literal""");
                 Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
             }
@@ -7957,61 +7966,60 @@ public partial struct CustomHandler
             verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
         verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
-  // Code size       46 (0x2e)
+  // Code size       47 (0x2f)
   .maxstack  4
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.0
-  IL_0013:  ldloc.1
-  IL_0014:  newobj     ""CustomHandler..ctor(int, int, in C)""
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_2
-  IL_001c:  ldstr      ""literal""
-  IL_0021:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0026:  pop
-  IL_0027:  ldloc.2
-  IL_0028:  callvirt   ""void C.M(CustomHandler)""
-  IL_002d:  ret
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  newobj     ""CustomHandler..ctor(int, int, in C)""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 "
 : @"
 {
-  // Code size       48 (0x30)
+  // Code size       47 (0x2f)
   .maxstack  5
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
   IL_0015:  ldloc.1
-  IL_0016:  ldind.ref
-  IL_0017:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  ldstr      ""literal""
-  IL_0023:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0028:  pop
-  IL_0029:  ldloc.2
-  IL_002a:  callvirt   ""void C.M(CustomHandler)""
-  IL_002f:  ret
+  IL_0016:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 ");
 
@@ -8066,31 +8074,30 @@ public partial struct CustomHandler
         verifier.VerifyDiagnostics();
         verifier.VerifyIL($"Program.<<Main>$>g__localFunc|0_0({parameterRefness} C)", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       42 (0x2a)
   .maxstack  5
-  .locals init (C& V_0,
+  .locals init (C V_0,
                 CustomHandler V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  newobj     ""C..ctor(int)""
   IL_0007:  stind.ref
   IL_0008:  ldarg.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldind.ref
+  IL_0009:  ldind.ref
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
   IL_000c:  ldloca.s   V_1
   IL_000e:  ldc.i4.7
   IL_000f:  ldc.i4.0
   IL_0010:  ldloc.0
-  IL_0011:  ldind.ref
-  IL_0012:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldstr      ""literal""
-  IL_001e:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0023:  pop
-  IL_0024:  ldloc.1
-  IL_0025:  callvirt   ""void C.M(CustomHandler)""
-  IL_002a:  ret
+  IL_0011:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  ldstr      ""literal""
+  IL_001d:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0022:  pop
+  IL_0023:  ldloc.1
+  IL_0024:  callvirt   ""void C.M(CustomHandler)""
+  IL_0029:  ret
 }
 ");
 
@@ -10464,7 +10471,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -10497,7 +10505,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -10540,7 +10549,7 @@ public partial struct CustomHandler
 
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeOneTimeHelpers: false);
 
-        var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: "d:1");
         verifier.VerifyDiagnostics();
 
@@ -10591,7 +10600,7 @@ public struct CustomHandler
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
         verifier.VerifyDiagnostics();
 
@@ -10642,7 +10651,7 @@ public struct CustomHandler
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
         verifier.VerifyDiagnostics();
 
@@ -10687,7 +10696,7 @@ public struct CustomHandler
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: "AppendLiteral");
         verifier.VerifyDiagnostics();
 
@@ -10738,7 +10747,7 @@ public struct CustomHandler
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: "AppendFormatted");
         verifier.VerifyDiagnostics();
 
@@ -10789,12 +10798,17 @@ public struct CustomHandler
 
     public void AppendFormatted(dynamic d)
     {
+        Console.WriteLine(""---"");
+    }
+
+    public void AppendFormatted(int d)
+    {
         Console.WriteLine(""AppendFormatted"");
     }
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -10881,13 +10895,19 @@ public struct CustomHandler
 
     public bool AppendFormatted(dynamic d)
     {
+        Console.WriteLine(""---"");
+        return true;
+    }
+
+    public bool AppendFormatted(int d)
+    {
         Console.WriteLine(""AppendFormatted"");
         return true;
     }
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+        var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
         var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -12625,9 +12645,14 @@ CustomHandler c = " + expression + ";";
 
         var comp = CreateCompilationWithCSharp(new[] { code, handler });
 
-        // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-        // error here. This will crash at runtime because of this.
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyDiagnostics(
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19),
+            // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+            // CustomHandler c = $"""{h1}""" + $"""{h2}""";
+            Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19)
+            );
     }
 
     [Theory]

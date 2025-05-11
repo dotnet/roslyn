@@ -161,12 +161,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Dim bufferOptions = _editorOptionsFactoryService.GetOptions(subjectBuffer)
 
             Return New EndConstructState(
-                caretPosition.Value, New Lazy(Of SemanticModel)(Function() document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken)), tree, tokenToLeft, bufferOptions.GetNewLineCharacter())
+                caretPosition.Value, AsyncLazy.Create(Function(c) document.GetSemanticModelAsync(c)), tree, tokenToLeft, bufferOptions.GetNewLineCharacter())
         End Function
 
-        Friend Overridable Function TryDoEndConstructForEnterKey(textView As ITextView,
-                                                                 subjectBuffer As ITextBuffer,
-                                                                 cancellationToken As CancellationToken) As Boolean
+        Friend Overridable Async Function TryDoEndConstructForEnterKeyAsync(
+                textView As ITextView,
+                subjectBuffer As ITextBuffer,
+                cancellationToken As CancellationToken) As Task(Of Boolean)
             Using Logger.LogBlock(FunctionId.EndConstruct_DoStatement, cancellationToken)
                 Using transaction = New CaretPreservingEditTransaction(VBEditorResources.End_Construct, textView, _undoHistoryRegistry, _editorOperationsFactoryService)
                     transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance
@@ -285,7 +286,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                         Return False
                     End If
 
-                    Dim visitor = New EndConstructStatementVisitor(textView, subjectBuffer, state, cancellationToken)
+                    Dim semanticModel = If(EndConstructStatementVisitor.NeedsSemanticModel(statement),
+                        Await state.GetSemanticModelAsync(cancellationToken).ConfigureAwait(True),
+                        Nothing)
+                    Dim visitor = New EndConstructStatementVisitor(textView, subjectBuffer, state, semanticModel, cancellationToken)
                     Dim result = visitor.Visit(statement)
 
                     If result Is Nothing Then
@@ -480,10 +484,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             End Using
         End Function
 
-        Public Function TryDo(textView As ITextView, subjectBuffer As ITextBuffer, typedChar As Char, cancellationToken As CancellationToken) As Boolean Implements IEndConstructGenerationService.TryDo
+        Public Async Function TryDoAsync(textView As ITextView, subjectBuffer As ITextBuffer, typedChar As Char, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IEndConstructGenerationService.TryDoAsync
             Select Case typedChar
                 Case vbLf(0)
-                    Return Me.TryDoEndConstructForEnterKey(textView, subjectBuffer, cancellationToken)
+                    Return Await Me.TryDoEndConstructForEnterKeyAsync(textView, subjectBuffer, cancellationToken).ConfigureAwait(True)
                 Case ">"c
                     Return Me.TryDoXmlElementEndConstruct(textView, subjectBuffer, cancellationToken)
                 Case "-"c

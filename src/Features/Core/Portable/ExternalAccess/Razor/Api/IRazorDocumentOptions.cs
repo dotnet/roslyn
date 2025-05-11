@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+
+internal interface IRazorDocumentOptions
 {
-    internal interface IRazorDocumentOptions
-    {
-        bool TryGetDocumentOption(OptionKey option, out object? value);
-    }
+    bool TryGetDocumentOption(OptionKey option, out object? value);
 }

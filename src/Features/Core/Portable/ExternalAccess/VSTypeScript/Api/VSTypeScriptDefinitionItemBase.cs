@@ -12,14 +12,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 internal abstract class VSTypeScriptDefinitionItemBase : DefinitionItem
 {
     protected VSTypeScriptDefinitionItemBase(ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
-        : base(tags,
-              displayParts,
-              ImmutableArray<TaggedText>.Empty,
-              originationParts: default,
-              sourceSpans: default,
-              classifiedSpans: default,
-              properties: null,
-              displayIfNoReferences: true)
+        : base(
+            tags,
+            displayParts,
+            nameDisplayParts: [],
+            sourceSpans: default,
+            metadataLocations: [],
+            classifiedSpans: default,
+            properties: null,
+            displayableProperties: [],
+            displayIfNoReferences: true)
     {
     }
 }

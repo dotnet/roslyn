@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
-{
-    internal static class RenameTrackingOptionsStorage
-    {
-        public static readonly Option2<bool> RenameTracking = new("dotnet_enable_rename_tracking", defaultValue: true);
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
-        public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_show_preview_for_rename_tracking", defaultValue: true);
-    }
+internal static class RenameTrackingOptionsStorage
+{
+    public static readonly Option2<bool> RenameTracking = new("dotnet_enable_rename_tracking", defaultValue: true);
+
+    public static readonly PerLanguageOption2<bool> RenameTrackingPreview = new("dotnet_show_preview_for_rename_tracking", defaultValue: true);
 }

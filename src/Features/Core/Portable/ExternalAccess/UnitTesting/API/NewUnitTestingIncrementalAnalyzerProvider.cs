@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 using Microsoft.CodeAnalysis.Host;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
@@ -53,7 +52,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider : IUnitT
 
         var metadata = new UnitTestingIncrementalAnalyzerProviderMetadata(
             analyzerName,
-            new[] { workspaceKind });
+            [workspaceKind]);
 
         solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
         return analyzerProvider;

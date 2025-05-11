@@ -7,30 +7,31 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
-        private partial class CSharpCodeGenerator
+        private abstract partial class CSharpCodeGenerator
         {
             public sealed class SingleStatementCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                CSharpCodeGenerationOptions options,
+                ExtractMethodGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
-                protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
+                protected override SyntaxToken CreateMethodName()
+                    => GenerateMethodNameForStatementGenerators();
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement());
+                    Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnSingleStatement);
 
-                    return ImmutableArray.Create(this.SelectionResult.GetFirstStatement());
+                    return [this.SelectionResult.GetFirstStatement()];
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()

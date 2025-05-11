@@ -12,7 +12,7 @@ using System.Xml;
 
 namespace Roslyn.Test.PdbUtilities
 {
-    public class Token2SourceLineExporter
+    public static class Token2SourceLineExporter
     {
         // NOTE: this type implementation is essentially an extraction from PdbReader 
         //       located under ndp\clr\src\ToolBox\CCI2\PdbReader folder
@@ -1127,10 +1127,6 @@ namespace Roslyn.Test.PdbUtilities
             //internal byte[] rgl;        // user data, force 4-byte alignment
         };
 
-        private Token2SourceLineExporter()
-        {
-        }
-
         private static readonly XmlWriterSettings s_xmlWriterSettings = new XmlWriterSettings
         {
             Encoding = Encoding.UTF8,
@@ -1147,7 +1143,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 writer.WriteStartElement("token-map");
 
-                List<PdbTokenLine> list = new List<PdbTokenLine>(LoadTokenToSourceMapping(read).Values);
+                List<PdbTokenLine> list = [.. LoadTokenToSourceMapping(read).Values];
                 list.Sort(
                     (x, y) =>
                     {
@@ -1236,7 +1232,7 @@ namespace Roslyn.Test.PdbUtilities
 
         private static Dictionary<string, int> LoadNameIndex(BitAccess bits)
         {
-            Dictionary<string, int> result = new Dictionary<string, int>();
+            Dictionary<string, int> result = [];
             bits.ReadInt32(out var ver);    //  0..3  Version
             bits.ReadInt32(out var sig);    //  4..7  Signature
             bits.ReadInt32(out var age);    //  8..11 Age
@@ -1467,7 +1463,7 @@ namespace Roslyn.Test.PdbUtilities
 
             if (modList.Count > 0)
             {
-                modules = modList.ToArray();
+                modules = [.. modList];
             }
             else
             {

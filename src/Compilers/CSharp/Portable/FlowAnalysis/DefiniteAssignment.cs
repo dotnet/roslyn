@@ -17,7 +17,6 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -347,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // All primary constructor parameters are definitely assigned outside of the primary constructor
                         foreach (var parameter in primaryConstructor.Parameters)
                         {
-                            NoteWrite(parameter, value: null, read: true);
+                            NoteWrite(parameter, value: null, read: true, isRef: parameter.RefKind != RefKind.None);
                         }
 
                         CurrentSymbol = save;
@@ -362,11 +361,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
-                if (methodThisParameter.Type.SpecialType != SpecialType.None)
+                if (methodThisParameter.Type.SpecialType.CanOptimizeBehavior())
                 {
                     int slot = GetOrCreateSlot(methodThisParameter);
                     SetSlotState(slot, true);
                 }
+            }
+
+            ParameterSymbol extensionParameter = null;
+            if (_symbol.TryGetInstanceExtensionParameter(out extensionParameter))
+            {
+                EnterParameter(extensionParameter);
             }
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
@@ -379,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LeaveParameters(methodParameters, null, location);
                 if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, null, location);
+                if ((object)extensionParameter != null) LeaveParameter(extensionParameter, null, location);
 
                 var savedState = this.State;
                 foreach (PendingBranch returnBranch in pendingReturns)
@@ -386,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
                     if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    if ((object)extensionParameter != null) LeaveParameter(extensionParameter, returnBranch.Branch.Syntax, null);
                     Join(ref savedState, ref this.State);
                 }
 
@@ -667,14 +674,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
-        {
-            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
-            public override int GetHashCode(Diagnostic obj) =>
-                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
-        }
-
         /// <summary>
         /// Analyze the body, reporting all necessary diagnostics.
         /// </summary>
@@ -847,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void NoteWrite(Symbol variable, BoundExpression value, bool read)
+        protected virtual void NoteWrite(Symbol variable, BoundExpression value, bool read, bool isRef)
         {
             if ((object)variable != null)
             {
@@ -855,7 +854,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
                     var field = (FieldSymbol)variable.OriginalDefinition;
-                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type, value), write: true);
+                    _sourceAssembly.NoteFieldAccess(field,
+                        read: read && WriteConsideredUse(field.Type, value),
+                        write: field.RefKind == RefKind.None || isRef);
                 }
 
                 var local = variable as LocalSymbol;
@@ -950,7 +951,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void NoteWrite(BoundExpression n, BoundExpression value, bool read)
+        /// <param name="isRef">
+        /// Whether this write represents a ref-assignment.
+        /// </param>
+        private void NoteWrite(BoundExpression n, BoundExpression value, bool read, bool isRef)
         {
             while (n != null)
             {
@@ -962,12 +966,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)_sourceAssembly != null)
                             {
                                 var field = fieldAccess.FieldSymbol.OriginalDefinition;
-                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type, value), write: true);
+                                _sourceAssembly.NoteFieldAccess(field,
+                                    read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type, value),
+                                    write: field.RefKind == RefKind.None || isRef);
                             }
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
                             {
                                 n = fieldAccess.ReceiverOpt;
+                                isRef = false;
                                 if (n.Kind == BoundKind.Local)
                                 {
                                     _usedVariables.Add(((BoundLocal)n).LocalSymbol);
@@ -1002,19 +1009,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case BoundKind.ThisReference:
-                        NoteWrite(MethodThisParameter, value, read);
+                        NoteWrite(MethodThisParameter, value, read: read, isRef: isRef);
                         return;
 
                     case BoundKind.Local:
-                        NoteWrite(((BoundLocal)n).LocalSymbol, value, read);
+                        NoteWrite(((BoundLocal)n).LocalSymbol, value, read: read, isRef: isRef);
                         return;
 
                     case BoundKind.Parameter:
-                        NoteWrite(((BoundParameter)n).ParameterSymbol, value, read);
+                        NoteWrite(((BoundParameter)n).ParameterSymbol, value, read: read, isRef: isRef);
                         return;
 
                     case BoundKind.RangeVariable:
-                        NoteWrite(((BoundRangeVariable)n).Value, value, read);
+                        NoteWrite(((BoundRangeVariable)n).Value, value, read: read, isRef: isRef);
                         return;
 
                     case BoundKind.InlineArrayAccess:
@@ -1543,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             SetSlotState(slot, assigned: written || !this.State.Reachable);
                         }
 
-                        if (written) NoteWrite(pattern.VariableAccess, value, read);
+                        if (written) NoteWrite(pattern.VariableAccess, value, read: read, isRef: isRef);
                         break;
                     }
 
@@ -1554,7 +1561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LocalSymbol symbol = local.LocalSymbol;
                         int slot = GetOrCreateSlot(symbol);
                         SetSlotState(slot, assigned: written || !this.State.Reachable);
-                        if (written) NoteWrite(symbol, value, read);
+                        if (written) NoteWrite(symbol, value, read: read, isRef: isRef);
                         break;
                     }
 
@@ -1571,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             int slot = MakeSlot(local);
                             SetSlotState(slot, written);
-                            if (written) NoteWrite(local, value, read);
+                            if (written) NoteWrite(local, value, read: read, isRef: isRef);
                         }
                         break;
                     }
@@ -1581,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var elementAccess = (BoundInlineArrayAccess)node;
                         if (written)
                         {
-                            NoteWrite(elementAccess.Expression, value: null, read);
+                            NoteWrite(elementAccess.Expression, value: null, read: read, isRef: isRef);
                         }
 
                         if (elementAccess.Expression.Type.HasInlineArrayAttribute(out int length) &&
@@ -1619,7 +1626,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         int slot = MakeSlot(paramExpr);
                         SetSlotState(slot, written);
-                        if (written) NoteWrite(paramExpr, value, read);
+                        if (written) NoteWrite(paramExpr, value, read: read, isRef: isRef);
+                        break;
+                    }
+
+                case BoundKind.ObjectInitializerMember:
+                    {
+                        var member = (BoundObjectInitializerMember)node;
+                        if (_sourceAssembly is not null && member.MemberSymbol is FieldSymbol field)
+                        {
+                            _sourceAssembly.NoteFieldAccess(field.OriginalDefinition,
+                                read: false,
+                                write: field.RefKind == RefKind.None || isRef);
+                        }
                         break;
                     }
 
@@ -1631,7 +1650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expression = (BoundExpression)node;
                         int slot = MakeSlot(expression);
                         SetSlotState(slot, written);
-                        if (written) NoteWrite(expression, value, read);
+                        if (written) NoteWrite(expression, value, read: read, isRef: isRef);
                         break;
                     }
 
@@ -1813,6 +1832,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    if (_symbol.TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+                    {
+                        if (extensionParameter.RefKind != RefKind.Out)
+                        {
+                            int slot = GetOrCreateSlot(extensionParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
                 }
 
                 Symbol containing = current.ContainingSymbol;
@@ -1865,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
                 if (slot > 0) SetSlotState(slot, true);
-                NoteWrite(parameter, value: null, read: true);
+                NoteWrite(parameter, value: null, read: true, isRef: parameter.RefKind != RefKind.None);
             }
 
             if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
@@ -2065,9 +2096,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
-                            bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
-                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+
+                            if (pat.Left is not BoundBinaryPattern)
+                            {
+                                bool def = definitely && !pat.Disjunction;
+                                assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                                assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                                break;
+                            }
+
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                            var stack = ArrayBuilder<(BoundBinaryPattern pattern, bool def)>.GetInstance();
+
+                            do
+                            {
+                                definitely = definitely && !pat.Disjunction;
+                                stack.Push((pat, definitely));
+                                pat = pat.Left as BoundBinaryPattern;
+                            } while (pat is not null);
+
+                            var patAndDef = stack.Pop();
+                            assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Left, patAndDef.def);
+
+                            do
+                            {
+                                assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Right, patAndDef.def);
+                            } while (stack.TryPop(out patAndDef));
+
+                            stack.Free();
                             break;
                         }
                     default:
@@ -2075,13 +2131,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public override BoundNode VisitBlock(BoundBlock node)
+#nullable enable
+        public override BoundNode? VisitBlock(BoundBlock node)
         {
-            if (node.Instrumentation != null)
+            var instrumentation = node.Instrumentation;
+            if (instrumentation != null)
             {
-                DeclareVariable(node.Instrumentation.Local);
-                Visit(node.Instrumentation.Prologue);
+                DeclareVariables(instrumentation.Locals);
+
+                if (instrumentation.Prologue != null)
+                {
+                    Visit(instrumentation.Prologue);
+                }
             }
 
             DeclareVariables(node.Locals);
@@ -2100,14 +2161,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 
-            if (node.Instrumentation != null)
+            if (instrumentation?.Epilogue != null)
             {
-                Visit(node.Instrumentation.Epilogue);
+                Visit(instrumentation.Epilogue);
             }
 
             return null;
         }
-
+#nullable disable
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
@@ -2132,7 +2193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
                         // Mark attribute arguments as used.
-                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+                        VisitAttributes(((LocalFunctionSymbol)localFunctionStatement.Symbol).BindMethodAttributes());
 
                         VisitAlways(stmt);
                     }
@@ -2243,6 +2304,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
+        {
+            foreach (var symbol in locals)
+            {
+                DeclareVariable(symbol);
+            }
+        }
+
         private void DeclareVariable(LocalSymbol symbol)
         {
             var initiallyAssigned =
@@ -2272,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        private void ReportUnusedVariables(ImmutableArray<MethodSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2280,7 +2349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(MethodSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -2368,7 +2437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = node.Symbol;
 
             // Mark attribute arguments as used.
-            VisitAttributes(node.Symbol.BindMethodAttributes());
+            VisitAttributes(((LambdaSymbol)node.Symbol).BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 
@@ -2711,20 +2780,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot = GetOrCreateSlot(iterationVariable);
                 if (slot > 0) SetSlotAssigned(slot);
                 // NOTE: do not report unused iteration variables. They are always considered used.
-                NoteWrite(iterationVariable, null, read: true);
+                NoteWrite(iterationVariable, null, read: true, isRef: iterationVariable.RefKind != RefKind.None);
             }
-        }
-
-        public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
-        {
-            var result = base.VisitObjectInitializerMember(node);
-
-            if ((object)_sourceAssembly != null && node.MemberSymbol != null && node.MemberSymbol.Kind == SymbolKind.Field)
-            {
-                _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol.OriginalDefinition, read: false, write: true);
-            }
-
-            return result;
         }
 
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
@@ -2753,7 +2810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.GetItemOrSliceHelper == WellKnownMember.System_Span_T__Slice_Int_Int)
             {
                 // exposing ref is a potential write
-                NoteWrite(node.Expression, value: null, read: false);
+                NoteWrite(node.Expression, value: null, read: false, isRef: false);
             }
         }
 
@@ -2763,7 +2820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Type.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions))
             {
                 // exposing ref is a potential write
-                NoteWrite(node.Operand, value: null, read: false);
+                NoteWrite(node.Operand, value: null, read: false, isRef: false);
             }
         }
 
@@ -2774,7 +2831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = new StringBuilder();
             builder.Append("[assigned ");
             AppendBitNames(state.Assigned, builder);
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -2795,7 +2852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
+                builder.Append('.');
             }
 
             builder.Append(

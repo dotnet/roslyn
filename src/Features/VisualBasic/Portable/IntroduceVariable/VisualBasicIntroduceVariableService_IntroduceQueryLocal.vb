@@ -10,11 +10,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Partial Friend Class VisualBasicIntroduceVariableService
-        Protected Overrides Function IntroduceQueryLocalAsync(
+        Protected Overrides Function IntroduceQueryLocal(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 allOccurrences As Boolean,
-                cancellationToken As CancellationToken) As Task(Of Document)
+                cancellationToken As CancellationToken) As Document
 
             Dim oldOutermostQuery = expression.GetAncestorsOrThis(Of QueryExpressionSyntax)().LastOrDefault()
 
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                             SyntaxFactory.ModifiedIdentifier(newLocalNameToken.WithAdditionalAnnotations(RenameAnnotation.Create()))),
                         expression)).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Dim matches = FindMatches(document, expression, document, oldOutermostQuery, allOccurrences, cancellationToken)
+            Dim matches = FindMatches(document, expression, document, {oldOutermostQuery}, allOccurrences, cancellationToken)
             Dim innermostClauses = New HashSet(Of QueryClauseSyntax)(
                 matches.Select(Function(expr) expr.GetAncestor(Of QueryClauseSyntax)()))
 
@@ -38,8 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 ' statement, then we want to place the declaration right above that
                 ' statement. Note: we special case this because the statement we are going
                 ' to go above might not be in a block and we may have to generate it
-                Return Task.FromResult(IntroduceQueryLocalForSingleOccurrence(
-                    document, expression, newLocalName, letClause, allOccurrences, cancellationToken))
+                Return IntroduceQueryLocalForSingleOccurrence(
+                    document, expression, newLocalName, letClause, allOccurrences, cancellationToken)
             End If
 
             Dim oldInnerMostCommonQuery = matches.FindInnermostCommonNode(Of QueryExpressionSyntax)()
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim finalQuery = newInnerMostQuery.WithClauses(SyntaxFactory.List(finalClauses))
             Dim newRoot = document.Root.ReplaceNode(oldInnerMostCommonQuery, finalQuery)
 
-            Return Task.FromResult(document.Document.WithSyntaxRoot(newRoot))
+            Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
         Private Function IntroduceQueryLocalForSingleOccurrence(

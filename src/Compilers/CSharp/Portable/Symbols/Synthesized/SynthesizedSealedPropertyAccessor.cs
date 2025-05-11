@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// original virtual property, it is necessary to synthesize a sealed
     /// accessor so that the accessor will not be overridable from metadata.
     /// </summary>
-    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedMethodSymbol
     {
         private readonly PropertySymbol _property;
         private readonly MethodSymbol _overriddenAccessor;
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return true;
         }

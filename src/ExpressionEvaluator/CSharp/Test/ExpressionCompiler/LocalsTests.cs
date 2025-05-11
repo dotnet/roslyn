@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(0, assembly.Count);
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(assembly);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -532,7 +532,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll,
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1452,8 +1452,7 @@ class C
             });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/69117")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69117")]
         public void CapturedParameters()
         {
             var source = @"
@@ -2102,7 +2101,7 @@ struct S<T> where T : class
         return this.x ?? (object)y ?? z;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2173,7 +2172,7 @@ class C
         await F(y);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2243,7 +2242,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2357,7 +2356,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2418,7 +2417,7 @@ class C
         };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.<>c.<<M>b__0_0>d.MoveNext");
@@ -2492,7 +2491,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             ]);
 
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -2536,7 +2535,7 @@ public struct B
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("I", "Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
             ]);
 
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -2965,7 +2964,7 @@ class C
         return local;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3238,7 +3237,7 @@ class C<T>
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3340,7 +3339,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
@@ -3399,7 +3398,7 @@ class C
         yield return o;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
@@ -3496,7 +3495,7 @@ class C
         await F(() => G(s));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__2.MoveNext()");
@@ -3548,7 +3547,7 @@ class C
 #line 999
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__0.MoveNext()", atLineNumber: 999);
@@ -3858,13 +3857,13 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
@@ -3878,7 +3877,7 @@ class C
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
@@ -3907,14 +3906,14 @@ class C
     {
     }
 }";
-            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
+            MetadataReference[] references = [.. TargetFrameworkUtil.Mscorlib461ExtendedReferences, Net461.ExtraReferences.SystemThreadingTasksExtensions];
             var comp = CreateEmptyCompilation(new[] { source, AsyncStreamsTypes }, references: references);
             WithRuntimeInstance(comp, references, runtime =>
             {
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
@@ -5117,7 +5116,7 @@ class C
             Assert.NotNull(assembly);
             if (count == 0)
             {
-                Assert.Equal(0, assembly.Count);
+                Assert.Empty(assembly);
             }
             else
             {
@@ -5129,11 +5128,11 @@ class C
         private static void GetLocals(RuntimeInstance runtime, string methodName, MethodDebugInfoBytes debugInfo, ArrayBuilder<LocalAndMethod> locals, int count)
         {
             ImmutableArray<MetadataBlock> blocks;
-            Guid moduleVersionId;
+            ModuleId moduleId;
             ISymUnmanagedReader unused;
             int methodToken;
             int localSignatureToken;
-            GetContextState(runtime, methodName, out blocks, out moduleVersionId, out unused, out methodToken, out localSignatureToken);
+            GetContextState(runtime, methodName, out blocks, out moduleId, out unused, out methodToken, out localSignatureToken);
 
             var symReader = new MockSymUnmanagedReader(
                 new Dictionary<int, MethodDebugInfoBytes>()
@@ -5144,7 +5143,7 @@ class C
                 new AppDomain(),
                 blocks,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
@@ -5157,7 +5156,7 @@ class C
             Assert.NotNull(assembly);
             if (count == 0)
             {
-                Assert.Equal(0, assembly.Count);
+                Assert.Empty(assembly);
             }
             else
             {
@@ -5229,8 +5228,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_01()
         {
             var source =
@@ -5338,8 +5336,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_02()
         {
             var source =
@@ -5426,8 +5423,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_03()
         {
             var source =
@@ -5529,8 +5525,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_04()
         {
             var source =
@@ -5614,8 +5609,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_05()
         {
             var source =
@@ -5716,8 +5710,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_06()
         {
             var source =
@@ -5830,8 +5823,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_07()
         {
             var source =
@@ -5918,8 +5910,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_11()
         {
             var source =
@@ -6004,8 +5995,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_12()
         {
             var source =
@@ -6084,8 +6074,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_13()
         {
             var source =
@@ -6165,8 +6154,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_14()
         {
             var source =
@@ -6243,8 +6231,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_15()
         {
             var source =
@@ -6320,8 +6307,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_16()
         {
             var source =
@@ -6407,8 +6393,7 @@ public class C
             });
         }
 
-        [Fact]
-        [WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
+        [Fact, WorkItem(67177, "https://github.com/dotnet/roslyn/issues/67177")]
         public void CapturingAndShadowing_17()
         {
             var source =

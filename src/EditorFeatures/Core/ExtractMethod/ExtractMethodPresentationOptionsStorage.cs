@@ -4,12 +4,11 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal static class ExtractMethodPresentationOptionsStorage
 {
-    internal static class ExtractMethodPresentationOptionsStorage
-    {
-        // Deprecated.  Never exposed in the UI to users in any way.  Kept around to still support automation
-        // getting/setting our storage values from the user's profile.
-        public static readonly PerLanguageOption2<bool> AllowBestEffort = new("dotnet_allow_best_effort_when_extracting_method", defaultValue: true);
-    }
+    // Deprecated.  Never exposed in the UI to users in any way.  Kept around to still support automation
+    // getting/setting our storage values from the user's profile.
+    public static readonly PerLanguageOption2<bool> AllowBestEffort = new("dotnet_allow_best_effort_when_extracting_method", defaultValue: true);
 }

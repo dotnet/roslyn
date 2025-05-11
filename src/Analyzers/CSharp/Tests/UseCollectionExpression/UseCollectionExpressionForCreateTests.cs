@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForCreateCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForCreateTests
+public sealed class UseCollectionExpressionForCreateTests
 {
     private const string s_collectionBuilderApi = """
 
@@ -489,7 +489,18 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = MyCollection.CreateRange(GetValues());
+                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]GetValues());
+
+                    static IEnumerable<int> GetValues() => default;
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    MyCollection<int> i = [.. GetValues()];
 
                     static IEnumerable<int> GetValues() => default;
                 }
@@ -507,7 +518,13 @@ public class UseCollectionExpressionForCreateTests
             TestCode = """
                 class C
                 {
-                    MyCollection<int> i = MyCollection.CreateRange(new int [5]);
+                    MyCollection<int> i = [|MyCollection.[|CreateRange|](|]new int [5]);
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                class C
+                {
+                    MyCollection<int> i = [.. new int [5]];
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -757,7 +774,15 @@ public class UseCollectionExpressionForCreateTests
 
                 class C
                 {
-                    MyCollection<int> i = MyCollection.CreateRange<int>({|CS0144:new() { }|]);
+                    MyCollection<int> i = [|MyCollection.[|CreateRange|]<int>(|]{|CS0144:new() { }|});
+                }
+                """ + s_collectionBuilderApi + s_basicCollectionApi,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    MyCollection<int> i = [.. {|CS8754:new() { }|}];
                 }
                 """ + s_collectionBuilderApi + s_basicCollectionApi,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -1262,6 +1287,42 @@ public class UseCollectionExpressionForCreateTests
                 [*]
                 dotnet_style_prefer_collection_expression=when_types_exactly_match
                 """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
+    public async Task TestIEnumerablePassedToCreateRange()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedRange()
+                    {
+                        return [|ImmutableArray.[|CreateRange|](|]Enumerable.Range(1, 10).Select(n => $"Item {n}"));
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    ImmutableArray<string> GetFormattedRange()
+                    {
+                        return [.. Enumerable.Range(1, 10).Select(n => $"Item {n}")];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

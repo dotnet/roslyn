@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -54,13 +55,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
-                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
+                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, nonReusableFieldsForCleanup, synthesizedLocalOrdinals,
                   stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             Debug.Assert(asyncIteratorInfo != null);
@@ -79,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var asyncDispatch = base.GenerateMissingStateDispatch();
 
-            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod);
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod);
             if (iteratorDispatch == null)
             {
                 return asyncDispatch;
@@ -87,11 +89,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
         }
+
+        protected override BoundStatement GenerateCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+        {
+            // We need to clean nested hoisted local variables too (not just top-level ones)
+            // as they are not cleaned when exiting a block if we exit using a `yield break`
+            // or if the caller interrupts the enumeration after we reached a `yield return`.
+            // So we clean both top-level and nested hoisted local variables
+            return GenerateAllHoistedLocalsCleanup();
+        }
 #nullable disable
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
+            // ... hoisted locals cleanup ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // _current = default;
@@ -314,6 +326,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetDisposeMode(true),
                 // goto currentDisposalLabel;
                 F.Goto(_currentDisposalLabel));
+        }
+
+        protected override BoundStatement MakeAwaitPreamble()
+        {
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+            var field = _asyncIteratorInfo.CurrentField;
+            bool isManaged = field.Type.IsManagedType(ref useSiteInfo);
+            F.Diagnostics.Add(field.GetFirstLocationOrNone(), useSiteInfo);
+
+            if (isManaged)
+            {
+                // _current = default;
+                return GenerateClearCurrent();
+            }
+
+            return null;
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)

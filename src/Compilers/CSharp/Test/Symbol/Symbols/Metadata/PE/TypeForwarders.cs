@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderBase.dll,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             TestTypeForwarderHelper(assemblies);
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.mscorlib);
+            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.mscorlib);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.SystemCore);
+            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.SystemCore);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";
@@ -1092,7 +1092,9 @@ class Test
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1154,7 +1156,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1216,7 +1220,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }

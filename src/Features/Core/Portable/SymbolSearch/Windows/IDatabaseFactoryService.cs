@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Elfie.Model;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal interface IDatabaseFactoryService
 {
-    internal interface IDatabaseFactoryService
-    {
-        AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
-    }
+    AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes, bool isBinary);
 }

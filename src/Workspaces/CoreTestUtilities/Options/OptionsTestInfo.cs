@@ -69,7 +69,7 @@ internal readonly record struct OptionsTestInfo(IOption2 Option, ImmutableList<(
                             }
                             else
                             {
-                                optionInfo = new OptionsTestInfo(option, ImmutableList.Create<(string, string, bool, IOption2)>((accessorNamespace!, accessor, isPublic, option)));
+                                optionInfo = new OptionsTestInfo(option, [(accessorNamespace!, accessor, isPublic, option)]);
                             }
 
                             resultBuilder[configName] = optionInfo;

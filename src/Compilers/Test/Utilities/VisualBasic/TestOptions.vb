@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
 
@@ -13,6 +14,7 @@ Public Class TestOptions
     Public Shared ReadOnly Regular15_5 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5)
     Public Shared ReadOnly Regular16 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic16)
     Public Shared ReadOnly Regular16_9 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic16_9)
+    Public Shared ReadOnly Regular17_13 As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.VisualBasic17_13)
     Public Shared ReadOnly RegularLatest As VisualBasicParseOptions = Regular.WithLanguageVersion(LanguageVersion.Latest)
     Public Shared ReadOnly RegularWithLegacyStrongName As VisualBasicParseOptions = Regular.WithFeature("UseLegacyStrongNameProvider")
 
@@ -37,6 +39,8 @@ Public Class TestOptions
     Public Shared ReadOnly SigningDebugDll As VisualBasicCompilationOptions = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningDebugExe As VisualBasicCompilationOptions = DebugExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+
+    Public Shared ReadOnly GeneratorDriverOptions As GeneratorDriverOptions = New GeneratorDriverOptions(trackIncrementalGeneratorSteps:=True, baseDirectory:=TempRoot.Root)
 End Class
 
 Friend Module TestOptionExtensions

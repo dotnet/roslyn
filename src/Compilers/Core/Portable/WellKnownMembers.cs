@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 
@@ -16,13 +17,6 @@ namespace Microsoft.CodeAnalysis
         {
             byte[] initializationBytes = new byte[]
             {
-                // System_Object__ToString
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Object,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
-
                 // System_Math__RoundDouble
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Math,                                                                            // DeclaringTypeId
@@ -39,20 +33,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
-
-                // System_Array__get_Length
-                (byte)MemberFlags.PropertyGet,                                                                              // Flags
-                (byte)WellKnownType.System_Array,                                                                           // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-
-                // System_Array__Empty
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.System_Array,                                                                           // DeclaringTypeId
-                1,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
 
                 // System_Convert__ToBooleanDecimal
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -355,7 +335,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeTypeHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
 
                 // System_Type__Missing
                 (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
@@ -394,7 +374,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodBase, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeMethodHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeMethodHandle,
 
                 // System_Reflection_MethodBase__GetMethodFromHandle2
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -402,8 +382,8 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodBase, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeMethodHandle,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeTypeHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeMethodHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
 
                 // System_Reflection_MethodInfo__CreateDelegate
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
@@ -414,34 +394,13 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // System_Delegate__CreateDelegate
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_Delegate,                                                                          // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    3,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Delegate, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
-
-                // System_Delegate__CreateDelegate4
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_Delegate,                                                                          // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    4,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Delegate, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-
                 // System_Reflection_FieldInfo__GetFieldFromHandle
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Reflection_FieldInfo,                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_FieldInfo, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeFieldHandle,
 
                 // System_Reflection_FieldInfo__GetFieldFromHandle2
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -449,8 +408,8 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_FieldInfo, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeTypeHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
 
                 // System_Reflection_Missing__Value
                 (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
@@ -497,7 +456,7 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.System_Collections_Generic_EqualityComparer_T,                                          // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Generic_EqualityComparer_T,// Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Generic_EqualityComparer_T,  // Return Type
 
                 // System_AttributeUsageAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
@@ -1032,7 +991,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),
                     1,
                     (byte)SignatureTypeCode.GenericMethodParameter, 0,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeFieldHandle,
 
                 // System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -1049,7 +1008,7 @@ namespace Microsoft.CodeAnalysis
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Array,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeFieldHandle,
 
                 // System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData
                 (byte)(MemberFlags.PropertyGet | MemberFlags.Static),                                                       // Flags
@@ -2969,16 +2928,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
-                // System_String__Format_IFormatProvider
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    3,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
-
                 // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -3384,6 +3333,14 @@ namespace Microsoft.CodeAnalysis
                      1,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                     
+                 // System_Span_T__ctor_ref_T
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     1,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                  // System_Span_T__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
@@ -3438,6 +3395,14 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                 // System_ReadOnlySpan_T__ctor_ref_readonly_T
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     1,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                  // System_ReadOnlySpan_T__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
@@ -3840,20 +3805,20 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
 
+                 // System_Exception__ctorString
+                 (byte)MemberFlags.Constructor,                                                                                               // Flags
+                 (byte)WellKnownType.System_Exception,                                                                                        // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    1,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
                  // System_InvalidOperationException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
                   (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_InvalidOperationException - WellKnownType.ExtSentinel),        // DeclaringTypeId
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-
-                 // System_InvalidOperationException__ctorString
-                 (byte)MemberFlags.Constructor,                                                                                               // Flags
-                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_InvalidOperationException - WellKnownType.ExtSentinel),        // DeclaringTypeId
-                 0,                                                                                                                           // Arity
-                    1,                                                                                                                        // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
                  // System_Runtime_CompilerServices_SwitchExpressionException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
@@ -3877,6 +3842,13 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_CancellationToken - WellKnownType.ExtSentinel), // Argument: CancellationToken
+                    
+                // System_Threading_CancellationToken__ThrowIfCancellationRequested
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_CancellationToken - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                 // System_Threading_CancellationTokenSource__CreateLinkedTokenSource
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -4054,13 +4026,21 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                // System_MissingMethodException__ctorString
+                // System_IndexOutOfRangeException__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MissingMethodException - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IndexOutOfRangeException - WellKnownType.ExtSentinel),                                                                         // DeclaringTypeId
                 0,                                                                                                                           // Arity
-                    1,                                                                                                                       // Method Signature
+                    0,                                                                                                                       // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                // System_Runtime_CompilerServices_HotReloadException_ctorStringInt32
+                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_HotReloadException - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                0,                                                                                                                           // Arity
+                    2,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // MetadataUpdateOriginalTypeAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
@@ -4178,108 +4158,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // System_Collections_Generic_IReadOnlyCollection_T__Count
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)SpecialType.System_Collections_Generic_IReadOnlyCollection_T,                                         // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-
-                // System_Collections_Generic_IReadOnlyList_T__get_Item
-                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                      // Flags
-                (byte)SpecialType.System_Collections_Generic_IReadOnlyList_T,                                               // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // System_Collections_Generic_ICollection_T__Count
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-
-                // System_Collections_Generic_ICollection_T__IsReadOnly
-                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
-
-                // System_Collections_Generic_ICollection_T__Add
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Collections_Generic_ICollection_T__Clear
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-
-                // System_Collections_Generic_ICollection_T__Contains
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Collections_Generic_ICollection_T__CopyTo
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    2,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // System_Collections_Generic_ICollection_T__Remove
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_ICollection_T,                                                 // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Collections_Generic_IList_T__get_Item
-                (byte)(MemberFlags.PropertyGet | MemberFlags.Virtual),                                                      // Flags
-                (byte)SpecialType.System_Collections_Generic_IList_T,                                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
-                // System_Collections_Generic_IList_T__IndexOf
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_IList_T,                                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Collections_Generic_IList_T__Insert
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_IList_T,                                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    2,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-                    (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
-                // System_Collections_Generic_IList_T__RemoveAt
-                (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                           // Flags
-                (byte)SpecialType.System_Collections_Generic_IList_T,                                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-
                 // System_Collections_Generic_List_T__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
@@ -4288,11 +4166,11 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
                 // System_Collections_Generic_List_T__ctorInt32
-                (byte)MemberFlags.Constructor,                                                                                               // Flags
+                (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
-                 0,                                                                                                                           // Arity
-                    1,                                                                                                                        // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                 0,                                                                                                         // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_Collections_Generic_List_T__Add
@@ -4433,6 +4311,15 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
+                // System_Collections_Immutable_ImmutableArray_T__Empty
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,                                          // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeInstance,                                                            // Field Signature
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Collections_Generic_List_T__AddRange
                 (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
@@ -4443,15 +4330,879 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
                         1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+
+                // System_Linq_Enumerable__ToList
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, // Return Type
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Generic_List_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
+                // System_Linq_Enumerable__ToArray
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericMethodParameter, 0, // Return Type
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+
+                // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MethodCallExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Constant,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_ConstantExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__UnaryPlus,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Negate_Expression,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Negate_Expression_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__NegateChecked_Expression,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__NegateChecked_Expression_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Not_Expression,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Not_Expression_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__New_Type,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_ConstructorInfo,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_ConstructorInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_ConstructorInfo,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
+                        1,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MemberInfo,
+
+                // System_Linq_Expressions_Expression__Property,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__MemberBind_MemberInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberMemberBinding - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MemberInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_MemberBinding,
+
+                // System_Linq_Expressions_Expression__MemberBind_MethodInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberMemberBinding - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_MemberBinding,
+
+                // System_Linq_Expressions_Expression__Bind_MemberInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberAssignment - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MemberInfo,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Bind_MethodInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberAssignment - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__ListBind_MemberInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberListBinding - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MemberInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ElementInit,
+
+                // System_Linq_Expressions_Expression__ListBind_MethodInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberListBinding - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ElementInit,
+
+                // System_Linq_Expressions_Expression__ElementInit
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ElementInit, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__ListInit
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_ListInitExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel),
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ElementInit,
+
+                // System_Linq_Expressions_Expression__MemberInit
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberInitExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel),
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_MemberBinding,
+
+                // System_Linq_Expressions_Expression__Lambda
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_LambdaExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ParameterExpression,
+
+                // System_Linq_Expressions_Expression__Lambda_OfTDelegate
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                1,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.GenericTypeInstance, // Return Type
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericMethodParameter, 0,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ParameterExpression,
+
+                // System_Linq_Expressions_Expression__Parameter
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_ParameterExpression, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+
+                // System_Linq_Expressions_Expression__Coalesce,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Coalesce_Lambda,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_LambdaExpression - WellKnownType.ExtSentinel),
+
+                // System_Linq_Expressions_Expression__Quote
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__TypeIs
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_TypeBinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__Field
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MemberExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_FieldInfo,
+
+                // System_Linq_Expressions_Expression__Convert
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__Convert_MethodInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__ConvertChecked
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__ConvertChecked_MethodInfo
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Condition
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_ConditionalExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Call
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_MethodCallExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Invoke
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_InvocationExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__TypeAs
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__ArrayLength
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_UnaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__NewArrayBounds
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewArrayExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__NewArrayInit
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewArrayExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Add,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Add_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__AddChecked,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__AddChecked_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Multiply,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Multiply_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__MultiplyChecked,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__MultiplyChecked_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Subtract,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Subtract_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__SubtractChecked,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__SubtractChecked_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Divide,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Divide_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Modulo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Modulo_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__And,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__And_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__AndAlso,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__AndAlso_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__ExclusiveOr,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__ExclusiveOr_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Or,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Or_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__OrElse,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__OrElse_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__LeftShift,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__LeftShift_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__RightShift,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__RightShift_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Equal,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__Equal_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__NotEqual,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__NotEqual_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__LessThan,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__LessThan_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__LessThanOrEqual,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__LessThanOrEqual_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__GreaterThan,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__GreaterThan_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__GreaterThanOrEqual,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    4,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Default
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_DefaultExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__Power_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Text_Encoding__get_UTF8
+                (byte)(MemberFlags.PropertyGet | MemberFlags.Static),                                                       // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel), // Return Type
+
+                // System_Text_Encoding__GetString
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Encoding - WellKnownType.ExtSentinel),    // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Return Type
+                    (byte)SignatureTypeCode.Pointer, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,     // Argument: byte*
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,                                     // Argument: int
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
             {
-                "ToString",                                 // System_Object__ToString
                 "Round",                                    // System_Math__RoundDouble
                 "Pow",                                      // System_Math__PowDoubleDouble
-                "get_Length",                               // System_Array__get_Length
-                "Empty",                                    // System_Array__Empty
                 "ToBoolean",                                // System_Convert__ToBooleanDecimal
                 "ToBoolean",                                // System_Convert__ToBooleanInt32
                 "ToBoolean",                                // System_Convert__ToBooleanUInt32
@@ -4497,8 +5248,6 @@ namespace Microsoft.CodeAnalysis
                 "GetMethodFromHandle",                      // System_Reflection_MethodBase__GetMethodFromHandle
                 "GetMethodFromHandle",                      // System_Reflection_MethodBase__GetMethodFromHandle2
                 "CreateDelegate",                           // System_Reflection_MethodInfo__CreateDelegate
-                "CreateDelegate",                           // System_Delegate__CreateDelegate
-                "CreateDelegate",                           // System_Delegate__CreateDelegate4
                 "GetFieldFromHandle",                       // System_Reflection_FieldInfo__GetFieldFromHandle
                 "GetFieldFromHandle",                       // System_Reflection_FieldInfo__GetFieldFromHandle2
                 "Value",                                    // System_Reflection_Missing__Value
@@ -4811,8 +5560,6 @@ namespace Microsoft.CodeAnalysis
 
                 ".ctor",                                    // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
 
-                "Format",                                   // System_String__Format_IFormatProvider
-
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
 
@@ -4861,12 +5608,14 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_ObsoleteAttribute__ctor
                 ".ctor",                                    // System_Span_T__ctor_Pointer
                 ".ctor",                                    // System_Span_T__ctor_Array
+                ".ctor",                                    // System_Span_T__ctor_ref_T
                 "get_Item",                                 // System_Span_T__get_Item
                 "get_Length",                               // System_Span_T__get_Length
                 "Slice",                                    // System_Span_T__Slice_Int_Int
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Pointer
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array_Start_Length
+                ".ctor",                                    // System_ReadOnlySpan_T__ctor_ref_readonly_T
                 "get_Item",                                 // System_ReadOnlySpan_T__get_Item
                 "get_Length",                               // System_ReadOnlySpan_T__get_Length
                 "Slice",                                    // System_ReadOnlySpan_T__Slice_Int_Int
@@ -4919,11 +5668,12 @@ namespace Microsoft.CodeAnalysis
                 "MoveNext",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
                 "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
                 "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
+                ".ctor",                                    // System_Exception__ctorString
                 ".ctor",                                    // System_InvalidOperationException__ctor
-                ".ctor",                                    // System_InvalidOperationException__ctorString
                 ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                 "Equals",                                   // System_Threading_CancellationToken__Equals
+                "ThrowIfCancellationRequested",             // System_Threading_CancellationToken__ThrowIfCancellationRequested
                 "CreateLinkedTokenSource",                  // System_Threading_CancellationTokenSource__CreateLinkedTokenSource
                 "Token",                                    // System_Threading_CancellationTokenSource__Token
                 "Dispose",                                  // System_Threading_CancellationTokenSource__Dispose
@@ -4945,6 +5695,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute_ctor
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor
                 ".ctor",                                    // System_NotSupportedException__ctor
+                ".ctor",                                    // System_IndexOutOfRangeException__ctor
                 ".ctor",                                    // System_MissingMethodException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute
                 "Count",                                    // System_Collections_ICollection__Count,
@@ -4961,19 +5712,6 @@ namespace Microsoft.CodeAnalysis
                 "Insert",                                   // System_Collections_IList__Insert,
                 "Remove",                                   // System_Collections_IList__Remove,
                 "RemoveAt",                                 // System_Collections_IList__RemoveAt,
-                "Count",                                    // System_Collections_Generic_IReadOnlyCollection_T__Count,
-                "get_Item",                                 // System_Collections_Generic_IReadOnlyList_T__get_Item,
-                "Count",                                    // System_Collections_Generic_ICollection_T__Count,
-                "IsReadOnly",                               // System_Collections_Generic_ICollection_T__IsReadOnly,
-                "Add",                                      // System_Collections_Generic_ICollection_T__Add,
-                "Clear",                                    // System_Collections_Generic_ICollection_T__Clear,
-                "Contains",                                 // System_Collections_Generic_ICollection_T__Contains,
-                "CopyTo",                                   // System_Collections_Generic_ICollection_T__CopyTo,
-                "Remove",                                   // System_Collections_Generic_ICollection_T__Remove,
-                "get_Item",                                 // System_Collections_Generic_IList_T__get_Item,
-                "IndexOf",                                  // System_Collections_Generic_IList_T__IndexOf,
-                "Insert",                                   // System_Collections_Generic_IList_T__Insert,
-                "RemoveAt",                                 // System_Collections_Generic_IList_T__RemoveAt,
                 ".ctor",                                    // System_Collections_Generic_List_T__ctor,
                 ".ctor",                                    // System_Collections_Generic_List_T__ctorInt32,
                 "Add",                                      // System_Collections_Generic_List_T__Add
@@ -4991,10 +5729,110 @@ namespace Microsoft.CodeAnalysis
                 "CopyTo",                                   // System_Span_T__CopyTo_Span_T
                 "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
                 "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
+                "Empty",                                    // System_Collections_Immutable_ImmutableArray_T__Empty
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
+                ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
+                "ToList",                                   // System_Linq_Enumerable__ToList
+                "ToArray",                                  // System_Linq_Enumerable__ToArray
+                "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression
+                "ArrayIndex",                               // System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions
+                "Constant",                                 // System_Linq_Expressions_Expression__Constant
+                "UnaryPlus",                                // System_Linq_Expressions_Expression__UnaryPlus
+                "Negate",                                   // System_Linq_Expressions_Expression__Negate_Expression
+                "Negate",                                   // System_Linq_Expressions_Expression__Negate_Expression_MethodInfo
+                "NegateChecked",                            // System_Linq_Expressions_Expression__NegateChecked_Expression
+                "NegateChecked",                            // System_Linq_Expressions_Expression__NegateChecked_Expression_MethodInfo
+                "Not",                                      // System_Linq_Expressions_Expression__Not_Expression
+                "Not",                                      // System_Linq_Expressions_Expression__Not_Expression_MethodInfo
+                "New",                                      // System_Linq_Expressions_Expression__New_Type
+                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions
+                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions
+                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos
+                "Property",                                 // System_Linq_Expressions_Expression__Property
+                "MemberBind",                               // System_Linq_Expressions_Expression__MemberBind_MemberInfo
+                "MemberBind",                               // System_Linq_Expressions_Expression__MemberBind_MethodInfo
+                "Bind",                                     // System_Linq_Expressions_Expression__Bind_MemberInfo
+                "Bind",                                     // System_Linq_Expressions_Expression__Bind_MethodInfo
+                "ListBind",                                 // System_Linq_Expressions_Expression__ListBind_MemberInfo
+                "ListBind",                                 // System_Linq_Expressions_Expression__ListBind_MethodInfo
+                "ElementInit",                              // System_Linq_Expressions_Expression__ElementInit
+                "ListInit",                                 // System_Linq_Expressions_Expression__ListInit
+                "MemberInit",                               // System_Linq_Expressions_Expression__MemberInit
+                "Lambda",                                   // System_Linq_Expressions_Expression__Lambda
+                "Lambda",                                   // System_Linq_Expressions_Expression__Lambda_OfTDelegate
+                "Parameter",                                // System_Linq_Expressions_Expression__Parameter
+                "Coalesce",                                 // System_Linq_Expressions_Expression__Coalesce
+                "Coalesce",                                 // System_Linq_Expressions_Expression__Coalesce_Lambda
+                "Quote",                                    // System_Linq_Expressions_Expression__Quote
+                "TypeIs",                                   // System_Linq_Expressions_Expression__TypeIs
+                "Field",                                    // System_Linq_Expressions_Expression__Field
+                "Convert",                                  // System_Linq_Expressions_Expression__Convert
+                "Convert",                                  // System_Linq_Expressions_Expression__Convert_MethodInfo
+                "ConvertChecked",                           // System_Linq_Expressions_Expression__ConvertChecked
+                "ConvertChecked",                           // System_Linq_Expressions_Expression__ConvertChecked_MethodInfo
+                "Condition",                                // System_Linq_Expressions_Expression__Condition
+                "Call",                                     // System_Linq_Expressions_Expression__Call
+                "Invoke",                                   // System_Linq_Expressions_Expression__Invoke
+                "TypeAs",                                   // System_Linq_Expressions_Expression__TypeAs
+                "ArrayLength",                              // System_Linq_Expressions_Expression__ArrayLength
+                "NewArrayBounds",                           // System_Linq_Expressions_Expression__NewArrayBounds
+                "NewArrayInit",                             // System_Linq_Expressions_Expression__NewArrayInit
+                "Add",                                      // System_Linq_Expressions_Expression__Add,
+                "Add",                                      // System_Linq_Expressions_Expression__Add_MethodInfo,
+                "AddChecked",                               // System_Linq_Expressions_Expression__AddChecked,
+                "AddChecked",                               // System_Linq_Expressions_Expression__AddChecked_MethodInfo,
+                "Multiply",                                 // System_Linq_Expressions_Expression__Multiply,
+                "Multiply",                                 // System_Linq_Expressions_Expression__Multiply_MethodInfo,
+                "MultiplyChecked",                          // System_Linq_Expressions_Expression__MultiplyChecked,
+                "MultiplyChecked",                          // System_Linq_Expressions_Expression__MultiplyChecked_MethodInfo,
+                "Subtract",                                 // System_Linq_Expressions_Expression__Subtract,
+                "Subtract",                                 // System_Linq_Expressions_Expression__Subtract_MethodInfo,
+                "SubtractChecked",                          // System_Linq_Expressions_Expression__SubtractChecked,
+                "SubtractChecked",                          // System_Linq_Expressions_Expression__SubtractChecked_MethodInfo,
+                "Divide",                                   // System_Linq_Expressions_Expression__Divide,
+                "Divide",                                   // System_Linq_Expressions_Expression__Divide_MethodInfo,
+                "Modulo",                                   // System_Linq_Expressions_Expression__Modulo,
+                "Modulo",                                   // System_Linq_Expressions_Expression__Modulo_MethodInfo,
+                "And",                                      // System_Linq_Expressions_Expression__And,
+                "And",                                      // System_Linq_Expressions_Expression__And_MethodInfo,
+                "AndAlso",                                  // System_Linq_Expressions_Expression__AndAlso,
+                "AndAlso",                                  // System_Linq_Expressions_Expression__AndAlso_MethodInfo,
+                "ExclusiveOr",                              // System_Linq_Expressions_Expression__ExclusiveOr,
+                "ExclusiveOr",                              // System_Linq_Expressions_Expression__ExclusiveOr_MethodInfo,
+                "Or",                                       // System_Linq_Expressions_Expression__Or,
+                "Or",                                       // System_Linq_Expressions_Expression__Or_MethodInfo,
+                "OrElse",                                   // System_Linq_Expressions_Expression__OrElse,
+                "OrElse",                                   // System_Linq_Expressions_Expression__OrElse_MethodInfo,
+                "LeftShift",                                // System_Linq_Expressions_Expression__LeftShift,
+                "LeftShift",                                // System_Linq_Expressions_Expression__LeftShift_MethodInfo,
+                "RightShift",                               // System_Linq_Expressions_Expression__RightShift,
+                "RightShift",                               // System_Linq_Expressions_Expression__RightShift_MethodInfo,
+                "Equal",                                    // System_Linq_Expressions_Expression__Equal,
+                "Equal",                                    // System_Linq_Expressions_Expression__Equal_MethodInfo,
+                "NotEqual",                                 // System_Linq_Expressions_Expression__NotEqual,
+                "NotEqual",                                 // System_Linq_Expressions_Expression__NotEqual_MethodInfo,
+                "LessThan",                                 // System_Linq_Expressions_Expression__LessThan,
+                "LessThan",                                 // System_Linq_Expressions_Expression__LessThan_MethodInfo,
+                "LessThanOrEqual",                          // System_Linq_Expressions_Expression__LessThanOrEqual,
+                "LessThanOrEqual",                          // System_Linq_Expressions_Expression__LessThanOrEqual_MethodInfo,
+                "GreaterThan",                              // System_Linq_Expressions_Expression__GreaterThan,
+                "GreaterThan",                              // System_Linq_Expressions_Expression__GreaterThan_MethodInfo,
+                "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual,
+                "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
+                "Default",                                  // System_Linq_Expressions_Expression__Default
+                "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
+                "get_UTF8",                                 // System_Text_Encoding__get_UTF8
+                "GetString",                                // System_Text_Encoding__GetString
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
+
+#if DEBUG
+            foreach (var descriptor in s_descriptors)
+            {
+                Debug.Assert(!descriptor.IsSpecialTypeMember); // Members of types from core library should be in the SpecialMember set instead.
+            }
+#endif
         }
 
         public static MemberDescriptor GetDescriptor(WellKnownMember member)

@@ -74,13 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var candidates = result.Results;
+            RemoveLowerPriorityMembers<UnaryOperatorAnalysisResult, MethodSymbol>(candidates);
+
             // SPEC: Otherwise, the best function member is the one function member that is better than all other function 
             // SPEC: members with respect to the given argument list, provided that each function member is compared to all 
             // SPEC: other function members using the rules in 7.5.3.2. If there is not exactly one function member that is 
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(operand, candidates, ref useSiteInfo);
             if (bestIndex != -1)
@@ -252,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // specification to match the previous implementation.
 
             var operators = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-            this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableThereof());
+            this.Compilation.BuiltInOperators.GetSimpleBuiltInOperators(kind, operators, skipNativeIntegerOperators: !operand.Type.IsNativeIntegerOrNullableThereof());
 
             GetEnumOperations(kind, operand, operators);
 
@@ -512,7 +514,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
             {
-                foreach (MethodSymbol op in type.GetOperators(name))
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                type.AddOperators(name, typeOperators);
+
+                foreach (MethodSymbol op in typeOperators)
                 {
                     // If we're in error recovery, we might have bad operators. Just ignore it.
                     if (op.ParameterCount != 1 || op.ReturnsVoid)
@@ -525,6 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
                 }
+
+                typeOperators.Free();
             }
 
             void addLiftedOperators(TypeSymbol constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)

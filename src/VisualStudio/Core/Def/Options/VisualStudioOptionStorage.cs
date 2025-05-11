@@ -4,17 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -92,29 +85,24 @@ internal abstract class VisualStudioOptionStorage
             => persister.TryFetch(optionKey, FlagName, out value);
     }
 
-    internal sealed class LocalUserProfileStorage : VisualStudioOptionStorage
+    internal sealed class LocalUserProfileStorage(string path, string key) : VisualStudioOptionStorage
     {
-        private readonly string _path;
-        private readonly string _key;
-
-        public LocalUserProfileStorage(string path, string key)
-        {
-            _path = path;
-            _key = key;
-        }
+        public string Path => path;
+        public string Key => key;
 
         public Task PersistAsync(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, object? value)
         {
-            persister.Persist(optionKey, _path, _key, value);
+            persister.Persist(optionKey, path, key, value);
             return Task.CompletedTask;
         }
 
         public bool TryFetch(LocalUserRegistryOptionPersister persister, OptionKey2 optionKey, out object? value)
-            => persister.TryFetch(optionKey, _path, _key, out value);
+            => persister.TryFetch(optionKey, path, key, out value);
     }
 
     public static readonly IReadOnlyDictionary<string, VisualStudioOptionStorage> Storages = new Dictionary<string, VisualStudioOptionStorage>()
     {
+        {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_collapse_empty_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened")},
         {"dotnet_collapse_imports_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened")},
         {"dotnet_collapse_metadata_implementations_when_first_opened", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened")},
@@ -130,6 +118,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_show_outlining_for_declaration_level_constructs", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowOutliningForDeclarationLevelConstructs")},
         {"csharp_format_on_close_brace", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace")},
         {"dotnet_classify_reassigned_variables", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyReassignedVariables")},
+        {"dotnet_classify_obsolete_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ClassificationOptions.ClassifyObsoleteSymbols")},
         {"dotnet_prefer_system_hash_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PreferSystemHashCode")},
         {"visual_studio_color_scheme_name", new RoamingProfileStorage("TextEditor.Roslyn.ColorSchemeName")},
         {"visual_studio_color_scheme_use_legacy_enhanced_colors", new RoamingProfileStorage("WindowManagement.Options.UseEnhancedColorsForManagedLanguages")},
@@ -137,7 +126,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_argument_completion_snippets", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets")},
         {"dotnet_return_key_completion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"dotnet_hide_advanced_members_in_completion", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members", vbKey: "TextEditor.Basic.Hide Advanced Auto List Members")},
+        {"dotnet_hide_advanced_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members", vbKey: "TextEditor.Basic.Hide Advanced Auto List Members")},
 #pragma warning restore
         {"dotnet_highlight_matching_portions_of_completion_list_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems")},
         {"dotnet_show_completion_item_filters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
@@ -170,6 +159,8 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_prefer_simple_default_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleDefaultExpression")},
         {"csharp_prefer_simple_using_statement", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSimpleUsingStatement")},
         {"csharp_prefer_static_local_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticLocalFunction")},
+        {"csharp_prefer_static_anonymous_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferStaticAnonymousFunction")},
+        {"csharp_prefer_system_threading_lock",  new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSystemThreadingLock")},
         {"csharp_preferred_modifier_order", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferredModifierOrder")},
         {"csharp_preserve_single_line_blocks", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingPreserveSingleLine")},
         {"csharp_preserve_single_line_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine")},
@@ -216,6 +207,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_pattern_matching_over_as_with_null_check", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferPatternMatchingOverAsWithNullCheck")},
         {"csharp_style_pattern_matching_over_is_with_cast_check", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferPatternMatchingOverIsWithCastCheck")},
         {"csharp_style_prefer_extended_property_pattern", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferExtendedPropertyPattern")},
+        {"csharp_style_prefer_implicitly_typed_lambda_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferImplicitlyTypedLambdaExpression")},
         {"csharp_style_prefer_index_operator", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferIndexOperator")},
         {"csharp_style_prefer_local_over_anonymous_function", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferLocalOverAnonymousFunction")},
         {"csharp_style_prefer_method_group_conversion", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferMethodGroupConversion")},
@@ -229,6 +221,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_style_prefer_switch_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferSwitchExpression")},
         {"csharp_style_prefer_top_level_statements", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTopLevelStatements")},
         {"csharp_style_prefer_tuple_swap", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferTupleSwap")},
+        {"csharp_style_prefer_unbound_generic_type_in_nameof", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUnboundGenericTypeInNameOf")},
         {"csharp_style_prefer_utf8_string_literals", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferUtf8StringLiterals")},
         {"csharp_style_throw_expression", new RoamingProfileStorage("TextEditor.CSharp.Specific.PreferThrowExpression")},
         {"csharp_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.CSharp.Specific.UnusedValueAssignmentPreference")},
@@ -240,7 +233,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_provide_date_and_time_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions")},
         {"dotnet_log_telemetry_for_background_analyzer_execution", new FeatureFlagStorage(@"Roslyn.LogTelemetryForBackgroundAnalyzerExecution")},
         {"dotnet_lightbulb_skip_executing_deprioritized_analyzers", new FeatureFlagStorage(@"Roslyn.LightbulbSkipExecutingDeprioritizedAnalyzers")},
-        {"dotnet_enable_lsp_pull_diagnostics", new FeatureFlagStorage(@"Lsp.PullDiagnostics")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_auto_xml_doc_comment_generation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation", "TextEditor.VisualBasic.Specific.AutoComment")},
 #pragma warning restore
@@ -282,11 +274,9 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_code_refactorings", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Components", "Code Refactorings")},
         {"dotnet_enable_editor_tagger", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Components", "Tagger")},
         {"dotnet_allow_best_effort_when_extracting_method", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Allow Best Effort")},
-        {"dotnet_extract_method_no_ref_or_out_structs", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Don't Put Out Or Ref On Strcut")},
         {"dotnet_fade_out_unreachable_code", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnreachableCode")},
         {"dotnet_fade_out_unused_imports", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedImports")},
-        {"dotnet_storage_cloud_cache", new FeatureFlagStorage(@"Roslyn.CloudCache3")},
-        {"dotnet_storage_database", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Database")},
+        {"dotnet_fade_out_unused_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FadeOutUnusedMembers")},
         {"dotnet_add_imports_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2")},
         {"dotnet_always_use_default_symbol_servers", new RoamingProfileStorage("TextEditor.AlwaysUseDefaultSymbolServers")},
         {"csharp_insert_block_comment_start_string", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
@@ -303,7 +293,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_navigate_to_decompiled_sources", new RoamingProfileStorage("TextEditor.NavigateToDecompiledSources")},
         {"dotnet_navigate_to_source_link_and_embedded_sources", new RoamingProfileStorage("TextEditor.NavigateToSourceLinkAndEmbeddedSources")},
         {"dotnet_offer_remove_unused_references", new RoamingProfileStorage("TextEditor.OfferRemoveUnusedReferences")},
-        {"dotnet_offer_remove_unused_references_feature_flag", new FeatureFlagStorage(@"Roslyn.RemoveUnusedReferences")},
         {"dotnet_enter_outlining_mode_on_file_open", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Outlining")},
         {"visual_basic_pretty_listing", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.PrettyListing")},
 #pragma warning disable CS0612 // Type or member is obsolete
@@ -325,7 +314,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_generate_equality_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_iequatable_implementation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
         {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
-        {"dotnet_insertion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
+        {"dotnet_member_insertion_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
         {"dotnet_property_generation_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"indent_size", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Size", vbKey: "TextEditor.Basic.Indent Size")},
@@ -338,6 +327,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_inlay_hints_for_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints")},
         {"csharp_enable_inlay_hints_for_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints")},
         {"csharp_enable_inlay_hints_for_implicit_object_creation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitObjectCreation")},
+        {"csharp_enable_inlay_hints_for_collection_expressions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForCollectionExpressions")},
         {"csharp_enable_inlay_hints_for_implicit_variable_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForImplicitVariableTypes")},
         {"dotnet_enable_inlay_hints_for_indexer_parameters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.ForArrayIndexers")},
         {"csharp_enable_inlay_hints_for_lambda_parameter_types", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineTypeHints.ForLambdaParameterTypes")},
@@ -348,24 +338,22 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName")},
         {"dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent")},
         {"dotnet_collapse_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameUI")},
-        {"dotnet_rename_use_inline_adornment", new RoamingProfileStorage("TextEditor.RenameUseInlineAdornment")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
-        {"dotnet_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.RenameAsynchronously")},
+        {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
+        {"dotnet_commit_rename_asynchronously", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCommitRenameAsynchronously")},
+        {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
+        // Option is deprecated, don't use the same RoamingProfileStorage key
         {"dotnet_rename_file", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
         {"dotnet_rename_in_comments", new RoamingProfileStorage("TextEditor.Specific.RenameInComments")},
         {"dotnet_rename_in_strings", new RoamingProfileStorage("TextEditor.Specific.RenameInStrings")},
         {"dotnet_rename_overloads", new RoamingProfileStorage("TextEditor.Specific.RenameOverloads")},
         {"dotnet_crash_on_analyzer_exception", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "CrashOnAnalyzerException")},
         {"visual_studio_enable_file_logging_for_diagnostics", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "EnableFileLoggingForDiagnostics")},
-        {"dotnet_normal_diagnostic_mode", new LocalUserProfileStorage(@"Roslyn\Internal\Diagnostics", "NormalDiagnosticMode")},
         {"dotnet_enable_automatic_line_ender", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Automatic Line Ender")},
         {"dotnet_enable_brace_matching", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Brace Matching")},
-        {"dotnet_enable_classification", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Classification")},
         {"dotnet_enable_event_hook_up", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Event Hookup")},
         {"dotnet_format_on_save", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "FormatOnSave")},
-        {"dotnet_enable_full_solution_analysis_memory_monitor", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Full Solution Analysis Memory Monitor")},
-        {"dotnet_code_analysis_in_separate_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "OOP64Bit")},
-        {"dotnet_enable_core_clr_in_code_analysis_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "OOPCoreClr")},
+        {"dotnet_code_analysis_in_separate_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCodeAnalysisInSeparateProcess")},
         {"dotnet_enable_server_garbage_collection_in_code_analysis_process", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
         {"dotnet_remove_intellicode_recommendation_limit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "RemoveRecommendationLimit")},
         {"dotnet_enable_rename_tracking", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Rename Tracking")},
@@ -373,14 +361,14 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_show_intellicode_debug_info", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "ShowDebugInfo")},
         {"dotnet_enable_smart_indenter", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Smart Indenter")},
         {"dotnet_enable_snippets", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Snippets2")},
-        {"dotnet_enable_squiggles", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Squiggles")},
         {"dotnet_enable_syntactic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Syntactic Colorizer")},
         {"dotnet_enable_solution_crawler", new LocalUserProfileStorage(@"Roslyn\Internal\SolutionCrawler", "Solution Crawler")},
         {"dotnet_colorize_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns")},
-        {"dotnet_detect_and_offer_editor_features_for_probable_json_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings")},
+        {"dotnet_unsupported_detect_and_offer_editor_features_for_probable_json_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings")},
         {"dotnet_highlight_related_json_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor")},
-        {"dotnet_report_invalid_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns")},
-        {"visual_studio_enable_key_binding_reset", new FeatureFlagStorage(@"Roslyn.KeybindingResetEnabled")},
+        {"dotnet_unsupported_report_invalid_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns")},
+        {"visual_studio_enable_key_binding_reset", new FeatureFlagStorage("Roslyn.KeybindingResetEnabled")},
+        {"visual_studio_enable_copilot_rename_context", new FeatureFlagStorage("Roslyn.CopilotRenameGetContext")},
         {"visual_studio_key_binding_needs_reset", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeedsReset")},
         {"visual_studio_key_binding_reset_never_show_again", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeverShowAgain")},
         {"visual_studio_resharper_key_binding_status", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "ReSharperStatus")},
@@ -398,8 +386,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_colorize_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeRegexPatterns")},
         {"dotnet_highlight_related_regex_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor")},
         {"dotnet_provide_regex_completions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions")},
-        {"dotnet_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
-        {"remove_document_diagnostics_on_document_close", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose")},
+        {"dotnet_unsupported_report_invalid_regex_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidRegexPatterns")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"dotnet_show_signature_help", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Auto List Params", vbKey: "TextEditor.Basic.Auto List Params")},
 #pragma warning restore
@@ -409,34 +396,26 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_split_comments", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SplitComments")},
         {"csharp_split_string_literal_on_return", new RoamingProfileStorage("TextEditor.CSharp.Specific.SplitStringLiterals")},
         {"visual_studio_open_stack_trace_explorer_on_focus", new RoamingProfileStorage("StackTraceExplorer.Options.OpenOnFocus")},
-        {"visual_studio_enable_document_outline", new RoamingProfileStorage(@"DocumentOutline.Enable")},
-        {"visual_studio_disable_document_outline_feature_flag", new FeatureFlagStorage(@"DocumentOutline.DisableFeature")},
         {"visual_studio_document_outline_sort_order", new RoamingProfileStorage(@"DocumentOutline.SortOrder")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
-        {"dotnet_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
         {"dotnet_compute_task_list_items_for_closed_files", new RoamingProfileStorage("TextEditor.Specific.ComputeTaskListItemsForClosedFiles")},
         {"dotnet_task_list_storage_descriptors", new RoamingProfileStorage("Microsoft.VisualStudio.ErrorListPkg.Shims.TaskListOptions.CommentTokens")},
-        {"dotnet_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
-        {"dotnet_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.CollectionExpressionWrappingLength")},
-        {"dotnet_report_invalid_placeholders_in_string_dot_format_calls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
+        {"dotnet_unsupported_conditional_expression_wrapping_length", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ConditionalExpressionWrappingLength")},
+        {"csharp_unsupported_collection_expression_wrapping_length", new RoamingProfileStorage("TextEditor.CSharp.Specific.CollectionExpressionWrappingLength")},
+        {"dotnet_unsupported_report_invalid_placeholders_in_string_dot_format_calls", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls")},
         {"visual_basic_preferred_modifier_order", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferredModifierOrder")},
         {"visual_basic_style_prefer_isnot_expression", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferIsNotExpression")},
         {"visual_basic_style_prefer_simplified_object_creation", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.PreferSimplifiedObjectCreation")},
         {"visual_basic_style_unused_value_assignment_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueAssignmentPreference")},
         {"visual_basic_style_unused_value_expression_statement_preference", new RoamingProfileStorage("TextEditor.VisualBasic.Specific.UnusedValueExpressionStatementPreference")},
         {"visual_studio_navigate_to_object_browser", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser")},
-        {"visual_studio_workspace_partial_load_mode", new FeatureFlagStorage(@"Roslyn.PartialLoadMode")},
-        {"dotnet_disable_recoverable_text", new FeatureFlagStorage(@"Roslyn.DisableRecoverableText")},
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
-        {"dotnet_run_source_generators_in_same_process_only", new FeatureFlagStorage(@"Roslyn.RunSourceGeneratorsInSameProcessOnly")},
-        {"dotnet_enable_diagnostics_in_source_generated_files", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableDiagnosticsInSourceGeneratedFilesExperiment")},
-        {"dotnet_enable_diagnostics_in_source_generated_files_feature_flag", new FeatureFlagStorage(@"Roslyn.EnableDiagnosticsInSourceGeneratedFiles")},
-        {"dotnet_enable_opening_source_generated_files_in_workspace", new RoamingProfileStorage("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment")},
-        {"dotnet_enable_opening_source_generated_files_in_workspace_feature_flag", new FeatureFlagStorage(@"Roslyn.SourceGeneratorsEnableOpeningInWorkspace")},
+        {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
     };
 }

@@ -558,6 +558,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_TooManyUserStrings_RestartRequired As Integer
+            Get
+                Return ERRID.ERR_TooManyUserStrings_RestartRequired
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property ERR_PeWritingFailure As Integer
             Get
                 Return ERRID.ERR_PeWritingFailure
@@ -570,9 +576,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer
+        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingSymbol As Integer
             Get
-                Return ERRID.ERR_EncUpdateFailedMissingAttribute
+                Return ERRID.ERR_EncUpdateFailedMissingSymbol
             End Get
         End Property
 
@@ -591,6 +597,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_FunctionPointerTypesInAttributeNotSupported As Integer
             Get
                 Return ERRID.ERR_TooLongOrComplexExpression
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_DataSectionStringLiteralHashCollision As Integer
+            Get
+                Throw ExceptionUtilities.Unreachable
             End Get
         End Property
 

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { return ImmutableArray.Create<Location>(); }
         }
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
             throw new NotImplementedException();
         }

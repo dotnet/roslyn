@@ -27,24 +27,9 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">조각 삽입</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense">
-        <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
         <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">안 함 </target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -62,49 +47,14 @@
         <target state="translated">단순화된 개체 만들기 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_imports">
-        <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">'New' 식에 대한 힌트 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">프로시저 줄 구분선 표시(_S)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">사용자 지정 구조에 ByRef 추가 안 함(_D)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">편집기 도움말</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">맺음 구문 자동 삽입(_U)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">커서 아래의 관련 키워드 강조(_K)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">커서 아래의 기호에 대한 참조 강조(_H)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
@@ -117,75 +67,20 @@
         <target state="translated">개요 모드로 파일 열기(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">메서드 추출</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
         <target state="translated">'''에 대해 XML 문서 주석 생성(_G)</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">강조 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">솔루션 크기에 맞게 최적화</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">크게</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">일반</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">요약 정보에 설명 표시</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">작게</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">성능</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">이름 바꾸기 추적 미리 보기 표시(_T)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
         <target state="translated">메타데이터에 정의된 기호를 위해 개체 브라우저로 이동(_N)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Go_to_Definition">
-        <source>Go to Definition</source>
-        <target state="translated">정의로 이동</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Import_Directives">
         <source>Import Directives</source>
         <target state="translated">Import 지시문</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">import 정렬</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
@@ -242,74 +137,9 @@
         <target state="translated">미리 정의된 형식 기본 설정:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">완성 목록 항목에서 일치하는 부분 강조 표시(_H)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">완성 항목 필터 표시(_F)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">완성 목록</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">&lt;Enter&gt; 키 기능:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">&lt;Enter&gt; 키를 누르면 항상 새 줄 추가(_A)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">코드 조각 항상 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">코드 조각 포함 안 함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">코드 조각 동작</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">문자를 삭제하면 완성 목록 표시(_D)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">문자를 입력하면 완성 목록 표시(_S)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">사용하지 않는 로컬</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

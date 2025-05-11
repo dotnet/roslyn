@@ -96,6 +96,7 @@
           BeforeTargets="GeneratePkgDef">
     <ItemGroup>
       <PkgDefBrokeredService Update="@(PkgDefBrokeredService)">
+        <_Version Condition="'%(PkgDefBrokeredService.Version)' != ''">\%(PkgDefBrokeredService.Version)</_Version>
         <_Audience>dword:00000003</_Audience> <!-- default: Local -->
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'Process'">dword:00000001</_Audience>
         <_Audience Condition="'%(PkgDefBrokeredService.Audience)' == 'RemoteExclusiveClient'">dword:00000100</_Audience>
@@ -231,7 +232,7 @@
       <_PkgDefEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' == ''">
         <!-- 11AD60FC-6D87-4674-8F88-9ABE79176CBE is id of the HubClient package which proffers ServiceHub services -->
         <RawValue>
-          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)]
+          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
 @="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
 "IsServiceHub"=dword:00000001
 "ServiceLocation"=%(PkgDefBrokeredService._ServiceLocation)
@@ -242,7 +243,7 @@
 
       <_PkgDefEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' != ''">
         <RawValue>
-          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)]
+          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
 @="%(PkgDefBrokeredService.ProfferingPackageId)"
 "audience"=%(PkgDefBrokeredService._Audience)
 ]]>

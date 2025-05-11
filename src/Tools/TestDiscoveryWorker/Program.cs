@@ -12,35 +12,45 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
-
+using Mono.Options;
 using Xunit;
 using Xunit.Abstractions;
 
-int ExitFailure = 1;
-int ExitSuccess = 0;
+const int ExitFailure = 1;
+const int ExitSuccess = 0;
 
-if (args.Length != 1)
+string? assemblyFilePath = null;
+string? outputFilePath = null;
+
+var options = new OptionSet
 {
-    return ExitFailure;
-}
+    { "assembly=", "The assembly file to process.", v => assemblyFilePath = v },
+    { "out=", "The output file name.", v => outputFilePath = v }
+};
 
-using var pipeClient = new AnonymousPipeClientStream(PipeDirection.In, args[0]);
-using var sr = new StreamReader(pipeClient);
-string? output;
-
-// Wait for 'sync message' from the server.
-do
+try
 {
-    output = await sr.ReadLineAsync().ConfigureAwait(false);
-}
-while (!(output?.StartsWith("ASSEMBLY", StringComparison.OrdinalIgnoreCase) == true));
+    List<string> extra = options.Parse(args);
 
-if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
-{
-    var assemblyFileName = output;
+    if (assemblyFilePath is null)
+    {
+        Console.WriteLine("Must pass an assembly file name.");
+        return ExitFailure;
+    }
 
-#if NET6_0_OR_GREATER   
-    var resolver = new System.Runtime.Loader.AssemblyDependencyResolver(assemblyFileName);
+    if (extra.Count > 0)
+    {
+        Console.WriteLine($"Unknown arguments: {string.Join(" ", extra)}");
+        return ExitFailure;
+    }
+
+    if (outputFilePath is null)
+    {
+        outputFilePath = Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "testlist.json");
+    }
+
+#if NET
+    var resolver = new System.Runtime.Loader.AssemblyDependencyResolver(assemblyFilePath);
     System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
     {
         var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
@@ -53,21 +63,21 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
     };
 #endif
 
-    string testDescriptor = Path.GetFileName(assemblyFileName);
+    string assemblyFileName = Path.GetFileName(assemblyFilePath);
 #if NET
-    testDescriptor += " (.NET Core)";
+    string tfm = "(.NET Core)";
 #else
-    testDescriptor += " (.NET Framework)";
+    string tfm = "(.NET Framework)";
 #endif
 
-    await Console.Out.WriteLineAsync($"Discovering tests in {testDescriptor}...").ConfigureAwait(false);
+    Console.Write($"Discovering tests in {tfm} {assemblyFileName} ... ");
 
-    using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFileName, shadowCopy: false);
-    var configuration = ConfigReader.Load(assemblyFileName);
+    using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFilePath, shadowCopy: false);
+    var configuration = ConfigReader.Load(assemblyFileName, configFileName: null);
     var sink = new Sink();
     xunit.Find(includeSourceInformation: false,
-               messageSink: sink,
-               discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
+                messageSink: sink,
+                discoveryOptions: TestFrameworkOptions.ForDiscovery(configuration));
 
     var testsToWrite = new HashSet<string>();
     await foreach (var fullyQualifiedName in sink.GetTestCaseNamesAsync())
@@ -77,23 +87,28 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
 
     if (sink.AnyWriteFailures)
     {
-        await Console.Error.WriteLineAsync($"Channel failed to write for '{assemblyFileName}'").ConfigureAwait(false);
+        Console.WriteLine($"Channel failed to write for '{assemblyFileName}'");
         return ExitFailure;
     }
 
-#if NET6_0_OR_GREATER
-    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {testDescriptor}").ConfigureAwait(false);
-#else
-    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {testDescriptor}").ConfigureAwait(false);
-#endif
+    Console.WriteLine($"{testsToWrite.Count} found");
 
-    var directory = Path.GetDirectoryName(assemblyFileName);
-    using var fileStream = File.Create(Path.Combine(directory!, "testlist.json"));
-    await JsonSerializer.SerializeAsync(fileStream, testsToWrite).ConfigureAwait(false);
+    using var fileStream = new FileStream(outputFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+    await JsonSerializer.SerializeAsync(fileStream, testsToWrite.OrderBy(x => x)).ConfigureAwait(false);
     return ExitSuccess;
 }
-
-return ExitFailure;
+catch (OptionException e)
+{
+    Console.WriteLine(e.Message);
+    options.WriteOptionDescriptions(Console.Out);
+    return ExitFailure;
+}
+catch (Exception ex)
+{
+    // Write the exception details to stderr so the host process can pick it up.
+    Console.WriteLine(ex.ToString());
+    return ExitFailure;
+}
 
 file class Sink : IMessageSink
 {
@@ -142,3 +157,4 @@ file class Sink : IMessageSink
         }
     }
 }
+

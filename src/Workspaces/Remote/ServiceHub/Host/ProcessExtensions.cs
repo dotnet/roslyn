@@ -6,31 +6,30 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal static class ProcessExtensions
 {
-    internal static class ProcessExtensions
+    private static bool s_settingPrioritySupported = true;
+
+    public static bool TrySetPriorityClass(this Process process, ProcessPriorityClass priorityClass)
     {
-        private static bool s_settingPrioritySupported = true;
-
-        public static bool TrySetPriorityClass(this Process process, ProcessPriorityClass priorityClass)
+        if (!s_settingPrioritySupported)
         {
-            if (!s_settingPrioritySupported)
-            {
-                return false;
-            }
+            return false;
+        }
 
-            try
-            {
-                process.PriorityClass = priorityClass;
-                return true;
-            }
-            catch (Exception e) when (e is PlatformNotSupportedException or Win32Exception)
-            {
-                // the runtime does not support changing process priority
-                s_settingPrioritySupported = false;
+        try
+        {
+            process.PriorityClass = priorityClass;
+            return true;
+        }
+        catch (Exception e) when (e is PlatformNotSupportedException or Win32Exception)
+        {
+            // the runtime does not support changing process priority
+            s_settingPrioritySupported = false;
 
-                return false;
-            }
+            return false;
         }
     }
 }

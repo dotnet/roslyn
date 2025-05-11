@@ -18,7 +18,7 @@ internal static class INavigableLocationExtensions
         if (location == null)
             return false;
 
-        // This switch is currently unnecessary.  Howevver, it helps support a future where location.NavigateTo becomes
+        // This switch is currently unnecessary.  However, it helps support a future where location.NavigateTo becomes
         // async and must be on the UI thread.
         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         return await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);
@@ -49,18 +49,24 @@ internal static class IDocumentNavigationServiceExtensions
     }
 
     public static async Task<bool> TryNavigateToPositionAsync(
-        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
+        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, NavigationOptions options, CancellationToken cancellationToken)
     {
-        var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false);
+        var location = await service.GetLocationForPositionAsync(workspace, documentId, position, virtualSpace, allowInvalidPosition, cancellationToken).ConfigureAwait(false);
         return await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<bool> TryNavigateToPositionAsync(
+    public static Task<bool> TryNavigateToPositionAsync(
         this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, CancellationToken cancellationToken)
+    {
+        return service.TryNavigateToPositionAsync(threadingContext, workspace, documentId, position, NavigationOptions.Default, cancellationToken);
+    }
+
+    public static async Task<bool> TryNavigateToPositionAsync(
+        this IDocumentNavigationService service, IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, int position, NavigationOptions options, CancellationToken cancellationToken)
     {
         var location = await service.GetLocationForPositionAsync(
             workspace, documentId, position, cancellationToken).ConfigureAwait(false);
-        return await location.TryNavigateToAsync(threadingContext, NavigationOptions.Default, cancellationToken).ConfigureAwait(false);
+        return await location.TryNavigateToAsync(threadingContext, options, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<bool> TryNavigateToLineAndOffsetAsync(
@@ -69,7 +75,7 @@ internal static class IDocumentNavigationServiceExtensions
         // Navigation should not change the context of linked files and Shared Projects.
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
 
-        var document = workspace.CurrentSolution.GetDocument(documentId);
+        var document = workspace.CurrentSolution.GetTextDocument(documentId);
         if (document is null)
             return false;
 

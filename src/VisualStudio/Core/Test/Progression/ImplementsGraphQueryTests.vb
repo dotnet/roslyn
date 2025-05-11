@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C)" Target="(@2 Namespace=System Type=IDisposable)" Category="Implements"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -77,7 +77,7 @@ class Goo : IComparable
                             <Link Source="(@1 Type=Goo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Target="(@2 Namespace=System Type=IComparable Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="Implements"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)

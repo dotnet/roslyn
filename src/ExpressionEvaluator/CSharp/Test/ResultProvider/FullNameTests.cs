@@ -1001,7 +1001,7 @@ namespace @namespace
 
             IDkmClrFullNameProvider2 fullNameProvider = new CSharpFormatter();
             var inspectionContext = CreateDkmInspectionContext();
-            Assert.Equal("<StringParameter>P", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
+            Assert.Equal("StringParameter", fullNameProvider.GetClrNameForField(inspectionContext, new DkmClrRuntimeInstance(assembly).Modules[0], fieldToken));
         }
     }
 }

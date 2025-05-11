@@ -2,24 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
-{
-    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
-    {
-        protected class TypeParameterCollector : SymbolVisitor
-        {
-            private readonly List<ITypeParameterSymbol> _typeParameters = new();
+namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
+{
+    internal abstract partial class MethodExtractor
+    {
+        protected sealed class TypeParameterCollector : SymbolVisitor
+        {
+            private readonly List<ITypeParameterSymbol> _typeParameters = [];
+
+            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol? typeSymbol)
             {
                 var collector = new TypeParameterCollector();
-                typeSymbol.Accept(collector);
+                typeSymbol?.Accept(collector);
 
                 return collector._typeParameters;
             }

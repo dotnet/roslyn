@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+
+internal sealed class StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root) : EmbeddedSyntaxTree<StackFrameKind, StackFrameNode, StackFrameCompilationUnit>(text, root, [])
 {
-    internal class StackFrameTree(VirtualCharSequence text, StackFrameCompilationUnit root) : EmbeddedSyntaxTree<StackFrameKind, StackFrameNode, StackFrameCompilationUnit>(text, root, ImmutableArray<EmbeddedDiagnostic>.Empty)
-    {
-    }
 }

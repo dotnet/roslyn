@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
                 }
-                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
+                RoslynDebug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
             }
 
             internal void VerifyUpdatedSymbols()
@@ -123,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var ((expr, originalSymbol), updatedSymbol) in _updatedSymbolsMap)
                 {
                     var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
-                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
+                    RoslynDebug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
                     RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
                     RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
-                    Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
+                    RoslynDebug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 }

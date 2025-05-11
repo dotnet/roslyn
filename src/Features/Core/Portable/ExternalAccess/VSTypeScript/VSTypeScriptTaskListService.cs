@@ -24,14 +24,14 @@ internal sealed class VSTypeScriptTaskListService([Import(AllowDefault = true)] 
     public async Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
     {
         if (_impl is null)
-            return ImmutableArray<TaskListItem>.Empty;
+            return [];
 
         var result = await _impl.GetTaskListItemsAsync(
             document,
             descriptors.SelectAsArray(d => new VSTypeScriptTaskListItemDescriptorWrapper(d)),
             cancellationToken).ConfigureAwait(false);
         if (result.Length == 0)
-            return ImmutableArray<TaskListItem>.Empty;
+            return [];
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 

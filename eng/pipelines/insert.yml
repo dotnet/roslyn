@@ -14,6 +14,9 @@ parameters:
   - name: queueSpeedometerValidation
     type: string
     default: 'true'
+  - name: retainInsertedBuild
+    type: string
+    default: 'true'
 
   - name: buildUserName
     type: string
@@ -46,6 +49,9 @@ parameters:
   - name: dropPath
     type: string
     default: ''
+
+  - name: cherryPick
+    type: string
 
 steps:
   - checkout: none
@@ -177,10 +183,10 @@ steps:
   # Now that everything is set, actually perform the insertion.
   - powershell: |
       mv RoslynTools.VisualStudioInsertionTool.* RIT
-      .\RIT\tools\net46\OneOffInsertion.ps1 `
+      .\RIT\tools\net472\OneOffInsertion.ps1 `
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
-        -cherryPick "(default)" `
+        -cherryPick "${{ parameters.cherryPick }}" `
         -userName "$(Template.BuildUserName)" `
         -password "$(Template.BuildPassword)" `
         -componentUserName "$(Template.ComponentUserName)" `
@@ -207,7 +213,8 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
-        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
+        -retaininsertedbuild "${{ parameters.retainInsertedBuild }}" 
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'

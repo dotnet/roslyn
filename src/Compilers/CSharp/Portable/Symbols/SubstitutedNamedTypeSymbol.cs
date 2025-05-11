@@ -9,11 +9,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -38,6 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
+
+#nullable enable
+        private StrongBox<ParameterSymbol?> _lazyExtensionParameter;
+#nullable disable
 
         private NamedTypeSymbol _lazyBaseType = ErrorTypeSymbol.UnknownResultType;
 
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void EnsureMapAndTypeParameters()
         {
-            if (!_lazyTypeParameters.IsDefault)
+            if (!RoslynImmutableInterlocked.VolatileRead(ref _lazyTypeParameters).IsDefault)
             {
                 return;
             }
@@ -483,6 +488,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasInlineArrayAttribute(out int length)
         {
             return _underlyingType.HasInlineArrayAttribute(out length);
+        }
+
+        internal sealed override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
+
+#nullable enable
+        internal sealed override ParameterSymbol? ExtensionParameter
+        {
+            get
+            {
+                if (_lazyExtensionParameter is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionParameter, new StrongBox<ParameterSymbol?>(substituteParameter()), null);
+                }
+
+                return _lazyExtensionParameter.Value;
+
+                ParameterSymbol? substituteParameter()
+                {
+                    if (!this.IsExtension)
+                    {
+                        return null;
+                    }
+
+                    var unsubstitutedParameter = OriginalDefinition.ExtensionParameter;
+                    if (unsubstitutedParameter is null)
+                    {
+                        return null;
+                    }
+
+                    return new SubstitutedParameterSymbol(containingSymbol: this, Map, unsubstitutedParameter);
+                }
+            }
         }
     }
 }

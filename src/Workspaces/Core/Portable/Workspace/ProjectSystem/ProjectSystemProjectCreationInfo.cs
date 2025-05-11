@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+
+internal class ProjectSystemProjectCreationInfo
 {
-    internal class ProjectSystemProjectCreationInfo
-    {
-        public string? AssemblyName { get; set; }
-        public CompilationOptions? CompilationOptions { get; set; }
-        public string? FilePath { get; set; }
-        public ParseOptions? ParseOptions { get; set; }
+    public string? AssemblyName { get; set; }
+    public CompilationOptions? CompilationOptions { get; set; }
+    public string? FilePath { get; set; }
+    public ParseOptions? ParseOptions { get; set; }
+    public string? CompilationOutputAssemblyFilePath { get; set; }
 
-        public Guid TelemetryId { get; set; }
-    }
+    public Guid TelemetryId { get; set; }
 }

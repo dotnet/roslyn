@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Structure;
+
+internal interface IXamlStructureService : ILanguageService
 {
-    internal interface IXamlStructureService : ILanguageService
-    {
-        Task<ImmutableArray<XamlStructureTag>> GetStructureTagsAsync(TextDocument document, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<XamlStructureTag>> GetStructureTagsAsync(TextDocument document, CancellationToken cancellationToken);
 }

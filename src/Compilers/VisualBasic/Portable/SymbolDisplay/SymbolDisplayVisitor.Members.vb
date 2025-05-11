@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         AddSpace()
 
                     Case MethodKind.PropertyGet
-                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                     Case MethodKind.PropertySet
-                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                             AddKeyword(SyntaxKind.SubKeyword)
                             AddSpace()
                         Else
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         MethodKind.EventRemove,
                         MethodKind.EventRaise
 
-                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                             AddKeyword(SyntaxKind.SubKeyword)
                             AddSpace()
                         Else
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim tokenKind As SyntaxKind = TryGetConversionTokenKind(symbol)
 
-                        If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case MethodKind.UserDefinedOperator, MethodKind.BuiltinOperator
                         Dim tokenKind As SyntaxKind = TryGetOperatorTokenKind(symbol)
 
-                        If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                        If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                             AddKeyword(SyntaxKind.FunctionKeyword)
                             AddSpace()
                         Else
@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     MethodKind.EventRemove,
                     MethodKind.EventRaise
 
-                    If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                    If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                         Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     Else
                         Dim associatedPropertyOrEvent = symbol.AssociatedSymbol
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case MethodKind.Constructor, MethodKind.StaticConstructor
-                    If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                    If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                         Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     Else
                         AddKeyword(SyntaxKind.NewKeyword)
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim tokenKind As SyntaxKind = TryGetOperatorTokenKind(symbol)
 
-                    If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                    If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                         Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     ElseIf SyntaxFacts.IsKeywordKind(tokenKind) Then
                         ' Prefer to add the operator token as a keyword if it considered both a keyword and an operator.
@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case MethodKind.Conversion
                     Dim tokenKind As SyntaxKind = TryGetConversionTokenKind(symbol)
 
-                    If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames) Then
+                    If tokenKind = SyntaxKind.None OrElse Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseMetadataMemberNames) Then
                         Builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name, visitedParents))
                     Else
                         AddKeyword(SyntaxKind.CTypeKeyword)
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace:=False, trailingSpace:=True)
                 End If
 
-                If symbol.IsParams Then
+                If symbol.IsParamsArray Then
                     AddKeyword(SyntaxKind.ParamArrayKeyword)
                     AddSpace()
                 End If

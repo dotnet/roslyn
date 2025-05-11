@@ -67,9 +67,14 @@
         <target state="translated">計數必須為正且計數必須參考字串/陣列/集合中的位置。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">索引超出範圍。必須為非負數且小於集合的大小。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">索引超出範圍。必須是非負數且小於或等於集合大小。</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">已經新增具有相同索引鍵的項目。索引鍵: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">目標陣列類型與集合中項目的類型不相容。</target>
         <note />

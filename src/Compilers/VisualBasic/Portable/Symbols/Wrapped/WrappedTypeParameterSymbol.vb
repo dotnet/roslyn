@@ -61,6 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return Me._underlyingTypeParameter.AllowsRefLikeType
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return Me._underlyingTypeParameter.Variance

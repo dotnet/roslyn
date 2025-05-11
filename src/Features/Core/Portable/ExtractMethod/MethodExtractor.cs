@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -18,45 +16,40 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    internal abstract partial class MethodExtractor<
-        TSelectionResult,
-        TStatementSyntax,
-        TExpressionSyntax>(
-            TSelectionResult selectionResult,
-            ExtractMethodGenerationOptions options,
-            bool localFunction)
-        where TSelectionResult : SelectionResult<TStatementSyntax>
-        where TStatementSyntax : SyntaxNode
-        where TExpressionSyntax : SyntaxNode
+    internal abstract partial class MethodExtractor(
+        SelectionResult selectionResult,
+        ExtractMethodGenerationOptions options,
+        bool localFunction)
     {
-        protected readonly TSelectionResult OriginalSelectionResult = selectionResult;
+        protected readonly SelectionResult OriginalSelectionResult = selectionResult;
         protected readonly ExtractMethodGenerationOptions Options = options;
         protected readonly bool LocalFunction = localFunction;
 
         protected abstract SyntaxNode ParseTypeName(string name);
-        protected abstract AnalyzerResult Analyze(TSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken);
+        protected abstract AnalyzerResult Analyze(CancellationToken cancellationToken);
         protected abstract SyntaxNode GetInsertionPointNode(AnalyzerResult analyzerResult, CancellationToken cancellationToken);
-        protected abstract Task<TriviaResult> PreserveTriviaAsync(TSelectionResult selectionResult, CancellationToken cancellationToken);
+        protected abstract Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken);
 
-        protected abstract CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult);
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(
-            InsertionPoint insertionPoint, TSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
+        protected abstract CodeGenerator CreateCodeGenerator(SelectionResult selectionResult, AnalyzerResult analyzerResult);
 
-        protected abstract SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> tokens);
         protected abstract AbstractFormattingRule GetCustomFormattingRule(Document document);
 
-        protected abstract Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
-            Document document, SyntaxToken? invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
+        protected abstract Task<(Document document, SyntaxToken invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+            Document document, SyntaxToken invocationNameToken, SyntaxNode methodDefinition, CancellationToken cancellationToken);
 
         public ExtractMethodResult ExtractMethod(OperationStatus initialStatus, CancellationToken cancellationToken)
         {
             var originalSemanticDocument = OriginalSelectionResult.SemanticDocument;
-            var analyzeResult = Analyze(OriginalSelectionResult, LocalFunction, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
+            var analyzeResult = Analyze(cancellationToken);
 
-            var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult, cancellationToken);
+            var status = CheckVariableTypes(analyzeResult.Status.With(initialStatus), analyzeResult);
             if (status.Failed)
                 return ExtractMethodResult.Fail(status);
 
@@ -66,7 +59,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 return ExtractMethodResult.Fail(canAddStatus);
 
             cancellationToken.ThrowIfCancellationRequested();
-            var codeGenerator = this.CreateCodeGenerator(analyzeResult);
+            var codeGenerator = this.CreateCodeGenerator(this.OriginalSelectionResult, analyzeResult);
 
             var statements = codeGenerator.GetNewMethodStatements(insertionPointNode, cancellationToken);
             if (statements.Status.Failed)
@@ -76,20 +69,16 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 status,
                 async cancellationToken =>
                 {
-                    var (analyzedDocument, insertionPoint) = await GetAnnotatedDocumentAndInsertionPointAsync(
-                        originalSemanticDocument, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
+                    var analyzedDocument = await GetAnnotatedDocumentAndInsertionPointAsync(
+                        OriginalSelectionResult, analyzeResult, insertionPointNode, cancellationToken).ConfigureAwait(false);
 
-                    var triviaResult = await PreserveTriviaAsync((TSelectionResult)OriginalSelectionResult.With(analyzedDocument), cancellationToken).ConfigureAwait(false);
+                    var triviaResult = await PreserveTriviaAsync(analyzedDocument.Root, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var expandedDocument = await ExpandAsync((TSelectionResult)OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
-
-                    var generatedCode = await GenerateCodeAsync(
-                        insertionPoint.With(expandedDocument),
-                        (TSelectionResult)OriginalSelectionResult.With(expandedDocument),
-                        analyzeResult,
-                        Options.CodeGenerationOptions,
-                        cancellationToken).ConfigureAwait(false);
+                    var generator = this.CreateCodeGenerator(
+                        OriginalSelectionResult.With(triviaResult.SemanticDocument),
+                        analyzeResult);
+                    var generatedCode = await generator.GenerateAsync(cancellationToken).ConfigureAwait(false);
 
                     var afterTriviaRestored = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();
@@ -99,12 +88,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var newRoot = afterTriviaRestored.Root;
-                    var invocationNameToken = GetInvocationNameToken(newRoot.GetAnnotatedTokens(generatedCode.MethodNameAnnotation));
+
+                    var invocationNameToken = newRoot.GetAnnotatedTokens(MethodNameAnnotation).Single();
 
                     // Do some final patchups of whitespace when inserting a local function.
                     if (LocalFunction)
                     {
-                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(generatedCode.MethodDefinitionAnnotation).FirstOrDefault().AsNode();
+                        var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(MethodDefinitionAnnotation).FirstOrDefault().AsNode();
                         (documentWithoutFinalFormatting, invocationNameToken) = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
                             documentWithoutFinalFormatting, invocationNameToken, methodDefinition, cancellationToken).ConfigureAwait(false);
                     }
@@ -145,18 +135,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
         }
 
-        private static async Task<SemanticDocument> ExpandAsync(TSelectionResult selection, CancellationToken cancellationToken)
-        {
-            var lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors<TExpressionSyntax>().LastOrDefault();
-            if (lastExpression == null)
-            {
-                return selection.SemanticDocument;
-            }
-
-            var newExpression = await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, n => n != selection.GetContainingScope(), expandParameter: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
-        }
-
         private async Task<(Document document, SyntaxToken? invocationNameToken)> GetFormattedDocumentAsync(
             Document document,
             SyntaxToken? invocationNameToken,
@@ -184,84 +162,65 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return (formattedDocument, finalInvocationNameToken == default ? null : finalInvocationNameToken);
         }
 
-        private static async Task<(SemanticDocument analyzedDocument, InsertionPoint insertionPoint)> GetAnnotatedDocumentAndInsertionPointAsync(
-            SemanticDocument document,
+        private static async Task<SemanticDocument> GetAnnotatedDocumentAndInsertionPointAsync(
+            SelectionResult originalSelectionResult,
             AnalyzerResult analyzeResult,
             SyntaxNode insertionPointNode,
             CancellationToken cancellationToken)
         {
-            var annotations = new List<(SyntaxToken, SyntaxAnnotation)>(analyzeResult.Variables.Length);
+            var document = originalSelectionResult.SemanticDocument;
+
+            var tokenMap = new MultiDictionary<SyntaxToken, SyntaxAnnotation>();
             foreach (var variable in analyzeResult.Variables)
-                variable.AddIdentifierTokenAnnotationPair(annotations, cancellationToken);
+                variable.AddIdentifierTokenAnnotationPair(tokenMap, cancellationToken);
 
-            var tokenMap = annotations.GroupBy(p => p.Item1, p => p.Item2).ToDictionary(g => g.Key, g => g.ToArray());
-
-            var insertionPointAnnotation = new SyntaxAnnotation();
-
+            var exitPoints = originalSelectionResult.IsExtractMethodOnExpression
+                ? []
+                : originalSelectionResult.GetStatementControlFlowAnalysis().ExitPoints;
             var finalRoot = document.Root.ReplaceSyntax(
-                nodes: new[] { insertionPointNode },
-                // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
-                computeReplacementNode: (o, n) => n.WithAdditionalAnnotations(insertionPointAnnotation),
+                nodes: exitPoints.Append(insertionPointNode),
+                computeReplacementNode: (o, n) =>
+                {
+                    // intentionally using 'n' (new) here.  We want to see any updated sub tokens that were updated in computeReplacementToken
+                    if (o == insertionPointNode)
+                        return n.WithAdditionalAnnotations(InsertionPointAnnotation);
+                    else
+                        return n.WithAdditionalAnnotations(ExitPointAnnotation);
+                },
                 tokens: tokenMap.Keys,
                 computeReplacementToken: (o, n) => o.WithAdditionalAnnotations(tokenMap[o]),
                 trivia: null,
                 computeReplacementTrivia: null);
 
             var finalDocument = await document.WithSyntaxRootAsync(finalRoot, cancellationToken).ConfigureAwait(false);
-            var insertionPoint = new InsertionPoint(finalDocument, insertionPointAnnotation);
 
-            return (finalDocument, insertionPoint);
+            return finalDocument;
         }
 
         private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
-            => ImmutableArray.Create(GetCustomFormattingRule(document)).AddRange(Formatter.GetDefaultFormattingRules(document));
+            => [GetCustomFormattingRule(document), .. Formatter.GetDefaultFormattingRules(document)];
 
         private OperationStatus CheckVariableTypes(
             OperationStatus status,
-            AnalyzerResult analyzeResult,
-            CancellationToken cancellationToken)
+            AnalyzerResult analyzeResult)
         {
             var semanticModel = OriginalSelectionResult.SemanticDocument.SemanticModel;
-
-            // sync selection result to same semantic data as analyzeResult
-            var firstToken = OriginalSelectionResult.GetFirstTokenInSelection();
-            var context = firstToken.Parent;
-
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveIntoMethodDefinition(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveIntoMethodDefinition(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.MethodParameters, status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToMoveOutToCallSite(cancellationToken), status);
-            status = TryCheckVariableType(semanticModel, context, analyzeResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken), status);
 
             if (status.Failed)
                 return status;
 
-            var checkedStatus = CheckType(semanticModel, context, analyzeResult.ReturnType);
-            return checkedStatus.With(status);
-        }
-
-        private OperationStatus TryCheckVariableType(
-            SemanticModel semanticModel,
-            SyntaxNode contextNode,
-            IEnumerable<VariableInfo> variables,
-            OperationStatus status)
-        {
-            if (status.Succeeded)
+            foreach (var variable in analyzeResult.Variables)
             {
-                foreach (var variable in variables)
-                {
-                    var originalType = variable.GetVariableType();
-                    var result = CheckType(semanticModel, contextNode, originalType);
-                    if (result.Failed)
-                        return status.With(result);
-                }
+                status = status.With(CheckType(semanticModel, variable.SymbolType));
+                if (status.Failed)
+                    return status;
             }
 
-            return status;
+            return status.With(CheckType(semanticModel, analyzeResult.CoreReturnType));
         }
 
         private OperationStatus CheckType(
-            SemanticModel semanticModel, SyntaxNode contextNode, ITypeSymbol type)
+            SemanticModel semanticModel, ITypeSymbol type)
         {
             Contract.ThrowIfNull(type);
 
@@ -276,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             foreach (var typeParameter in TypeParameterCollector.Collect(type))
             {
                 var typeName = ParseTypeName(typeParameter.Name);
-                var currentType = semanticModel.GetSpeculativeTypeInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
+                var currentType = semanticModel.GetSpeculativeTypeInfo(this.OriginalSelectionResult.FinalSpan.Start, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type;
                 if (currentType == null || !SymbolEqualityComparer.Default.Equals(currentType, semanticModel.ResolveType(typeParameter)))
                 {
                     return new OperationStatus(succeeded: true,
@@ -289,7 +248,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return OperationStatus.SucceededStatus;
         }
 
-        internal static string MakeMethodName(string prefix, string originalName, bool camelCase)
+        protected static string MakeMethodName(string prefix, string originalName, bool camelCase)
         {
             var startingWithLetter = originalName.ToCharArray().SkipWhile(c => !char.IsLetter(c)).ToArray();
             var name = startingWithLetter.Length == 0 ? originalName : new string(startingWithLetter);

@@ -7,12 +7,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
         private static ImmutableArray<string> s_lazyNumerals;
+        private static UTF8Encoding? s_lazyUtf8;
 
         internal static string GetNumeral(int number)
         {
@@ -274,6 +276,26 @@ namespace Roslyn.Utilities
             }
 
             return x;
+        }
+
+        internal static bool TryGetUtf8ByteRepresentation(
+            this string s,
+            [NotNullWhen(returnValue: true)] out byte[]? result,
+            [NotNullWhen(returnValue: false)] out string? error)
+        {
+            s_lazyUtf8 ??= new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+            try
+            {
+                result = s_lazyUtf8.GetBytes(s);
+                error = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                result = null;
+                error = ex.Message;
+                return false;
+            }
         }
     }
 }

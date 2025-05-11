@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _memberOffset;
 
         protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
+            : base(MethodKind.UserDefinedOperator, explicitInterfaceType: null, name, isCompoundAssignmentOrIncrementAssignment: false,
+                   containingType, containingType.GetFirstLocation(), (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
                    DeclarationModifiers.Public | DeclarationModifiers.Static, hasAnyBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
         {
             Debug.Assert(name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName);
@@ -70,21 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 0, RefKind.None, ScopedKind.None, "left", Locations),
+                                                                    ordinal: 0, RefKind.None, "left", Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, annotation),
-                                                                    ordinal: 1, RefKind.None, ScopedKind.None, "right", Locations)));
+                                                                    ordinal: 1, RefKind.None, "right", Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 2;
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            Debug.Assert(IsImplicitlyDeclared);
-            var compilation = this.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-        }
     }
 }

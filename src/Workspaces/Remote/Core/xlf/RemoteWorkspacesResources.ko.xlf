@@ -27,6 +27,11 @@
         <target state="translated">튜플을 구조체 리팩터링으로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">종속 형식 찾기</target>
@@ -57,6 +62,11 @@
         <target state="translated">필드 리팩터링 캡슐화</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="new">Extension message handler</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
         <target state="translated">확장 메서드 가져오기 완료</target>
@@ -80,6 +90,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">상속 여백</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -117,6 +132,11 @@
         <target state="translated">프로젝트 원격 분석 컬렉션</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">관련 문서</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">이름 바꾸기</target>
@@ -125,6 +145,11 @@
       <trans-unit id="FeatureName_SemanticClassification">
         <source>Semantic classification</source>
         <target state="translated">의미 체계 분류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">의미 체계 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">

@@ -126,9 +126,6 @@
   <data name="Surround_With" xml:space="preserve">
     <value>Surround With</value>
   </data>
-  <data name="Insert_Snippet" xml:space="preserve">
-    <value>Insert Snippet</value>
-  </data>
   <data name="Automatically_format_block_on_close_brace" xml:space="preserve">
     <value>Automatically format _block on }</value>
   </data>
@@ -313,62 +310,20 @@
   <data name="New_line_options_for_keywords" xml:space="preserve">
     <value>New line options for keywords</value>
   </data>
-  <data name="Use_var_when_generating_locals" xml:space="preserve">
-    <value>Use 'var' when generating locals</value>
-  </data>
-  <data name="Show_procedure_line_separators" xml:space="preserve">
-    <value>_Show procedure line separators</value>
-  </data>
-  <data name="Don_t_put_ref_or_out_on_custom_struct" xml:space="preserve">
-    <value>_Don't put ref or out on custom struct</value>
-  </data>
-  <data name="Editor_Help" xml:space="preserve">
-    <value>Editor Help</value>
-  </data>
-  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
-  </data>
-  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
-  </data>
   <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>Enter _outlining mode when files open</value>
-  </data>
-  <data name="Extract_Method" xml:space="preserve">
-    <value>Extract Method</value>
   </data>
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for ///</value>
   </data>
-  <data name="Highlighting" xml:space="preserve">
-    <value>Highlighting</value>
-  </data>
   <data name="Insert_at_the_start_of_new_lines_when_writing_comments" xml:space="preserve">
     <value>_Insert * at the start of new lines when writing /* */ comments</value>
-  </data>
-  <data name="Optimize_for_solution_size" xml:space="preserve">
-    <value>Optimize for solution size</value>
-  </data>
-  <data name="Large" xml:space="preserve">
-    <value>Large</value>
-  </data>
-  <data name="Regular" xml:space="preserve">
-    <value>Regular</value>
-  </data>
-  <data name="Small" xml:space="preserve">
-    <value>Small</value>
   </data>
   <data name="Using_Directives" xml:space="preserve">
     <value>Using Directives</value>
   </data>
-  <data name="Performance" xml:space="preserve">
-    <value>Performance</value>
-  </data>
   <data name="Place_System_directives_first_when_sorting_usings" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
-  </data>
-  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
-    <value>_Show completion list after a character is typed</value>
   </data>
   <data name="Place_keywords_in_completion_lists" xml:space="preserve">
     <value>Place _keywords in completion lists</value>
@@ -382,9 +337,6 @@
   <data name="Selection_In_Completion_List" xml:space="preserve">
     <value>Selection In Completion List</value>
   </data>
-  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
-    <value>Show preview for rename _tracking</value>
-  </data>
   <data name="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors" xml:space="preserve">
     <value>Place open brace on new line for property, indexer, and event accessors</value>
   </data>
@@ -396,9 +348,6 @@
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>
-  </data>
-  <data name="Type_Inference_preferences_colon" xml:space="preserve">
-    <value>Type Inference preferences:</value>
   </data>
   <data name="For_built_in_types" xml:space="preserve">
     <value>For built-in types</value>
@@ -445,38 +394,11 @@
   <data name="Split_string_literals_on_enter" xml:space="preserve">
     <value>Split string literals on _enter</value>
   </data>
-  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
-    <value>_Highlight matching portions of completion list items</value>
-  </data>
-  <data name="Show_completion_item_filters" xml:space="preserve">
-    <value>Show completion item _filters</value>
-  </data>
-  <data name="Enter_key_behavior_colon" xml:space="preserve">
-    <value>Enter key behavior:</value>
-  </data>
-  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
-    <value>_Only add new line on enter after end of fully typed word</value>
-  </data>
-  <data name="Always_add_new_line_on_enter" xml:space="preserve">
-    <value>_Always add new line on enter</value>
-  </data>
-  <data name="Never_add_new_line_on_enter" xml:space="preserve">
-    <value>_Never add new line on enter</value>
-  </data>
   <data name="Always_include_snippets" xml:space="preserve">
     <value>Always include snippets</value>
   </data>
   <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
     <value>Include snippets when ?-Tab is typed after an identifier</value>
-  </data>
-  <data name="Never_include_snippets" xml:space="preserve">
-    <value>Never include snippets</value>
-  </data>
-  <data name="Snippets_behavior" xml:space="preserve">
-    <value>Snippets behavior</value>
-  </data>
-  <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
-    <value>Show completion list after a character is _deleted</value>
   </data>
   <data name="null_checking_colon" xml:space="preserve">
     <value>'null' checking:</value>
@@ -496,20 +418,11 @@
   <data name="Prefer_pattern_matching_over_as_with_null_check" xml:space="preserve">
     <value>Prefer pattern matching over 'as' with 'null' check</value>
   </data>
-  <data name="Prefer_block_body" xml:space="preserve">
-    <value>Prefer block body</value>
-  </data>
-  <data name="Prefer_expression_body" xml:space="preserve">
-    <value>Prefer expression body</value>
-  </data>
   <data name="Automatically_format_on_return" xml:space="preserve">
     <value>Automatically format on return</value>
   </data>
   <data name="Automatically_format_when_typing" xml:space="preserve">
     <value>Automatically format when typing</value>
-  </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
   </data>
   <data name="When_on_single_line" xml:space="preserve">
     <value>When on single line</value>
@@ -522,10 +435,6 @@
   </data>
   <data name="Fade_out_unused_usings" xml:space="preserve">
     <value>Fade out unused usings</value>
-  </data>
-  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
-    <value>Prefer 'is null' for reference equality checks</value>
-    <comment>'is null' is a C# string and should not be localized.</comment>
   </data>
   <data name="Report_invalid_placeholders_in_string_dot_format_calls" xml:space="preserve">
     <value>Report invalid placeholders in 'string.Format' calls</value>
@@ -540,46 +449,24 @@
     <value>In other binary operators:  &amp;&amp;   ||   ??   and   or</value>
     <comment>'and' and 'or' are C# keywords and should not be localized</comment>
   </data>
-  <data name="Show_name_suggestions" xml:space="preserve">
+  <data name="Show_name_s_uggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
-  <data name="Remove_unnecessary_usings" xml:space="preserve">
-    <value>Remove unnecessary usings</value>
-  </data>
-  <data name="Sort_usings" xml:space="preserve">
-    <value>Sort usings</value>
-  </data>
-  <data name="Format_document_settings" xml:space="preserve">
-    <value>Format Document Settings (Experiment) </value>
-  </data>
-  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
-    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
+  <data name="Show_name_suggestions" xml:space="preserve">
+    <value>Show name suggestions</value>
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
     <comment>'is' and 'as' are C# keywords and should not be localized</comment>
   </data>
-  <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
-    <value>Perform additional code cleanup during formatting</value>
-  </data>
   <data name="Discard" xml:space="preserve">
     <value>Discard</value>
-  </data>
-  <data name="Unused_local" xml:space="preserve">
-    <value>Unused local</value>
   </data>
   <data name="When_on_multiple_lines" xml:space="preserve">
     <value>When on multiple lines</value>
   </data>
-  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces</value>
-  </data>
   <data name="Inside_namespace" xml:space="preserve">
     <value>Inside namespace</value>
-    <comment>'namespace' is a C# keyword and should not be localized</comment>
-  </data>
-  <data name="Outside_namespace" xml:space="preserve">
-    <value>Outside namespace</value>
     <comment>'namespace' is a C# keyword and should not be localized</comment>
   </data>
   <data name="Preferred_using_directive_placement" xml:space="preserve">
@@ -599,9 +486,6 @@
   </data>
   <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
     <value>Automatically show completion list in argument lists</value>
-  </data>
-  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
-    <value>Show remarks in Quick Info</value>
   </data>
   <data name="Pattern_matching_preferences_colon" xml:space="preserve">
     <value>Pattern matching preferences:</value>
@@ -637,9 +521,6 @@
   <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
     <value>Automatically complete statement on semicolon</value>
   </data>
-  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
-    <value>Prefer 'null' check over type check</value>
-  </data>
   <data name="Block_scoped" xml:space="preserve">
     <value>Block scoped</value>
   </data>
@@ -655,10 +536,28 @@
   <data name="Show_new_snippet_experience_experimental" xml:space="preserve">
     <value>Show new snippet experience (experimental)</value>
   </data>
+  <data name="Show_new_snippet_experience" xml:space="preserve">
+    <value>Show new snippet experience</value>
+  </data>
   <data name="Allow_blank_line_after_token_in_conditional_expression" xml:space="preserve">
     <value>Allow blank line after token in conditional expression</value>
   </data>
   <data name="Allow_blank_line_after_token_in_arrow_expression_clause" xml:space="preserve">
     <value>Allow blank line after token in arrow expression clause</value>
+  </data>
+  <data name="RunQuery" xml:space="preserve">
+    <value>Run Query</value>
+  </data>
+  <data name="CancelQuery" xml:space="preserve">
+    <value>Cancel Query</value>
+  </data>
+  <data name="RunQueryCommandToolTip" xml:space="preserve">
+    <value>Run (Ctrl+Enter)</value>
+  </data>
+  <data name="CancelQueryCommandToolTip" xml:space="preserve">
+    <value>Cancel (Escape)</value>
+  </data>
+  <data name="Prefer_implicitly_typed_lambda_expression" xml:space="preserve">
+    <value>Prefer implicitly typed lambda expression</value>
   </data>
 </root>

@@ -8,8 +8,8 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -25,22 +26,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
 using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -53,7 +54,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var expressionType = semanticModel.Compilation.ExpressionOfTType();
-        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, allowInterfaceConversion: true, addMatches: true, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(text, state, invocationExpression, expressionType, allowSemanticsChange: true, addMatches: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace `new[] { 1, 2, 3 }.Concat(x).Add(y).ToArray()` with the new collection expression.  To do
@@ -66,7 +67,8 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = await GetArgumentsAsync(document, fallbackOptions, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
+        var allMatches = analysisResult.PreMatches.Concat(analysisResult.PostMatches);
+        var arguments = await GetArgumentsAsync(document, allMatches, cancellationToken).ConfigureAwait(false);
 
         var argumentListTrailingTrivia = analysisResult.ExistingInitializer is null
             ? default
@@ -82,38 +84,69 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         var newSemanticDocument = await semanticDocument.WithSyntaxRootAsync(
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
-        var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions
-            .Zip(analysisResult.Matches, static (expression, match) => new CollectionExpressionMatch<ExpressionSyntax>(expression, match.UseSpread))
-            .ToImmutableArray();
+
+        var preMatches = CreateMatches(dummyObjectCreation.ArgumentList.Arguments, analysisResult.PreMatches, index: 0);
+        var postMatches = CreateMatches(dummyObjectCreation.ArgumentList.Arguments, analysisResult.PostMatches, index: preMatches.Length);
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
-            fallbackOptions,
             dummyObjectCreation,
-            matches,
+            preMatches,
+            postMatches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(invocationExpression, collectionExpression);
 
+        static ImmutableArray<CollectionMatch<ExpressionSyntax>> CreateMatches(
+            SeparatedSyntaxList<ArgumentSyntax> arguments,
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
+            int index)
+        {
+            using var result = TemporaryArray<CollectionMatch<ExpressionSyntax>>.Empty;
+
+            for (int i = 0, n = matches.Length; i < n; i++)
+            {
+                var match = matches[i];
+                var argument = arguments[i + index];
+
+                // If we're going to spread a collection expression, just take the values *within* that collection expression
+                // and make them arguments to the collection expression we're creating.
+                if (match.UseSpread && argument.Expression is CollectionExpressionSyntax collectionExpression)
+                {
+                    foreach (var element in collectionExpression.Elements)
+                    {
+                        if (element is SpreadElementSyntax spreadElement)
+                        {
+                            result.Add(new(spreadElement.Expression, UseSpread: true));
+                        }
+                        else if (element is ExpressionElementSyntax expressionElement)
+                        {
+                            result.Add(new(expressionElement.Expression, UseSpread: false));
+                        }
+                    }
+                }
+                else
+                {
+                    result.Add(new(argument.Expression, match.UseSpread));
+                }
+            }
+
+            return result.ToImmutableAndClear();
+        }
+
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
-            ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {
             if (matches.IsEmpty)
                 return default;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-#if CODE_STYLE
-            var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
-#else
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
+                CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -138,7 +171,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
                 }
                 else
                 {
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia());
+                    nodesAndTokens.Add(CommaToken.WithoutTrivia());
                     AddOriginallyFirstArgument(argument);
                 }
             }

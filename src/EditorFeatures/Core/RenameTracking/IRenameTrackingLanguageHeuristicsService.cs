@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+
+internal interface IRenameTrackingLanguageHeuristicsService : ILanguageService
 {
-    internal interface IRenameTrackingLanguageHeuristicsService : ILanguageService
-    {
-        bool IsIdentifierValidForRenameTracking(string name);
-    }
+    bool IsIdentifierValidForRenameTracking(string name);
 }

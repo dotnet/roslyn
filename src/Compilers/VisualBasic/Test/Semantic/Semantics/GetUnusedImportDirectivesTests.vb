@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -26,7 +27,7 @@ Class Program
 End Class
 
     </file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics(<errors>
 BC50001: Unused import statement.
@@ -89,7 +90,7 @@ Imports System.Reflection
 <Assembly: AssemblyKeyFile("]]><%= snkPath %><![CDATA[")>
 ]]>
     </file>
-</compilation>, references:={TestMetadata.Net40.SystemCore}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
+</compilation>, references:={Net40.References.SystemCore}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(New DesktopStrongNameProvider()))
 
             Dim libCompilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation name="Lib">
@@ -305,7 +306,7 @@ End Class
         <Fact()>
         Public Sub UnusedImportScript()
             Dim tree = Parse("Imports System", options:=TestOptions.Script)
-            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            Dim compilation = CreateCompilationWithMscorlib461({tree})
             compilation.AssertTheseDiagnostics(
                 <errors>
 BC50001: Unused import statement.

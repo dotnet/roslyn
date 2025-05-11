@@ -123,8 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
-        Public Overrides Function GetActiveTokens() As IEnumerable(Of SyntaxToken)
-            Return InitializerActiveStatement.DescendantTokens()
+        Public Overrides Function GetActiveTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(InitializerActiveStatement)
         End Function
 
         Public Overrides Function GetCapturedVariables(model As SemanticModel) As ImmutableArray(Of ISymbol)

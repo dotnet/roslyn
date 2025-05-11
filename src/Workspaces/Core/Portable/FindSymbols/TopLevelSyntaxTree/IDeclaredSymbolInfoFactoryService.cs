@@ -7,12 +7,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
 {
-    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
-    {
-        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
-        // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(ProjectState project, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
-    }
+    // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
+    // otherwise we would not be able to get correct data from syntax.
+    void AddDeclaredSymbolInfos(ProjectState project, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
 }

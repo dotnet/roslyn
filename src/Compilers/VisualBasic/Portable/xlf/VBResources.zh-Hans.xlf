@@ -17,6 +17,16 @@
         <target state="translated">命令行语法错误:“{0}”不是“{1}”选项的有效值。值的格式必须为 "{2}"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">无法对此成员使用 'OverloadResolutionPriorityAttribute'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">无法对替代成员使用 'OverloadResolutionPriorityAttribute'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
         <source>Cannot inherit from '{0}' because it has required members.</source>
         <target state="translated">无法从 "{0}" 继承，因为它具有必需的成员。</target>
@@ -42,9 +52,24 @@
         <target state="translated">"System.Runtime.CompilerServices.RequiredMemberAttribute" 仅供编译器使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
+        <target state="translated">无法更新“{0}”；特性“{1}”缺失。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">指定的版本字符串包含通配符，这与确定性不兼容。请删除版本字符串中的通配符，或禁用此编译的确定性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">SyncLock 不支持类型为“System.Threading.Lock”的值。请考虑改为在 Try/Finally 块中手动调用“Enter”和“Exit”方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -82,6 +107,11 @@
         <target state="translated">'{0}' 所需的成员列表格式不正确，无法解释。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, Friend, NotInheritable, have a Public parameterless constructor, inherit from System.Attribute, and be able to be applied to any type</source>
+        <target state="translated">类型 “Microsoft.CodeAnalysis.EmbeddedAttribute” 必须是非泛型，Friend、NotInheritable、具有 Public 无参数构造函数、从 System.Attribute 继承，并且能够应用于任何类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">目标运行时不支持默认接口实现。</target>
@@ -102,6 +132,16 @@
         <target state="translated">“{0}”在程序集“{1}”中定义。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeReserved">
+        <source>The type name '{0}' is reserved to be used by the compiler.</source>
+        <target state="translated">类型名称“{0}”是保留给编译器使用的。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}'无法实现接口 '{3}' ，因为它包含共享抽象或虚拟'{2}'。</target>
@@ -110,6 +150,11 @@
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">不支持 "UnmanagedCallersOnly" 属性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="translated">类型参数“{0}”以及任何嵌套级别的所有字段必须是不可为 null 的值类型，才能将其用作类型参数“{1}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
@@ -137,9 +182,19 @@
         <target state="translated">通过 init-only 资源库分配或传递 "ByRef" 属性</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">重载解析优先级</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">二进制条件表达式中的无约束类型参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="translated">正在识别 “unmanaged” 约束</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
@@ -579,13 +634,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">分析器程序集“{0}”引用了编译器的版本“{1}”，该版本高于当前正在运行的版本“{2}”。</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">分析器程序集“{0}”引用了编译器的版本“{1}”，该版本高于当前正在运行的版本“{2}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">分析器程序集引用的编译器版本高于当前正在运行的版本。</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">分析器程序集引用的编译器版本高于当前正在运行的版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
@@ -608,6 +663,16 @@
         <target state="translated">应用于参数的 CallerArgumentExpressionAttribute 将不起任何作用，因为它是自引用的。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在 SyncLock 语句中使用可能意外的基于监视器的锁定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">转换为不同类型的类型“System.Threading.Lock”的值将在 SyncLock 语句中使用可能意外的基于监视器的锁定。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">已多次指定分析器引用“{0}”</target>
@@ -616,6 +681,16 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">已多次指定分析器引用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'.</source>
+        <target state="translated">“{0}”仅用于评估，在将来的更新中可能会被更改或删除：“{1}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">类型仅用于评估，在将来的更新中可能会被更改或删除。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -1740,11 +1815,6 @@
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
         <target state="translated">未能发出模块“{0}”: {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">无法更新“{0}”；特性“{1}”缺失。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
@@ -7677,8 +7747,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定版本字符串不符合建议格式 - major.minor.build.revision</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">指定的版本字符串不符合建议的格式 - major.minor.build.revision (不带通配符)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
@@ -9297,8 +9367,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</source>
-        <target state="translated">无法从程序集“{2}”读取方法“{0}”(令牌 0x{1})的调试信息</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="translated">无法从程序集“{2}”读取方法“{0}”(令牌 0x{1:X8})的调试信息: {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

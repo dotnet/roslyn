@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ErrorLogger
+namespace Microsoft.CodeAnalysis.ErrorLogger;
+
+internal interface IErrorLoggerService : IWorkspaceService
 {
-    internal interface IErrorLoggerService : IWorkspaceService
-    {
-        void LogException(object source, Exception exception);
-    }
+    void LogException(object source, Exception exception);
 }

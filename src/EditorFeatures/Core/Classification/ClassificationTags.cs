@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal static class ClassificationTags
 {
-    internal static class ClassificationTags
-    {
-        [Obsolete("Use ToClassificationTypeName")]
-        public static string GetClassificationTypeName(string textTag)
-            => textTag.ToClassificationTypeName();
-    }
+    [Obsolete("Use ToClassificationTypeName")]
+    public static string GetClassificationTypeName(string textTag)
+        => textTag.ToClassificationTypeName();
 }

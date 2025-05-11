@@ -486,5 +486,22 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74384")>
+        Public Async Function TestAliasToPrimitive1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        using $$TBitMap = [|ulong|];
+
+        var size = sizeof([|TBitMap|]);
+        var array = new [|TBitMap|][10];
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

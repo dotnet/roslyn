@@ -9,18 +9,13 @@ using Microsoft.CodeAnalysis.ConflictMarkerResolution;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution
-{
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConflictMarkerResolution), Shared]
-    internal class CSharpResolveConflictMarkerCodeFixProvider : AbstractResolveConflictMarkerCodeFixProvider
-    {
-        private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
+namespace Microsoft.CodeAnalysis.CSharp.ConflictMarkerResolution;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpResolveConflictMarkerCodeFixProvider()
-            : base(CSharpSyntaxKinds.Instance, CS8300)
-        {
-        }
-    }
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConflictMarkerResolution), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpResolveConflictMarkerCodeFixProvider()
+    : AbstractResolveConflictMarkerCodeFixProvider(CSharpSyntaxKinds.Instance, CS8300)
+{
+    private const string CS8300 = nameof(CS8300); // Merge conflict marker encountered
 }

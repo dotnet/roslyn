@@ -4,28 +4,26 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Rename
+namespace Microsoft.CodeAnalysis.Rename;
+
+internal sealed partial class SymbolicRenameLocations
 {
-    internal sealed partial class SymbolicRenameLocations
+    private readonly struct SearchResult
     {
-        private readonly struct SearchResult
-        {
-            public readonly ImmutableHashSet<RenameLocation> Locations;
-            public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
-            public readonly ImmutableArray<ISymbol> ReferencedSymbols;
+        public readonly ImmutableHashSet<RenameLocation> Locations;
+        public readonly ImmutableArray<ReferenceLocation> ImplicitLocations;
+        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
 
-            public SearchResult(
-                ImmutableHashSet<RenameLocation> locations,
-                ImmutableArray<ReferenceLocation> implicitLocations,
-                ImmutableArray<ISymbol> referencedSymbols)
-            {
-                Contract.ThrowIfNull(locations);
-                this.Locations = locations;
-                this.ImplicitLocations = implicitLocations;
-                this.ReferencedSymbols = referencedSymbols;
-            }
+        public SearchResult(
+            ImmutableHashSet<RenameLocation> locations,
+            ImmutableArray<ReferenceLocation> implicitLocations,
+            ImmutableArray<ISymbol> referencedSymbols)
+        {
+            Contract.ThrowIfNull(locations);
+            this.Locations = locations;
+            this.ImplicitLocations = implicitLocations;
+            this.ReferencedSymbols = referencedSymbols;
         }
     }
 }

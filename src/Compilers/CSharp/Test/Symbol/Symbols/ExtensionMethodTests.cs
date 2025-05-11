@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -432,9 +432,9 @@ static class Program
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Goo is Action").WithLocation(9, 18),
-                // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                // (12,20): error CS1061: 'int' does not contain a definition for 'Goo' and no accessible extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         bool y = i.Goo is Action;
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Goo is Action").WithLocation(12, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Goo").WithArguments("int", "Goo").WithLocation(12, 20),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
                 //         bool x = s.Goo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),
@@ -1005,7 +1005,7 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore },
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 //             M1(c.F1); // wrong return type
@@ -1028,7 +1028,7 @@ static class S3
             // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
             // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
             // suggesting there may be a latent bug of missing diagnostics.
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
@@ -2202,9 +2202,9 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
-                // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (4,29): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
         }
 
@@ -2739,9 +2739,8 @@ class Program
             methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
-            parameter = methodSymbol.ThisParameter;
-            Assert.Equal(-1, parameter.Ordinal);
-            Assert.Equal(parameter.ContainingSymbol, methodSymbol);
+            // 9341 is resolved as Won't Fix since ThisParameter property is internal.
+            Assert.Throws<InvalidOperationException>(() => methodSymbol.ThisParameter);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, Action<ModuleSymbol> validator = null,
@@ -3798,7 +3797,7 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
@@ -4139,6 +4138,27 @@ public static class C
                 // (8,37): error CS1620: Argument 2 must be passed with the 'ref' keyword
                 //     public A(int x, A a = new A().M(1)) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "ref").WithLocation(8, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74404")]
+        public void Repro_74404()
+        {
+            var source = """
+                #nullable enable
+                class C<T>;
+                static class CExt
+                {
+                    public static void M<T>(this C<T> c)
+                    {
+                        c.M = 42;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS1656: Cannot assign to 'M' because it is a 'method group'
+                //         c.M = 42;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.M").WithArguments("M", "method group").WithLocation(7, 9));
         }
     }
 }

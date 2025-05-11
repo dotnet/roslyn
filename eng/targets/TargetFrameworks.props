@@ -3,20 +3,22 @@
 
   <!-- 
     This props file manages the target framework properties for Roslyn. The strategy for these properties
-    is convered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    is covered in "docs/contributing/target-framework-strategy.md". Please see that for documentation
     on what these values mean.
 
     Requirements: 
       - NetVSShared must include both NetVS and NetVSCode
-      - NetRoslynSourceBuild must include NetRoslynToolset
+      - NetRoslynSourceBuild must include NetRoslyn
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <NetRoslyn>net8.0</NetRoslyn>
-    <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
+    <NetRoslyn>net9.0</NetRoslyn>
+    <NetRoslynAll>net8.0;net9.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
-    <NetVSCode>net7.0</NetVSCode>
-    <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetVSCode>net9.0</NetVSCode>
+    <NetVSShared>net8.0</NetVSShared>
+    <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
+    <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
 
   <!-- 
@@ -33,22 +35,28 @@
         bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
         the toolset must support that.
     -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' != 'true'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetPrevious)</NetRoslynToolset>
+        <!-- TODO until we figure out what is up with NetPrevious -->
+        <NetPrevious>$(NetMinimum)</NetPrevious>
+        <NetRoslyn>$(NetPrevious)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetPrevious)</NetRoslynBuildHostNetCoreVersion>
+        <NetRoslynNext>$(NetPrevious)</NetRoslynNext>
       </PropertyGroup>
     </When>
 
     <!--
       2. Source build the product: this is the all up build of the product which needs only NetCurrent
     -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
-        <NetRoslynToolset>$(NetCurrent)</NetRoslynToolset>
-        <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>
-        <NetRoslynAll>$(NetCurrent);$(NetPrevious)</NetRoslynAll>
+        <NetRoslyn>$(NetCurrent)</NetRoslyn>
+        <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
+        <NetRoslynAll>$(NetCurrent)</NetRoslynAll>
+        <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
+        <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>
     </When>
 
@@ -59,8 +67,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <NetRoslynToolset>net8.0</NetRoslynToolset>
-        <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>$(NetRoslynAll)</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
   </Choose>

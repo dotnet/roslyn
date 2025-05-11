@@ -34,6 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             AddMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
             WithParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
+        private static readonly SymbolDisplayFormat s_indexerCompactNameFormat = CompactNameFormat.
+            WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
+            WithParameterOptions(SymbolDisplayParameterOptions.None);
+
+        internal override string GetCompactName(MethodSymbol method)
+        {
+            var symbol = method.AssociatedSymbol ?? method;
+            var format = symbol is PropertySymbol { IsIndexer: true } ?
+                s_indexerCompactNameFormat :
+                CompactNameFormat;
+            return symbol.ToDisplayString(format);
+        }
+
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)
         {
             var displayFormat = method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet
@@ -138,12 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
-            var moduleVersionId = moduleInstance.Mvid;
+            var moduleId = moduleInstance.GetModuleId();
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
             var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
             var kind = GetMakeAssemblyReferencesKind();
-            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
+            var contextId = MetadataContextId.GetContextId(moduleId, kind);
             var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
             CSharpMetadataContext previousContext;
             assemblyContexts.TryGetValue(contextId, out previousContext);
@@ -151,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var compilation = previousContext.Compilation;
             if (compilation == null)
             {
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
+                compilation = metadataBlocks.ToCompilation(moduleId, kind);
                 appDomain.SetMetadataContext(
                     new MetadataContext<CSharpMetadataContext>(
                         metadataBlocks,
@@ -165,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override MethodSymbol GetMethod(CSharpCompilation compilation, DkmClrInstructionAddress instructionAddress)
         {
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(instructionAddress.MethodId.Token);
-            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle);
+            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.GetModuleId(), methodHandle);
         }
 
         internal override TypeNameDecoder<PEModuleSymbol, TypeSymbol> GetTypeNameDecoder(CSharpCompilation compilation, MethodSymbol method)

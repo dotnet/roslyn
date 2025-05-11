@@ -34,6 +34,12 @@ pr:
     - release/dev17.2
     - release/dev17.3
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -65,6 +71,5 @@ stages:
     configuration: Debug
     testRuns:
       - oop64bit: true
-        oopCoreClr: false
         lspEditor: true
         runName: VS_Integration_LSP_Debug_64

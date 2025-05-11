@@ -26,7 +26,7 @@
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation">
       <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>

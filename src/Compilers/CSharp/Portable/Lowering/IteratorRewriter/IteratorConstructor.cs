@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(intType), 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

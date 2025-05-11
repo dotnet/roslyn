@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\AbstractBuiltInCodeStyleDiagnosticAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AddAnonymousTypeMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.cs" />
@@ -32,9 +33,21 @@
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\ForEachCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_ThroughMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberRequired\MakeMemberRequiredTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\MakeMemberStaticTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\MakeMethodAsynchronousTests.cs" />
@@ -84,6 +97,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedLocalFunction\RemoveUnusedLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ReplaceDefaultLiteral\ReplaceDefaultLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionFixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqTypeCheckAndCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\CSharpSimplifyLinqExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransposeRecordKeyword\TransposeRecordKeywordTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UnsealClass\UnsealClassTests.cs" />
@@ -95,12 +109,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\UpdateProjectToAllowUnsafeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\UpgradeProjectTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests_Field.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForFluentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForCreateTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForNewTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForStackAllocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForArrayTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
@@ -112,6 +128,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionForReturnTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\UseDeconstructionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\UseDefaultLiteralTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseExplicitArrayInExpressionTree\UseExplicitArrayInExpressionTreeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdasAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBody\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
@@ -141,6 +158,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValueExpressionStatementTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnusedParametersAndValues\RemoveUnusedValuesTestsBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionInitializer\UseCollectionInitializerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\UseImplicitlyTypedLambdaExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
@@ -157,6 +175,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\UsePrimaryConstructorTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\UseSystemThreadingLockTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />
@@ -169,6 +188,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUnboundGenericTypeInNameOf\UseUnboundGenericTypeInNameOfTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseVarTestExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\ValidateFormatStringTests.cs" />
@@ -179,5 +199,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\" />
+    <Folder Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\" />
   </ItemGroup>
 </Project>

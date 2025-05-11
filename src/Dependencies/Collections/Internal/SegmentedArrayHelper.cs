@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Collections.Internal
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
                 // constant value at runtime. Values are validated against the reference implementation in
                 // CalculateSegmentSize in unit tests.
+                1 => 65536,
+                2 => 32768,
                 4 => 16384,
                 8 => 8192,
                 12 => 4096,
@@ -32,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 2048,
                 32 => 2048,
                 40 => 2048,
-#if NETCOREAPP3_0_OR_NEWER
+                64 => 1024,
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateSegmentSize(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.SegmentSize,
@@ -48,6 +52,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
                 // constant value at runtime. Values are validated against the reference implementation in
                 // CalculateSegmentSize in unit tests.
+                1 => 16,
+                2 => 15,
                 4 => 14,
                 8 => 13,
                 12 => 12,
@@ -56,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 11,
                 32 => 11,
                 40 => 11,
-#if NETCOREAPP3_0_OR_NEWER
+                64 => 10,
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateSegmentShift(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.SegmentShift,
@@ -72,6 +79,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 // Hard code common values since not all versions of the .NET JIT support reducing this computation to a
                 // constant value at runtime. Values are validated against the reference implementation in
                 // CalculateSegmentSize in unit tests.
+                1 => 65535,
+                2 => 32767,
                 4 => 16383,
                 8 => 8191,
                 12 => 4095,
@@ -80,7 +89,8 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 2047,
                 32 => 2047,
                 40 => 2047,
-#if NETCOREAPP3_0_OR_NEWER
+                64 => 1023,
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateOffsetMask(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.OffsetMask,
@@ -149,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         // Faster inline implementation for NETCOREAPP to avoid static constructors and non-inlineable
         // generics with runtime lookups
-#if NETCOREAPP3_0_OR_NEWER
+#if NETCOREAPP3_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int InlineCalculateSegmentSize(int elementSize)
         {
@@ -184,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 => SegmentedArrayHelper.CalculateOffsetMask(segmentSize);
         }
 
-#if !NETCOREAPP3_0_OR_NEWER
+#if !NETCOREAPP3_0_OR_GREATER
         private static class FallbackSegmentHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());

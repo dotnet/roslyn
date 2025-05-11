@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
@@ -96,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
+
+            PartialConstructorChecks(diagnostics);
+        }
+
+        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(!IsPartial);
         }
 
         public sealed override bool IsImplicitlyDeclared
@@ -257,12 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            AddRequiredMembersMarkerAttributes(ref attributes, this);
         }
     }
 }

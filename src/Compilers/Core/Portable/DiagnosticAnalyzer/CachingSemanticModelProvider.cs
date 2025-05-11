@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // internal usage of experimental API
+
 using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
@@ -21,22 +23,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class CachingSemanticModelProvider : SemanticModelProvider
     {
+        // Provide access to CachingSemanticModelProvider through a singleton. The inner CWT is static
+        // to avoid leak potential -- see https://github.com/dotnet/runtime/issues/12255.
+        // CachingSemanticModelProvider.s_providerCache -> PerCompilationProvider -> Compilation -> CachingSemanticModelProvider
+        public static CachingSemanticModelProvider Instance { get; } = new CachingSemanticModelProvider();
+
         private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback s_createProviderCallback
             = new ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback(compilation => new PerCompilationProvider(compilation));
 
-        private readonly ConditionalWeakTable<Compilation, PerCompilationProvider> _providerCache;
+        private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider> s_providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
 
-        public CachingSemanticModelProvider()
+        private CachingSemanticModelProvider()
         {
-            _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
         }
 
-        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
-            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, ignoreAccessibility);
+        public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options = default)
+            => s_providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, options);
 
         internal void ClearCache(SyntaxTree tree, Compilation compilation)
         {
-            if (_providerCache.TryGetValue(compilation, out var provider))
+            if (s_providerCache.TryGetValue(compilation, out var provider))
             {
                 provider.ClearCachedSemanticModel(tree);
             }
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ClearCache(Compilation compilation)
         {
-            _providerCache.Remove(compilation);
+            s_providerCache.Remove(compilation);
         }
 
         private sealed class PerCompilationProvider
@@ -60,15 +66,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _compilation = compilation;
                 _semanticModelsMap = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
-                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, ignoreAccessibility: false);
+                _createSemanticModel = tree => compilation.CreateSemanticModel(tree, options: default);
             }
 
-            public SemanticModel GetSemanticModel(SyntaxTree tree, bool ignoreAccessibility)
+            public SemanticModel GetSemanticModel(SyntaxTree tree, SemanticModelOptions options)
             {
                 // We only care about caching semantic models for internal callers, which use the default 'ignoreAccessibility = false'.
-                return !ignoreAccessibility
+                return options == SemanticModelOptions.None
                     ? _semanticModelsMap.GetOrAdd(tree, _createSemanticModel)
-                    : _compilation.CreateSemanticModel(tree, ignoreAccessibility: true);
+                    : _compilation.CreateSemanticModel(tree, options);
             }
 
             public void ClearCachedSemanticModel(SyntaxTree tree)

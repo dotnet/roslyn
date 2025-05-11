@@ -5,10 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+
+internal interface IRazorDocumentOptionsService
 {
-    internal interface IRazorDocumentOptionsService
-    {
-        Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken);
 }

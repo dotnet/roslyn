@@ -5,6 +5,9 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -275,6 +278,69 @@ void goo()
                         break;
                 }
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        public void TestAllKindsReturnedFromGetKindsMethodsExist()
+        {
+            foreach (var method in typeof(SyntaxFacts).GetMethods(BindingFlags.Public | BindingFlags.Static))
+            {
+                if (method.ReturnType == typeof(IEnumerable<SyntaxKind>) && method.GetParameters() is [])
+                {
+                    foreach (var kind in (IEnumerable<SyntaxKind>)method.Invoke(null, null))
+                    {
+                        Assert.True(Enum.IsDefined(typeof(SyntaxKind), kind), $"Nonexistent kind '{kind}' returned from method '{method.Name}'");
+                    }
+                }
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72300")]
+        [InlineData(nameof(SyntaxFacts.GetContextualKeywordKinds), SyntaxKind.YieldKeyword, SyntaxKind.ElifKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetPunctuationKinds), SyntaxKind.TildeToken, SyntaxKind.BoolKeyword)]
+        [InlineData(nameof(SyntaxFacts.GetReservedKeywordKinds), SyntaxKind.BoolKeyword, SyntaxKind.YieldKeyword)]
+        public void TestRangeBasedGetKindsMethodsReturnExpectedResults(string methodName, SyntaxKind lowerBoundInclusive, SyntaxKind upperBoundExclusive)
+        {
+            var method = typeof(SyntaxFacts).GetMethod(methodName, BindingFlags.Public | BindingFlags.Static);
+
+            Assert.NotNull(method);
+            Assert.Equal(0, method.GetParameters().Length);
+            Assert.Equal(typeof(IEnumerable<SyntaxKind>), method.ReturnType);
+
+            var returnedKindsInts = ((IEnumerable<SyntaxKind>)method.Invoke(null, null)).Select(static k => (int)k).ToHashSet();
+
+            for (int i = (int)lowerBoundInclusive; i < (int)upperBoundExclusive; i++)
+            {
+                if (Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i))
+                {
+                    Assert.True(returnedKindsInts.Remove(i));
+                }
+                else
+                {
+                    Assert.DoesNotContain(i, returnedKindsInts);
+                }
+            }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
+        }
+
+        [Fact]
+        public void TestGetPreprocessorKeywordKindsReturnsExpectedResults()
+        {
+            var returnedKindsInts = SyntaxFacts.GetPreprocessorKeywordKinds().Select(static k => (int)k).ToHashSet();
+
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.TrueKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.FalseKeyword));
+            Assert.True(returnedKindsInts.Remove((int)SyntaxKind.DefaultKeyword));
+
+            for (int i = (int)SyntaxKind.ElifKeyword; i < (int)SyntaxKind.ReferenceKeyword; i++)
+            {
+                Assert.True(returnedKindsInts.Remove(i));
+            }
+
+            // We've already removed all expected kinds from the set. It should be empty now
+            Assert.Empty(returnedKindsInts);
         }
     }
 }

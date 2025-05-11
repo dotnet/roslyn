@@ -4,7 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => ParameterSymbol.TryGetFirstLocation() ?? NoLocation.Singleton;
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => default;
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
 
         public override Symbol? AssociatedSymbol
             => null;
@@ -64,5 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override NamedTypeSymbol ContainingType
             => ParameterSymbol.ContainingSymbol.ContainingType;
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            foreach (CSharpAttributeData attr in ParameterSymbol.GetAttributes())
+            {
+                if (attr.AttributeClass is { HasCompilerLoweringPreserveAttribute: true } attributeType &&
+                    (attributeType.GetAttributeUsageInfo().ValidTargets & System.AttributeTargets.Field) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, attr);
+                }
+            }
+
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+        }
     }
 }

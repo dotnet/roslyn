@@ -664,19 +664,19 @@ BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttr
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     Public Delegate Sub Delegate1(Of T)(sender As Object, <TupleElementNames({"x"})> args As ValueTuple(Of T))
                                                            ~~~~~~~~~~~~~~~~~~~~~~~~
-BC30662: Attribute 'TupleElementNamesAttribute' cannot be applied to 'Event1' because the attribute is not valid on this declaration type.
+BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     <TupleElementNames({"y"})>
-     ~~~~~~~~~~~~~~~~~
+     ~~~~~~~~~~~~~~~~~~~~~~~~
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
     <TupleElementNames({"a", "b"})>
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
+BC30455: Argument not specified for parameter 'transformNames' of 'Public Overloads Sub New(transformNames As String())'.
     Default Public ReadOnly Property Item1(<TupleElementNames> t As (a As Integer, b As Integer)) As (a As Integer, b As Integer)
                                             ~~~~~~~~~~~~~~~~~
 BC37269: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
 <TupleElementNames({"a", "b"})>
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    ]]>
+]]>
 </errors>)
 
         End Sub

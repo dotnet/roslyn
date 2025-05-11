@@ -4152,5 +4152,54 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "f").WithArguments("delegate*<void>").WithLocation(5, 43)
             );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        public void BoolLiteralInvocation_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    static unsafe void M()
+                    {
+                        int i = 0;
+                        ((delegate*<int, void>)true)(i);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,10): error CS0030: Cannot convert type 'bool' to 'delegate*<int, void>'
+                //         ((delegate*<int, void>)true)(i);
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate*<int, void>)true").WithArguments("bool", "delegate*<int, void>").WithLocation(8, 10)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75933")]
+        public void BoolLiteralInvocation_02()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+
+                class C
+                {
+                    static unsafe void M()
+                    {
+                        var d = delegate (object? o, IntPtr f) { return ((delegate* managed<object?, long>)false)(o); };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilationWithFunctionPointers(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,58): error CS0030: Cannot convert type 'bool' to 'delegate*<object?, long>'
+                //         var d = delegate (object? o, IntPtr f) { return ((delegate* managed<object?, long>)false)(o); };
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(delegate* managed<object?, long>)false").WithArguments("bool", "delegate*<object?, long>").WithLocation(9, 58)
+                );
+        }
     }
 }

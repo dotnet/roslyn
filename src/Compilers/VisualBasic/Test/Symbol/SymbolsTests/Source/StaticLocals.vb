@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -583,7 +584,7 @@ End Class
 
             Dim compilation = CreateEmptyCompilationWithReferences(
                 compilationDef,
-                {MsvbRef, TestMetadata.Net20.mscorlib},
+                {MsvbRef, Net20.References.mscorlib},
                 TestOptions.DebugExe.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             Dim verifier = CompileAndVerify(compilation)

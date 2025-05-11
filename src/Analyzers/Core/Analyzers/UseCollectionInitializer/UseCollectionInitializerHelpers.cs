@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -18,12 +19,11 @@ internal static class UseCollectionInitializerHelpers
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
 
-    public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax>(
+    public static ImmutableArray<Location> GetLocationsToFade(
         ISyntaxFacts syntaxFacts,
-        Match<TStatementSyntax> matchInfo)
-        where TStatementSyntax : SyntaxNode
+        CollectionMatch<SyntaxNode> matchInfo)
     {
-        var match = matchInfo.Statement;
+        var match = matchInfo.Node;
         var syntaxTree = match.SyntaxTree;
         if (syntaxFacts.IsExpressionStatement(match))
         {
@@ -51,7 +51,7 @@ internal static class UseCollectionInitializerHelpers
             return additionalUnnecessaryLocations;
         }
 
-        return ImmutableArray<Location>.Empty;
+        return [];
     }
 
     public static IEnumerable<TStatementSyntax> GetSubsequentStatements<TStatementSyntax>(

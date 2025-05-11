@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                         Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
                         Dim newLeft As ExpressionSyntax = Nothing
                         If TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, newLeft, issueSpan) Then
-                            If Not TypeOf newLeft Is NameSyntax Then
+                            If TypeOf newLeft IsNot NameSyntax Then
                                 Contract.Fail("QualifiedName Left = " + qualifiedName.Left.ToString() + " and QualifiedName Right = " + qualifiedName.Right.ToString() + " . Left is tried to be replaced with the PredefinedType " + replacementNode.ToString())
                             End If
 

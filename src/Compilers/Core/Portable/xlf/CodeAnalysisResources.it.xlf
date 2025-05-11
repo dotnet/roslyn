@@ -17,6 +17,11 @@
         <target state="translated">L'assembly che contiene il tipo '{0}' fa riferimento a .NET Framework, che non è supportato.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="translated">attributo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">Nome dell'operatore predefinito '{0}' non valido</target>
@@ -80,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">il valore di 'end' non deve essere minore di quello di 'start'. start='{0}' end='{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; file bloccato da {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -263,9 +273,19 @@
         <target state="translated">L'ID di un elemento SuppressionDescriptor non deve essere Null, né una stringa vuota o una stringa composta solo da spazi vuoti.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="translated">Non è possibile creare il PDB nativo per il metodo '{0}' perché le dimensioni dei metadati di debug {1} superano il limite {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Se si specificano annotazioni nullable di elementi di tupla, il numero delle annotazioni deve corrispondere alla cardinalità della tupla.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="translated">'{0}' tipo non ha il costruttore previsto</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

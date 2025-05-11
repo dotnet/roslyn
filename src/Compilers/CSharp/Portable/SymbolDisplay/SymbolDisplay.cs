@@ -281,7 +281,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol.Accept(visitor);
                 visitor.Free();
             }
-
             return builder;
         }
 

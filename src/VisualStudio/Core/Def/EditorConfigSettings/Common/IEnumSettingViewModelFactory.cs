@@ -5,11 +5,10 @@
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+
+internal interface IEnumSettingViewModelFactory
 {
-    internal interface IEnumSettingViewModelFactory
-    {
-        bool IsSupported(OptionKey2 key);
-        IEnumSettingViewModel CreateViewModel(Setting setting);
-    }
+    bool IsSupported(OptionKey2 key);
+    IEnumSettingViewModel CreateViewModel(Setting setting);
 }

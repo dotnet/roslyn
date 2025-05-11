@@ -4,36 +4,37 @@
 
 #nullable disable
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
-{
-    internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
-        : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
-    {
-        protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
-            => CSharpCodeGenerator.Create(this.OriginalSelectionResult, analyzerResult, (CSharpCodeGenerationOptions)this.Options.CodeGenerationOptions, this.LocalFunction);
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-        protected override AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-            => CSharpAnalyzer.Analyze(selectionResult, localFunction, cancellationToken);
+internal sealed partial class CSharpExtractMethodService
+{
+    internal sealed partial class CSharpMethodExtractor(
+        SelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+        : MethodExtractor(result, options, localFunction)
+    {
+        protected override CodeGenerator CreateCodeGenerator(SelectionResult selectionResult, AnalyzerResult analyzerResult)
+            => CSharpCodeGenerator.Create(selectionResult, analyzerResult, this.Options, this.LocalFunction);
+
+        protected override AnalyzerResult Analyze(CancellationToken cancellationToken)
+        {
+            var analyzer = new CSharpAnalyzer(this.OriginalSelectionResult, this.LocalFunction, cancellationToken);
+            return analyzer.Analyze();
+        }
 
         protected override SyntaxNode GetInsertionPointNode(
             AnalyzerResult analyzerResult, CancellationToken cancellationToken)
         {
-            var originalSpanStart = OriginalSelectionResult.OriginalSpan.Start;
+            var originalSpanStart = OriginalSelectionResult.FinalSpan.Start;
             Contract.ThrowIfFalse(originalSpanStart >= 0);
 
             var document = this.OriginalSelectionResult.SemanticDocument;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 // If we are extracting a local function and are within a local function, then we want the new function to be created within the
                 // existing local function instead of the overarching method.
-                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition(cancellationToken);
+                var outermostCapturedVariable = analyzerResult.GetOutermostVariableToMoveIntoMethodDefinition();
                 var baseNode = outermostCapturedVariable != null
                     ? outermostCapturedVariable.GetIdentifierTokenAtDeclaration(document).Parent
                     : this.OriginalSelectionResult.GetOutermostCallSiteContainerToProcess(cancellationToken);
@@ -63,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 {
                     if (currentNode is AnonymousFunctionExpressionSyntax anonymousFunction)
                     {
-                        if (OriginalSelectionWithin(anonymousFunction.Body) || OriginalSelectionWithin(anonymousFunction.ExpressionBody))
+                        if (SelectionWithin(anonymousFunction.Body) || SelectionWithin(anonymousFunction.ExpressionBody))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(anonymousFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(anonymousFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -78,10 +79,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     if (currentNode is LocalFunctionStatementSyntax localFunction)
                     {
-                        if (OriginalSelectionWithin(localFunction.ExpressionBody) || OriginalSelectionWithin(localFunction.Body))
+                        if (SelectionWithin(localFunction.ExpressionBody) || SelectionWithin(localFunction.Body))
                             return currentNode;
 
-                        if (!OriginalSelectionResult.OriginalSpan.Contains(localFunction.Span))
+                        if (!OriginalSelectionResult.FinalSpan.Contains(localFunction.Span))
                         {
                             // If we encountered a function but the selection isn't within the body, it's likely the user
                             // is attempting to move the function (which is behavior that is supported). Stop looking up the 
@@ -117,6 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             else
             {
                 var baseToken = root.FindToken(originalSpanStart);
+                var primaryConstructorBaseType = baseToken.GetAncestor<PrimaryConstructorBaseTypeSyntax>();
+                if (primaryConstructorBaseType != null)
+                    return primaryConstructorBaseType;
+
                 var memberNode = baseToken.GetAncestor<MemberDeclarationSyntax>();
                 Contract.ThrowIfNull(memberNode);
                 Contract.ThrowIfTrue(memberNode.Kind() == SyntaxKind.NamespaceDeclaration);
@@ -144,49 +149,51 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
         }
 
-        private bool OriginalSelectionWithin(SyntaxNode node)
+        private bool SelectionWithin(SyntaxNode node)
         {
             if (node is null)
             {
                 return false;
             }
 
-            return node.Span.Contains(OriginalSelectionResult.OriginalSpan);
+            return node.Span.Contains(OriginalSelectionResult.FinalSpan);
         }
 
-        protected override async Task<TriviaResult> PreserveTriviaAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
-            => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
-
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, CSharpSelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
-            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
+        protected override async Task<TriviaResult> PreserveTriviaAsync(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            var semanticDocument = this.OriginalSelectionResult.SemanticDocument;
+            var preservationService = semanticDocument.Document.Project.Services.GetService<ISyntaxTriviaService>();
+            var result = preservationService.SaveTriviaAroundSelection(root, this.OriginalSelectionResult.FinalSpan);
+            return new CSharpTriviaResult(
+                await semanticDocument.WithSyntaxRootAsync(result.Root, cancellationToken).ConfigureAwait(false),
+                result);
+        }
 
         protected override AbstractFormattingRule GetCustomFormattingRule(Document document)
             => FormattingRule.Instance;
 
-        protected override SyntaxToken? GetInvocationNameToken(IEnumerable<SyntaxToken> methodNames)
-            => methodNames.FirstOrNull(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
-
         protected override SyntaxNode ParseTypeName(string name)
             => SyntaxFactory.ParseTypeName(name);
 
-        protected override async Task<(Document document, SyntaxToken? invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+        protected override async Task<(Document document, SyntaxToken invocationNameToken)> InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
             Document document,
-            SyntaxToken? invocationNameToken,
+            SyntaxToken invocationNameToken,
             SyntaxNode methodDefinition,
             CancellationToken cancellationToken)
         {
             // Checking to see if there is already an empty line before the local method declaration.
             var leadingTrivia = methodDefinition.GetLeadingTrivia();
-            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
+            if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia) || t.GetStructure() is EndIfDirectiveTriviaSyntax) &&
+                !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
                 var newLine = Options.LineFormattingOptions.NewLine;
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
 
                 if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
                 {
                     // Add a second new line since there were no line endings in the original form
-                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
                 }
 
                 // Generating the new document and associated variables.
@@ -195,8 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                if (invocationNameToken != null)
-                    invocationNameToken = newRoot.FindToken(invocationNameToken.Value.SpanStart);
+                invocationNameToken = newRoot.FindToken(invocationNameToken.SpanStart);
             }
 
             return (document, invocationNameToken);

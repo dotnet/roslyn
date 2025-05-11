@@ -67,9 +67,14 @@
         <target state="translated">개수는 양수여야 하고 문자열/배열/컬렉션 내의 위치를 참조해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">인덱스가 범위를 벗어났습니다. 인덱스는 음수가 아니어야 하며 컬렉션의 크기보다 작아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">인덱스가 범위 밖에 있었습니다. 음수가 아니어야 하며 컬렉션 크기보다 작거나 같아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">동일한 키를 사용하는 항목이 이미 추가되었습니다. 키: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">대상 배열 형식이 컬렉션의 항목 형식과 호환되지 않습니다.</target>
         <note />

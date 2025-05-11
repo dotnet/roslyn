@@ -7,6 +7,11 @@
         <target state="translated">代码块首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="translated">EditorConfig 选项 '{0}' 包含无法识别的值 '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">预期的字符串或字符文本</target>
@@ -15,6 +20,11 @@
       <trans-unit id="Expression_bodied_members">
         <source>Expression-bodied members</source>
         <target state="translated">Expression-bodied 成员</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_preferences">
+        <source>Indentation preferences</source>
+        <target state="translated">缩进首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_checking_preferences">
@@ -27,11 +37,15 @@
         <target state="translated">模式匹配首选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_1_is_not_supported_in_this_version">
-        <source>'{0}.{1}' is not supported in this version</source>
-        <target state="translated">此版本中不支持“{0}.{1}”</target>
-        <note>{0}: A type name
-{1}: A member name</note>
+      <trans-unit id="Space_preferences">
+        <source>Space preferences</source>
+        <target state="translated">空格键首选项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrapping_preferences">
+        <source>Wrapping preferences</source>
+        <target state="translated">包装首选项</target>
+        <note />
       </trans-unit>
       <trans-unit id="using_directive_preferences">
         <source>'using' directive preferences</source>

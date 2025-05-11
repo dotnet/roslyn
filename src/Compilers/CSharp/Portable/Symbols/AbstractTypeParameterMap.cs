@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             result.Append(this.GetType().Name);
             foreach (var kv in Mapping)
             {
-                result.Append(" ").Append(kv.Key).Append(":").Append(kv.Value.Type);
+                result.Append(' ').Append(kv.Key).Append(':').Append(kv.Value.Type);
             }
 
-            return result.Append("]").ToString();
+            return result.Append(']').ToString();
         }
     }
 }

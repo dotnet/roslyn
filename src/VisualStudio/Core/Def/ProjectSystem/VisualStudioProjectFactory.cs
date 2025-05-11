@@ -12,132 +12,134 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+[Export(typeof(VisualStudioProjectFactory))]
+[Export(typeof(IVsTypeScriptVisualStudioProjectFactory))]
+internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProjectFactory
 {
-    [Export(typeof(VisualStudioProjectFactory))]
-    [Export(typeof(IVsTypeScriptVisualStudioProjectFactory))]
-    internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProjectFactory
+    private const string SolutionContextName = "Solution";
+    private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+
+    private readonly IThreadingContext _threadingContext;
+    private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
+    private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
+    private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
+    private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
+    private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
+
+    private readonly JoinableTask<VisualStudioDiagnosticAnalyzerProvider> _initializationTask;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioProjectFactory(
+        IThreadingContext threadingContext,
+        VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
+        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
+        IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
+        IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution)
     {
-        private const string SolutionContextName = "Solution";
-        private const string SolutionSessionIdPropertyName = "SolutionSessionID";
+        _threadingContext = threadingContext;
+        _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
+        _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
+        _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
+        _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
+        _solution = solution;
 
-        private readonly IThreadingContext _threadingContext;
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
-        private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-        private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
-        private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectFactory(
-            IThreadingContext threadingContext,
-            VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
-            [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource,
-            IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
-            IVsService<SVsSolution, IVsSolution2> solution2)
-        {
-            _threadingContext = threadingContext;
-            _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
-            _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
-            _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
-            _solution2 = solution2;
-        }
-
-        public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
-            => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
-
-        public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
-            string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
-        {
-            // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
-            // moved off we'll need to fix up it's constructor to be free-threaded.
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
-
-            _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-            // Since we're on the UI thread here anyways, use that as an opportunity to grab the
-            // IVsSolution object and solution file path.
-            var solution = await _solution2.GetValueOrNullAsync(cancellationToken);
-            var solutionFilePath = solution != null && ErrorHandler.Succeeded(solution.GetSolutionInfo(out _, out var filePath, out _))
-                ? filePath
-                : null;
-
-            var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
-
-            // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
-            // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
-            // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
-            // rules to apply.
-            if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
+        _initializationTask = _threadingContext.JoinableTaskFactory.RunAsync(
+            async () =>
             {
-                await TaskScheduler.Default;
-            }
+                var cancellationToken = _threadingContext.DisposalToken;
 
-            // From this point on, we start mutating the solution.  So make us non cancellable.
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-            cancellationToken = CancellationToken.None;
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
+                // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
+                // moved off we'll need to fix up it's constructor to be free-threaded.
 
-            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solutionFilePath;
-            _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
+                // yield if on the main thread, as the VisualStudioMetadataReferenceManager construction can be fairly expensive
+                // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
 
-            var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _hostDiagnosticUpdateSource, vsixAnalyzerProvider);
-            var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo);
+                _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
+                _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
+                return await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
+            });
+    }
 
-            // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
-            // This is not cancellable as we have already mutated the solution.
-            await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, CancellationToken.None);
+    public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
+        => CreateAndAddToWorkspaceAsync(projectSystemName, language, new VisualStudioProjectCreationInfo(), cancellationToken);
 
-            return project;
+    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
+        string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
+    {
+        var vsixAnalyzerProvider = await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
 
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-
-            static Guid GetSolutionSessionId()
-            {
-                var dataModelTelemetrySession = TelemetryService.DefaultSession;
-                var solutionContext = dataModelTelemetrySession.GetContext(SolutionContextName);
-                var sessionIdProperty = solutionContext is object
-                    ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
-                    : "";
-                _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
-                return solutionSessionId;
-            }
-        }
-
-        VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+        // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
+        // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
+        // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
+        // rules to apply.
+        if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
         {
-            return _threadingContext.JoinableTaskFactory.Run(async () =>
-                await ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, CancellationToken.None).ConfigureAwait(false));
+            await TaskScheduler.Default;
         }
 
-        async ValueTask<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
-            string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
+        var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
+
+        // From this point on, we start mutating the solution.  So make us non cancellable.
+        cancellationToken = CancellationToken.None;
+
+        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
+        _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
+
+        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, vsixAnalyzerProvider, _analyzerAssemblyRedirectors);
+        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
+
+        _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
+
+        // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
+        await _visualStudioWorkspaceImpl.RefreshProjectExistsUIContextForLanguageAsync(language, cancellationToken).ConfigureAwait(true);
+
+        return project;
+
+        static Guid GetSolutionSessionId()
         {
-            var projectInfo = new VisualStudioProjectCreationInfo
-            {
-                FilePath = projectFilePath,
-                Hierarchy = hierarchy,
-                ProjectGuid = projectGuid,
-            };
-            var visualStudioProject = await this.CreateAndAddToWorkspaceAsync(projectSystemName, language, projectInfo, cancellationToken).ConfigureAwait(false);
-            return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
+            var dataModelTelemetrySession = TelemetryService.DefaultSession;
+            var solutionContext = dataModelTelemetrySession.GetContext(SolutionContextName);
+            var sessionIdProperty = solutionContext is object
+                ? (string)solutionContext.SharedProperties[SolutionSessionIdPropertyName]
+                : "";
+            _ = Guid.TryParse(sessionIdProperty, out var solutionSessionId);
+            return solutionSessionId;
         }
+    }
+
+    VSTypeScriptVisualStudioProjectWrapper IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspace(string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid)
+    {
+        return _threadingContext.JoinableTaskFactory.Run(async () =>
+            await ((IVsTypeScriptVisualStudioProjectFactory)this).CreateAndAddToWorkspaceAsync(projectSystemName, language, projectFilePath, hierarchy, projectGuid, CancellationToken.None).ConfigureAwait(false));
+    }
+
+    async ValueTask<VSTypeScriptVisualStudioProjectWrapper> IVsTypeScriptVisualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
+        string projectSystemName, string language, string projectFilePath, IVsHierarchy hierarchy, Guid projectGuid, CancellationToken cancellationToken)
+    {
+        var projectInfo = new VisualStudioProjectCreationInfo
+        {
+            FilePath = projectFilePath,
+            Hierarchy = hierarchy,
+            ProjectGuid = projectGuid,
+        };
+        var visualStudioProject = await this.CreateAndAddToWorkspaceAsync(projectSystemName, language, projectInfo, cancellationToken).ConfigureAwait(false);
+        return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
     }
 }

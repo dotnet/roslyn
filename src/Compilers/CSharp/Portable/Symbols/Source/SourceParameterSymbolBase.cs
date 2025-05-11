@@ -66,15 +66,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue DefaultValueFromAttributes { get; }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
 
-            if (this.IsParams)
+            if (this.IsParamsArray)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+            else if (this.IsParamsCollection)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:

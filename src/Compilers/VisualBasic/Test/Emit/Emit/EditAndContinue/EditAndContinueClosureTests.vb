@@ -6,7 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -430,6 +432,7 @@ End Module
 
             ' no new synthesized members generated (with #1 in names)
             diff1.VerifySynthesizedMembers(
+                "System.Runtime.CompilerServices.HotReloadException",
                 "C: {VB$StateMachine_1_F}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Local_x, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
@@ -440,8 +443,13 @@ End Module
             CheckEncLogDefinitions(reader1,
                 Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(11, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(7, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2222,7 +2230,7 @@ End Class
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2242,7 +2250,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-0, $I1-1, _Lambda$__1-0, _Lambda$__1-1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -2259,70 +2267,89 @@ End Class
                         ' Static lambda is reused.
                         ' A new display class and method is generated for lambda that captures x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__, _Closure$__1-0#1}",
                             "C._Closure$__: {$I1-1, _Lambda$__1-1}",
                             "C._Closure$__1-0#1: {_Lambda$__0#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", "_Lambda$__0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__0#1")
 
                         g.VerifyIL("
+F
 {
-    // Code size       67 (0x43)
-    .maxstack  2
-    IL_0000:  nop
-    IL_0001:  newobj     0x06000007
-    IL_0006:  stloc.3
-    IL_0007:  ldloc.3
-    IL_0008:  ldc.i4.1
-    IL_0009:  stfld      0x04000004
-    IL_000e:  ldloc.3
-    IL_000f:  ldftn      0x06000008
-    IL_0015:  newobj     0x0A000009
-    IL_001a:  stloc.s    V_4
-    IL_001c:  ldsfld     0x04000003
-    IL_0021:  brfalse.s  IL_002a
-    IL_0023:  ldsfld     0x04000003
-    IL_0028:  br.s       IL_0040
-    IL_002a:  ldsfld     0x04000001
-    IL_002f:  ldftn      0x06000006
-    IL_0035:  newobj     0x0A000009
-    IL_003a:  dup
-    IL_003b:  stsfld     0x04000003
-    IL_0040:  stloc.s    V_5
-    IL_0042:  ret
+  // Code size       67 (0x43)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  newobj     0x06000008
+  IL_0006:  stloc.3
+  IL_0007:  ldloc.3
+  IL_0008:  ldc.i4.1
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ldloc.3
+  IL_000f:  ldftn      0x06000009
+  IL_0015:  newobj     0x0A000009
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldsfld     0x04000003
+  IL_0021:  brfalse.s  IL_002a
+  IL_0023:  ldsfld     0x04000003
+  IL_0028:  br.s       IL_0040
+  IL_002a:  ldsfld     0x04000001
+  IL_002f:  ldftn      0x06000006
+  IL_0035:  newobj     0x0A000009
+  IL_003a:  dup
+  IL_003b:  stsfld     0x04000003
+  IL_0040:  stloc.s    V_5
+  IL_0042:  ret
 }
+_Lambda$__1-0
 {
-    // Code size       11 (0xb)
-    .maxstack  8
-    IL_0000:  ldstr      0x70000005
-    IL_0005:  newobj     0x0A00000A
-    IL_000a:  throw
+  // Code size       12 (0xc)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000007
+  IL_000b:  throw
 }
+_Lambda$__1-1
 {
-    // Code size        9 (0x9)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ldc.i4.1
-    IL_0002:  call       0x0A00000B
-    IL_0007:  nop
-    IL_0008:  ret
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       0x0A00000A
+  IL_0007:  nop
+  IL_0008:  ret
 }
+.ctor
 {
-    // Code size        7 (0x7)
-    .maxstack  8
-    IL_0000:  ldarg.0
-    IL_0001:  call       0x0A00000C
-    IL_0006:  ret
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000B
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ret
 }
+.ctor
 {
-    // Code size       14 (0xe)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ldarg.0
-    IL_0002:  ldfld      0x04000004
-    IL_0007:  call       0x0A00000B
-    IL_000c:  nop
-    IL_000d:  ret
+  // Code size        7 (0x7)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  call       0x0A00000C
+  IL_0006:  ret
+}
+_Lambda$__0#1
+{
+  // Code size       14 (0xe)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      0x04000005
+  IL_0007:  call       0x0A00000A
+  IL_000c:  nop
+  IL_000d:  ret
 }
 ")
                     End Sub).
@@ -2330,7 +2357,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_Parameter()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2363,22 +2390,24 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__, _Closure$__1-0#1}",
                             "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                             "C._Closure$__1-0#1: {_Lambda$__1#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       66 (0x42)
   .maxstack  2
   IL_0000:  nop
-  IL_0001:  newobj     0x06000007
+  IL_0001:  newobj     0x06000008
   IL_0006:  stloc.2
   IL_0007:  ldloc.2
   IL_0008:  ldarg.1
-  IL_0009:  stfld      0x04000004
+  IL_0009:  stfld      0x04000005
   IL_000e:  ldsfld     0x04000002
   IL_0013:  brfalse.s  IL_001c
   IL_0015:  ldsfld     0x04000002
@@ -2390,11 +2419,12 @@ End Class
   IL_002d:  stsfld     0x04000002
   IL_0032:  stloc.3
   IL_0033:  ldloc.2
-  IL_0034:  ldftn      0x06000008
+  IL_0034:  ldftn      0x06000009
   IL_003a:  newobj     0x0A000009
   IL_003f:  stloc.s    V_4
   IL_0041:  ret
 }
+_Lambda$__1-0
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -2404,13 +2434,28 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+_Lambda$__1-1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000B
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000007
+  IL_000b:  throw
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000B
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ret
+}
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2418,12 +2463,13 @@ End Class
   IL_0001:  call       0x0A00000C
   IL_0006:  ret
 }
+_Lambda$__1#1
 {
   // Code size       14 (0xe)
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000004
+  IL_0002:  ldfld      0x04000005
   IL_0007:  call       0x0A00000A
   IL_000c:  nop
   IL_000d:  ret
@@ -2434,7 +2480,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2455,7 +2501,7 @@ End Class
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I2-0, $I2-1, _Lambda$__2-0, _Lambda$__2-1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -2471,12 +2517,14 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Lambda$__2-1#1, _Closure$__}",
                             "C._Closure$__: {$I2-0, _Lambda$__2-0}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-1#1", ".ctor")
 
                         g.VerifyIL("
+F
 {
   // Code size       52 (0x34)
   .maxstack  2
@@ -2497,6 +2545,7 @@ End Class
   IL_0032:  stloc.3
   IL_0033:  ret
 }
+_Lambda$__2-0
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -2506,13 +2555,16 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+_Lambda$__2-1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000B
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000008
+  IL_000b:  throw
 }
+_Lambda$__2-1#1
 {
   // Code size       14 (0xe)
   .maxstack  8
@@ -2523,13 +2575,25 @@ End Class
   IL_000c:  nop
   IL_000d:  ret
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000B
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ret
+}
 ")
                     End Sub).
                     Verify()
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2570,6 +2634,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       30 (0x1e)
   .maxstack  2
@@ -2587,6 +2652,7 @@ End Class
   IL_001c:  stloc.3
   IL_001d:  ret
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -2604,7 +2670,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_LastLocal()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2623,7 +2689,7 @@ End Class
                             "C._Closure$__1-0: {_Lambda$__0}",
                             "C: {_Closure$__1-0}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -2637,37 +2703,54 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", ".ctor", ".cctor", "_Lambda$__1-0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", ".ctor", ".ctor", ".cctor", "_Lambda$__1-0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       41 (0x29)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.2
-  IL_0003:  ldsfld     0x04000003
+  IL_0003:  ldsfld     0x04000004
   IL_0008:  brfalse.s  IL_0011
-  IL_000a:  ldsfld     0x04000003
+  IL_000a:  ldsfld     0x04000004
   IL_000f:  br.s       IL_0027
-  IL_0011:  ldsfld     0x04000002
-  IL_0016:  ldftn      0x0600000B
+  IL_0011:  ldsfld     0x04000003
+  IL_0016:  ldftn      0x0600000C
   IL_001c:  newobj     0x0A000009
   IL_0021:  dup
-  IL_0022:  stsfld     0x04000003
+  IL_0022:  stsfld     0x04000004
   IL_0027:  stloc.3
   IL_0028:  ret
 }
+_Lambda$__0
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000A
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000009
+  IL_000b:  throw
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000A
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000002
+  IL_000e:  ret
+}
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2675,13 +2758,15 @@ End Class
   IL_0001:  call       0x0A00000B
   IL_0006:  ret
 }
+.cctor
 {
   // Code size       11 (0xb)
   .maxstack  8
-  IL_0000:  newobj     0x06000009
-  IL_0005:  stsfld     0x04000002
+  IL_0000:  newobj     0x0600000A
+  IL_0005:  stsfld     0x04000003
   IL_000a:  ret
 }
+_Lambda$__1-0#1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2694,7 +2779,7 @@ End Class
 }
 ")
                     End Sub).
-                AddGeneration(' resume capture
+                AddGeneration(' 2: resume capture
                     source:="
 Imports System
 Class C
@@ -2708,6 +2793,7 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__1-0#2, _Closure$__}",
                             "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}",
                             "C._Closure$__1-0#2: {_Lambda$__0#2}")
@@ -2715,41 +2801,46 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__1-0#1", ".ctor", "_Lambda$__0#2")
 
                         g.VerifyIL("
+F
 {
   // Code size       32 (0x20)
   .maxstack  2
   IL_0000:  nop
-  IL_0001:  newobj     0x0600000C
+  IL_0001:  newobj     0x0600000D
   IL_0006:  stloc.s    V_4
   IL_0008:  ldloc.s    V_4
   IL_000a:  ldc.i4.1
-  IL_000b:  stfld      0x04000004
+  IL_000b:  stfld      0x04000005
   IL_0010:  ldloc.s    V_4
-  IL_0012:  ldftn      0x0600000D
+  IL_0012:  ldftn      0x0600000E
   IL_0018:  newobj     0x0A00000D
   IL_001d:  stloc.s    V_5
   IL_001f:  ret
 }
+_Lambda$__1-0#1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x7000014D
-  IL_0005:  newobj     0x0A00000E
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000009
+  IL_000b:  throw
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
   IL_0000:  ldarg.0
-  IL_0001:  call       0x0A00000F
+  IL_0001:  call       0x0A00000E
   IL_0006:  ret
 }
+_Lambda$__0#2
 {
   // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000004
+  IL_0002:  ldfld      0x04000005
   IL_0007:  ldc.i4.1
   IL_0008:  add.ovf
   IL_0009:  stloc.0
@@ -2763,7 +2854,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2784,7 +2875,7 @@ End Class
                             "C: {_Lambda$__2-0, _Closure$__}",
                             "C._Closure$__: {$I2-1, _Lambda$__2-1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -2800,25 +2891,27 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I2-0#1, $I2-1, _Lambda$__2-0#1, _Lambda$__2-1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", "_Lambda$__2-0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__2-0", "_Lambda$__2-1", ".ctor", "_Lambda$__2-0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       76 (0x4c)
   .maxstack  2
   IL_0000:  nop
-  IL_0001:  ldsfld     0x04000004
+  IL_0001:  ldsfld     0x04000005
   IL_0006:  brfalse.s  IL_000f
-  IL_0008:  ldsfld     0x04000004
+  IL_0008:  ldsfld     0x04000005
   IL_000d:  br.s       IL_0025
   IL_000f:  ldsfld     0x04000002
-  IL_0014:  ldftn      0x0600000B
+  IL_0014:  ldftn      0x0600000C
   IL_001a:  newobj     0x0A000009
   IL_001f:  dup
-  IL_0020:  stsfld     0x04000004
+  IL_0020:  stsfld     0x04000005
   IL_0025:  stloc.2
   IL_0026:  ldsfld     0x04000003
   IL_002b:  brfalse.s  IL_0034
@@ -2832,13 +2925,16 @@ End Class
   IL_004a:  stloc.3
   IL_004b:  ret
 }
+_Lambda$__2-0
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000A
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x0600000B
+  IL_000b:  throw
 }
+_Lambda$__2-1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2849,6 +2945,19 @@ End Class
   IL_0005:  ldloc.0
   IL_0006:  ret
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000A
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ret
+}
+_Lambda$__2-0#1
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2865,7 +2974,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub AddingAndRemovingClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2881,7 +2990,7 @@ End Class
                     Sub(g)
                         g.VerifySynthesizedMembers()
                     End Sub).
-                AddGeneration('add closure
+                AddGeneration('1: add closure
                     source:="
 Imports System
 Class C
@@ -2902,6 +3011,7 @@ End Class
                         g.VerifyMethodDefNames("F", ".ctor", "_Lambda$__0#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -2917,6 +3027,7 @@ End Class
   IL_001a:  stloc.2
   IL_001b:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -2924,6 +3035,7 @@ End Class
   IL_0001:  call       0x0A000007
   IL_0006:  ret
 }
+_Lambda$__0#1
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -2937,7 +3049,7 @@ End Class
 }
 ")
                     End Sub).
-                AddGeneration('remove closure
+                AddGeneration('2: remove closure
                     source:="
 Imports System
 Class C
@@ -2950,12 +3062,14 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__1#1-0#1}",
                             "C._Closure$__1#1-0#1: {_Lambda$__0#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0#1", ".ctor")
 
                         g.VerifyIL("
+F
 {
   // Code size        4 (0x4)
   .maxstack  1
@@ -2964,12 +3078,26 @@ End Class
   IL_0002:  stloc.3
   IL_0003:  ret
 }
+_Lambda$__0#1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000009
-  IL_0005:  newobj     0x0A000008
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000005
+  IL_000b:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000008
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000002
+  IL_000e:  ret
 }
 ")
                     End Sub).
@@ -2977,7 +3105,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3005,7 +3133,7 @@ End Class
                             "C._Closure$__2-0: {$I0, _Lambda$__0}",
                             "C: {_Closure$__2-0, _Closure$__2-1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -3027,13 +3155,15 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__2-0, _Closure$__2-1#1}",
                             "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1#1}",
                             "C._Closure$__2-0: {$I0, _Lambda$__0}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size      128 (0x80)
   .maxstack  3
@@ -3046,26 +3176,26 @@ End Class
   IL_000a:  stfld      0x04000002
   IL_000f:  br.s       IL_007b
   IL_0011:  ldloc.s    V_6
-  IL_0013:  newobj     0x06000007
+  IL_0013:  newobj     0x06000008
   IL_0018:  stloc.s    V_6
   IL_001a:  ldloc.s    V_6
   IL_001c:  ldloc.0
-  IL_001d:  stfld      0x04000006
+  IL_001d:  stfld      0x04000007
   IL_0022:  ldloc.s    V_6
   IL_0024:  ldc.i4.1
-  IL_0025:  stfld      0x04000005
+  IL_0025:  stfld      0x04000006
   IL_002a:  ldloc.s    V_6
-  IL_002c:  ldfld      0x04000006
+  IL_002c:  ldfld      0x04000007
   IL_0031:  ldfld      0x04000003
   IL_0036:  brfalse.s  IL_0046
   IL_0038:  ldloc.s    V_6
-  IL_003a:  ldfld      0x04000006
+  IL_003a:  ldfld      0x04000007
   IL_003f:  ldfld      0x04000003
   IL_0044:  br.s       IL_0069
   IL_0046:  ldloc.s    V_6
-  IL_0048:  ldfld      0x04000006
+  IL_0048:  ldfld      0x04000007
   IL_004d:  ldloc.s    V_6
-  IL_004f:  ldfld      0x04000006
+  IL_004f:  ldfld      0x04000007
   IL_0054:  ldftn      0x06000004
   IL_005a:  newobj     0x0A000008
   IL_005f:  dup
@@ -3074,7 +3204,7 @@ End Class
   IL_0067:  ldloc.s    V_9
   IL_0069:  stloc.s    V_7
   IL_006b:  ldloc.s    V_6
-  IL_006d:  ldftn      0x06000008
+  IL_006d:  ldftn      0x06000009
   IL_0073:  newobj     0x0A000008
   IL_0078:  stloc.s    V_8
   IL_007a:  nop
@@ -3082,6 +3212,7 @@ End Class
   IL_007c:  stloc.s    V_5
   IL_007e:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3093,13 +3224,28 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000007
+  IL_000b:  throw
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000009
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ret
+}
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3109,19 +3255,20 @@ End Class
   IL_0007:  brfalse.s  IL_0015
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
-  IL_000b:  ldfld      0x04000005
-  IL_0010:  stfld      0x04000005
+  IL_000b:  ldfld      0x04000006
+  IL_0010:  stfld      0x04000006
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       24 (0x18)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000006
+  IL_0002:  ldfld      0x04000007
   IL_0007:  ldfld      0x04000002
   IL_000c:  ldarg.0
-  IL_000d:  ldfld      0x04000005
+  IL_000d:  ldfld      0x04000006
   IL_0012:  add.ovf
   IL_0013:  stloc.0
   IL_0014:  br.s       IL_0016
@@ -3134,7 +3281,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UnchainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3160,7 +3307,7 @@ End Class
                             "C._Closure$__1-0: {$I0, _Lambda$__0}",
                             "C._Closure$__1-1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -3180,13 +3327,15 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__1-0, _Closure$__1-1#1}",
                             "C._Closure$__1-0: {$I0, _Lambda$__0}",
                             "C._Closure$__1-1#1: {_Lambda$__1#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1")
 
                         g.VerifyIL("
+F
 {
   // Code size       96 (0x60)
   .maxstack  3
@@ -3199,11 +3348,11 @@ End Class
   IL_000a:  stfld      0x04000001
   IL_000f:  br.s       IL_005b
   IL_0011:  ldloc.s    V_6
-  IL_0013:  newobj     0x0600000B
+  IL_0013:  newobj     0x0600000C
   IL_0018:  stloc.s    V_6
   IL_001a:  ldloc.s    V_6
   IL_001c:  ldc.i4.1
-  IL_001d:  stfld      0x04000005
+  IL_001d:  stfld      0x04000006
   IL_0022:  ldloc.0
   IL_0023:  ldfld      0x04000002
   IL_0028:  brfalse.s  IL_0032
@@ -3220,7 +3369,7 @@ End Class
   IL_0047:  ldloc.s    V_9
   IL_0049:  stloc.s    V_7
   IL_004b:  ldloc.s    V_6
-  IL_004d:  ldftn      0x0600000C
+  IL_004d:  ldftn      0x0600000D
   IL_0053:  newobj     0x0A000009
   IL_0058:  stloc.s    V_8
   IL_005a:  nop
@@ -3228,6 +3377,7 @@ End Class
   IL_005c:  stloc.s    V_5
   IL_005e:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3239,13 +3389,28 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000A
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x0600000B
+  IL_000b:  throw
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000A
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ret
+}
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3255,16 +3420,17 @@ End Class
   IL_0007:  brfalse.s  IL_0015
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
-  IL_000b:  ldfld      0x04000005
-  IL_0010:  stfld      0x04000005
+  IL_000b:  ldfld      0x04000006
+  IL_0010:  stfld      0x04000006
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000005
+  IL_0002:  ldfld      0x04000006
   IL_0007:  stloc.0
   IL_0008:  br.s       IL_000a
   IL_000a:  ldloc.0
@@ -3276,7 +3442,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChangeClosureParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3308,7 +3474,7 @@ End Class
                             "C._Closure$__2-0: {$I0, _Lambda$__0}",
                             "C._Closure$__2-1: {$VB$NonLocal_$VB$Closure_2, _Lambda$__1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -3336,14 +3502,16 @@ End Class
                     Sub(g)
                         ' closure #0 is preserved, new closures #1 and #2 are created:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__2-0, _Closure$__2-1#1, _Closure$__2-2#1}",
                             "C._Closure$__2-0: {$I0, _Lambda$__0}",
                             "C._Closure$__2-1#1: {$VB$NonLocal_$VB$Closure_3, _Lambda$__1#1, _Lambda$__2#1}",
                             "C._Closure$__2-2#1: {$VB$NonLocal_$VB$Closure_2}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__1", ".ctor", ".ctor", "_Lambda$__1#1", "_Lambda$__2#1", ".ctor")
 
                         g.VerifyIL("
+F
 {
   // Code size      208 (0xd0)
   .maxstack  3
@@ -3356,40 +3524,40 @@ End Class
   IL_000a:  stfld      0x04000002
   IL_000f:  br         IL_00c8
   IL_0014:  ldloc.s    V_8
-  IL_0016:  newobj     0x0600000E
+  IL_0016:  newobj     0x0600000F
   IL_001b:  stloc.s    V_8
   IL_001d:  ldloc.s    V_8
   IL_001f:  ldloc.0
-  IL_0020:  stfld      0x04000009
+  IL_0020:  stfld      0x0400000A
   IL_0025:  ldloc.s    V_8
   IL_0027:  ldc.i4.2
-  IL_0028:  stfld      0x04000008
+  IL_0028:  stfld      0x04000009
   IL_002d:  br         IL_00c0
   IL_0032:  ldloc.s    V_9
-  IL_0034:  newobj     0x0600000B
+  IL_0034:  newobj     0x0600000C
   IL_0039:  stloc.s    V_9
   IL_003b:  ldloc.s    V_9
   IL_003d:  ldloc.s    V_8
-  IL_003f:  stfld      0x04000007
+  IL_003f:  stfld      0x04000008
   IL_0044:  ldloc.s    V_9
   IL_0046:  ldc.i4.3
-  IL_0047:  stfld      0x04000006
+  IL_0047:  stfld      0x04000007
   IL_004c:  ldloc.s    V_9
-  IL_004e:  ldfld      0x04000007
-  IL_0053:  ldfld      0x04000009
+  IL_004e:  ldfld      0x04000008
+  IL_0053:  ldfld      0x0400000A
   IL_0058:  ldfld      0x04000003
   IL_005d:  brfalse.s  IL_0072
   IL_005f:  ldloc.s    V_9
-  IL_0061:  ldfld      0x04000007
-  IL_0066:  ldfld      0x04000009
+  IL_0061:  ldfld      0x04000008
+  IL_0066:  ldfld      0x0400000A
   IL_006b:  ldfld      0x04000003
   IL_0070:  br.s       IL_009f
   IL_0072:  ldloc.s    V_9
-  IL_0074:  ldfld      0x04000007
-  IL_0079:  ldfld      0x04000009
+  IL_0074:  ldfld      0x04000008
+  IL_0079:  ldfld      0x0400000A
   IL_007e:  ldloc.s    V_9
-  IL_0080:  ldfld      0x04000007
-  IL_0085:  ldfld      0x04000009
+  IL_0080:  ldfld      0x04000008
+  IL_0085:  ldfld      0x0400000A
   IL_008a:  ldftn      0x06000008
   IL_0090:  newobj     0x0A000009
   IL_0095:  dup
@@ -3398,11 +3566,11 @@ End Class
   IL_009d:  ldloc.s    V_13
   IL_009f:  stloc.s    V_10
   IL_00a1:  ldloc.s    V_9
-  IL_00a3:  ldftn      0x0600000C
+  IL_00a3:  ldftn      0x0600000D
   IL_00a9:  newobj     0x0A000009
   IL_00ae:  stloc.s    V_11
   IL_00b0:  ldloc.s    V_9
-  IL_00b2:  ldftn      0x0600000D
+  IL_00b2:  ldftn      0x0600000E
   IL_00b8:  newobj     0x0A000009
   IL_00bd:  stloc.s    V_12
   IL_00bf:  nop
@@ -3413,6 +3581,7 @@ End Class
   IL_00c9:  stloc.s    V_7
   IL_00cb:  br         IL_0014
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3424,13 +3593,28 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A00000A
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x0600000B
+  IL_000b:  throw
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000A
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000006
+  IL_000e:  ret
+}
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3440,19 +3624,20 @@ End Class
   IL_0007:  brfalse.s  IL_0015
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
-  IL_000b:  ldfld      0x04000006
-  IL_0010:  stfld      0x04000006
+  IL_000b:  ldfld      0x04000007
+  IL_0010:  stfld      0x04000007
   IL_0015:  ret
 }
+_Lambda$__1#1
 {
   // Code size       29 (0x1d)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000006
+  IL_0002:  ldfld      0x04000007
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      0x04000007
-  IL_000d:  ldfld      0x04000009
+  IL_0008:  ldfld      0x04000008
+  IL_000d:  ldfld      0x0400000A
   IL_0012:  ldfld      0x04000002
   IL_0017:  add.ovf
   IL_0018:  stloc.0
@@ -3460,26 +3645,28 @@ End Class
   IL_001b:  ldloc.0
   IL_001c:  ret
 }
+_Lambda$__2#1
 {
   // Code size       41 (0x29)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldfld      0x04000006
+  IL_0002:  ldfld      0x04000007
   IL_0007:  ldarg.0
-  IL_0008:  ldfld      0x04000007
-  IL_000d:  ldfld      0x04000009
+  IL_0008:  ldfld      0x04000008
+  IL_000d:  ldfld      0x0400000A
   IL_0012:  ldfld      0x04000002
   IL_0017:  add.ovf
   IL_0018:  ldarg.0
-  IL_0019:  ldfld      0x04000007
-  IL_001e:  ldfld      0x04000008
+  IL_0019:  ldfld      0x04000008
+  IL_001e:  ldfld      0x04000009
   IL_0023:  add.ovf
   IL_0024:  stloc.0
   IL_0025:  br.s       IL_0027
   IL_0027:  ldloc.0
   IL_0028:  ret
 }
+.ctor
 {
   // Code size       22 (0x16)
   .maxstack  8
@@ -3489,8 +3676,8 @@ End Class
   IL_0007:  brfalse.s  IL_0015
   IL_0009:  ldarg.0
   IL_000a:  ldarg.1
-  IL_000b:  ldfld      0x04000008
-  IL_0010:  stfld      0x04000008
+  IL_000b:  ldfld      0x04000009
+  IL_0010:  stfld      0x04000009
   IL_0015:  ret
 }
 ")
@@ -3499,7 +3686,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChangeLambdaParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3526,7 +3713,7 @@ End Class
                             "C._Closure$__1-0: {$I0, $I2, _Lambda$__0, _Lambda$__2}",
                             "C._Closure$__1-1: {_Lambda$__1}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 Class C
@@ -3547,14 +3734,16 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__1-0, _Closure$__1-1}",
                             "C._Closure$__1-0: {$I0, _Lambda$__0}",
                             "C._Closure$__1-1: {_Lambda$__1, _Lambda$__2#1}")
 
-                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__2", "_Lambda$__1", "_Lambda$__2#1")
+                        g.VerifyMethodDefNames("F", "_Lambda$__0", "_Lambda$__2", "_Lambda$__1", ".ctor", "_Lambda$__2#1")
 
                         g.VerifyIL("
- {
+F
+{
   // Code size      106 (0x6a)
   .maxstack  3
   IL_0000:  nop
@@ -3591,7 +3780,7 @@ End Class
   IL_004f:  newobj     0x0A000008
   IL_0054:  stloc.s    V_8
   IL_0056:  ldloc.1
-  IL_0057:  ldftn      0x06000008
+  IL_0057:  ldftn      0x06000009
   IL_005d:  newobj     0x0A000008
   IL_0062:  stloc.s    V_9
   IL_0064:  nop
@@ -3599,6 +3788,7 @@ End Class
   IL_0066:  stloc.s    V_6
   IL_0068:  br.s       IL_0011
 }
+_Lambda$__0
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3610,13 +3800,16 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+_Lambda$__2
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000008
+  IL_000b:  throw
 }
+_Lambda$__1
 {
   // Code size       12 (0xc)
   .maxstack  1
@@ -3628,6 +3821,19 @@ End Class
   IL_000a:  ldloc.0
   IL_000b:  ret
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000009
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ret
+}
+_Lambda$__2#1
 {
   // Code size       14 (0xe)
   .maxstack  2
@@ -3651,7 +3857,7 @@ End Class
         ''' The value of the captured variable might be uninitialized in the lambda.
         ''' We leave it up to the user to set its value as needed.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UninitializedCapture()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3694,6 +3900,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -3712,6 +3919,7 @@ End Class
   IL_0021:  stloc.3
   IL_0022:  ret
 }
+_Lambda$__0
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -3731,8 +3939,7 @@ End Class
                     Verify()
             End Using
         End Sub
-
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CaptureOrdering()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3777,6 +3984,7 @@ End Class
                         g.VerifyMethodDefNames("F", "_Lambda$__0")
 
                         g.VerifyIL("
+F
 {
   // Code size       35 (0x23)
   .maxstack  2
@@ -3795,6 +4003,7 @@ End Class
   IL_0021:  stloc.2
   IL_0022:  ret
 }
+_Lambda$__0
 {
   // Code size       19 (0x13)
   .maxstack  2
@@ -3808,6 +4017,104 @@ End Class
   IL_000f:  br.s       IL_0011
   IL_0011:  ldloc.0
   IL_0012:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' Some lambda rude edits are simpler to detect in the IDE. They are specified via <see cref="RuntimeRudeEdit"/>.
+        ''' The IDE tests cover the specific cases.
+        ''' </summary>
+        <Fact>
+        Public Sub IdeDetectedRuntimeRudeEdit()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer)(<N:0>Function() 1</N:0>)
+    End Sub
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                            "C: {_Closure$__}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Double)(<N:0>Function() 1.0</N:0>)
+    End Sub
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True,
+                                 rudeEdits:=Function(node) New RuntimeRudeEdit("Return type changed", &H123))},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor", "_Lambda$__1-0#1")
+
+                        g.VerifyIL("
+F
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000004
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000004
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000001
+  IL_0014:  ldftn      0x06000007
+  IL_001a:  newobj     0x0A000008
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000004
+  IL_0025:  stloc.1
+  IL_0026:  ret
+}
+_Lambda$__1-0
+{
+  // Code size       12 (0xc)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000006
+  IL_000b:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000009
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000003
+  IL_000e:  ret
+}
+_Lambda$__1-0#1
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.r8     1
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
 }
 ")
                     End Sub).

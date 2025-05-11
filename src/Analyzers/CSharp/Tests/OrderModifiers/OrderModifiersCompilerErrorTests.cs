@@ -12,26 +12,25 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers;
+
+public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    public sealed class OrderModifiersCompilerErrorTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    public OrderModifiersCompilerErrorTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public OrderModifiersCompilerErrorTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpOrderModifiersCodeFixProvider());
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpOrderModifiersCodeFixProvider());
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/30352")]
-        public async Task PartialAtTheEnd()
-        {
-            // Verify that the code fix claims it fixes the compiler error (CS0267) in addition to the analyzer diagnostic.
-            await TestInRegularAndScript1Async(
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/30352")]
+    public async Task PartialAtTheEnd()
+    {
+        // Verify that the code fix claims it fixes the compiler error (CS0267) in addition to the analyzer diagnostic.
+        await TestInRegularAndScript1Async(
 @"[|partial|] public class C { }",
 @"public partial class C { }");
-        }
     }
 }

@@ -13,9 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
@@ -938,7 +936,7 @@ public class C
             var lib = CSharpCompilation.Create(
 "Lib",
 new[] { SyntaxFactory.ParseSyntaxTree(source) },
-new[] { Net451.mscorlib, Net451.System },
+new[] { NetFramework.mscorlib, NetFramework.System },
 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());

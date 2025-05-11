@@ -7,9 +7,9 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.ConvertCast.VisualBasicConvertDirectCastToTryCastCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ConvertCast
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.ConvertCast)>
     Public Class ConvertDirectCastToTryCastTests
-
         <Fact>
         Public Async Function ConvertFromDirectCastToTryCast() As Task
             Dim markup = "

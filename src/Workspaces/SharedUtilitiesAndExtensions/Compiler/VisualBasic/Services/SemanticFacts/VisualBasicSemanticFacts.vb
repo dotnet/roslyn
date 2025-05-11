@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -65,10 +66,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim location = token.GetLocation()
 
             For Each ancestor In token.GetAncestors(Of SyntaxNode)()
-                If Not TypeOf ancestor Is AggregationRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is CollectionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is ExpressionRangeVariableSyntax AndAlso
-                   Not TypeOf ancestor Is InferredFieldInitializerSyntax Then
+                If TypeOf ancestor IsNot AggregationRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot CollectionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot ExpressionRangeVariableSyntax AndAlso
+                   TypeOf ancestor IsNot InferredFieldInitializerSyntax Then
 
                     Dim symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken)
 
@@ -258,9 +259,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
-            Return If(node Is Nothing,
-                      ImmutableArray(Of ISymbol).Empty,
-                      semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
+            If node Is Nothing Then
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
+
+            Dim preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Return If(preprocessingSymbol IsNot Nothing,
+                ImmutableArray.Create(Of ISymbol)(preprocessingSymbol),
+                semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression
@@ -282,5 +288,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.GenerateNameForExpression(
                 DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
+
+        Public Function GetPreprocessingSymbol(model As SemanticModel, node As SyntaxNode) As IPreprocessingSymbol Implements ISemanticFacts.GetPreprocessingSymbol
+            Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
+            If nameSyntax IsNot Nothing Then
+                If IsWithinPreprocessorConditionalExpression(nameSyntax) Then
+                    Return CreatePreprocessingSymbol(model, nameSyntax.Identifier)
+                End If
+            End If
+
+            Dim constSyntax = TryCast(node, ConstDirectiveTriviaSyntax)
+            If constSyntax IsNot Nothing Then
+                Return CreatePreprocessingSymbol(model, constSyntax.Name)
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Shared Function CreatePreprocessingSymbol(model As SemanticModel, token As SyntaxToken) As IPreprocessingSymbol
+            Return model.Compilation.CreatePreprocessingSymbol(token.ValueText)
+        End Function
+
+        Friend Shared Function IsWithinPreprocessorConditionalExpression(node As IdentifierNameSyntax) As Boolean
+            Debug.Assert(node IsNot Nothing)
+            Dim current As SyntaxNode = node
+            Dim parent As SyntaxNode = node.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind()
+                    Case SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia
+                        Return DirectCast(parent, IfDirectiveTriviaSyntax).Condition Is current
+                    Case SyntaxKind.ConstDirectiveTrivia
+                        Return DirectCast(parent, ConstDirectiveTriviaSyntax).Value Is current
+                    Case Else
+                        current = parent
+                        parent = current.Parent
+                End Select
+            End While
+
+            Return False
+        End Function
+
+        Public Function TryGetPrimaryConstructor(typeSymbol As INamedTypeSymbol, <NotNullWhen(True)> ByRef primaryConstructor As IMethodSymbol) As Boolean Implements ISemanticFacts.TryGetPrimaryConstructor
+            ' VB does not support primary constructors
+            Return False
+        End Function
+
+#If Not CODE_STYLE Then
+
+        Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
+            ' VB does not support interceptors
+            Return SpecializedTasks.Null(Of ISymbol)
+        End Function
+
+#End If
     End Class
 End Namespace

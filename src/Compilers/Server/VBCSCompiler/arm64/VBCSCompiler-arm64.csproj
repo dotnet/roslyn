@@ -10,7 +10,7 @@
     <TargetFramework>net472</TargetFramework>
     <DisableNullableWarnings>true</DisableNullableWarnings>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />
 </Project>

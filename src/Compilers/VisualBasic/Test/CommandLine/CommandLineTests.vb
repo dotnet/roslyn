@@ -29,6 +29,7 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
+Imports Basic.Reference.Assemblies
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
-        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMonoDesktop, "mono", String.Empty)
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
@@ -1529,6 +1530,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:17.13", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic17_13, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2051,10 +2056,8 @@ End Module").Path
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
             ' When a new version is added, this test will break. This list must be checked:
-            ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update all the tests that call this canary
-            ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "17.13", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2076,7 +2079,8 @@ End Module").Path
                 "15.3",
                 "15.5",
                 "16",
-                "16.9"
+                "16.9",
+                "17.13"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2097,6 +2101,8 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.VisualBasic17_13.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.Default.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2120,6 +2126,7 @@ End Module").Path
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
+            InlineData("17.13", True, LanguageVersion.VisualBasic17_13),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -4937,7 +4944,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
@@ -5018,7 +5025,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub UnableWriteOutput()
+        Public Sub UnableWriteOutput_OutputFileIsDirectory()
             Dim tempFolder = Temp.CreateDirectory()
             Dim baseDirectory = tempFolder.ToString()
             Dim subFolder = tempFolder.CreateDirectory("temp.dll")
@@ -5030,6 +5037,34 @@ End Class
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
             Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub UnableWriteOutput_OutputFileLocked()
+            Dim tempFolder = Temp.CreateDirectory()
+            Dim baseDirectory = tempFolder.ToString()
+            Dim filePath = tempFolder.CreateFile("temp.dll").Path
+
+            Dim src = Temp.CreateFile("a.vb")
+            src.WriteAllText("Imports System")
+
+            Using New FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None)
+                Dim currentProcess = Process.GetCurrentProcess()
+
+                Dim outWriter As New StringWriter()
+                Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & filePath, src.ToString()}).Run(outWriter, Nothing)
+                Assert.Equal(1, exitCode)
+                Dim output = outWriter.ToString().Trim()
+
+                Dim pattern = "vbc : error BC2012: can't open '(?<path>.*)' for writing: (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)"
+                Dim match = Regex.Match(output, pattern)
+                Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
+                Assert.Equal(filePath, match.Groups("path").Value)
+                Assert.Contains("testhost", match.Groups("app").Value)
+                Assert.Equal(currentProcess.Id, Integer.Parse(match.Groups("pid").Value))
+            End Using
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub
@@ -10535,7 +10570,7 @@ End Class"
             Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator})
 
-            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(baseDirectory:=generatedDir.Path, generator)
             ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
                 {{generatedDir.Path, New Dictionary(Of String, String)()}}
             )
@@ -10582,7 +10617,7 @@ End Class"
             Dim generator = New SingleFileTestGenerator(generatedSource, "generatedSource.vb")
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, additionalFlags:={"/generatedfilesout:" + generatedDir.Path}, generators:={generator})
 
-            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(generator)
+            Dim generatorPrefix = GeneratorDriver.GetFilePathPrefixForGenerator(baseDirectory:=generatedDir.Path, generator)
             ValidateWrittenSources(New Dictionary(Of String, Dictionary(Of String, String))() From
                 {{Path.Combine(generatedDir.Path, generatorPrefix), New Dictionary(Of String, String)() From
                     {{"generatedSource.vb", generatedSource}}
@@ -10655,6 +10690,33 @@ End Class")
             parsedArgs = DefaultParse({$"/generatedfilesout:""{absPath}""", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+        End Sub
+
+        <Fact>
+        Public Sub Compiler_DoesNot_RunHostOutputs()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+End Class")
+            Dim hostOutputRan As Boolean = False
+            Dim sourceOutputRan As Boolean = False
+            Dim generator = New PipelineCallbackGenerator(Sub(ctx)
+#Disable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterHostOutput(ctx.CompilationProvider, Sub(hostCtx, value)
+                                                                                                                  hostOutputRan = True
+                                                                                                                  hostCtx.AddOutput("output", "value")
+                                                                                                              End Sub)
+#Enable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterSourceOutput(ctx.CompilationProvider, Sub(spc, po)
+                                                                                                                    sourceOutputRan = True
+                                                                                                                    spc.AddSource("output.vb", "'value")
+                                                                                                                End Sub)
+                                                          End Sub)
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator.AsSourceGenerator()})
+            Assert.[False](hostOutputRan)
+            Assert.[True](sourceOutputRan)
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
         End Sub
 
         <Fact>
@@ -10789,6 +10851,54 @@ dotnet_diagnostic.BC42380.severity = warning")
             Assert.Equal(0, exitCode)
             ' Note: the behavior differs from C# in that the editorconfig rule is applied
             Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates.", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithValidDiagnosticID_WarnForExperimentalWithMessage()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Public Class D
+    Public Sub M(c As C)
+    End Sub
+End Class
+
+<System.Diagnostics.CodeAnalysis.Experimental(""DiagID"", Message:=""use CCC"")>
+Public Class C
+    Public Shared Sub M()
+    End Sub
+End Class
+
+Namespace System.Diagnostics.CodeAnalysis
+    Public NotInheritable Class ExperimentalAttribute
+        Inherits Attribute
+
+        Public Sub New(ByVal diagnosticId As String)
+        End Sub
+
+        Property Message As String
+    End Class
+End Namespace
+")
+
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42509.severity = warning")
+
+            Assert.Equal(DirectCast(42509, ERRID), ERRID.WRN_ExperimentalWithMessage)
+
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/preferreduilang:en",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            ' Note: the behavior differs from C# in that the editorconfig rule is applied
+            Assert.Contains("warning DiagID: 'C' is for evaluation purposes only and is subject to change or removal in future updates: 'use CCC'.", outWriter.ToString())
         End Sub
 
         Private Function EmitGenerator(ByVal targetFramework As String) As String

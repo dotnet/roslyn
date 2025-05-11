@@ -3,133 +3,112 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritdoc), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AddInheritdocCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritdoc), Shared]
-    internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    /// <summary>
+    /// CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
+    /// </summary>
+    private const string CS1591 = nameof(CS1591);
+
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS1591];
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        /// <summary>
-        /// CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
-        /// </summary>
-        private const string CS1591 = nameof(CS1591);
+        var document = context.Document;
+        var cancellationToken = context.CancellationToken;
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AddInheritdocCodeFixProvider()
+        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var diagnostic in context.Diagnostics)
         {
-        }
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+            if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration and not SyntaxKind.VariableDeclarator)
+                continue;
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS1591);
+            if (node.IsKind(SyntaxKind.VariableDeclarator) && node is not { Parent.Parent: EventFieldDeclarationSyntax })
+                continue;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (root is null)
+            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            if (symbol is null)
+                continue;
+
+            if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
             {
-                return;
-            }
-
-            SemanticModel? semanticModel = null;
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var node = root.FindNode(diagnostic.Location.SourceSpan);
-                if (node.Kind() is not SyntaxKind.MethodDeclaration and not SyntaxKind.PropertyDeclaration and not SyntaxKind.VariableDeclarator)
+                if (symbol.IsOverride ||
+                    symbol.ImplicitInterfaceImplementations().Any())
                 {
-                    continue;
-                }
-
-                if (node.IsKind(SyntaxKind.VariableDeclarator) && node.Parent?.Parent?.IsKind(SyntaxKind.EventFieldDeclaration) == false)
-                {
-                    continue;
-                }
-
-                semanticModel ??= await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                if (symbol is null)
-                {
-                    continue;
-                }
-
-                if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
-                {
-                    if (symbol.IsOverride ||
-                        symbol.ImplicitInterfaceImplementations().Any())
-                    {
-                        RegisterCodeFix(context, CSharpCodeFixesResources.Explicitly_inherit_documentation, nameof(CSharpCodeFixesResources.Explicitly_inherit_documentation), diagnostic);
-                    }
+                    RegisterCodeFix(context, CSharpCodeFixesResources.Explicitly_inherit_documentation, nameof(CSharpCodeFixesResources.Explicitly_inherit_documentation), diagnostic);
                 }
             }
         }
+    }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var newLine = options.NewLine;
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var diagnostic in diagnostics)
         {
-            string? newLine = null;
-            SourceText? sourceText = null;
-            foreach (var diagnostic in diagnostics)
-            {
-                var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
-                if (node.IsKind(SyntaxKind.VariableDeclarator) && !(node = node.Parent?.Parent).IsKind(SyntaxKind.EventFieldDeclaration))
-                {
-                    continue;
-                }
+            var node = editor.OriginalRoot.FindNode(diagnostic.Location.SourceSpan);
+            if (node is VariableDeclaratorSyntax { Parent.Parent: EventFieldDeclarationSyntax eventField })
+                node = eventField;
 
-                if (newLine == null)
-                {
-                    var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                    newLine = optionsProvider.GetLineFormattingOptions().NewLine;
-                }
+            // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
+            // So we create a new /// <inheritdoc/> comment.
+            var xmlSpaceAfterTripleSlash = Token(leading: [DocumentationCommentExterior("///")], SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
+            var lessThanToken = LessThanToken.WithoutTrivia();
+            var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
+            var slashGreaterThanToken = SlashGreaterThanToken.WithoutTrivia();
+            var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
 
-                // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
-                // So we create a new /// <inheritdoc/> comment.
-                var xmlSpaceAfterTripleSlash = Token(leading: TriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
-                var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
-                var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
-                var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
-                var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
+            var singleLineInheritdocComment = DocumentationCommentTrivia(
+                kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
+                content:
+                [
+                    XmlText(xmlSpaceAfterTripleSlash),
+                    XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
+                    XmlText(xmlNewLineToken),
+                ],
+                endOfComment: EndOfDocumentationCommentToken.WithoutTrivia());
 
-                var singleLineInheritdocComment = DocumentationCommentTrivia(
-                    kind: SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    content: List(new XmlNodeSyntax[]
-                    {
-                        XmlText(xmlSpaceAfterTripleSlash),
-                        XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
-                        XmlText(xmlNewLineToken),
-                    }),
-                    endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
+            var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.Span.Start);
+            var newLeadingTrivia = TriviaList(
+                Whitespace(indentation),
+                Trivia(singleLineInheritdocComment));
 
-                sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);
-                var newLeadingTrivia = TriviaList(
-                    Whitespace(indentation),
-                    Trivia(singleLineInheritdocComment));
+            // Insert the new trivia after the existing trivia for the member (but before the whitespace indentation
+            // trivia on the line it starts on)
+            var finalLeadingTrivia = node.GetLeadingTrivia().ToList();
+            var insertionIndex = finalLeadingTrivia.Count;
 
-                editor.ReplaceNode(node, node.WithPrependedLeadingTrivia(newLeadingTrivia));
-            }
+            if (finalLeadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia)])
+                insertionIndex--;
+
+            finalLeadingTrivia.InsertRange(insertionIndex, newLeadingTrivia);
+            editor.ReplaceNode(node, node.WithLeadingTrivia(finalLeadingTrivia));
         }
     }
 }

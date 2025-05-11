@@ -548,7 +548,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         GetNextToken(enclosingState)
 
-                        Dim unexpectedSyntax = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan))
+                        Dim unexpectedSyntax = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(
+                            CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(divideToken, greaterThan))
 
                         endEmptyElementToken = AddLeadingSyntax(New PunctuationSyntax(SyntaxKind.SlashGreaterThanToken, "", Nothing, Nothing),
                                                                 unexpectedSyntax,
@@ -882,7 +883,7 @@ LessThanSlashTokenCase:
                     If slashToken.Kind = SyntaxKind.SlashToken Then
                         If lessThan.HasTrailingTrivia Or slashToken.HasLeadingTrivia Then
                             beginEndElement = AddLeadingSyntax(beginEndElement,
-                                SyntaxList.List(lessThan, slashToken),
+                                CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(lessThan, slashToken),
                                 ERRID.ERR_IllegalXmlWhiteSpace)
                         Else
                             beginEndElement = DirectCast(InternalSyntaxFactory.Token(lessThan.GetLeadingTrivia,

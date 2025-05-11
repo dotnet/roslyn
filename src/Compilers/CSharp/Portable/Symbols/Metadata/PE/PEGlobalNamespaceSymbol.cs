@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override void EnsureAllMembersLoaded()
         {
-            if (lazyTypes == null || lazyNamespaces == null)
+            if (Volatile.Read(ref lazyTypes) == null || Volatile.Read(ref lazyNamespaces) == null)
             {
                 IEnumerable<IGrouping<string, TypeDefinitionHandle>> groups;
 

@@ -97,7 +97,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
             if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
             {
-                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+                parameterTypeSymbols = [explicitLambdaParameterType];
             }
             else
             {
@@ -170,7 +170,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 }
             }
 
-            return concreteTypes.ToImmutable();
+            return concreteTypes.ToImmutableAndClear();
         }
 
         /// <summary>
@@ -181,7 +181,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         /// </param>
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
-        /// <returns></returns>
         private ImmutableArray<ITypeSymbol> GetTypeSymbols(
             ImmutableArray<ISymbol> candidateSymbols,
             string argumentName,
@@ -273,7 +272,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
             if (declarationSyntax == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
@@ -348,7 +347,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             //
             // ...unless, again, it's also declared elsewhere.
             //
-            return recommendationSymbol.IsNamespace() &&
+            return recommendationSymbol is INamespaceSymbol &&
                    recommendationSymbol.Locations.Any(
                        static (candidateLocation, declarationSyntax) => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)), declarationSyntax);
@@ -373,7 +372,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             }
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             if (unwrapNullable && namespaceOrType is ITypeSymbol typeSymbol)
             {
@@ -389,7 +388,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
             INamespaceOrTypeSymbol container, int position, bool excludeInstance)
         {
             if (excludeInstance)
-                return _context.SemanticModel.LookupStaticMembers(position, container);
+            {
+                var staticMembers = _context.SemanticModel.LookupStaticMembers(position, container);
+                if (container is not INamedTypeSymbol)
+                    return staticMembers;
+
+                var staticExtensionsMembers = _context.SemanticModel
+                    .LookupSymbols(position, container, includeReducedExtensionMethods: true)
+                    .WhereAsArray(static (s, staticMembers) => s is { IsStatic: true, ContainingType.IsExtension: true } && !staticMembers.Contains(s), staticMembers);
+
+                return [.. staticMembers, .. staticExtensionsMembers];
+            }
 
             var containerMembers = SuppressDefaultTupleElements(
                 container,
@@ -422,7 +431,7 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 result.Add(member);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
 
             static bool MatchesConstraints(ITypeSymbol originalContainerType, ImmutableArray<ITypeSymbol> constraintTypes)
             {
@@ -455,21 +464,45 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
                 }
                 else if (originalConstraintType.TypeKind == TypeKind.Interface)
                 {
-                    // If the constraint is an interface then see if that interface appears in the interface inheritance
-                    // hierarchy of the type we're dotting off of.
-                    foreach (var interfaceType in originalContainerType.AllInterfaces)
+                    if (originalContainerType is ITypeParameterSymbol typeParameterContainer)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, originalConstraintType))
-                            return true;
+                        // If the container type is a type parameter, we attempt to match all the interfaces from its constraint types.
+                        foreach (var constraintType in typeParameterContainer.ConstraintTypes)
+                        {
+                            foreach (var constraintTypeInterface in constraintType.GetAllInterfacesIncludingThis())
+                            {
+                                if (SymbolEqualityComparer.Default.Equals(constraintTypeInterface.OriginalDefinition, originalConstraintType))
+                                    return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // If the constraint is an interface then see if that interface appears in the interface inheritance
+                        // hierarchy of the type we're dotting off of.
+                        foreach (var interfaceType in originalContainerType.AllInterfaces)
+                        {
+                            if (SymbolEqualityComparer.Default.Equals(interfaceType.OriginalDefinition, originalConstraintType))
+                                return true;
+                        }
                     }
                 }
                 else if (originalConstraintType.TypeKind == TypeKind.Class)
                 {
-                    // If the constraint is an interface then see if that interface appears in the base type inheritance
-                    // hierarchy of the type we're dotting off of.
-                    for (var current = originalContainerType.BaseType; current != null; current = current.BaseType)
+                    if (originalContainerType is ITypeParameterSymbol typeParameterContainer)
                     {
-                        if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, originalConstraintType))
+                        // If the container type is a type parameter, we iterate through all the type's constrained types.
+                        foreach (var constrainedType in typeParameterContainer.ConstraintTypes)
+                        {
+                            if (MatchesAnyBaseTypes(constrainedType, originalConstraintType))
+                                return true;
+                        }
+                    }
+                    else
+                    {
+                        // If the constraint is an interface then see if that interface appears in the base type inheritance
+                        // hierarchy of the type we're dotting off of.
+                        if (MatchesAnyBaseTypes(originalContainerType.BaseType, originalConstraintType))
                             return true;
                     }
                 }
@@ -483,6 +516,17 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
 
                 // For anything else, we don't consider this a match.  This can be adjusted in the future if need be.
                 return false;
+
+                static bool MatchesAnyBaseTypes(ITypeSymbol source, ITypeSymbol matched)
+                {
+                    for (var current = source; current != null; current = current.BaseType)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, matched))
+                            return true;
+                    }
+
+                    return false;
+                }
             }
         }
 
@@ -493,6 +537,6 @@ internal abstract partial class AbstractRecommendationService<TSyntaxContext, TA
         protected static ImmutableArray<ISymbol> SuppressDefaultTupleElements(INamespaceOrTypeSymbol container, ImmutableArray<ISymbol> symbols)
             => container is not INamedTypeSymbol { IsTupleType: true } namedType
                 ? symbols
-                : symbols.Where(s => s is not IFieldSymbol).Concat(namedType.TupleElements).ToImmutableArray();
+                : [.. symbols.Where(s => s is not IFieldSymbol), .. namedType.TupleElements];
     }
 }

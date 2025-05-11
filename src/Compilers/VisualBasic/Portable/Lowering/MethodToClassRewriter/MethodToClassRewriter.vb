@@ -7,7 +7,6 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -104,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public NotOverridable Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
-            Return node.Update(VisitMethodSymbol(node.Method), VisitType(node.Type))
+            Return node.Update(VisitMethodSymbol(node.Method), VisitMethodSymbol(node.GetMethodFromHandle), VisitType(node.Type))
         End Function
 
         Public Overrides Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundNode

@@ -17,7 +17,7 @@
       https://github.com/dotnet/arcade/issues/9305
      -->
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-    <AssemblyVersion/>
+    <AssemblyVersion />
     <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
     <NoWarn>$(NoWarn);CA1819</NoWarn>
 
@@ -53,8 +53,6 @@
     <Compile Include="..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
-    <Compile Include="..\Portable\InternalUtilities\IReadOnlySet.cs" />
-    <Compile Include="..\Portable\InternalUtilities\NullableAttributes.cs" />
     <Compile Include="..\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\RoslynString.cs" />
@@ -64,25 +62,23 @@
     <EmbeddedResource Update="ErrorString.resx" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(SystemRuntimeCompilerServicesUnsafeVersion)" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.Memory" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
   </ItemGroup>
 
   <!-- Generate a .targets file that sets $(CompilerApiVersion) to the current Roslyn version -->
-  <PropertyGroup>
-    <CompilerVersionTargetsFileIntermediatePath>$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets</CompilerVersionTargetsFileIntermediatePath>
-  </PropertyGroup>
+  <ItemGroup>
+    <CompilerVersionTargetsFile Include="$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets" />
+  </ItemGroup>
 
-  <Target Name="GenerateCompilerVersionTargets"
-          BeforeTargets="AssignTargetPaths"
-          DependsOnTargets="GenerateCompilerVersionTargetsFile">
+  <Target Name="GenerateCompilerVersionTargets" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateCompilerVersionTargetsFile">
     <ItemGroup>
-      <Content Include="$(CompilerVersionTargetsFileIntermediatePath)">
+      <Content Include="@(CompilerVersionTargetsFile)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <Pack>true</Pack>
         <BuildAction>None</BuildAction>
@@ -92,8 +88,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="GenerateCompilerVersionTargetsFile"
-          Outputs="$(CompilerVersionTargetsFileIntermediatePath)">
+  <Target Name="GenerateCompilerVersionTargetsFile" Outputs="@(CompilerVersionTargetsFile)">
 
     <PropertyGroup>
       <_CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CompilerApiVersion>
@@ -106,9 +101,8 @@
       </_CompilerVersionTargetsFileContent>
     </PropertyGroup>
 
-    <WriteLinesToFile File="$(CompilerVersionTargetsFileIntermediatePath)"
-                      Lines="$(_CompilerVersionTargetsFileContent)"
-                      Overwrite="true"
-                      WriteOnlyWhenDifferent="true" />
+    <WriteLinesToFile File="@(CompilerVersionTargetsFile)" Lines="$(_CompilerVersionTargetsFileContent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
   </Target>
+
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

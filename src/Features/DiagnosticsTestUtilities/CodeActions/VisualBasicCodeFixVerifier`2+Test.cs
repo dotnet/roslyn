@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
@@ -20,87 +20,78 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 #endif
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
-{
-    public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
-        where TAnalyzer : DiagnosticAnalyzer, new()
-        where TCodeFix : CodeFixProvider, new()
-    {
-        public class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
-        {
-            private readonly SharedVerifierState _sharedState;
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
-            static Test()
-            {
-                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
-                // reasonable TLS protocol version for outgoing connections.
+public static partial class VisualBasicCodeFixVerifier<TAnalyzer, TCodeFix>
+    where TAnalyzer : DiagnosticAnalyzer, new()
+    where TCodeFix : CodeFixProvider, new()
+{
+    public sealed class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
+    {
+        private readonly SharedVerifierState _sharedState;
+
+        static Test()
+        {
+            // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+            // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
 #pragma warning disable CS0618 // Type or member is obsolete
-                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning disable SYSLIB0014 // 'ServicePointManager' is obsolete
+            if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
-                {
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                }
-            }
-
-            public Test()
             {
-                _sharedState = new SharedVerifierState(this, DefaultFileExt);
-
-                MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             }
+#pragma warning restore SYSLIB0014 // 'ServicePointManager' is obsolete
+        }
 
-            /// <summary>
-            /// Gets or sets the language version to use for the test. The default value is
-            /// <see cref="LanguageVersion.VisualBasic16"/>.
-            /// </summary>
-            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
+        public Test()
+        {
+            _sharedState = new SharedVerifierState(this, DefaultFileExt);
 
-            /// <inheritdoc cref="SharedVerifierState.Options"/>
-            internal OptionsCollection Options => _sharedState.Options;
+            MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
+        }
 
-            /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
-            public string? EditorConfig
+        /// <summary>
+        /// Gets or sets the language version to use for the test. The default value is
+        /// <see cref="LanguageVersion.VisualBasic16"/>.
+        /// </summary>
+        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
+
+        /// <inheritdoc cref="SharedVerifierState.Options"/>
+        internal OptionsCollection Options => _sharedState.Options;
+
+        /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
+        public string? EditorConfig
+        {
+            get => _sharedState.EditorConfig;
+            set => _sharedState.EditorConfig = value;
+        }
+
+        public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+
+        protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
+        {
+            if (DiagnosticSelector is object)
             {
-                get => _sharedState.EditorConfig;
-                set => _sharedState.EditorConfig = value;
+                Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
             }
 
-            public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
+            _sharedState.Apply();
+            await base.RunImplAsync(cancellationToken);
+        }
 
-            protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
-            {
-                if (DiagnosticSelector is object)
-                {
-                    Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
-                }
+        protected override ParseOptions CreateParseOptions()
+        {
+            var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
+            return parseOptions.WithLanguageVersion(LanguageVersion);
+        }
 
-                _sharedState.Apply();
-                await base.RunImplAsync(cancellationToken);
-            }
-
-            protected override ParseOptions CreateParseOptions()
-            {
-                var parseOptions = (VisualBasicParseOptions)base.CreateParseOptions();
-                return parseOptions.WithLanguageVersion(LanguageVersion);
-            }
-
-#if !CODE_STYLE
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
-
-            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
-
-#endif
-
-            protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
-            {
-                return DiagnosticSelector?.Invoke(fixableDiagnostics)
-                    ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
-            }
+        protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
+        {
+            return DiagnosticSelector?.Invoke(fixableDiagnostics)
+                ?? base.TrySelectDiagnosticToFix(fixableDiagnostics);
         }
     }
 }

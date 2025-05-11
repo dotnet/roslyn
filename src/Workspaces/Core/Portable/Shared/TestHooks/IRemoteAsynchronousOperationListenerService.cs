@@ -6,14 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Shared.TestHooks
+namespace Microsoft.CodeAnalysis.Shared.TestHooks;
+
+internal interface IRemoteAsynchronousOperationListenerService
 {
-    internal interface IRemoteAsynchronousOperationListenerService
-    {
-        ValueTask EnableAsync(bool enable, bool diagnostics, CancellationToken cancellationToken);
+    ValueTask EnableAsync(bool enable, bool diagnostics, CancellationToken cancellationToken);
 
-        ValueTask<bool> IsCompletedAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken);
+    ValueTask<bool> IsCompletedAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken);
 
-        ValueTask ExpeditedWaitAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken);
-    }
+    ValueTask ExpeditedWaitAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken);
 }

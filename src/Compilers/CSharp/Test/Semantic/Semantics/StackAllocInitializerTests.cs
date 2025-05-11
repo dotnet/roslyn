@@ -432,9 +432,9 @@ unsafe class Test
                 // (8,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
                 //         var obj2 = c ? default : stackalloc[] { new {} };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34),
-                // (9,34): error CS0306: The type 'Test.S' may not be used as a type argument
+                // (9,34): error CS9244: The type 'Test.S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Span<T>'
                 //         var obj3 = c ? default : stackalloc[] { s };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "stackalloc[] { s }").WithArguments("Test.S").WithLocation(9, 34)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "stackalloc[] { s }").WithArguments("System.Span<T>", "T", "Test.S").WithLocation(9, 34)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -657,21 +657,21 @@ class Test
                 );
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
-                // (7,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (7,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 37),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(7, 37),
                 // (7,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 44),
-                // (8,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (8,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 37),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(8, 37),
                 // (8,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 44),
-                // (9,37): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (9,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 37),
                 // (9,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 44)
@@ -706,15 +706,15 @@ class Test
                 );
             CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8)
                 .VerifyDiagnostics(
-                // (7,75): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (7,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q1 = from item in array let v = stackalloc int[3] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select v").WithArguments("System.Span<int>").WithLocation(7, 75),
-                // (8,75): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(7, 75),
+                // (8,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q2 = from item in array let v = stackalloc int[ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select v").WithArguments("System.Span<int>").WithLocation(8, 75),
-                // (9,75): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(8, 75),
+                // (9,75): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q3 = from item in array let v = stackalloc    [ ] { 1, 2, 3 } select v;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "select v").WithArguments("System.Span<int>").WithLocation(9, 75)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select v").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 75)
                 );
         }
 
@@ -757,11 +757,27 @@ class Test
             comp.VerifyDiagnostics(
                 // (8,38): error CS0150: A constant value is expected
                 //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "await Task.FromResult(1)").WithLocation(8, 38),
-                // (8,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         Span<int> p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "await Task.FromResult(1)").WithLocation(8, 38)
                 );
+        }
+
+        [Fact]
+        public void TestAwait_Span_02()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan("""
+                using System;
+                using System.Threading.Tasks;
+                class Test
+                {
+                    static async Task Main()
+                    {
+                        Span<int> p = stackalloc int[1] { await Task.FromResult(2) };
+                        Console.WriteLine(p[0]);
+                    }
+                }
+                """, TestOptions.UnsafeReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1517,13 +1533,13 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must implement 'System.IDisposable'
                 //         using (var v1 = stackalloc int [3] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = stackalloc int [3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(6, 16),
-                // (7,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (7,16): error CS1674: 'Span<int>': type used in a using statement must implement 'System.IDisposable'
                 //         using (var v2 = stackalloc int [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v2 = stackalloc int [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 16),
-                // (8,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (8,16): error CS1674: 'Span<int>': type used in a using statement must implement 'System.IDisposable'
                 //         using (var v3 = stackalloc     [ ] { 1, 2, 3 })
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v3 = stackalloc     [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 16)
                 );
@@ -2676,6 +2692,98 @@ unsafe class Test
             Assert.Equal(Conversion.ImplicitNumeric, element1Info.ImplicitConversion);
 
             Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_01()
+        {
+            string source = """
+                stackalloc X[new(), new()];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[new(), new()]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[new(), new()];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[new(), new()]").WithLocation(1, 12));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var operation = model.GetOperation(tree.GetRoot());
+            var actualOperationTree = GetOperationTreeForTest(comp, operation);
+            OperationTreeVerifier.Verify("""
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'stackalloc  ... (), new()];')
+                  BlockBody:
+                    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'stackalloc  ... (), new()];')
+                      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'stackalloc  ... (), new()];')
+                        Expression:
+                          IInvalidOperation (OperationKind.Invalid, Type: X*, IsInvalid) (Syntax: 'stackalloc  ... w(), new()]')
+                            Children(2):
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new()')
+                                  Children(0)
+                  ExpressionBody:
+                    null
+                """,
+                actualOperationTree);
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Fact]
+        public void UnconvertedExpression_02()
+        {
+            string source = """
+                object x;
+                stackalloc X[0, new(out x)];
+                object y = x;
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc X[0, new(out x)]").WithLocation(2, 1),
+                // (2,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(2, 12),
+                // (2,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "X[0, new(out x)]").WithLocation(2, 12),
+                // (2,25): error CS0165: Use of unassigned local variable 'x'
+                // stackalloc X[0, new(out x)];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(2, 25));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72448")]
+        [Theory]
+        [InlineData("default")]
+        [InlineData("(default, 1)")]
+        [InlineData("[]")]
+        [InlineData("$\"str\"")]
+        [InlineData("args.Length > 0 ? default : default")]
+        [InlineData("args.Length > 0 switch { true => default, false => default }")]
+        public void UnconvertedExpression_03(string expr)
+        {
+            string source = $$"""
+                stackalloc X[0, {{expr}}];
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_IllegalStatement, $"stackalloc X[0, {expr}]").WithLocation(1, 1),
+                // (1,12): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "X").WithArguments("X").WithLocation(1, 12),
+                // (1,12): error CS1575: A stackalloc expression requires [] after type
+                // stackalloc X[0, default];
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, $"X[0, {expr}]").WithLocation(1, 12));
         }
     }
 }

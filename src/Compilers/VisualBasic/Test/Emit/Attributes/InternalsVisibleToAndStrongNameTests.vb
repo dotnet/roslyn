@@ -1140,7 +1140,7 @@ End Class
         Assert.True(comp.IsRealSigned)
         VerifySigned(comp)
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
 
         Dim src =
 <compilation name="MaxSizeComp2">
@@ -1158,14 +1158,14 @@ End Class
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
         Dim comp3 = CreateCompilation(src, references:={comp.EmitToImageReference()},
             options:=TestOptions.SigningReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile), parseOptions:=parseOptions)
 
         CompileAndVerify(comp3, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
     End Sub
 
     <Theory>

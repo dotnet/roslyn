@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 string typeName;
                 var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
                 Assert.NotNull(assembly);
-                Assert.Equal(0, assembly.Count);
-                Assert.Equal(0, locals.Count);
+                Assert.Empty(assembly);
+                Assert.Empty(locals);
                 locals.Free();
             });
         }
@@ -273,8 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         // Should not bind to unnamed display class parameters
         // (unnamed parameters are treated as named "value").
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_01()
         {
             var source =
@@ -300,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_02()
         {
             var source =
@@ -340,8 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             });
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18426")]
         public void DisplayClassParameter_03()
         {
             var source =
@@ -398,7 +395,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");

@@ -2,144 +2,146 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
-using Moq;
-using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
+namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline;
+
+[UseExportProvider]
+public abstract class DocumentOutlineTestsBase
 {
-    [UseExportProvider]
-    public abstract class DocumentOutlineTestsBase
+    private const string PathRoot = "C:\\\ue25b\\";
+
+    private readonly TestOutputLspLogger _logger;
+    protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
     {
-        private const string PathRoot = "C:\\\ue25b\\";
+        _logger = new TestOutputLspLogger(testOutputHelper);
+    }
 
-        private readonly TestOutputLspLogger _logger;
-        protected DocumentOutlineTestsBase(ITestOutputHelper testOutputHelper)
+    protected sealed class DocumentOutlineTestMocks : IAsyncDisposable
+    {
+        private readonly EditorTestWorkspace _workspace;
+        private readonly IAsyncDisposable _disposable;
+
+        internal DocumentOutlineTestMocks(
+            LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> languageServiceBrokerCallback,
+            IThreadingContext threadingContext,
+            EditorTestWorkspace workspace,
+            IAsyncDisposable disposable)
         {
-            _logger = new TestOutputLspLogger(testOutputHelper);
+            LanguageServiceBrokerCallback = languageServiceBrokerCallback;
+            ThreadingContext = threadingContext;
+            _workspace = workspace;
+            _disposable = disposable;
+            TextBuffer = workspace.Documents.Single().GetTextBuffer();
         }
 
-        protected class DocumentOutlineTestMocks : IAsyncDisposable
+        internal LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> LanguageServiceBrokerCallback { get; }
+
+        internal IThreadingContext ThreadingContext { get; }
+
+        internal ITextBuffer TextBuffer { get; }
+
+        internal string FilePath
+            => PathRoot + _workspace.Documents.Single().FilePath!;
+
+        public ValueTask DisposeAsync()
+            => _disposable.DisposeAsync();
+    }
+
+    private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+        .AddParts(typeof(TestDocumentTrackingService))
+        .AddParts(typeof(TestWorkspaceRegistrationService))
+        .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
+
+    protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
+    {
+        var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
+        var threadingContext = workspace.GetService<IThreadingContext>();
+
+        var testLspServer = await CreateTestLspServerAsync(workspace);
+
+        var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
+        return mocks;
+
+        async Task<RoslynDocumentSymbol[]?> RequestAsync(Request<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> request, CancellationToken cancellationToken)
         {
-            private readonly EditorTestWorkspace _workspace;
-            private readonly IAsyncDisposable _disposable;
+            var docRequest = (DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>)request;
+            var parameters = docRequest.ParameterFactory(docRequest.TextBuffer.CurrentSnapshot);
+            var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>(request.Method, parameters, cancellationToken);
 
-            internal DocumentOutlineTestMocks(
-                LanguageServiceBrokerCallback languageServiceBrokerCallback,
-                IThreadingContext threadingContext,
-                EditorTestWorkspace workspace,
-                IAsyncDisposable disposable)
-            {
-                LanguageServiceBrokerCallback = languageServiceBrokerCallback;
-                ThreadingContext = threadingContext;
-                _workspace = workspace;
-                _disposable = disposable;
-                TextBuffer = workspace.Documents.Single().GetTextBuffer();
-            }
+            return response;
+        }
+    }
 
-            internal LanguageServiceBrokerCallback LanguageServiceBrokerCallback { get; }
+    private async Task<EditorTestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace)
+    {
+        var solution = workspace.CurrentSolution;
 
-            internal IThreadingContext ThreadingContext { get; }
+        foreach (var document in workspace.Documents)
+        {
+            if (document.IsSourceGenerated)
+                continue;
 
-            internal ITextBuffer TextBuffer { get; }
+            solution = solution.WithDocumentFilePath(document.Id, PathRoot + document.Name);
 
-            internal string FilePath
-                => PathRoot + _workspace.Documents.Single().FilePath!;
-
-            public ValueTask DisposeAsync()
-                => _disposable.DisposeAsync();
+            var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
+            solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
         }
 
-        private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
-            .AddParts(typeof(TestDocumentTrackingService))
-            .AddParts(typeof(TestWorkspaceRegistrationService))
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
-
-        protected async Task<DocumentOutlineTestMocks> CreateMocksAsync(string code)
+        foreach (var project in workspace.Projects)
         {
-            var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
-            var threadingContext = workspace.GetService<IThreadingContext>();
-
-            var clientCapabilities = new LSP.ClientCapabilities()
-            {
-                TextDocument = new LSP.TextDocumentClientCapabilities()
-                {
-                    DocumentSymbol = new LSP.DocumentSymbolSetting()
-                    {
-                        HierarchicalDocumentSymbolSupport = true
-                    }
-                }
-            };
-
-            var testLspServer = await CreateTestLspServerAsync(workspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
-
-            var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
-            return mocks;
-
-            async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
-            {
-                var request = parameterFactory(textBuffer.CurrentSnapshot).ToObject<RoslynDocumentSymbolParams>();
-                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, object[]>(method, request!, cancellationToken);
-                return new ManualInvocationResponse(string.Empty, JToken.FromObject(response!));
-            }
+            // Ensure all the projects have a valid file path.
+            solution = solution.WithProjectFilePath(project.Id, PathRoot + project.Name);
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions)
+        solution = solution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]);
+        await workspace.ChangeSolutionAsync(solution);
+
+        var server = await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
+        return server;
+    }
+
+    internal sealed class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+    {
+        private EditorTestLspServer(EditorTestWorkspace testWorkspace, Dictionary<string, IList<LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
         {
-            var solution = workspace.CurrentSolution;
-
-            foreach (var document in workspace.Documents)
-            {
-                if (document.IsSourceGenerated)
-                    continue;
-
-                solution = solution.WithDocumentFilePath(document.Id, PathRoot + document.Name);
-
-                var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
-                solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
-            }
-
-            foreach (var project in workspace.Projects)
-            {
-                // Ensure all the projects have a valid file path.
-                solution = solution.WithProjectFilePath(project.Id, PathRoot + project.Name);
-            }
-
-            solution = solution.WithAnalyzerReferences(new[] { new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()) });
-            await workspace.ChangeSolutionAsync(solution);
-
-            // Important: We must wait for workspace creation operations to finish.
-            // Otherwise we could have a race where workspace change events triggered by creation are changing the state
-            // created by the initial test steps. This can interfere with the expected test state.
-            var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            var workspaceWaiter = operations.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.ExpeditedWaitAsync();
-
-            return await TestLspServer.CreateAsync(workspace, initializationOptions, _logger);
         }
+
+        public static async Task<EditorTestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+        {
+            var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+            var server = new EditorTestLspServer(testWorkspace, locations, initializationOptions, logger);
+            await server.InitializeAsync();
+            return server;
+        }
+    }
+
+    [DataContract]
+    private sealed class NewtonsoftInitializeParams
+    {
+        [DataMember(Name = "capabilities")]
+        internal object? Capabilities { get; set; }
     }
 }

@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             protected abstract IEnumerable<Cci.TypeReferenceWithAttributes> GetConstraints(EmitContext context);
             protected abstract bool MustBeReferenceType { get; }
             protected abstract bool MustBeValueType { get; }
+            protected abstract bool AllowsRefLikeType { get; }
             protected abstract bool MustHaveDefaultConstructor { get; }
             protected abstract string Name { get; }
             protected abstract ushort Index { get; }
@@ -82,6 +83,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 get
                 {
                     return MustBeValueType;
+                }
+            }
+
+            bool Cci.IGenericParameter.AllowsRefLikeType
+            {
+                get
+                {
+                    return AllowsRefLikeType;
                 }
             }
 
@@ -230,13 +239,13 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             public sealed override bool Equals(object obj)
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable();
             }
 
             public sealed override int GetHashCode()
             {
                 // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-                throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

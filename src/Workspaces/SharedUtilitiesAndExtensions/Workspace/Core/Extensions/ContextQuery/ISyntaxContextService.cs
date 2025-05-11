@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+
+internal interface ISyntaxContextService : ILanguageService
 {
-    internal interface ISyntaxContextService : ILanguageService
-    {
-        SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-    }
+    SyntaxContext CreateContext(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 }

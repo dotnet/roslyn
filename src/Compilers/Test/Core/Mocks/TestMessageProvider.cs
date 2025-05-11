@@ -400,6 +400,14 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public override int ERR_TooManyUserStrings_RestartRequired
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override int ERR_PeWritingFailure
         {
             get
@@ -416,7 +424,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public override int ERR_EncUpdateFailedMissingAttribute
+        public override int ERR_EncUpdateFailedMissingSymbol
         {
             get
             {
@@ -469,6 +477,8 @@ namespace Roslyn.Test.Utilities
         public override int WRN_DuplicateAnalyzerReference => throw new NotImplementedException();
 
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => throw new NotImplementedException();
+
+        public override int ERR_DataSectionStringLiteralHashCollision => throw new NotImplementedException();
 
         public override int? WRN_ByValArraySizeConstRequired => throw new NotImplementedException();
     }

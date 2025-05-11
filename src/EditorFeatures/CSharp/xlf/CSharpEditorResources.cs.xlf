@@ -32,6 +32,11 @@
         <target state="translated">Generovat odběr událostí</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_event">
+        <source>Generating event...</source>
+        <target state="translated">Generuje se událost...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
         <target state="translated">Zvětšit nezpracovaný řetězec</target>
@@ -45,11 +50,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (Pro vložení stiskněte TAB.)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">Chytré odsazování</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_raw_string">

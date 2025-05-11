@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis
@@ -18,6 +19,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
+
+        <Theory>
+        <InlineData(GetType(IOException))>
+        <InlineData(GetType(BadImageFormatException))>
+        <InlineData(GetType(InvalidDataException))>
+        Public Sub SymReaderErrors(exceptionType As Type)
+            Using New EditAndContinueTest(assemblyName:="test").
+                AddBaseline(
+                    source:="
+                    Class C
+                        Sub F()
+                            Dim x = 1
+                        End Sub
+                    End Class
+                    ",
+                    debugInformationProvider:=Function(method)
+                                                  Throw DirectCast(Activator.CreateInstance(exceptionType, {"bug!"}), Exception)
+                                              End Function).
+                AddGeneration(' 1
+                    source:="
+                    Class C
+                        Sub F()
+                            Dim x = 2
+                        End Sub
+                    End Class
+                    ",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    expectedErrors:=
+                    {
+                        Diagnostic(ERRID.ERR_InvalidDebugInfo, "F").WithArguments("Public Sub F()", &H6000002, "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "bug!").WithLocation(3, 29)
+                    }).
+                Verify()
+            End Using
+        End Sub
 
         <Fact>
         Public Sub SemanticErrors_MethodBody()
@@ -238,7 +276,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ModifyMethod_ParameterModifiers_RefOut()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -320,7 +358,7 @@ End Class
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
                 Dim methods = diff1.TestData.GetMethodsByName()
-                Assert.Equal(methods.Count, 1)
+                Assert.Equal(methods.Count, 2)
                 Assert.True(methods.ContainsKey("C.M2()"))
 
                 Using md1 = diff1.GetMetadata()
@@ -786,7 +824,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation0)
@@ -1315,7 +1353,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
             End Using
         End Sub
 
-        <Fact, WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
+        <ConditionalFact(GetType(NotOnMonoCore)), WorkItem(1175704, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1175704")>
         Public Sub EventFields()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1380,7 +1418,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Event_Delete()
             Using New EditAndContinueTest().
@@ -1403,7 +1441,7 @@ End Class
                     validator:=
                         Sub(g)
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Class C
 End Class
@@ -1417,31 +1455,50 @@ End Class
                     },
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames()
-                            g.VerifyFieldDefNames()
-                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E")
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyFieldDefNames("Code")
+                            g.VerifyMethodDefNames("add_E", "remove_E", "raise_E", ".ctor")
                             g.VerifyDeletedMembers("C: {raise_E, add_E, remove_E, E}")
 
                             ' We should update the Event table entry to indicate that the event has been deleted:
                             ' TODO: https://github.com/dotnet/roslyn/issues/69834
                             g.VerifyEncLogDefinitions(
                             {
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
+add_E, remove_E, raise_E
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000006
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000005
+  IL_000c:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000006
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ret
 }
 ")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 2
                     source:="
 Class C
     Custom Event E As System.Action(Of Integer)
@@ -1482,6 +1539,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1491,6 +1549,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1500,6 +1559,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+raise_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1515,7 +1575,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Event_TypeChange()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1536,7 +1596,7 @@ End Class
                     validator:=
                         Sub(g)
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Class C
     Custom Event E As System.Action(Of Boolean)
@@ -1561,24 +1621,29 @@ End Class
                     },
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames()
-                            g.VerifyFieldDefNames()
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyFieldDefNames("Code")
 
                             ' We do not update raise_E since its signature has not changed.
-                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E")
+                            g.VerifyMethodDefNames("add_E", "remove_E", "add_E", "remove_E", ".ctor")
                             g.VerifyDeletedMembers("C: {add_E, remove_E}")
 
                             ' New event is added to the Event table associated with the new accessors.
                             ' Events can't be overloaded on type so we will update the existing Event table entry.
                             g.VerifyEncLogDefinitions(
                             {
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
                                 Row(1, TableIndex.Event, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                                 Row(3, TableIndex.Param, EditAndContinueOperation.Default),
                                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
@@ -1589,34 +1654,50 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E, remove_E
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000006
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000007
+  IL_000c:  throw
 }
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4.s   10
-  IL_0003:  call       0x0A000007
+  IL_0003:  call       0x0A000006
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       10 (0xa)
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4.s   20
-  IL_0003:  call       0x0A000007
+  IL_0003:  call       0x0A000006
   IL_0008:  nop
   IL_0009:  ret
 }
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000007
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ret
+}
 ")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 2
                     source:="
 Class C
     Custom Event E As System.Action(Of Integer)
@@ -1664,6 +1745,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1673,6 +1755,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1682,12 +1765,14 @@ End Class
   IL_000b:  nop
   IL_000c:  ret
 }
+add_E, remove_E
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000151
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000007
+  IL_000c:  throw
 }
 ")
                         End Sub).
@@ -2175,7 +2260,7 @@ End Module</file>
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69834")>
         Public Sub Property_TypeChange()
             Using New EditAndContinueTest().
@@ -2201,7 +2286,7 @@ End Class
                             g.VerifyFieldDefNames()
                             g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 
@@ -2228,11 +2313,11 @@ End Class
                     },
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames()
-                            g.VerifyFieldDefNames()
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyFieldDefNames("Code")
 
                             ' old accessors are updated to throw, new accessors are added:
-                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P")
+                            g.VerifyMethodDefNames("get_P", "set_P", "get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
 
                             ' New property is added to the Property table associated with the new accessors.
@@ -2244,34 +2329,42 @@ End Class
                             g.VerifyEncLogDefinitions(
                             {
                                 Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P
-                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)
-                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),         ' HotReloadException
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),           ' HotReloadException.Code
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' Action<int> get_P                      
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' set_P(Action<int>)                     
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' Action<bool> get_P                     
                                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)
+                                Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),       ' set_P(Action<bool>)                    
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),       ' HotReloadException..ctor
+                                Row(1, TableIndex.PropertyMap, EditAndContinueOperation.AddProperty), ' Action<bool> P                         
                                 Row(2, TableIndex.Property, EditAndContinueOperation.Default),
                                 Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
                                 Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P
-                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>)
+                                Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default), ' Action<bool> P <-> Action<bool> get_P  
+                                Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)  ' Action<bool> P <-> set_P(Action<bool>) 
                             })
 
                             g.VerifyIL("
+get_P, set_P
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000006
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000006
+  IL_000c:  throw
 }
+get_P
 {
   // Code size       15 (0xf)
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldc.i4.s   10
-  IL_0003:  call       0x0A000007
+  IL_0003:  call       0x0A000006
   IL_0008:  nop
   IL_0009:  ldnull
   IL_000a:  stloc.0
@@ -2279,17 +2372,30 @@ End Class
   IL_000d:  ldloc.0
   IL_000e:  ret
 }
+set_P
 {
   // Code size       10 (0xa)
   .maxstack  8
   IL_0000:  nop
   IL_0001:  ldc.i4.s   20
-  IL_0003:  call       0x0A000007
+  IL_0003:  call       0x0A000006
   IL_0008:  nop
   IL_0009:  ret
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000007
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ret
 }")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 2
                     source:="
 Imports System
 
@@ -2339,6 +2445,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -2352,6 +2459,7 @@ End Class
   IL_000d:  ldloc.0
   IL_000e:  ret
 }
+set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2361,12 +2469,14 @@ End Class
   IL_000b:  nop
   IL_000c:  ret
 }
+get_P, set_P
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000151
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000006
+  IL_000c:  throw
 }
 ")
                         End Sub).
@@ -2374,7 +2484,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Property_Delete()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -2397,7 +2507,7 @@ End Class
                             g.VerifyFieldDefNames()
                             g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 
@@ -2412,30 +2522,49 @@ End Class
                     },
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames()
-                            g.VerifyFieldDefNames()
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyFieldDefNames("Code")
 
                             ' deleted getter is updated to throw:
-                            g.VerifyMethodDefNames("get_P", "set_P")
+                            g.VerifyMethodDefNames("get_P", "set_P", ".ctor")
                             g.VerifyDeletedMembers("C: {P, get_P, set_P}")
 
                             g.VerifyEncLogDefinitions(
                             {
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
                                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
+get_P, set_P
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000005
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000004
+  IL_000c:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000005
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ret
 }
 ")
                         End Sub).
-                        AddGeneration(
+                        AddGeneration(' 2
                     source:="
 Imports System
 
@@ -2468,6 +2597,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2483,7 +2613,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Property_DeleteGetter()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -2506,7 +2636,7 @@ End Class
                             g.VerifyFieldDefNames()
                             g.VerifyMethodDefNames(".ctor", "get_P", "set_P")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 
@@ -2523,29 +2653,48 @@ End Class
                     },
                     validator:=
                         Sub(g)
-                            g.VerifyTypeDefNames()
-                            g.VerifyFieldDefNames()
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyFieldDefNames("Code")
                             g.VerifyDeletedMembers("C: {get_P}")
 
                             ' deleted getter is updated to throw:
-                            g.VerifyMethodDefNames("get_P")
+                            g.VerifyMethodDefNames("get_P", ".ctor")
 
                             g.VerifyEncLogDefinitions(
                             {
-                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default)
                             })
 
                             g.VerifyIL("
+get_P
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000005
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000004
+  IL_000c:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000005
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000001
+  IL_000e:  ret
 }
 ")
                         End Sub).
-                        AddGeneration(
+                        AddGeneration(' 2
                     source:="
 Imports System
 
@@ -2578,6 +2727,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -4510,7 +4660,7 @@ End Class
         ''' <summary>
         ''' Local slots must be preserved based on signature.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub PreserveLocalSlotsImplicitNamedArgXml()
             Dim source = "
 Option Explicit Off
@@ -5382,7 +5532,7 @@ End Class
             Dim source1 = MarkedSource(template.Replace("<<VALUE>>", "1"))
             Dim source2 = MarkedSource(template.Replace("<<VALUE>>", "2"))
 
-            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation0.WithSource(source2.Tree)
 
@@ -5787,7 +5937,7 @@ End Module
 
 #End Region
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Lambda_Delete()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -5805,7 +5955,7 @@ End Class
 
                                End Sub
                     ).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
                         
@@ -5822,61 +5972,86 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1-1, _Lambda$__1-1}")
-                        g.VerifyTypeDefNames()
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1")
-                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "MissingMethodException", "Console")
-                        g.VerifyMemberRefNames(".ctor", ".ctor", ".ctor", "WriteLine")
+                        g.VerifyTypeDefNames("HotReloadException")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1", ".ctor")
+                        g.VerifyTypeRefNames("Object", "Action", "CompilerGeneratedAttribute", "Exception", "Console")
+                        g.VerifyMemberRefNames(".ctor", ".ctor", "WriteLine", ".ctor")
 
                         g.VerifyEncLogDefinitions(
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(4, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
                             Handle(5, TableIndex.MethodDef),
                             Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(2, TableIndex.StandAloneSig)
                         })
 
                         g.VerifyIL("
+F
 {
-    // Code size       39 (0x27)
-    .maxstack  2
-    IL_0000:  nop
-    IL_0001:  ldsfld     0x04000003
-    IL_0006:  brfalse.s  IL_000f
-    IL_0008:  ldsfld     0x04000003
-    IL_000d:  br.s       IL_0025
-    IL_000f:  ldsfld     0x04000001
-    IL_0014:  ldftn      0x06000006
-    IL_001a:  newobj     0x0A000009
-    IL_001f:  dup
-    IL_0020:  stsfld     0x04000003
-    IL_0025:  stloc.2
-    IL_0026:  ret
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000003
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000003
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000001
+  IL_0014:  ldftn      0x06000006
+  IL_001a:  newobj     0x0A000009
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000003
+  IL_0025:  stloc.2
+  IL_0026:  ret
 }
+_Lambda$__1-0
 {
-    // Code size       11 (0xb)
-    .maxstack  8
-    IL_0000:  ldstr      0x70000005
-    IL_0005:  newobj     0x0A00000A
-    IL_000a:  throw
+  // Code size       12 (0xc)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000007
+  IL_000b:  throw
 }
+_Lambda$__1-1
 {
-    // Code size        9 (0x9)
-    .maxstack  8
-    IL_0000:  nop
-    IL_0001:  ldc.i4.2
-    IL_0002:  call       0x0A00000B
-    IL_0007:  nop
-    IL_0008:  ret
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       0x0A00000A
+  IL_0007:  nop
+  IL_0008:  ret
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000B
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ret
 }
 ")
                     End Sub).
@@ -5884,7 +6059,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -5900,7 +6075,7 @@ End Class
                     validator:=
                     Sub(g)
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:="
 Imports System
 
@@ -5913,42 +6088,66 @@ End Class
                     },
                     validator:=
                     Sub(g)
-                        g.VerifySynthesizedMembers()
-                        g.VerifyTypeDefNames()
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0")
-                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException")
+                        g.VerifyTypeDefNames("HotReloadException")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor")
+                        g.VerifyTypeRefNames("Object", "Exception")
                         g.VerifyMemberRefNames(".ctor")
 
                         g.VerifyEncLogDefinitions(
                         {
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(5, TableIndex.MethodDef)
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef)
                         })
 
                         g.VerifyIL("
+F
 {
-  // Code size       11 (0xb)
-  .maxstack  8
-  IL_0000:  ldstr      0x70000005
-  IL_0005:  newobj     0x0A000008
-  IL_000a:  throw
+    // Code size       13 (0xd)
+    .maxstack  8
+    IL_0000:  ldstr      0x70000005
+    IL_0005:  ldc.i4.s   -2
+    IL_0007:  newobj     0x06000006
+    IL_000c:  throw
 }
+_Lambda$__1-0
 {
-  // Code size       11 (0xb)
-  .maxstack  8
-  IL_0000:  ldstr      0x7000014E
-  IL_0005:  newobj     0x0A000008
-  IL_000a:  throw
+    // Code size       12 (0xc)
+    .maxstack  8
+    IL_0000:  ldstr      0x7000014E
+    IL_0005:  ldc.i4.m1
+    IL_0006:  newobj     0x06000006
+    IL_000b:  throw
+}
+.ctor
+{
+    // Code size       15 (0xf)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  call       0x0A000008
+    IL_0007:  ldarg.0
+    IL_0008:  ldarg.2
+    IL_0009:  stfld      0x04000003
+    IL_000e:  ret
 }
 ")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 2
                     source:="
 Imports System
 
@@ -5965,6 +6164,7 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1#2-0#2, _Lambda$__1#2-0#2}")
                         g.VerifyTypeDefNames()
@@ -5975,39 +6175,41 @@ End Class
                         {
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
-                           Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
                             Handle(3, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef),
+                            Handle(7, TableIndex.MethodDef),
                             Handle(2, TableIndex.StandAloneSig)
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       39 (0x27)
   .maxstack  2
   IL_0000:  nop
-  IL_0001:  ldsfld     0x04000003
+  IL_0001:  ldsfld     0x04000004
   IL_0006:  brfalse.s  IL_000f
-  IL_0008:  ldsfld     0x04000003
+  IL_0008:  ldsfld     0x04000004
   IL_000d:  br.s       IL_0025
   IL_000f:  ldsfld     0x04000001
-  IL_0014:  ldftn      0x06000006
+  IL_0014:  ldftn      0x06000007
   IL_001a:  newobj     0x0A00000A
   IL_001f:  dup
-  IL_0020:  stsfld     0x04000003
+  IL_0020:  stsfld     0x04000004
   IL_0025:  stloc.0
   IL_0026:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -6015,6 +6217,7 @@ End Class
   IL_0001:  call       0x0A00000B
   IL_0006:  ret
 }
+_Lambda$__1#2-0#2
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -6026,7 +6229,7 @@ End Class
 }
                             ")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 3
                     source:="
 Imports System
 
@@ -6043,40 +6246,45 @@ End Class
                     Sub(g)
                         ' unchanged from previous generation:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1#2-0#2, _Lambda$__1#2-0#2}")
 
                         g.VerifyTypeDefNames()
                         g.VerifyMethodDefNames("F", "_Lambda$__1#2-0#2")
-                        g.VerifyTypeRefNames("Object", "MissingMethodException")
-                        g.VerifyMemberRefNames(".ctor")
+                        g.VerifyTypeRefNames("Object")
+                        g.VerifyMemberRefNames()
 
                         g.VerifyEncLogDefinitions(
                         {
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
                             Handle(2, TableIndex.MethodDef),
-                            Handle(6, TableIndex.MethodDef)
+                            Handle(7, TableIndex.MethodDef)
                         })
 
                         g.VerifyIL("
+F
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000299
-  IL_0005:  newobj     0x0A00000D
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000006
+  IL_000c:  throw
 }
+_Lambda$__1#2-0#2
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x700003E2
-  IL_0005:  newobj     0x0A00000D
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000006
+  IL_000b:  throw
 }
 ")
                     End Sub).
@@ -6084,7 +6292,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda_AddedMethod()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -6099,7 +6307,7 @@ End Class
                     validator:=
                     Sub(g)
                     End Sub).
-                AddGeneration(' Add method with a lambda
+                AddGeneration('1: Add method with a lambda
                     source:="
 Imports System
 
@@ -6122,7 +6330,7 @@ End Class
                         g.VerifyTypeDefNames("_Closure$__")
                         g.VerifyMethodDefNames("F", ".ctor", ".cctor", "_Lambda$__1#1-0#1")
                     End Sub).
-                AddGeneration(' Delete the method
+                AddGeneration('2: Delete the method
                     source:="
 Imports System
 
@@ -6136,39 +6344,64 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {_Closure$__}",
                             "C._Closure$__: {$I1#1-0#1, _Lambda$__1#1-0#1}")
 
-                        g.VerifyTypeDefNames()
-                        g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1")
-                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyTypeDefNames("HotReloadException")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1", ".ctor")
+                        g.VerifyTypeRefNames("Object", "Exception")
                         g.VerifyMemberRefNames(".ctor")
 
                         g.VerifyEncLogDefinitions(
                         {
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
                         g.VerifyEncMapDefinitions(
                         {
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
                             Handle(2, TableIndex.MethodDef),
-                            Handle(5, TableIndex.MethodDef)
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef)
                         })
 
                         g.VerifyIL("
+F
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x70000009
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000006
+  IL_000c:  throw
 }
+_Lambda$__1#1-0#1
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000152
-  IL_0005:  newobj     0x0A000009
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000006
+  IL_000b:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000009
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000003
+  IL_000e:  ret
 }
 ")
                     End Sub).
@@ -6176,7 +6409,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Method_Delete_WithLambda_MultipleGenerations()
             Dim common = "
 Imports System
@@ -6197,7 +6430,7 @@ End Class
                     validator:=
                     Sub(g)
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 1
                     source:=common & "
 Class C(Of T)
     <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
@@ -6217,7 +6450,7 @@ End Class
                                 "C(Of T): {_Closure$__1}",
                                 "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, _Lambda$__1-0, _Lambda$__1-1#1}")
                         End Sub).
-                AddGeneration(
+                AddGeneration(' 2
                     source:=common & "
 Class C(Of T)
     <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
@@ -6238,7 +6471,7 @@ End Class
                             "C(Of T): {_Closure$__1}",
                             "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
                     End Sub).
-                AddGeneration(
+                AddGeneration(' 3
                     source:=common & "
 Class C(Of T)
 End Class
@@ -6250,49 +6483,74 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C(Of T): {_Closure$__1}",
                             "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
 
-                        g.VerifyTypeDefNames()
-                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1#1", "_Lambda$__1-2#2")
-                        g.VerifyTypeRefNames("Object", "MissingMethodException")
+                        g.VerifyTypeDefNames("HotReloadException")
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", "_Lambda$__1-1#1", "_Lambda$__1-2#2", ".ctor")
+                        g.VerifyTypeRefNames("Object", "Exception")
 
                         g.VerifyMemberRefNames(".ctor")
 
                         g.VerifyEncLogDefinitions(
                         {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(5, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(5, TableIndex.Field),
                             Handle(3, TableIndex.MethodDef),
                             Handle(6, TableIndex.MethodDef),
                             Handle(7, TableIndex.MethodDef),
-                            Handle(8, TableIndex.MethodDef)
+                            Handle(8, TableIndex.MethodDef),
+                            Handle(9, TableIndex.MethodDef)
                         })
 
                         g.VerifyIL("
-    {
-  // Code size       11 (0xb)
+F
+{
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x7000000D
-  IL_0005:  newobj     0x0A000023
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000009
+  IL_000c:  throw
 }
+_Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x70000156
-  IL_0005:  newobj     0x0A000023
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000009
+  IL_000b:  throw
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000023
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000005
+  IL_000e:  ret
 }
 ")
                     End Sub).
-                AddGeneration(' Add deleted method back with another lambda
+                AddGeneration('4: Add deleted method back with another lambda
                     source:=common & "
 Class C(Of T)
     <N:0>Function F(Of S As Structure)(<A>a As T, b As S) As S</N:0>
@@ -6308,6 +6566,7 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C(Of T): {_Closure$__1#4, _Closure$__1}",
                             "C(Of T)._Closure$__1#4(Of $CLS0 As Structure): {$I1#4-0#4, _Lambda$__1#4-0#4}",
                             "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
@@ -6318,6 +6577,7 @@ End Class
                         g.VerifyMemberRefNames(".ctor", "$I1#4-0#4", "$I", "_Lambda$__1#4-0#4", ".ctor", ".ctor", ".ctor", "$I", "WriteLine")
 
                         g.VerifyIL("
+F
 {
   // Code size       50 (0x32)
   .maxstack  2
@@ -6338,6 +6598,7 @@ End Class
   IL_0030:  ldloc.0
   IL_0031:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -6345,6 +6606,7 @@ End Class
   IL_0001:  call       0x0A000029
   IL_0006:  ret
 }
+.cctor
 {
   // Code size       11 (0xb)
   .maxstack  8
@@ -6352,6 +6614,7 @@ End Class
   IL_0005:  stsfld     0x0A00002B
   IL_000a:  ret
 }
+_Lambda$__1#4-0#4
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -6363,7 +6626,7 @@ End Class
 }
 ")
                     End Sub).
-                AddGeneration(' Delete the method again.
+                AddGeneration('5: Delete the method again.
                     source:=common & "
 Class C(Of T)
 End Class
@@ -6375,6 +6638,7 @@ End Class
                     validator:=
                     Sub(g)
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C(Of T): {_Closure$__1#4, _Closure$__1}",
                             "C(Of T)._Closure$__1#4(Of $CLS0 As Structure): {$I1#4-0#4, _Lambda$__1#4-0#4}",
                             "C(Of T)._Closure$__1(Of $CLS0 As Structure): {$I1-0, $I1-1#1, $I1-2#2, _Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2}")
@@ -6384,35 +6648,39 @@ End Class
                         ' Only lambdas that were not deleted before are updated:
                         g.VerifyMethodDefNames("F", "_Lambda$__1#4-0#4")
 
-                        g.VerifyTypeRefNames("Object", "MissingMethodException")
-                        g.VerifyMemberRefNames(".ctor")
+                        g.VerifyTypeRefNames("Object")
+                        g.VerifyMemberRefNames()
 
                         g.VerifyEncLogDefinitions(
                         {
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                            Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default)
                         })
 
                         g.VerifyEncMapDefinitions(
                         {
                             Handle(3, TableIndex.MethodDef),
-                            Handle(11, TableIndex.MethodDef)
+                            Handle(12, TableIndex.MethodDef)
                         })
 
                         g.VerifyIL("
+F
 {
-  // Code size       11 (0xb)
+  // Code size       13 (0xd)
   .maxstack  8
   IL_0000:  ldstr      0x700002A1
-  IL_0005:  newobj     0x0A00002D
-  IL_000a:  throw
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000009
+  IL_000c:  throw
 }
+_Lambda$__1#4-0#4
 {
-  // Code size       11 (0xb)
+  // Code size       12 (0xc)
   .maxstack  8
   IL_0000:  ldstr      0x700003EA
-  IL_0005:  newobj     0x0A00002D
-  IL_000a:  throw
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000009
+  IL_000b:  throw
 }
 ")
                     End Sub).
@@ -7020,8 +7288,9 @@ End Class
 
         <Fact>
         Public Sub Method_Delete()
-
-            Dim source0 = MarkedSource("
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
 Imports System.ComponentModel
 
 Class C
@@ -7030,50 +7299,196 @@ Class C
         Return Nothing
     End Function
 End Class
-")
-            Dim source1 = MarkedSource("
+").
+                AddGeneration(
+                    source:="
 Imports System.ComponentModel
 
 Class C
-End Class
-")
-            Dim compilation0 = CreateCompilation(source0.Tree, targetFramework:=TargetFramework.NetStandard20, options:=ComSafeDebugDll)
-            Dim compilation1 = compilation0.WithSource(source1.Tree)
+End Class",
+                    edits:={Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C"))},
+                    validator:=
+                    Sub(v)
+                        v.VerifyTypeDefNames("HotReloadException")
+                        v.VerifyMethodDefNames("M", ".ctor")
 
-            Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
-            Dim c0 = compilation1.GetMember(Of NamedTypeSymbol)("C")
+                        v.VerifyEncLogDefinitions(
+                        {
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        })
 
-            Dim v0 = CompileAndVerify(compilation0)
-            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
-
-            ' Pretend there was an update to C.E to ensure we haven't invalidated the test
-
-            Dim diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Delete, m0, c0)))
-
-            Dim reader0 = md0.MetadataReader
-
-            ' Verify delta metadata contains expected rows.
-            Using md1 = diff1.GetMetadata()
-                Dim reader1 = md1.Reader
-                Dim readers = {reader0, reader1}
-                EncValidation.VerifyModuleMvid(1, reader0, reader1)
-                CheckNames(readers, reader1.GetTypeDefNames())
-                CheckNames(readers, reader1.GetMethodDefNames(), "M")
-
-                CheckEncLogDefinitions(reader1,
-                    Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default))
-
-                CheckEncMapDefinitions(reader1,
-                    Handle(2, TableIndex.MethodDef))
+                        v.VerifyEncMapDefinitions(
+                        {
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef)
+                        })
+                    End Sub).
+                Verify()
             End Using
         End Sub
 
         <Fact>
+        Public Sub Method_Delete_PredefinedHotReloadException()
+            Dim exceptionSource = "
+Namespace System.Runtime.CompilerServices
+    Public Class HotReloadException
+        Inherits Exception
+
+        Public Sub New(message As String, code As Integer)
+            MyBase.New(message)
+        End Sub
+    End Class
+End Namespace
+"
+
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:=exceptionSource & "
+Class C
+    Sub M()
+    End Sub
+End Class
+").
+                AddGeneration(
+                    source:=exceptionSource & "
+Class C
+End Class",
+                    edits:={Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C"))},
+                    validator:=
+                    Sub(v)
+                        v.VerifySynthesizedMembers()
+                        v.VerifyTypeDefNames()
+                        v.VerifyTypeRefNames("Object")
+
+                        v.VerifyIL("
+M
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000001
+  IL_000c:  throw
+}
+                            ")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Method_Delete_PredefinedHotReloadException_Inserted()
+            Dim exceptionSource = "
+Namespace System.Runtime.CompilerServices
+    Public Class HotReloadException
+        Inherits Exception
+
+        Public Sub New(message As String, code As Integer)
+            MyBase.New(message)
+        End Sub
+    End Class
+End Namespace
+"
+
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Sub M()
+    End Sub
+End Class
+").
+                AddGeneration(
+                    source:=exceptionSource & "
+Class C
+End Class",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("System.Runtime.CompilerServices.HotReloadException")),
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    validator:=
+                    Sub(v)
+                        v.VerifySynthesizedMembers()
+                        v.VerifyTypeDefNames("HotReloadException")
+                        v.VerifyTypeRefNames("Exception", "Object")
+
+                        v.VerifyIL("
+M
+{
+  // Code size       13 (0xd)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.s   -2
+  IL_0007:  newobj     0x06000003
+  IL_000c:  throw
+}
+.ctor
+{
+  // Code size       10 (0xa)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.1
+  IL_0003:  call       0x0A000005
+  IL_0008:  nop
+  IL_0009:  ret
+}
+")
+                    End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub Method_Delete_PredefinedHotReloadException_BadConstructor()
+            Dim exceptionSource = "
+Namespace System.Runtime.CompilerServices
+    Public Class HotReloadException
+        Inherits Exception
+
+        Public Sub New(message As String)
+            MyBase.New(message)
+        End Sub
+    End Class
+End Namespace
+"
+
+            Using New EditAndContinueTest(assemblyName:="TestAssembly").
+                AddBaseline(
+                    source:=exceptionSource & "
+Class C
+    Sub M()
+    End Sub
+End Class
+").
+                AddGeneration(
+                    source:=exceptionSource & "
+Class C
+End Class",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    },
+                    expectedErrors:=
+                    {
+                        Diagnostic(ERRID.ERR_ModuleEmitFailure).
+                            WithArguments("TestAssembly", String.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, "System.Runtime.CompilerServices.HotReloadException"))
+                    }).
+                Verify()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
-        Public Sub PrivateImplDetails_DataFields_Arrays()
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
             Using New EditAndContinueTest().
                 AddBaseline(
                     source:="
@@ -7171,8 +7586,90 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10")
+                            g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3")
+                            g.VerifyMethodDefNames(".ctor")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C..ctor"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11")
+                            g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD")
+                            g.VerifyMethodDefNames(".ctor")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(5, TableIndex.TypeDef),
+                                Handle(6, TableIndex.TypeDef),
+                                Handle(3, TableIndex.Field),
+                                Handle(1, TableIndex.MethodDef),
+                                Handle(5, TableIndex.CustomAttribute),
+                                Handle(2, TableIndex.ClassLayout),
+                                Handle(2, TableIndex.FieldRva),
+                                Handle(2, TableIndex.NestedClass)
+                            })
+
+                            g.VerifyIL("C..ctor", "
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub Object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  newarr     ""Byte""
+  IL_000f:  dup
+  IL_0010:  ldtoken    ""<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD""
+  IL_0015:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001a:  stfld      ""C.b As Byte()""
+  IL_001f:  ret
+}")
+                        End Sub,
+                    options:=
+                        New EmitDifferenceOptions() With
+                        {
+                            .EmitFieldRva = True
+                        }).
+                    Verify()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub PrivateImplDetails_ComputeStringHash()
             Using New EditAndContinueTest().
                 AddBaseline(

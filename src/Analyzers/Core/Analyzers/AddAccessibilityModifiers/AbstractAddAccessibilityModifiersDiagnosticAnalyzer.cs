@@ -5,44 +5,72 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
+namespace Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
+
+internal abstract class AbstractAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId,
+        EnforceOnBuildValues.AddOrRemoveAccessibilityModifiers,
+        CodeStyleOptions2.AccessibilityModifiersRequired,
+        new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+    where TCompilationUnitSyntax : SyntaxNode
 {
-    internal abstract class AbstractAddAccessibilityModifiersDiagnosticAnalyzer<TCompilationUnitSyntax>
-        : AbstractBuiltInCodeStyleDiagnosticAnalyzer
-        where TCompilationUnitSyntax : SyntaxNode
+    protected abstract IAccessibilityFacts AccessibilityFacts { get; }
+    protected abstract IAddOrRemoveAccessibilityModifiers AddOrRemoveAccessibilityModifiers { get; }
+
+    protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+
+    protected readonly DiagnosticDescriptor ModifierRemovedDescriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.AddOrRemoveAccessibilityModifiersDiagnosticId,
+        EnforceOnBuildValues.AddOrRemoveAccessibilityModifiers,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Remove_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_unnecessary), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)));
+
+    protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
+        AddOrRemoveAccessibilityModifiersConstants.ModifiersAdded, AddOrRemoveAccessibilityModifiersConstants.ModifiersAdded);
+
+    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+
+    protected sealed override void InitializeWorker(AnalysisContext context)
+        => context.RegisterCompilationStartAction(context =>
+            context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
+
+    private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
     {
-        protected static readonly ImmutableDictionary<string, string?> ModifiersAddedProperties = ImmutableDictionary<string, string?>.Empty.Add(
-            AddAccessibilityModifiersConstants.ModifiersAdded, AddAccessibilityModifiersConstants.ModifiersAdded);
-
-        protected AbstractAddAccessibilityModifiersDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId,
-                   EnforceOnBuildValues.AddAccessibilityModifiers,
-                   CodeStyleOptions2.AccessibilityModifiersRequired,
-                   new LocalizableResourceString(nameof(AnalyzersResources.Add_accessibility_modifiers), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-                   new LocalizableResourceString(nameof(AnalyzersResources.Accessibility_modifiers_required), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+        var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
+        if (option.Value == AccessibilityModifiersRequired.Never
+            || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
         {
+            return;
         }
 
-        public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+        ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
+    }
 
-        protected sealed override void InitializeWorker(AnalysisContext context)
-            => context.RegisterCompilationStartAction(context =>
-                context.RegisterSyntaxTreeAction(treeContext => AnalyzeTree(treeContext, context.Compilation.Options)));
-
-        private void AnalyzeTree(SyntaxTreeAnalysisContext context, CompilationOptions compilationOptions)
+    protected void CheckMemberAndReportDiagnostic(
+        SyntaxTreeAnalysisContext context,
+        CodeStyleOption2<AccessibilityModifiersRequired> option,
+        SyntaxNode member)
+    {
+        if (!this.AddOrRemoveAccessibilityModifiers.ShouldUpdateAccessibilityModifier(
+                this.AccessibilityFacts, member, option.Value, out var name, out var modifiersAdded))
         {
-            var option = context.GetAnalyzerOptions().RequireAccessibilityModifiers;
-            if (option.Value == AccessibilityModifiersRequired.Never
-                || ShouldSkipAnalysis(context, compilationOptions, option.Notification))
-            {
-                return;
-            }
-
-            ProcessCompilationUnit(context, option, (TCompilationUnitSyntax)context.Tree.GetRoot(context.CancellationToken));
+            return;
         }
 
-        protected abstract void ProcessCompilationUnit(SyntaxTreeAnalysisContext context, CodeStyleOption2<AccessibilityModifiersRequired> option, TCompilationUnitSyntax compilationUnitSyntax);
+        // Have an issue to flag, either add or remove. Report issue to user.
+        var additionalLocations = ImmutableArray.Create(member.GetLocation());
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            modifiersAdded ? Descriptor : ModifierRemovedDescriptor,
+            name.GetLocation(),
+            option.Notification,
+            context.Options,
+            additionalLocations: additionalLocations,
+            modifiersAdded ? ModifiersAddedProperties : null));
     }
 }

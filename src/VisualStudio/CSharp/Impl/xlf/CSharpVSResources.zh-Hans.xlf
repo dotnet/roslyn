@@ -32,11 +32,6 @@
         <target state="translated">允许将嵌入的语句放在同一行上</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">以分号自动补全语句</target>
@@ -59,7 +54,17 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# 交互窗口</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">取消查询</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">取消 (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +90,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">文件范围限定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">设定文档设置的格式(试验)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -122,19 +122,9 @@
         <target state="translated">在命名空间中</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">命名空间外</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">模式匹配首选项:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">在格式设置期间执行其他代码清理</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -152,14 +142,9 @@
         <target state="translated">类型明显时首选隐式对象创建</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">引用相等检查偏好 “is null”</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">与类型检查相比，首选 Null 检查</target>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -182,9 +167,14 @@
         <target state="translated">首选 "using" 指令放置</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">删除不必要的 Using</target>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">运行查询</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">运行 (Ctrl+Enter)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -192,24 +182,19 @@
         <target state="translated">显示 "new" 表达式的提示</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">显示 unimported 命名空间中的项</target>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">显示名称建议</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">显示新的代码片段体验</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">显示新的代码片段体验(试验)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">在快速信息中显示备注</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">对 using 排序</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -220,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">外侧代码</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">插入片段</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -517,49 +497,9 @@
         <target state="translated">关键字的新行选项</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">未使用的本地</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">生成局部变量时，使用“var”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">显示过程行分隔符(_S)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">不要在自定义结构上放置 ref 或 out(_D)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">编辑器帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">突出显示光标下相关的关键字(_K)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">突出显示对光标下符号的引用(_H)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">打开文件时进入大纲模式(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">提取方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -567,34 +507,9 @@
         <target state="translated">为 /// 生成 XML 文档注释(_G)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">突出显示</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">编写 /* */ 注释时，请在新行的开头插入 *(_I)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">优化解决方案大小</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">大</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">常规</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">小</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -602,19 +517,9 @@
         <target state="translated">Using 指令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">性能</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
         <target state="translated">对 using 排序时将“System”指令排在第一位(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">键入字符后显示完成列表(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -632,11 +537,6 @@
         <target state="translated">完成列表中的选定内容</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">显示重命名跟踪的预览(_T)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
         <source>Place open brace on new line for property, indexer, and event accessors</source>
         <target state="translated">将左大括号放置在新行中，以表示属性、索引器和事件访问器</target>
@@ -650,11 +550,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">建议对 NuGet 包中的类型使用 using(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">类型推理首选项:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -742,36 +637,6 @@
         <target state="translated">输入时拆分字符串文本(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">突出显示完成列表项的匹配部分(_H)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">显示完成项筛选器(_F)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">输入关键行为:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">_只有在完整键入的单词结尾后按下回车键时才添加新行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">按下 Enter 时始终添加新行(_A)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">按下 Enter 时不添加新行(_N)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
         <target state="translated">始终包含片段</target>
@@ -780,21 +645,6 @@
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="translated">在标识符后键入 ?-Tab 时包含片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">从不包含片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">片段行为</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">删除字符后显示完成列表(_D)</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -822,16 +672,6 @@
         <target state="translated">使用 "null" 检查时首选模式匹配而不是 "as"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">选择程序块主体</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">选择表达式主体</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_format_on_return">
         <source>Automatically format on return</source>
         <target state="translated">返回时自动格式化</target>
@@ -840,11 +680,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">键入时自动格式化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">从不</target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
@@ -878,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">显示名称建议(_U)</target>
+        <source>Show name suggestions</source>
+        <target state="translated">显示名称建议</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

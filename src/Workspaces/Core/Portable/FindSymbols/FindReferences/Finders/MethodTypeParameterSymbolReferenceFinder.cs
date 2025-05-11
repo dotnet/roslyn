@@ -2,68 +2,82 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
 {
-    internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
+    protected override bool CanFind(ITypeParameterSymbol symbol)
+        => symbol.TypeParameterKind == TypeParameterKind.Method;
+
+    protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        ITypeParameterSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override bool CanFind(ITypeParameterSymbol symbol)
-            => symbol.TypeParameterKind == TypeParameterKind.Method;
+        var method = (IMethodSymbol)symbol.ContainingSymbol;
+        var ordinal = method.TypeParameters.IndexOf(symbol);
 
-        protected override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ITypeParameterSymbol symbol,
-            Solution solution,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+        if (ordinal >= 0)
         {
-            var method = (IMethodSymbol)symbol.ContainingSymbol;
-            var ordinal = method.TypeParameters.IndexOf(symbol);
+            if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
+                return new([method.PartialDefinitionPart.TypeParameters[ordinal]]);
 
-            if (ordinal >= 0)
+            if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
+                return new([method.PartialImplementationPart.TypeParameters[ordinal]]);
+        }
+
+        return new([]);
+    }
+
+    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
+        ITypeParameterSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        // Type parameters are only found in documents that have both their name, and the name of its owning method.
+        // NOTE(cyrusn): We have to check in multiple files because of partial types.  A type parameter can be
+        // referenced across all the parts. NOTE(cyrusn): We look for type parameters by name.  This means if the same
+        // type parameter has a different name in different parts that we won't find it. However, this only happens in
+        // error situations.  It is not legal in C# to use a different name for a type parameter in different parts.
+        //
+        // Also, we only look for files that have the name of the owning type.  This helps filter down the set
+        // considerably.  Note: we don't do this for top level local functions as they obviously appear only in one
+        // document, and their containing type name ("Program") doesn't have to appear there at all.
+
+        Contract.ThrowIfNull(symbol.DeclaringMethod);
+
+        using var names = TemporaryArray<string>.Empty;
+        names.Add(symbol.Name);
+        names.Add(GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name));
+
+        if (symbol is not
             {
-                if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
-                    return new(ImmutableArray.Create<ISymbol>(method.PartialDefinitionPart.TypeParameters[ordinal]));
-
-                if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
-                    return new(ImmutableArray.Create<ISymbol>(method.PartialImplementationPart.TypeParameters[ordinal]));
-            }
-
-            return new(ImmutableArray<ISymbol>.Empty);
-        }
-
-        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ITypeParameterSymbol symbol,
-            HashSet<string>? globalAliases,
-            Project project,
-            IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+                ContainingSymbol: IMethodSymbol { MethodKind: MethodKind.LocalFunction },
+                ContainingType: INamedTypeSymbol { Name: "Program", ContainingNamespace.IsGlobalNamespace: true }
+            })
         {
-            // Type parameters are only found in documents that have both their name, and the name
-            // of its owning method.  NOTE(cyrusn): We have to check in multiple files because of
-            // partial types.  A type parameter can be referenced across all the parts. NOTE(cyrusn):
-            // We look for type parameters by name.  This means if the same type parameter has a
-            // different name in different parts that we won't find it. However, this only happens
-            // in error situations.  It is not legal in C# to use a different name for a type
-            // parameter in different parts.
-            //
-            // Also, we only look for files that have the name of the owning type.  This helps filter
-            // down the set considerably.
-            Contract.ThrowIfNull(symbol.DeclaringMethod);
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
-                GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
-                symbol.DeclaringMethod.ContainingType.Name);
+            names.Add(symbol.ContainingType.Name);
         }
 
-        private static string GetMemberNameWithoutInterfaceName(string fullName)
-        {
-            var index = fullName.LastIndexOf('.');
-            return index > 0 ? fullName[(index + 1)..] : fullName;
-        }
+        return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, names.ToImmutableAndClear());
+    }
+
+    private static string GetMemberNameWithoutInterfaceName(string fullName)
+    {
+        var index = fullName.LastIndexOf('.');
+        return index > 0 ? fullName[(index + 1)..] : fullName;
     }
 }

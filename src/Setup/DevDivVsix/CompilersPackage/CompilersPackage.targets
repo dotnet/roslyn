@@ -47,7 +47,7 @@
           BeforeTargets="SwixBuild"
           DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
           Outputs="$(_SwrFilePath)"
-          Condition="'$(DotNetBuildFromSource)' != 'true'">
+          Condition="'$(DotNetBuildSourceOnly)' != 'true'">
 
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)">

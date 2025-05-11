@@ -8,19 +8,18 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
-{
-    [Shared]
-    [Export(typeof(IHostWorkspaceProvider))]
-    internal sealed class VisualStudioIHostWorkspaceProvider : IHostWorkspaceProvider
-    {
-        public Workspace Workspace { get; }
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioIHostWorkspaceProvider(VisualStudioWorkspace workspace)
-        {
-            Workspace = workspace;
-        }
+[Shared]
+[Export(typeof(IHostWorkspaceProvider))]
+internal sealed class VisualStudioIHostWorkspaceProvider : IHostWorkspaceProvider
+{
+    public Workspace Workspace { get; }
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioIHostWorkspaceProvider(VisualStudioWorkspace workspace)
+    {
+        Workspace = workspace;
     }
 }

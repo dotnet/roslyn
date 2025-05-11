@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
-    Friend Class CastAnalyzer
+    Friend NotInheritable Class CastAnalyzer
         Private ReadOnly _castNode As ExpressionSyntax
         Private ReadOnly _castExpressionNode As ExpressionSyntax
         Private ReadOnly _semanticModel As SemanticModel
@@ -18,12 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private ReadOnly _cancellationToken As CancellationToken
 
         Private Sub New(
-            castNode As ExpressionSyntax,
-            castExpressionNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            assumeCallKeyword As Boolean,
-            cancellationToken As CancellationToken
-        )
+                castNode As ExpressionSyntax,
+                castExpressionNode As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                assumeCallKeyword As Boolean,
+                cancellationToken As CancellationToken)
             _castNode = castNode
             _castExpressionNode = castExpressionNode
             _semanticModel = semanticModel
@@ -36,9 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Dim argument = TryCast(_castNode.WalkUpParentheses().Parent, ArgumentSyntax)
                 If argument IsNot Nothing Then
                     Dim parameter = argument.DetermineParameter(_semanticModel, cancellationToken:=_cancellationToken)
-                    If parameter IsNot Nothing AndAlso parameter.IsParams Then
-                        Debug.Assert(TypeOf parameter.Type Is IArrayTypeSymbol)
-
+                    If parameter?.IsParams = True AndAlso TypeOf parameter.Type Is IArrayTypeSymbol Then
                         Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
 
                         Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
@@ -397,9 +394,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Shared Function CastRemovalChangesDefaultValue(castType As ITypeSymbol, outerType As ITypeSymbol) As Boolean
             If castType.IsNumericType() Then
                 Return Not outerType.IsNumericType()
-            ElseIf castType.SpecialType = SpecialType.System_DateTime
+            ElseIf castType.SpecialType = SpecialType.System_DateTime Then
                 Return Not outerType.SpecialType = SpecialType.System_DateTime
-            ElseIf castType.SpecialType = SpecialType.System_Boolean
+            ElseIf castType.SpecialType = SpecialType.System_Boolean Then
                 Return Not (outerType.IsNumericType OrElse outerType.SpecialType = SpecialType.System_Boolean)
             End If
 

@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles.EditorConf
 
 namespace Microsoft.CodeAnalysis.EditorConfigParsing.NamingStyles.UnitTests;
 
-public class NamingStyleParserTests
+public sealed class NamingStyleParserTests
 {
     [Fact]
     public void TestParseDefaultditorConfig()
@@ -21,25 +21,25 @@ public class NamingStyleParserTests
 
         var namingStyleSection = Assert.Single(namingStyles.Sections);
         Assert.Collection(namingStyles.Rules,
-            rule0 => Assert.Equal("private_static_readonly_fields_should_be_pascalcase", rule0.RuleName),
-            rule1 => Assert.Equal("private_static_fields_should_be_s_camelcase", rule1.RuleName),
-            rule2 => Assert.Equal("methods_should_be_pascalcase", rule2.RuleName),
-            rule3 => Assert.Equal("interfaces_should_be_ipascalcase", rule3.RuleName),
-            rule4 => Assert.Equal("local_constants_should_be_camelcase", rule4.RuleName),
-            rule5 => Assert.Equal("public_fields_should_be_pascalcase", rule5.RuleName),
-            rule6 => Assert.Equal("parameters_should_be_camelcase", rule6.RuleName),
-            rule7 => Assert.Equal("public_constant_fields_should_be_pascalcase", rule7.RuleName),
-            rule8 => Assert.Equal("private_fields_should_be__camelcase", rule8.RuleName),
-            rule9 => Assert.Equal("local_functions_should_be_pascalcase", rule9.RuleName),
-            rule10 => Assert.Equal("type_parameters_should_be_tpascalcase", rule10.RuleName),
-            rule11 => Assert.Equal("local_variables_should_be_camelcase", rule11.RuleName),
-            rule12 => Assert.Equal("non_field_members_should_be_pascalcase", rule12.RuleName),
-            rule13 => Assert.Equal("types_and_namespaces_should_be_pascalcase", rule13.RuleName),
-            rule14 => Assert.Equal("enums_should_be_pascalcase", rule14.RuleName),
-            rule15 => Assert.Equal("public_static_readonly_fields_should_be_pascalcase", rule15.RuleName),
-            rule16 => Assert.Equal("properties_should_be_pascalcase", rule16.RuleName),
-            rule17 => Assert.Equal("events_should_be_pascalcase", rule17.RuleName),
-            rule18 => Assert.Equal("private_constant_fields_should_be_pascalcase", rule18.RuleName));
+            rule0 => Assert.Equal("private_static_readonly_fields_should_be_pascalcase", rule0.RuleName.Value),
+            rule1 => Assert.Equal("private_static_fields_should_be_s_camelcase", rule1.RuleName.Value),
+            rule2 => Assert.Equal("methods_should_be_pascalcase", rule2.RuleName.Value),
+            rule3 => Assert.Equal("interfaces_should_be_ipascalcase", rule3.RuleName.Value),
+            rule4 => Assert.Equal("local_constants_should_be_camelcase", rule4.RuleName.Value),
+            rule5 => Assert.Equal("public_fields_should_be_pascalcase", rule5.RuleName.Value),
+            rule6 => Assert.Equal("parameters_should_be_camelcase", rule6.RuleName.Value),
+            rule7 => Assert.Equal("public_constant_fields_should_be_pascalcase", rule7.RuleName.Value),
+            rule8 => Assert.Equal("private_fields_should_be__camelcase", rule8.RuleName.Value),
+            rule9 => Assert.Equal("local_functions_should_be_pascalcase", rule9.RuleName.Value),
+            rule10 => Assert.Equal("type_parameters_should_be_tpascalcase", rule10.RuleName.Value),
+            rule11 => Assert.Equal("local_variables_should_be_camelcase", rule11.RuleName.Value),
+            rule12 => Assert.Equal("non_field_members_should_be_pascalcase", rule12.RuleName.Value),
+            rule13 => Assert.Equal("types_and_namespaces_should_be_pascalcase", rule13.RuleName.Value),
+            rule14 => Assert.Equal("enums_should_be_pascalcase", rule14.RuleName.Value),
+            rule15 => Assert.Equal("public_static_readonly_fields_should_be_pascalcase", rule15.RuleName.Value),
+            rule16 => Assert.Equal("properties_should_be_pascalcase", rule16.RuleName.Value),
+            rule17 => Assert.Equal("events_should_be_pascalcase", rule17.RuleName.Value),
+            rule18 => Assert.Equal("private_constant_fields_should_be_pascalcase", rule18.RuleName.Value));
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class NamingStyleParserTests
             rule0 =>
             {
                 Assert.Equal(namingStyleSection, rule0.Section);
-                Assert.Equal("non_private_static_fields_should_be_pascal_case", rule0.RuleName);
+                Assert.Equal("non_private_static_fields_should_be_pascal_case", rule0.RuleName.Value);
 
                 Assert.Equal("non_private_static_field_style", rule0.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(2155, 2260), rule0.NamingScheme.OptionName.Span);
@@ -66,7 +66,7 @@ public class NamingStyleParserTests
                 Assert.Equal(Capitalization.PascalCase, rule0.NamingScheme.Capitalization.Value);
                 Assert.Equal(TextSpan.FromBounds(2562, 2641), rule0.NamingScheme.Capitalization.Span);
 
-                Assert.Equal("non_private_static_fields", rule0.ApplicableSymbolInfo.OptionName);
+                Assert.Equal("non_private_static_fields", rule0.ApplicableSymbolInfo.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(2338, 2481), rule0.ApplicableSymbolInfo.Accessibilities.Span);
                 Assert.Collection(rule0.ApplicableSymbolInfo.Accessibilities.Value,
                     accessibility => Assert.Equal(Accessibility.Public, accessibility),
@@ -88,7 +88,7 @@ public class NamingStyleParserTests
             rule1 =>
             {
                 Assert.Equal(namingStyleSection, rule1.Section);
-                Assert.Equal("locals_should_be_camel_case", rule1.RuleName);
+                Assert.Equal("locals_should_be_camel_case", rule1.RuleName.Value);
 
                 Assert.Equal("camel_case_style", rule1.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(5078, 5149), rule1.NamingScheme.OptionName.Span);
@@ -125,7 +125,7 @@ public class NamingStyleParserTests
             rule2 =>
             {
                 Assert.Equal(namingStyleSection, rule2.Section);
-                Assert.Equal("members_should_be_pascal_case", rule2.RuleName);
+                Assert.Equal("members_should_be_pascal_case", rule2.RuleName.Value);
 
                 Assert.Equal("pascal_case_style", rule2.NamingScheme.OptionName.Value);
                 Assert.Equal("pascal_case_style", rule2.NamingScheme.OptionName.Value);
@@ -175,7 +175,7 @@ public class NamingStyleParserTests
             rule3 =>
             {
                 Assert.Equal(namingStyleSection, rule3.Section);
-                Assert.Equal("non_private_readonly_fields_should_be_pascal_case", rule3.RuleName);
+                Assert.Equal("non_private_readonly_fields_should_be_pascal_case", rule3.RuleName.Value);
 
                 Assert.Equal("non_private_readonly_field_style", rule3.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(2891, 3000), rule3.NamingScheme.OptionName.Span);
@@ -210,7 +210,7 @@ public class NamingStyleParserTests
             rule4 =>
             {
                 Assert.Equal(namingStyleSection, rule4.Section);
-                Assert.Equal("local_functions_should_be_pascal_case", rule4.RuleName);
+                Assert.Equal("local_functions_should_be_pascal_case", rule4.RuleName.Value);
 
                 Assert.Equal("local_function_style", rule4.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(5502, 5587), rule4.NamingScheme.OptionName.Span);
@@ -246,7 +246,7 @@ public class NamingStyleParserTests
             rule5 =>
             {
                 Assert.Equal(namingStyleSection, rule5.Section);
-                Assert.Equal("constants_should_be_pascal_case", rule5.RuleName);
+                Assert.Equal("constants_should_be_pascal_case", rule5.RuleName.Value);
 
                 Assert.Equal("constant_style", rule5.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(3569, 3642), rule5.NamingScheme.OptionName.Span);
@@ -284,7 +284,7 @@ public class NamingStyleParserTests
             rule6 =>
             {
                 Assert.Equal(namingStyleSection, rule6.Section);
-                Assert.Equal("instance_fields_should_be_camel_case", rule6.RuleName);
+                Assert.Equal("instance_fields_should_be_camel_case", rule6.RuleName.Value);
 
                 Assert.Equal("instance_field_style", rule6.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(4601, 4685), rule6.NamingScheme.OptionName.Span);
@@ -320,7 +320,7 @@ public class NamingStyleParserTests
             rule7 =>
             {
                 Assert.Equal(namingStyleSection, rule7.Section);
-                Assert.Equal("static_fields_should_be_camel_case", rule7.RuleName);
+                Assert.Equal("static_fields_should_be_camel_case", rule7.RuleName.Value);
 
                 Assert.Equal("static_field_style", rule7.NamingScheme.OptionName.Value);
                 Assert.Equal(TextSpan.FromBounds(4045, 4125), rule7.NamingScheme.OptionName.Span);

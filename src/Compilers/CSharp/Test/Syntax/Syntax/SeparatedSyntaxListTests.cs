@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SeparatedSyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [Fact]
-        public void TestSeparatedListInsert()
+        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        public void TestSeparatedListInsert(bool collectionExpression)
         {
-            var list = SyntaxFactory.SeparatedList<ExpressionSyntax>();
+            var list = collectionExpression
+                ? []
+                : SyntaxFactory.SeparatedList<ExpressionSyntax>();
             var addList = list.Insert(0, SyntaxFactory.ParseExpression("x"));
             Assert.Equal("x", addList.ToFullString());
 
@@ -83,14 +84,19 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal("a,c, /* b is best */ b", insertBeforeMultiLineComment.ToFullString());
         }
 
-        [Fact]
-        public void TestAddInsertRemove()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemove(bool collectionExpression)
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
-                new[] {
+            var list = collectionExpression
+                ? [
                     SyntaxFactory.ParseExpression("A"),
                     SyntaxFactory.ParseExpression("B"),
-                    SyntaxFactory.ParseExpression("C") });
+                    SyntaxFactory.ParseExpression("C")]
+                : SyntaxFactory.SeparatedList<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.ParseExpression("A"),
+                        SyntaxFactory.ParseExpression("B"),
+                        SyntaxFactory.ParseExpression("C") });
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -227,6 +233,7 @@ c,b", insertAfterEOL.ToFullString());
         public void TestAddInsertRemoveOnEmptyList()
         {
             DoTestAddInsertRemoveOnEmptyList(SyntaxFactory.SeparatedList<SyntaxNode>());
+            DoTestAddInsertRemoveOnEmptyList([]);
             DoTestAddInsertRemoveOnEmptyList(default(SeparatedSyntaxList<SyntaxNode>));
         }
 
@@ -290,21 +297,22 @@ c,b", insertAfterEOL.ToFullString());
             Assert.False(list.Any(SyntaxKind.WhereClause));
         }
 
-        [Fact]
-        [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
-        public void ReplaceSeparator()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/2630")]
+        public void ReplaceSeparator(bool collectionExpression)
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
-                new[] {
-                    SyntaxFactory.IdentifierName("A"),
-                    SyntaxFactory.IdentifierName("B"),
-                    SyntaxFactory.IdentifierName("C"),
-                });
+            var list = collectionExpression
+                ? [SyntaxFactory.IdentifierName("A"), SyntaxFactory.IdentifierName("B"), SyntaxFactory.IdentifierName("C")]
+                : SyntaxFactory.SeparatedList<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.IdentifierName("A"),
+                        SyntaxFactory.IdentifierName("B"),
+                        SyntaxFactory.IdentifierName("C"),
+                    });
 
             var newComma = SyntaxFactory.Token(
-                SyntaxFactory.TriviaList(SyntaxFactory.Space),
+                collectionExpression ? SyntaxFactory.TriviaList(SyntaxFactory.Space) : [SyntaxFactory.Space],
                 SyntaxKind.CommaToken,
-                SyntaxFactory.TriviaList());
+                collectionExpression ? SyntaxFactory.TriviaList() : []);
             var newList = list.ReplaceSeparator(
                 list.GetSeparator(1),
                 newComma);

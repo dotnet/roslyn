@@ -34,6 +34,11 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         TMatch,
         TAnalyzer>, new()
 {
+    public readonly record struct AnalysisResult(
+        ImmutableArray<TMatch> PreMatches,
+        ImmutableArray<TMatch> PostMatches,
+        bool ChangesSemantics);
+
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax> State;
 
     protected TObjectCreationExpressionSyntax _objectCreationExpression = null!;
@@ -43,7 +48,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     protected SemanticModel SemanticModel => this.State.SemanticModel;
 
     protected abstract bool ShouldAnalyze(CancellationToken cancellationToken);
-    protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
+    protected abstract bool TryAddMatches(ArrayBuilder<TMatch> preMatches, ArrayBuilder<TMatch> postMatches, out bool changesSemantics, CancellationToken cancellationToken);
     protected abstract bool IsInitializerOfLocalDeclarationStatement(
         TLocalDeclarationStatementSyntax localDeclarationStatement, TObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out TVariableDeclaratorSyntax? variableDeclarator);
 
@@ -75,16 +80,17 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         _analyzeForCollectionExpression = false;
     }
 
-    protected ImmutableArray<TMatch> AnalyzeWorker(CancellationToken cancellationToken)
+    protected AnalysisResult AnalyzeWorker(CancellationToken cancellationToken)
     {
         if (!ShouldAnalyze(cancellationToken))
             return default;
 
-        using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);
-        if (!TryAddMatches(matches, cancellationToken))
+        using var _1 = ArrayBuilder<TMatch>.GetInstance(out var preMatches);
+        using var _2 = ArrayBuilder<TMatch>.GetInstance(out var postMatches);
+        if (!TryAddMatches(preMatches, postMatches, out var mayChangeSemantics, cancellationToken))
             return default;
 
-        return matches.ToImmutable();
+        return new(preMatches.ToImmutableAndClear(), postMatches.ToImmutableAndClear(), mayChangeSemantics);
     }
 
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(

@@ -12,785 +12,787 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
+
+internal sealed class NamingStylesTestOptionSets
 {
-    internal sealed class NamingStylesTestOptionSets
+    private readonly string _languageName;
+
+    public NamingStylesTestOptionSets(string languageName)
     {
-        private readonly string _languageName;
-        private readonly OptionKey2 _optionKey;
+        _languageName = languageName;
+        OptionKey = new OptionKey2(NamingStyleOptions.NamingPreferences, languageName);
+    }
 
-        public NamingStylesTestOptionSets(string languageName)
-        {
-            _languageName = languageName;
-            _optionKey = new OptionKey2(NamingStyleOptions.NamingPreferences, languageName);
-        }
+    public OptionKey2 OptionKey { get; }
 
-        public OptionKey2 OptionKey => _optionKey;
+    internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second)
+    {
+        var firstPreferences = (NamingStylePreferences)first.First().Value;
+        var secondPreferences = (NamingStylePreferences)second.First().Value;
 
-        internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second)
-        {
-            var firstPreferences = (NamingStylePreferences)first.First().Value;
-            var secondPreferences = (NamingStylePreferences)second.First().Value;
-            return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, new NamingStylePreferences(
+        var mergedPreferences = new NamingStylePreferences(
                 firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
                 firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
-                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)) } };
-        }
+                firstPreferences.Rules.NamingRules.AddRange(secondPreferences.Rules.NamingRules));
 
-        internal OptionsCollection ClassNamesArePascalCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ClassNamesArePascalCaseOption() } };
+        return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, mergedPreferences } };
+    }
 
-        internal OptionsCollection FieldNamesAreCamelCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseOption() } };
+    internal OptionsCollection ClassNamesArePascalCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ClassNamesArePascalCaseOption() } };
 
-        internal OptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithUnderscorePrefixOption() } };
+    internal OptionsCollection FieldNamesAreCamelCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseOption() } };
 
-        internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption() } };
+    internal OptionsCollection FieldNamesAreCamelCaseWithUnderscorePrefix
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithUnderscorePrefixOption() } };
 
-        internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption() } };
+    internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption() } };
 
-        internal OptionsCollection MethodNamesArePascalCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption() } };
+    internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption() } };
 
-        internal OptionsCollection MethodNamesAreCamelCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesAreCamelCaseOption() } };
+    internal OptionsCollection MethodNamesArePascalCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption() } };
 
-        internal OptionsCollection ParameterNamesAreCamelCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseOption() } };
+    internal OptionsCollection MethodNamesAreCamelCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesAreCamelCaseOption() } };
 
-        internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption() } };
+    internal OptionsCollection ParameterNamesAreCamelCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseOption() } };
 
-        internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption() } };
+    internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefix
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixOption() } };
 
-        internal OptionsCollection LocalNamesAreCamelCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalNamesAreCamelCaseOption() } };
+    internal OptionsCollection ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffix
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption() } };
 
-        internal OptionsCollection LocalFunctionNamesAreCamelCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalFunctionNamesAreCamelCaseOption() } };
+    internal OptionsCollection LocalNamesAreCamelCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalNamesAreCamelCaseOption() } };
 
-        internal OptionsCollection PropertyNamesArePascalCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, PropertyNamesArePascalCaseOption() } };
+    internal OptionsCollection LocalFunctionNamesAreCamelCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalFunctionNamesAreCamelCaseOption() } };
 
-        internal OptionsCollection InterfaceNamesStartWithI
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, InterfaceNamesStartWithIOption() } };
+    internal OptionsCollection PropertyNamesArePascalCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, PropertyNamesArePascalCaseOption() } };
 
-        internal OptionsCollection TypeParameterNamesStartWithT
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, TypeParameterNamesStartWithTOption() } };
+    internal OptionsCollection InterfaceNamesStartWithI
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, InterfaceNamesStartWithIOption() } };
 
-        internal OptionsCollection ConstantsAreUpperCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ConstantsAreUpperCaseOption() } };
+    internal OptionsCollection TypeParameterNamesStartWithT
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, TypeParameterNamesStartWithTOption() } };
 
-        internal OptionsCollection LocalsAreCamelCaseConstantsAreUpperCase
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalsAreCamelCaseConstantsAreUpperCaseOption() } };
+    internal OptionsCollection ConstantsAreUpperCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, ConstantsAreUpperCaseOption() } };
 
-        internal OptionsCollection AsyncFunctionNamesEndWithAsync
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AsyncFunctionNamesEndWithAsyncOption() } };
+    internal OptionsCollection LocalsAreCamelCaseConstantsAreUpperCase
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, LocalsAreCamelCaseConstantsAreUpperCaseOption() } };
 
-        internal OptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities)
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption(accessibilities) } };
+    internal OptionsCollection AsyncFunctionNamesEndWithAsync
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AsyncFunctionNamesEndWithAsyncOption() } };
 
-        internal OptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds)
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption(symbolKinds) } };
+    internal OptionsCollection MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility> accessibilities)
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, MethodNamesArePascalCaseOption(accessibilities) } };
 
-        internal OptionsCollection SymbolKindsArePascalCaseEmpty()
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty) } };
+    internal OptionsCollection SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds)
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption(symbolKinds) } };
 
-        internal OptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind)
-            => SymbolKindsArePascalCase(ImmutableArray.Create(ToSymbolKindOrTypeKind(symbolOrTypeKind)));
+    internal OptionsCollection SymbolKindsArePascalCaseEmpty()
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, SymbolKindsArePascalCaseOption([]) } };
 
-        internal static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
+    internal OptionsCollection SymbolKindsArePascalCase(object symbolOrTypeKind)
+        => SymbolKindsArePascalCase([ToSymbolKindOrTypeKind(symbolOrTypeKind)]);
+
+    internal static SymbolSpecification.SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
+    {
+        switch (symbolOrTypeKind)
         {
-            switch (symbolOrTypeKind)
-            {
-                case TypeKind typeKind:
-                    return new SymbolSpecification.SymbolKindOrTypeKind(typeKind);
+            case TypeKind typeKind:
+                return new SymbolSpecification.SymbolKindOrTypeKind(typeKind);
 
-                case SymbolKind symbolKind:
-                    return new SymbolSpecification.SymbolKindOrTypeKind(symbolKind);
+            case SymbolKind symbolKind:
+                return new SymbolSpecification.SymbolKindOrTypeKind(symbolKind);
 
-                case MethodKind methodKind:
-                    return new SymbolSpecification.SymbolKindOrTypeKind(methodKind);
+            case MethodKind methodKind:
+                return new SymbolSpecification.SymbolKindOrTypeKind(methodKind);
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
-            }
+            default:
+                throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
         }
+    }
 
-        internal OptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities)
-            => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AccessibilitiesArePascalCaseOption(accessibilities) } };
+    internal OptionsCollection AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities)
+        => new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, AccessibilitiesArePascalCaseOption(accessibilities) } };
 
-        private static NamingStylePreferences ClassNamesArePascalCaseOption()
+    private static NamingStylePreferences ClassNamesArePascalCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)],
+            accessibilityList: default,
+            modifiers: default);
+
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+        return info;
+    }
 
-            return info;
-        }
+    private static NamingStylePreferences FieldNamesAreCamelCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
+            accessibilityList: default,
+            modifiers: default);
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseOption()
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
+
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "_",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseWithUnderscorePrefixOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "_",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "field_",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "field_",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "field_",
+            suffix: "_End",
+            wordSeparator: "");
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "field_",
-                suffix: "_End",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences MethodNamesArePascalCaseOption()
+        => MethodNamesAreCasedOption(Capitalization.PascalCase);
 
-            return info;
-        }
+    internal static NamingStylePreferences MethodNamesAreCamelCaseOption()
+        => MethodNamesAreCasedOption(Capitalization.CamelCase);
 
-        private static NamingStylePreferences MethodNamesArePascalCaseOption()
-            => MethodNamesAreCasedOption(Capitalization.PascalCase);
+    private static NamingStylePreferences MethodNamesAreCasedOption(Capitalization capitalization)
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)],
+            accessibilityList: default,
+            modifiers: default);
 
-        internal static NamingStylePreferences MethodNamesAreCamelCaseOption()
-            => MethodNamesAreCasedOption(Capitalization.CamelCase);
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: capitalization,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences MethodNamesAreCasedOption(Capitalization capitalization)
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: capitalization,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        return info;
+    }
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences MethodNamesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)],
+            accessibilities,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences MethodNamesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary)),
-                accessibilities,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        return info;
+    }
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds)
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            symbolKinds,
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences SymbolKindsArePascalCaseOption(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds)
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                symbolKinds,
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        return info;
+    }
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences AccessibilitiesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            symbolKindList: default,
+            accessibilityList: accessibilities,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences AccessibilitiesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                symbolKindList: default,
-                accessibilityList: accessibilities,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        return info;
+    }
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences ParameterNamesAreCamelCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name2",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name2",
+            prefix: "p_",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name2",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name2",
-                prefix: "p_",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name2",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name2",
+            prefix: "p_",
+            suffix: "_End",
+            wordSeparator: "");
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name2",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name2",
-                prefix: "p_",
-                suffix: "_End",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences LocalNamesAreCamelCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences LocalNamesAreCamelCaseOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences LocalFunctionNamesAreCamelCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences LocalFunctionNamesAreCamelCaseOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences PropertyNamesArePascalCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences PropertyNamesArePascalCaseOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences InterfaceNamesStartWithIOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "I",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences InterfaceNamesStartWithIOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "I",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences TypeParameterNamesStartWithTOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "T",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences TypeParameterNamesStartWithTOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "T",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences ConstantsAreUpperCaseOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [
+                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local),
+            ],
+            accessibilityList: default,
+            [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)]);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.AllUpper,
+            name: "Name",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
 
-        private static NamingStylePreferences ConstantsAreUpperCaseOption()
+        var namingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(
-                    new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-                    new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
-                accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)));
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.AllUpper,
-                name: "Name",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences LocalsAreCamelCaseConstantsAreUpperCaseOption()
+    {
+        var localsSymbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Locals",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
+            accessibilityList: default,
+            modifiers: default);
 
-            return info;
-        }
+        var constLocalsSymbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Const Locals",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)],
+            accessibilityList: default,
+            [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)]);
 
-        private static NamingStylePreferences LocalsAreCamelCaseConstantsAreUpperCaseOption()
+        var camelCaseNamingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.CamelCase,
+            name: "Camel Case",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
+
+        var allUpperNamingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.AllUpper,
+            name: "All Upper",
+            prefix: "",
+            suffix: "",
+            wordSeparator: "");
+
+        var localsCamelCaseNamingRule = new SerializableNamingRule()
         {
-            var localsSymbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Locals",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
-                accessibilityList: default,
-                modifiers: default);
+            SymbolSpecificationID = localsSymbolSpecification.ID,
+            NamingStyleID = camelCaseNamingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var constLocalsSymbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Const Locals",
-                ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local)),
-                accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsConst)));
-
-            var camelCaseNamingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.CamelCase,
-                name: "Camel Case",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
-
-            var allUpperNamingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.AllUpper,
-                name: "All Upper",
-                prefix: "",
-                suffix: "",
-                wordSeparator: "");
-
-            var localsCamelCaseNamingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = localsSymbolSpecification.ID,
-                NamingStyleID = camelCaseNamingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-
-            var constLocalsUpperCaseNamingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = constLocalsSymbolSpecification.ID,
-                NamingStyleID = allUpperNamingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
-
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(localsSymbolSpecification, constLocalsSymbolSpecification),
-                ImmutableArray.Create(camelCaseNamingStyle, allUpperNamingStyle),
-                ImmutableArray.Create(constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule));
-
-            return info;
-        }
-
-        private static NamingStylePreferences AsyncFunctionNamesEndWithAsyncOption()
+        var constLocalsUpperCaseNamingRule = new SerializableNamingRule()
         {
-            var symbolSpecification = new SymbolSpecification(
-                Guid.NewGuid(),
-                "Name",
-                ImmutableArray.Create(
-                    new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),
-                    new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction)),
-                accessibilityList: default,
-                ImmutableArray.Create(new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)));
+            SymbolSpecificationID = constLocalsSymbolSpecification.ID,
+            NamingStyleID = allUpperNamingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
 
-            var namingStyle = new NamingStyle(
-                Guid.NewGuid(),
-                capitalizationScheme: Capitalization.PascalCase,
-                name: "Name",
-                prefix: "",
-                suffix: "Async",
-                wordSeparator: "");
+        var info = new NamingStylePreferences(
+            [localsSymbolSpecification, constLocalsSymbolSpecification],
+            [camelCaseNamingStyle, allUpperNamingStyle],
+            [constLocalsUpperCaseNamingRule, localsCamelCaseNamingRule]);
 
-            var namingRule = new SerializableNamingRule()
-            {
-                SymbolSpecificationID = symbolSpecification.ID,
-                NamingStyleID = namingStyle.ID,
-                EnforcementLevel = ReportDiagnostic.Error
-            };
+        return info;
+    }
 
-            var info = new NamingStylePreferences(
-                ImmutableArray.Create(symbolSpecification),
-                ImmutableArray.Create(namingStyle),
-                ImmutableArray.Create(namingRule));
+    private static NamingStylePreferences AsyncFunctionNamesEndWithAsyncOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [
+                new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction),
+            ],
+            accessibilityList: default,
+            [new SymbolSpecification.ModifierKind(SymbolSpecification.ModifierKindEnum.IsAsync)]);
 
-            return info;
-        }
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.PascalCase,
+            name: "Name",
+            prefix: "",
+            suffix: "Async",
+            wordSeparator: "");
+
+        var namingRule = new SerializableNamingRule()
+        {
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
+
+        return info;
     }
 }

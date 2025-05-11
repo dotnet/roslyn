@@ -190,8 +190,7 @@ public class D : [|$$C|]
             Return TestAPIAndFeature(input, kind, host)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
         Public Async Function TestLinkedFiles_NamespaceInMetadataAndSource() As Task
             Dim definition =
 <Workspace>
@@ -229,8 +228,7 @@ namespace {|Definition:System|}
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/53067")>
         Public Async Function TestLinkedFiles_LocalSymbol() As Task
             Dim definition =
 <Workspace>
@@ -269,8 +267,7 @@ namespace {|Definition:System|}
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting1() As Task
             Dim definition =
 <Workspace>
@@ -305,15 +302,14 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         Public Async Function TestLinkedFiles_OverrideMethods_DirectCall_MultiTargetting2() As Task
             Dim definition =
 <Workspace>
@@ -348,15 +344,14 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting1() As Task
             Dim definition =
 <Workspace>
@@ -391,15 +386,14 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57235")>
         Public Async Function TestLinkedFiles_OverrideMethods_IndirectCall_MultiTargetting2() As Task
             Dim definition =
 <Workspace>
@@ -434,7 +428,7 @@ class D
                 Dim symbol = Await SymbolFinder.FindSymbolAtPositionAsync(document, invocationPosition)
                 Dim references = Await SymbolFinder.FindReferencesAsync(symbol, document.Project.Solution, progress:=Nothing, documents:=Nothing)
                 Dim sourceReferences = references.Where(Function(r) r.Definition.Locations(0).IsInSource).ToArray()
-                Assert.Equal(2, sourceReferences.Count())
+                Assert.Equal(2, sourceReferences.Length)
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(0).Definition.ToString())
                 Assert.Equal("C.GetHashCode()", sourceReferences.ElementAt(1).Definition.ToString())
                 AssertEx.SetEqual(sourceReferences.Select(Function(r) r.Definition.ContainingAssembly.Name), {"CSProj1", "CSProj2"})

@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -2339,7 +2340,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2416,7 +2417,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             AssertTheseDiagnostics(comp,
 <expected>
@@ -3224,7 +3225,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {Net40.References.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -159,7 +160,7 @@ namespace Roslyn.Utilities
             return null;
         }
 
-        internal static bool IsSameDirectoryOrChildOf(string child, string parent)
+        internal static bool IsSameDirectoryOrChildOf(string child, string parent, StringComparison comparison = StringComparison.OrdinalIgnoreCase)
         {
             parent = RemoveTrailingDirectorySeparator(parent);
             string? currentChild = child;
@@ -167,7 +168,7 @@ namespace Roslyn.Utilities
             {
                 currentChild = RemoveTrailingDirectorySeparator(currentChild);
 
-                if (currentChild.Equals(parent, StringComparison.OrdinalIgnoreCase))
+                if (currentChild.Equals(parent, comparison))
                 {
                     return true;
                 }
@@ -562,7 +563,8 @@ namespace Roslyn.Utilities
             int index = 0;
 
             // find index where full path diverges from base path
-            for (; index < directoryPathParts.Length; index++)
+            var maxSearchIndex = Math.Min(directoryPathParts.Length, fullPathParts.Length);
+            for (; index < maxSearchIndex; index++)
             {
                 if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
                 {
@@ -592,6 +594,8 @@ namespace Roslyn.Utilities
             {
                 relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
             }
+
+            relativePath = TrimTrailingSeparators(relativePath);
 
             return relativePath;
         }
@@ -731,6 +735,16 @@ namespace Roslyn.Utilities
             return filePath;
         }
 
+        public static string NormalizeDriveLetter(string filePath)
+        {
+            if (!IsUnixLikePlatform && IsDriveRootedAbsolutePath(filePath))
+            {
+                filePath = char.ToUpper(filePath[0]) + filePath.Substring(1);
+            }
+
+            return filePath;
+        }
+
         /// <summary>
         /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
         /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
@@ -776,6 +790,42 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static string NormalizeWithForwardSlash(string p)
             => DirectorySeparatorChar == '/' ? p : p.Replace(DirectorySeparatorChar, '/');
+
+        /// <summary>
+        /// Replaces all sequences of '\' or '/' with a single '/' but preserves UNC prefix '//'.
+        /// </summary>
+        public static string CollapseWithForwardSlash(ReadOnlySpan<char> path)
+        {
+            var sb = new StringBuilder(path.Length);
+
+            int start = 0;
+            if (path.Length > 1 && IsAnyDirectorySeparator(path[0]) && IsAnyDirectorySeparator(path[1]))
+            {
+                // Preserve UNC paths.
+                sb.Append("//");
+                start = 2;
+            }
+
+            bool wasDirectorySeparator = false;
+            for (int i = start; i < path.Length; i++)
+            {
+                if (IsAnyDirectorySeparator(path[i]))
+                {
+                    if (!wasDirectorySeparator)
+                    {
+                        sb.Append('/');
+                    }
+                    wasDirectorySeparator = true;
+                }
+                else
+                {
+                    sb.Append(path[i]);
+                    wasDirectorySeparator = false;
+                }
+            }
+
+            return sb.ToString();
+        }
 
         /// <summary>
         /// Takes an absolute path and attempts to expand any '..' or '.' into their equivalent representation.

@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Add a type parameter
                     AnonymousTypeParameterSymbol typeParameter =
-                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
+                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name), allowsRefLikeType: false);
                     typeParametersBuilder.Add(typeParameter);
 
                     // Add a property
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return _nameToSymbols.Keys; }
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         sb.Append(fieldName);
                         sb.Append(" = {");
                         sb.Append(fieldName);
-                        sb.Append("}");
+                        sb.Append('}');
                     }
 
                     if (this.Properties.Length > displayCount)

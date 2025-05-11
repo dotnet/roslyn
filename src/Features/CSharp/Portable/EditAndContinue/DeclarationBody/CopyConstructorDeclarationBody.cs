@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -44,8 +44,11 @@ internal sealed class CopyConstructorDeclarationBody(RecordDeclarationSyntax rec
         => InitializerActiveStatementSpan;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => ImmutableArray<ISymbol>.Empty;
+        => [];
 
-    public override IEnumerable<SyntaxToken>? GetActiveTokens()
-        => BreakpointSpans.GetActiveTokensForCopyConstructor(recordDeclaration);
+    public override IEnumerable<SyntaxToken>? GetActiveTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => BreakpointSpans.GetActiveTokensForCopyConstructor(recordDeclaration, getDescendantTokens);
+
+    public override IEnumerable<SyntaxToken> GetUserCodeTokens(Func<SyntaxNode, IEnumerable<SyntaxToken>> getDescendantTokens)
+        => [];
 }

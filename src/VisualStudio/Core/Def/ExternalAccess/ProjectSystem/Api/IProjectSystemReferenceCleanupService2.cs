@@ -5,18 +5,17 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
+
+// Interface to be implemented and MEF exported by Project System
+internal interface IProjectSystemReferenceCleanupService2 : IProjectSystemReferenceCleanupService
 {
-    // Interface to be implemented and MEF exported by Project System
-    internal interface IProjectSystemReferenceCleanupService2 : IProjectSystemReferenceCleanupService
-    {
-        /// <summary>
-        /// Gets an operation that can update the project’s references by removing or marking references as
-        /// TreatAsUsed in the project file.
-        /// </summary>
-        Task<IProjectSystemUpdateReferenceOperation> GetUpdateReferenceOperationAsync(
-            string projectPath,
-            ProjectSystemReferenceUpdate referenceUpdate,
-            CancellationToken canellationToken);
-    }
+    /// <summary>
+    /// Gets an operation that can update the project’s references by removing or marking references as
+    /// TreatAsUsed in the project file.
+    /// </summary>
+    Task<IProjectSystemUpdateReferenceOperation> GetUpdateReferenceOperationAsync(
+        string projectPath,
+        ProjectSystemReferenceUpdate referenceUpdate,
+        CancellationToken canellationToken);
 }

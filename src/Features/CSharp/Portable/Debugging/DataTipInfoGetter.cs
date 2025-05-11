@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,82 +12,75 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Debugging
+namespace Microsoft.CodeAnalysis.CSharp.Debugging;
+
+internal sealed class DataTipInfoGetter : AbstractDataTipInfoGetter<
+    ExpressionSyntax,
+    MemberAccessExpressionSyntax,
+    InvocationExpressionSyntax>
 {
-    internal static class DataTipInfoGetter
+    public static async Task<DebugDataTipInfo> GetInfoAsync(
+        Document document, int position, bool includeKind, CancellationToken cancellationToken)
     {
-        internal static async Task<DebugDataTipInfo> GetInfoAsync(Document document, int position, CancellationToken cancellationToken)
+        try
         {
-            try
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(position);
+
+            if (token.Parent is not ExpressionSyntax expression)
             {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                if (root == null)
-                {
-                    return default;
-                }
-
-                var token = root.FindToken(position);
-
-                if (token.Parent is not ExpressionSyntax expression)
-                {
-                    return token.IsKind(SyntaxKind.IdentifierToken)
-                        ? new DebugDataTipInfo(token.Span, text: null)
-                        : default;
-                }
-
-                if (expression.IsAnyLiteralExpression())
-                {
-                    // If the user hovers over a literal, give them a DataTip for the type of the
-                    // literal they're hovering over.
-                    // Partial semantics should always be sufficient because the (unconverted) type
-                    // of a literal can always easily be determined.
-                    var (_, semanticModel) = await document.GetFullOrPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                    return type == null
-                        ? default
-                        : new DebugDataTipInfo(expression.Span, type.ToNameDisplayString());
-                }
+                return token.IsKind(SyntaxKind.IdentifierToken)
+                    ? new DebugDataTipInfo(token.Span, text: null)
+                    : default;
+            }
+            else if (expression is TypeSyntax typeSyntax && typeSyntax.IsVar)
+            {
+                // If the user is hovering over 'var', then pass back the full type name that 'var' binds to.
+                var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var type = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+                var text = type?.ToNameDisplayString();
+                return new DebugDataTipInfo(typeSyntax.Span, text);
+            }
+            else if (expression is LiteralExpressionSyntax)
+            {
+                // If the user hovers over a literal, give them a DataTip for the type of the literal they're hovering
+                // over. Partial semantics should always be sufficient because the (unconverted) type of a literal can
+                // always easily be determined.
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+                var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+                return type == null
+                    ? default
+                    : new DebugDataTipInfo(expression.Span, type.ToNameDisplayString());
+            }
+            else
+            {
+                var (kind, fullExpressionSpan) = await ComputeKindAsync(document, expression, includeKind, cancellationToken).ConfigureAwait(false);
 
                 if (expression.IsRightSideOfDotOrArrow())
                 {
-                    var curr = expression.GetRootConditionalAccessExpression() ?? expression;
-                    if (curr == expression)
-                    {
-                        // NB: Parent.Span, not Span as below.
-                        return new DebugDataTipInfo(expression.Parent.Span, text: null);
-                    }
-
                     // NOTE: There may not be an ExpressionSyntax corresponding to the range we want.
                     // For example, for input a?.$$B?.C, we want span [|a?.B|]?.C.
-                    return new DebugDataTipInfo(TextSpan.FromBounds(curr.SpanStart, expression.Span.End), text: null);
+                    var current = expression.GetRootConditionalAccessExpression() ?? expression;
+
+                    var span = current == expression
+                        ? expression.GetRequiredParent().Span
+                        : TextSpan.FromBounds(current.SpanStart, expression.Span.End);
+
+                    return new DebugDataTipInfo(span, fullExpressionSpan ?? span, Text: null, kind);
                 }
 
                 // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
                 // necessary or not.
                 if (expression is InvocationExpressionSyntax invocation)
-                {
                     expression = invocation.Expression;
-                }
 
-                string textOpt = null;
-                if (expression is TypeSyntax typeSyntax && typeSyntax.IsVar)
-                {
-                    // If the user is hovering over 'var', then pass back the full type name that 'var'
-                    // binds to.
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var type = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
-                    if (type != null)
-                    {
-                        textOpt = type.ToNameDisplayString();
-                    }
-                }
-
-                return new DebugDataTipInfo(expression.Span, textOpt);
+                return new DebugDataTipInfo(expression.Span, fullExpressionSpan ?? expression.Span, Text: null, kind);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-                return default;
-            }
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+            return default;
         }
     }
 }

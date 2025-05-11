@@ -3,9 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <OptionStrict>Off</OptionStrict>
-    <VBRuntime>Default</VBRuntime>
-    <TargetFramework>net472</TargetFramework>
+    <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>

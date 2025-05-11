@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class PrivateProtected
@@ -931,7 +932,7 @@ End Class
 ]]>
                              </file>
                          </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore},
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore},
                     parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>

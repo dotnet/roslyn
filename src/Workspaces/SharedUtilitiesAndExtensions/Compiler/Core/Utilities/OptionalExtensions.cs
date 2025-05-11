@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal static class OptionalExtensions
 {
-    internal static class OptionalExtensions
-    {
-        internal static T GetValueOrDefault<T>(this Optional<T> optional) where T : struct
-            => optional.Value;
-    }
+    internal static T GetValueOrDefault<T>(this Optional<T> optional) where T : struct
+        => optional.Value;
 }

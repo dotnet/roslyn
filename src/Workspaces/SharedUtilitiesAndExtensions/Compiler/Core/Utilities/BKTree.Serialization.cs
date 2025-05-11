@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Roslyn.Utilities;
 
@@ -11,38 +11,19 @@ internal readonly partial struct BKTree
 {
     internal void WriteTo(ObjectWriter writer)
     {
-        writer.WriteInt32(_concatenatedLowerCaseWords.Length);
-        foreach (var c in _concatenatedLowerCaseWords)
-            writer.WriteChar(c);
-
-        writer.WriteInt32(_nodes.Length);
-        foreach (var node in _nodes)
-            node.WriteTo(writer);
-
-        writer.WriteInt32(_edges.Length);
-        foreach (var edge in _edges)
-            edge.WriteTo(writer);
+        writer.WriteCharArray(_concatenatedLowerCaseWords, 0, _concatenatedLowerCaseWords.Length);
+        writer.WriteArray(_nodes, static (w, n) => n.WriteTo(w));
+        writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
     }
 
     internal static BKTree? ReadFrom(ObjectReader reader)
     {
         try
         {
-            var concatenatedLowerCaseWords = new char[reader.ReadInt32()];
-            for (var i = 0; i < concatenatedLowerCaseWords.Length; i++)
-                concatenatedLowerCaseWords[i] = reader.ReadChar();
-
-            var nodeCount = reader.ReadInt32();
-            using var _1 = ArrayBuilder<Node>.GetInstance(nodeCount, out var nodes);
-            for (var i = 0; i < nodeCount; i++)
-                nodes.Add(Node.ReadFrom(reader));
-
-            var edgeCount = reader.ReadInt32();
-            using var _2 = ArrayBuilder<Edge>.GetInstance(edgeCount, out var edges);
-            for (var i = 0; i < edgeCount; i++)
-                edges.Add(Edge.ReadFrom(reader));
-
-            return new BKTree(concatenatedLowerCaseWords, nodes.ToImmutableAndClear(), edges.ToImmutableAndClear());
+            return new BKTree(
+                reader.ReadCharArray(),
+                reader.ReadArray(Node.ReadFrom),
+                reader.ReadArray(Edge.ReadFrom));
         }
         catch
         {

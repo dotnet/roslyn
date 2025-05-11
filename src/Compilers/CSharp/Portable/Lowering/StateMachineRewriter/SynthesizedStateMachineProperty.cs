@@ -160,6 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal override int TryGetOverloadResolutionPriority() => 0;
+
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {
             get { return _getter.HasMethodBodyDependency; }

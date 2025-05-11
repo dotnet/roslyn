@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SemanticModelExtensions
-        <Extension()>
+        <Extension>
         Public Function LookupTypeRegardlessOfArity(semanticModel As SemanticModel,
                                                     name As SyntaxToken,
                                                     cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SpecializedCollections.EmptyList(Of ITypeSymbol)()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function LookupName(semanticModel As SemanticModel, name As SyntaxToken,
                                    namespacesAndTypesOnly As Boolean,
                                    cancellationToken As CancellationToken) As IList(Of ISymbol)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return SpecializedCollections.EmptyList(Of ISymbol)()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function LookupName(semanticModel As SemanticModel,
                                    expression As ExpressionSyntax,
                                    namespacesAndTypesOnly As Boolean,
@@ -68,17 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 semanticModel.LookupSymbols(expr.SpanStart, container:=symbol, name:=name))
         End Function
 
-        <Extension()>
-        Public Function GetSymbolInfo(semanticModel As SemanticModel, token As SyntaxToken) As SymbolInfo
-            Dim expression = TryCast(token.Parent, ExpressionSyntax)
-            If expression Is Nothing Then
-                Return Nothing
-            End If
-
-            Return semanticModel.GetSymbolInfo(expression)
-        End Function
-
-        <Extension()>
+        <Extension>
         Public Function GetImportNamespacesInScope(semanticModel As SemanticModel, location As SyntaxNode) As ISet(Of INamespaceSymbol)
             Dim q =
                 From u In location.GetAncestorOrThis(Of CompilationUnitSyntax).Imports
@@ -92,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return q.ToSet()
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function GetAliasInfo(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IAliasSymbol
             Dim nameSyntax = TryCast(expression, IdentifierNameSyntax)
             If nameSyntax Is Nothing Then
@@ -102,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
         End Function
 
-        <Extension()>
+        <Extension>
         Public Function DetermineAccessibilityConstraint(semanticModel As SemanticModel,
                                                          type As TypeSyntax,
                                                          cancellationToken As CancellationToken) As Accessibility

@@ -1,6 +1,6 @@
 # Capturing a crash dump
 
-## Using a registry setting
+## Using a registry setting (recommended on Windows)
 
 Create a registry key file (`dump.reg`) with the contents below, then execute it. The settings mean that every crash will produce a full dump (`DumpType`=2) in the folder specified by `DumpFolder`, and at most one will be kept (every subsequent crash will overwrite the file, because `DumpCount`=1).
 
@@ -18,6 +18,10 @@ Windows Registry Editor Version 5.00
 ```
 
 More [information](https://msdn.microsoft.com/en-us/library/windows/desktop/bb787181(v=vs.85).aspx)
+
+## Using environment variables (recommended on Linux)
+
+Define the container with the [correct variables](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/collect-dumps-crash) to collect a dump on crash.
 
 # Running the compiler with a long command line
 

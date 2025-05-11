@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
-namespace Microsoft.CodeAnalysis.Notification
+namespace Microsoft.CodeAnalysis.Notification;
+
+internal interface INotificationServiceCallback
 {
-    internal interface INotificationServiceCallback
-    {
-        Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
-    }
+    Action<string, string, NotificationSeverity> NotificationCallback { get; set; }
 }

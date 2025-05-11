@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1185,5 +1186,80 @@ Override.set y: 1
         }
 
         #endregion Lowering
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_01()
+        {
+            var text1 = @"
+public interface I1
+{
+    public I1 this[I1 args] { get; }
+}
+";
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
+
+            comp1 = CreateCompilation(text1);
+            comp1.MakeTypeMissing(WellKnownType.System_Reflection_DefaultMemberAttribute);
+
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
+
+            comp1 = CreateCompilation(text1);
+            comp1.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_02()
+        {
+            var text1 = @"
+public interface I1
+{
+    public I1 this[I1 args] { get; }
+}
+";
+            var comp1 = CreateCompilation(text1);
+
+            var text2 = @"
+class C : I1
+{
+    I1 I1.this[I1 args] => throw null;
+}
+";
+            var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
+            comp2.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            comp2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_03()
+        {
+            var text1 = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static IEnumerable<int> Test()
+    {
+        return [123];
+    }
+}
+";
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            CompileAndVerify(comp1).VerifyDiagnostics();
+        }
     }
 }

@@ -4,16 +4,24 @@
   <PropertyGroup>
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
 
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
+    <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
+    <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
+
+    <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
-    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
+    <RestoreUseStaticGraphEvaluation Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</RestoreUseStaticGraphEvaluation>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -24,7 +32,7 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
-    <EnableWindowsTargeting Condition="'$(DotNetBuildFromSource)' != 'true'">true</EnableWindowsTargeting>
+    <EnableWindowsTargeting Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</EnableWindowsTargeting>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
@@ -52,6 +60,13 @@
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
 
+    <!-- TODO --> 
+    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+
+    <!-- https://github.com/dotnet/msbuild/issues/10306 -->
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
+
+    <NoWarn Condition="'$(DefineConstants.Contains(`CODE_STYLE`))' == 'false'">$(NoWarn);RS1041;RS1038</NoWarn>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
@@ -143,11 +158,11 @@
   <!--
     Analyzers
   -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Disable SDK supplied netanalyzers as we reference them from nugets instead -->
@@ -156,34 +171,12 @@
   </PropertyGroup>
 
   <!--
-     Code indexing targets to help generating LSIF from indexing builds.
-  -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="RichCodeNav.EnvVarDump" Version="$(RichCodeNavEnvVarDumpVersion)" PrivateAssets="all" />
-  </ItemGroup>
-
-  <!--
     Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.
     This needs to be set to true in projects at the root of IVT trees, in order for PerformanceSensitiveAnalyzers to work.
   -->
   <PropertyGroup Condition="'$(GeneratePerformanceSensitiveAttribute)' == ''">
     <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
   </PropertyGroup>
-
-  <!-- Language-specific analyzer packages -->
-  <Choose>
-    <When Condition="'$(Language)' == 'VB'">
-      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
-      </ItemGroup>
-    </When>
-
-    <When Condition="'$(Language)' == 'C#'">
-      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
@@ -238,7 +231,7 @@
     </When>
   </Choose>
 
-  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <!-- https://github.com/dotnet/roslyn/issues/38433 Vbc does not like the extra semicolon -->
     <DefineConstants Condition="'$(DefineConstants)' != ''">DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(DefineConstants)' == ''">DOTNET_BUILD_FROM_SOURCE</DefineConstants>

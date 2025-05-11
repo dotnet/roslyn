@@ -83,17 +83,60 @@ namespace Microsoft.CodeAnalysis
             return green.IsList ? green.SlotCount : 1;
         }
 
+        internal readonly struct SlotData
+        {
+            /// <summary>
+            /// The green node slot index at which to start the search
+            /// </summary>
+            public readonly int SlotIndex;
+
+            /// <summary>
+            /// Indicates the total number of occupants in preceding slots
+            /// </summary>
+            public readonly int PrecedingOccupantSlotCount;
+
+            /// <summary>
+            /// Indicates the node start position plus any prior slot full widths
+            /// </summary>
+            public readonly int PositionAtSlotIndex;
+
+            public SlotData(SyntaxNode node)
+                : this(slotIndex: 0, precedingOccupantSlotCount: 0, node.Position)
+            {
+            }
+
+            public SlotData(int slotIndex, int precedingOccupantSlotCount, int positionAtSlotIndex)
+            {
+                SlotIndex = slotIndex;
+                PrecedingOccupantSlotCount = precedingOccupantSlotCount;
+                PositionAtSlotIndex = positionAtSlotIndex;
+            }
+        }
+
+        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
+        {
+            var slotData = new SlotData(node);
+
+            return ItemInternal(node, index, ref slotData);
+        }
+
         /// <summary>
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
-        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index)
+        internal static SyntaxNodeOrToken ItemInternal(SyntaxNode node, int index, ref SlotData slotData)
         {
             GreenNode? greenChild;
             var green = node.Green;
-            var idx = index;
-            var slotIndex = 0;
-            var position = node.Position;
+
+            // slotData may contain information that allows us to start the loop below using data
+            // calculated during a previous call. As index represents the offset into all children of
+            // node, idx represents the offset requested relative to the given slot index.
+            var idx = index - slotData.PrecedingOccupantSlotCount;
+            var slotIndex = slotData.SlotIndex;
+            var position = slotData.PositionAtSlotIndex;
+
+            Debug.Assert(idx >= 0);
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -120,6 +163,12 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 slotIndex++;
+            }
+
+            if (slotIndex != slotData.SlotIndex)
+            {
+                // (index - idx) represents the number of occupants prior to this new slotIndex
+                slotData = new SlotData(slotIndex, index - idx, position);
             }
 
             // get node that represents this slot
@@ -250,12 +299,15 @@ namespace Microsoft.CodeAnalysis
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
-        internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index)
+        internal static SyntaxNode? ItemInternalAsNode(SyntaxNode node, int index, ref SlotData slotData)
         {
             GreenNode? greenChild;
             var green = node.Green;
-            var idx = index;
-            var slotIndex = 0;
+            var idx = index - slotData.PrecedingOccupantSlotCount;
+            var slotIndex = slotData.SlotIndex;
+            var position = slotData.PositionAtSlotIndex;
+
+            Debug.Assert(idx >= 0);
 
             // find a slot that contains the node or its parent list (if node is in a list)
             // we will be skipping whole slots here so we will not loop for long
@@ -277,9 +329,16 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     idx -= currentOccupancy;
+                    position += greenChild.FullWidth;
                 }
 
                 slotIndex++;
+            }
+
+            if (slotIndex != slotData.SlotIndex)
+            {
+                // (index - idx) represents the number of occupants prior to this new slotIndex
+                slotData = new SlotData(slotIndex, index - idx, position);
             }
 
             // get node that represents this slot

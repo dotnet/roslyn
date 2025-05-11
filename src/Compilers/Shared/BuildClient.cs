@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
             var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
-            var tempDir = BuildServerConnection.GetTempPath(workingDir);
+            var tempDir = Path.GetTempPath();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            var loader = new DefaultAnalyzerAssemblyLoader();
+            var loader = new AnalyzerAssemblyLoader();
             return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var requestId = Guid.NewGuid();
+                var requestId = Guid.NewGuid().ToString();
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,
@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         private static IEnumerable<string> GetCommandLineWindows(IEnumerable<string> args)
         {
+            Debug.Assert(PlatformInformation.IsWindows);
+
             IntPtr ptr = NativeMethods.GetCommandLine();
             if (ptr == IntPtr.Zero)
             {

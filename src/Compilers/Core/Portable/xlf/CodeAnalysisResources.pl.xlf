@@ -17,6 +17,11 @@
         <target state="translated">Zestaw zawierający typ „{0}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="translated">atrybut</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">Niedozwolona nazwa wbudowanego operatora „{0}”</target>
@@ -80,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">Wartość „end” nie może być mniejsza niż wartość „start”. start=„{0}” end=„{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0}; plik może być zablokowany przez {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -263,9 +273,19 @@
         <target state="translated">Interfejs DiagnosticDescriptor musi mieć identyfikator, który nie ma wartości null, nie jest ciągiem pustym ani nie jest ciągiem zawierającym tylko białe znaki.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="translated">Nie można wyemitować natywnego pliku PDB dla metody '{0}', ponieważ jego rozmiar metadanych debugowania {1} przekracza limit {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Jeśli określono adnotacje elementów krotki z możliwością ustawiania wartości null, liczba adnotacji musi zgadzać się z kardynalnością krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="translated">typ '{0}' nie ma oczekiwanego konstruktora</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

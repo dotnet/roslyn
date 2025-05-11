@@ -7,19 +7,18 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal readonly struct PythiaTypeInferenceServiceWrapper
 {
-    internal readonly struct PythiaTypeInferenceServiceWrapper
-    {
-        internal readonly ITypeInferenceService UnderlyingObject;
+    internal readonly ITypeInferenceService UnderlyingObject;
 
-        internal PythiaTypeInferenceServiceWrapper(ITypeInferenceService underlyingObject)
-            => UnderlyingObject = underlyingObject;
+    internal PythiaTypeInferenceServiceWrapper(ITypeInferenceService underlyingObject)
+        => UnderlyingObject = underlyingObject;
 
-        public static PythiaTypeInferenceServiceWrapper Create(Document document)
-            => new(document.GetRequiredLanguageService<ITypeInferenceService>());
+    public static PythiaTypeInferenceServiceWrapper Create(Document document)
+        => new(document.GetRequiredLanguageService<ITypeInferenceService>());
 
-        public ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string? name, CancellationToken cancellationToken)
-            => UnderlyingObject.InferTypes(semanticModel, position, name, cancellationToken);
-    }
+    public ImmutableArray<ITypeSymbol> InferTypes(SemanticModel semanticModel, int position, string? name, CancellationToken cancellationToken)
+        => UnderlyingObject.InferTypes(semanticModel, position, name, cancellationToken);
 }

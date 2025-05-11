@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ParsingErrorRecoveryTests : CSharpTestBase
+    public class ParsingErrorRecoveryTests(ITestOutputHelper helper) : ParsingTests(helper)
     {
-        private CompilationUnitSyntax ParseTree(string text, CSharpParseOptions options = null)
+        private new CompilationUnitSyntax ParseTree(string text, CSharpParseOptions options = null)
         {
             return SyntaxFactory.ParseCompilationUnit(text, options: options);
         }
@@ -26,47 +27,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("internal")]
         [InlineData("protected")]
         [InlineData("private")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/74484")]
         public void AccessibilityModifierErrorRecovery(string accessibility)
         {
-            var file = ParseTree($@"
-class C
-{{
-    void M()
-    {{
-        // bad visibility modifier
-        {accessibility} void localFunc() {{}}
-    }}
-    void M2()
-    {{
-        typing
-        {accessibility} void localFunc() {{}}
-    }}
-    void M3()
-    {{
-    // Ambiguous between local func with bad modifier and missing closing
-    // brace on previous method. Parsing currently assumes the former,
-    // assuming the tokens are parseable as a local func.
-    {accessibility} void M4() {{}}
-}}");
+            var text = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        // bad visibility modifier
+                        {{accessibility}} void localFunc() {}
+                    }
+                    void M2()
+                    {
+                        typing
+                        {{accessibility}} void localFunc() {}
+                    }
+                    void M3()
+                    {
+                    // Ambiguous between local func with bad modifier and missing closing
+                    // brace on previous method. Parsing currently assumes the latter
+                    {{accessibility}} void M4() {}
+                }
+                """;
 
-            Assert.NotNull(file);
-            file.GetDiagnostics().Verify(
-                // (7,9): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //         {accessibility} void localFunc() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(7, 9),
-                // (11,15): error CS1002: ; expected
+            UsingTree(text,
+                // (4,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
+                // (8,5): error CS8803: Top-level statements must precede namespace and type declarations.
+                //     void M2()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, """
+                void M2()
+                    {
+                        typing
+
+                """).WithLocation(8, 5),
+                // (10,15): error CS1002: ; expected
                 //         typing
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
-                // (12,9): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //         {accessibility} void localFunc() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(12, 9),
-                // (19,5): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //     {accessibility} void M4() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(19, 5),
-                // (20,2): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1513: } expected
+                //         typing
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 15),
+                // (11,9): error CS0106: The modifier 'internal' is not valid for this item
+                //         internal void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, $"{accessibility}").WithArguments($"{accessibility}").WithLocation(11, 9),
+                // (12,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 5),
+                // (14,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(14, 6),
+                // (18,5): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal void M4() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, $"{accessibility}").WithArguments($"{accessibility}").WithLocation(17, 5),
+                // (19,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(20, 2)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(18, 1));
+
+            var accessibilityKind = SyntaxFacts.GetKeywordKind(accessibility);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "localFunc");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M2");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "typing");
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "localFunc");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M3");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M4");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -4925,8 +5087,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            Assert.Equal(4, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -4952,8 +5117,10 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
         }
 
         [Fact]
@@ -4979,9 +5146,11 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal(4, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[3].Code);
         }
 
         [Fact]
@@ -5007,8 +5176,634 @@ class C
             Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
-            Assert.Equal(1, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[2].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember2()
+        {
+            var text = "class c { void m() { var x = new C { a = b; }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember3()
+        {
+            var text = "class c { void m() { var x = new C { a = b; c = d, e = f; g = h }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; c = d, e = f; g = h }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+                // (1,57): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; c = d, e = f; g = h }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 57));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "c");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "d");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CommaToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "e");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "f");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "g");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "h");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "5");
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember4()
+        {
+            var text = "class c { void m() { var x = new C { a = b; }; if (true) return; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; }; if (true) return; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.IfStatement);
+                            {
+                                N(SyntaxKind.IfKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember5()
+        {
+            var text = "class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "if").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "if").WithLocation(1, 45),
+                // (1,64): error CS1597: Semicolon after method or accessor block is not valid
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(1, 64),
+                // (1,79): error CS1022: Type or namespace definition, or end-of-file expected
+                // class c { void m() { var x = new C { a = b; if (true) return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 79));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    M(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.IfStatement);
+                            {
+                                N(SyntaxKind.IfKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TrueLiteralExpression);
+                                {
+                                    N(SyntaxKind.TrueKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.ReturnStatement);
+                                {
+                                    N(SyntaxKind.ReturnKeyword);
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestSemicolonAfterObjectInitializerMember6()
+        {
+            var text = "class c { void m() { var x = new C { a = b; return; }; var y = 5; } }";
+
+            UsingTree(text,
+                // (1,43): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 43),
+                // (1,45): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "return").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(1, 45),
+                // (1,54): error CS1597: Semicolon after method or accessor block is not valid
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(1, 54),
+                // (1,69): error CS1022: Type or namespace definition, or end-of-file expected
+                // class c { void m() { var x = new C { a = b; return; }; var y = 5; } }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(1, 69));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "c");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "m");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ObjectCreationExpression);
+                                            {
+                                                N(SyntaxKind.NewKeyword);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "C");
+                                                }
+                                                N(SyntaxKind.ObjectInitializerExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "b");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                    M(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ReturnStatement);
+                            {
+                                N(SyntaxKind.ReturnKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "5");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -5036,9 +5831,18 @@ class C
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             file.GetDiagnostics().Verify(
-                // (1,45): error CS1513: } expected
+                // (1,45): error CS1525: Invalid expression term ';'
                 // class c { void m() { var x = new C { a = b, ; } }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(1, 45));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 45),
+                // (1,45): error CS1003: Syntax error, ',' expected
+                // class c { void m() { var x = new C { a = b, ; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 45),
+                // (1,49): error CS1002: ; expected
+                // class c { void m() { var x = new C { a = b, ; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(1, 49),
+                // (1,50): error CS1513: } expected
+                // class c { void m() { var x = new C { a = b, ; } }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 50));
         }
 
         [Fact]
@@ -7226,6 +8030,657 @@ class c
             var ns = root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
             Assert.False(ns.OpenBraceToken.IsMissing);
             Assert.False(ns.CloseBraceToken.IsMissing);
+        }
+
+        [Fact]
+        public void RazorCommentRecovery_Space()
+        {
+            UsingTree("""@ * *@""",
+                // (1,1): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 1),
+                // (1,6): error CS1525: Invalid expression term ''
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(1, 6),
+                // (1,6): error CS1002: ; expected
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(1, 6),
+                // (1,6): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @ * *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            N(SyntaxKind.PointerIndirectionExpression);
+                            {
+                                N(SyntaxKind.AsteriskToken);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RazorCommentRecovery_NoStart()
+        {
+            UsingTree("""*@""",
+                // (1,2): error CS1525: Invalid expression term ''
+                // *@
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(1, 2),
+                // (1,2): error CS1002: ; expected
+                // *@
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(1, 2),
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // *@
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(1, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.PointerIndirectionExpression);
+                        {
+                            N(SyntaxKind.AsteriskToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01()
+        {
+            UsingTree("""
+                if (#if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01_WhitespaceBeforeHash()
+        {
+            UsingTree("""
+                if ( #if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 6),
+                // (1,9): error CS1733: Expected expression
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1026: ) expected
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1733: Expected expression
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 10),
+                // (1,9): error CS1002: ; expected
+                // if ( #if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01_WhitespaceAfterHash()
+        {
+            UsingTree("""
+                if ( # if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 6),
+                // (1,9): error CS1733: Expected expression
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1026: ) expected
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1733: Expected expression
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 11),
+                // (1,9): error CS1002: ; expected
+                // if ( # if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 11));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_02()
+        {
+            UsingTree("""
+                if (#if false
+                x
+                #else
+                y
+                #endif
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (2,2): error CS1026: ) expected
+                // x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (3,1): error CS1028: Unexpected preprocessor directive
+                // #else
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#else").WithLocation(3, 1),
+                // (4,2): error CS1002: ; expected
+                // y
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (5,1): error CS1028: Unexpected preprocessor directive
+                // #endif
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endif").WithLocation(5, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.ExpressionStatement);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_03()
+        {
+            UsingTree("""
+                a();
+                #if false 
+                b();
+                /* comment */ #else
+                c();
+                #endif
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_04()
+        {
+            UsingTree("""
+                a();
+                #if true 
+                b();
+                /* comment */ #elif false
+                c();
+                #endif
+                """,
+                // (4,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #elif false
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(4, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_05()
+        {
+            UsingTree("""
+                a();
+                #if true 
+                b();
+                /* comment */ #endif
+                #else
+                c();
+                #endif
+                d();
+                """,
+                // (4,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #endif
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(4, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Define()
+        {
+            UsingTree("""
+                /* comment */ #define ABC
+                #if ABC
+                x();
+                #else
+                y();
+                #endif
+                """,
+                // (1,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #define ABC
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Undefine()
+        {
+            UsingTree("""
+                #define ABC
+                /* comment */ #undefine ABC
+                #if ABC
+                x();
+                #else
+                y();
+                #endif
+                """,
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #undefine ABC
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.InvocationExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_ErrorWarning()
+        {
+            UsingTree("""
+                /* comment */ #error E1
+                /* comment */ #warning W1
+                #error E2
+                #warning W2
+                """,
+                // (1,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #error E1
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 15),
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #warning W1
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (3,8): error CS1029: #error: 'E2'
+                // #error E2
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "E2").WithArguments("E2").WithLocation(3, 8),
+                // (4,10): warning CS1030: #warning: 'W2'
+                // #warning W2
+                Diagnostic(ErrorCode.WRN_WarningDirective, "W2").WithArguments("W2").WithLocation(4, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Line()
+        {
+            UsingTree("""
+                #line 200
+                /* comment */ #line 100
+                #error E1
+                """,
+                // (200,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #line 100
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(200, 15),
+                // (201,8): error CS1029: #error: 'E1'
+                // #error E1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "E1").WithArguments("E1").WithLocation(201, 8));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Pragma()
+        {
+            CreateCompilation("""
+                #pragma warning disable 8321
+                /* comment */ #pragma warning restore 8321
+                void f() { }
+                #pragma warning restore 8321
+                void g() { }
+                """).VerifyDiagnostics(
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #pragma warning restore 8321
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (5,6): warning CS8321: The local function 'g' is declared but never used
+                // void g() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "g").WithArguments("g").WithLocation(5, 6));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_Nullable()
+        {
+            CreateCompilation("""
+                #nullable disable
+                /* comment */ #nullable enable
+                _ = (object)null;
+                #nullable enable
+                _ = (object)null; // 1
+                """).VerifyDiagnostics(
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #nullable enable
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // _ = (object)null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(5, 5));
         }
     }
 }

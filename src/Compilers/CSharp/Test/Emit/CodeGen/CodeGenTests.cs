@@ -8,11 +8,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -473,7 +473,8 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
+            var compilation = CreateEmptyCompilation(tree, [Net461.References.mscorlib], TestOptions.ReleaseExe, assemblyName: "Test");
+            compilation.MakeMemberMissing(SpecialMember.System_Array__LongLength);
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -530,7 +531,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -604,7 +605,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -863,7 +864,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -4312,20 +4313,6 @@ public class D
         public void ParamCallUsesCachedArray()
         {
             var verifier = CompileAndVerify(@"
-namespace System
-{
-    public class Object { }
-    public class ValueType { }
-    public struct Int32 { }
-    public class String { }
-    public class Attribute { }
-    public struct Void { }
-    public class ParamArrayAttribute { }
-    public abstract class Array {
-        public static T[] Empty<T>() { return new T[0]; }
-    }
-}
-
 public class Program
 {
     public static void Callee1(params object[] values) { }
@@ -4365,7 +4352,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
+", options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4470,19 +4457,7 @@ public class Program
 }
 ");
 
-            verifier = CompileAndVerify(@"
-namespace System
-{
-    public class Object { }
-    public class ValueType { }
-    public struct Int32 { }
-    public class String { }
-    public class Attribute { }
-    public struct Void { }
-    public class ParamArrayAttribute { }
-    public abstract class Array { }
-}
-
+            var comp = CreateCompilation(@"
 public class Program
 {
     public static void Callee1(params object[] values) { }
@@ -4498,7 +4473,12 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
+", options: TestOptions.ReleaseExe);
+
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+
+            verifier = CompileAndVerify(comp);
+
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -7026,7 +7006,7 @@ Char
 DBNull
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compilation = CreateCompilationWithMscorlib461(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             //NOTE: 
@@ -15151,7 +15131,7 @@ class Program
     }
 }";
 
-            var testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference();
+            var testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference();
             var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
@@ -15568,6 +15548,7 @@ class M
     object a = Test((dynamic)2);
 
     static object Test(object obj) => obj;
+    static object Test(string obj) => obj;
 
     static void Main()
     {
@@ -15584,7 +15565,7 @@ class M
   // Code size      115 (0x73)
   .maxstack  10
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0006:  brtrue.s   IL_0043
   IL_0008:  ldc.i4.0
   IL_0009:  ldstr      ""Test""
@@ -15607,10 +15588,10 @@ class M
   IL_0033:  stelem.ref
   IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__4.<>p__0""
   IL_0052:  ldtoken    ""M""
   IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005c:  ldc.i4.2
@@ -15634,9 +15615,11 @@ class M
 {
     // inner call is dynamic parameter, static argument
     // outer call is dynamic parameter, dynamic argument
-    object a = Test(Test(2));
+    object a = Test2(Test(2));
 
     static dynamic Test(dynamic obj) => obj;
+    static dynamic Test2(int obj) => obj;
+    static dynamic Test2(long obj) => obj;
 
     static void Main()
     {
@@ -15652,10 +15635,10 @@ class M
   // Code size      120 (0x78)
   .maxstack  10
   IL_0000:  ldarg.0
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0006:  brtrue.s   IL_0043
   IL_0008:  ldc.i4.0
-  IL_0009:  ldstr      ""Test""
+  IL_0009:  ldstr      ""Test2""
   IL_000e:  ldnull
   IL_000f:  ldtoken    ""M""
   IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
@@ -15675,10 +15658,10 @@ class M
   IL_0033:  stelem.ref
   IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
   IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
-  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
-  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__5.<>p__0""
   IL_0052:  ldtoken    ""M""
   IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_005c:  ldc.i4.2
@@ -15713,7 +15696,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
@@ -15722,7 +15705,7 @@ class M
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
         [Fact]
-        public void FieldInitializerDynamicBothStaticInstance()
+        public void FieldInitializerDynamicBothStaticInstance_01()
         {
             string source = @"
 using System;
@@ -15741,6 +15724,52 @@ class M
     object Test(int obj)
     {
         Console.Write(""int."");
+        return obj;
+    }
+
+    static void Main()
+    {
+        try
+        {
+            Console.Write(new M().a);
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException ex)
+        {
+            Console.Write(""ex caught"");
+        }
+    }
+}
+";
+
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamicBothStaticInstance_02()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2L);
+    object b = Test((dynamic)2);
+
+    static object Test(long obj)
+    {
+        Console.Write(""long."");
+        return obj;
+    }
+
+    object Test(int obj)
+    {
+        Console.Write(""int."");
+        return obj;
+    }
+
+    static object Test(byte obj)
+    {
         return obj;
     }
 
@@ -15804,7 +15833,7 @@ class M : B
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
@@ -15837,7 +15866,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
@@ -15865,7 +15894,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
@@ -15924,7 +15953,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -16003,7 +16032,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -16204,8 +16233,7 @@ class Program
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: "0");
         }
 
         [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]

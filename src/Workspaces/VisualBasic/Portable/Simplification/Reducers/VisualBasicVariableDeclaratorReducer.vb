@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Dim declaredSymbol = semanticModel.GetDeclaredSymbol(modifiedIdentifier)
             If declaredSymbol Is Nothing OrElse
-               (Not TypeOf declaredSymbol Is ILocalSymbol AndAlso Not TypeOf declaredSymbol Is IFieldSymbol) Then
+               (TypeOf declaredSymbol IsNot ILocalSymbol AndAlso TypeOf declaredSymbol IsNot IFieldSymbol) Then
                 Return False
             End If
 

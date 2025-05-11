@@ -225,15 +225,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             CrefParameterListSyntax? parameterListSyntax = syntax.Parameters;
             bool isChecked = syntax.CheckedKeyword.IsKind(SyntaxKind.CheckedKeyword);
 
-            // NOTE: Prefer binary to unary, unless there is exactly one parameter.
-            // CONSIDER: we're following dev11 by never using a binary operator name if there's
-            // exactly one parameter, but doing so would allow us to match single-parameter constructors.
             SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
-            string? memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
-                ? null
-                : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
+            string? memberName;
 
-            memberName = memberName ?? OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+            if (SyntaxFacts.IsOverloadableCompoundAssignmentOperator(operatorTokenKind))
+            {
+                memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+            }
+            else
+            {
+                // NOTE: Prefer binary to unary, unless there is exactly one parameter.
+                // CONSIDER: we're following dev11 by never using a binary operator name if there's
+                // exactly one parameter, but doing so would allow us to match single-parameter constructors.
+                memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
+                    ? null
+                    : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked);
+
+                if (memberName is null)
+                {
+                    if (operatorTokenKind is SyntaxKind.PlusPlusToken or SyntaxKind.MinusMinusToken && parameterListSyntax?.Parameters.Count == 0)
+                    {
+                        memberName = OperatorFacts.CompoundAssignmentOperatorNameFromSyntaxKind(operatorTokenKind, isChecked);
+                    }
+                    else
+                    {
+                        memberName = OperatorFacts.UnaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind, isChecked: isChecked);
+                    }
+                }
+            }
 
             if (memberName == null ||
                 (isChecked && !syntax.OperatorToken.IsMissing && !SyntaxFacts.IsCheckedOperator(memberName))) // the operator cannot be checked
@@ -942,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(parameterListSyntax.Parent is object);
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 
-                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParams: false, refKind: refKind));
+                parameterBuilder.Add(new SignatureOnlyParameterSymbol(TypeWithAnnotations.Create(type), ImmutableArray<CustomModifier>.Empty, isParamsArray: false, isParamsCollection: false, refKind: refKind));
             }
 
             return parameterBuilder.ToImmutableAndFree();

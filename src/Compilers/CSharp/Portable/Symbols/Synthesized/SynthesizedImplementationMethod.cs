@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SynthesizedImplementationMethod : SynthesizedInstanceMethodSymbol
+    internal abstract class SynthesizedImplementationMethod : SynthesizedMethodSymbol
     {
         //inputs
         protected readonly MethodSymbol _interfaceMethod;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _interfaceMethod.RequiresSecurityObject; }
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return !IsStatic;
         }

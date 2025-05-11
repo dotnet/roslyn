@@ -8,9 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.IO.Pipes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public LazyRemoteService(InteractiveHost host, InteractiveHostOptions options, int instanceId, bool skipInitialization)
             {
-                _lazyInitializedService = AsyncLazy.Create(TryStartAndInitializeProcessAsync);
+                _lazyInitializedService = AsyncLazy.Create(static (self, cancellationToken) => self.TryStartAndInitializeProcessAsync(cancellationToken), this);
                 _cancellationSource = new CancellationTokenSource();
                 InstanceId = instanceId;
                 Options = options;
@@ -77,13 +75,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                     {
                         result = new RemoteExecutionResult(
                             success: true,
-                            sourcePaths: ImmutableArray<string>.Empty,
-                            referencePaths: ImmutableArray<string>.Empty,
+                            sourcePaths: [],
+                            referencePaths: [],
                             workingDirectory: Host._initialWorkingDirectory,
                             initializationResult: new RemoteInitializationResult(
                                 initializationScript: null,
-                                metadataReferencePaths: ImmutableArray.Create(typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location),
-                                imports: ImmutableArray<string>.Empty));
+                                metadataReferencePaths: [typeof(object).Assembly.Location, typeof(InteractiveScriptGlobals).Assembly.Location],
+                                imports: []));
 
                         Host.ProcessInitialized?.Invoke(remoteService.PlatformInfo, Options, result);
                         return new InitializedRemoteService(remoteService, result);

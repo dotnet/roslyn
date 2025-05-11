@@ -76,7 +76,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // w = IsSetsRequiredMembersPopulated. 1 bit.
             // x = IsUnscopedRef. 1 bit.
             // y = IsUnscopedRefPopulated. 1 bit.
-            // 2 bits remain for future purposes.
+            // z = OverloadResolutionPriorityPopulated. 1 bit.
+            // 1 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
             private const int MethodKindMask = 0x1F;
@@ -106,6 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int HasSetsRequiredMembersPopulatedBit = 0x1 << 28;
             private const int IsUnscopedRefBit = 0x1 << 29;
             private const int IsUnscopedRefPopulatedBit = 0x1 << 30;
+            private const int OverloadResolutionPriorityPopulatedBit = 0x1 << 31;
 
             private int _bits;
 
@@ -129,23 +131,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
             public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
             public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
-            public bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
-            public bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
-            public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
-            public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
-            public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public bool IsObsoleteAttributePopulated => (Volatile.Read(ref _bits) & IsObsoleteAttributePopulatedBit) != 0;
+            public bool IsCustomAttributesPopulated => (Volatile.Read(ref _bits) & IsCustomAttributesPopulatedBit) != 0;
+            public bool IsUseSiteDiagnosticPopulated => (Volatile.Read(ref _bits) & IsUseSiteDiagnosticPopulatedBit) != 0;
+            public bool IsConditionalPopulated => (Volatile.Read(ref _bits) & IsConditionalPopulatedBit) != 0;
+            public bool IsOverriddenOrHiddenMembersPopulated => (Volatile.Read(ref _bits) & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
             public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
             public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
             public bool DoesNotReturn => (_bits & DoesNotReturnBit) != 0;
             public bool IsDoesNotReturnPopulated => (_bits & IsDoesNotReturnPopulatedBit) != 0;
-            public bool IsMemberNotNullPopulated => (_bits & IsMemberNotNullPopulatedBit) != 0;
+            public bool IsMemberNotNullPopulated => (Volatile.Read(ref _bits) & IsMemberNotNullPopulatedBit) != 0;
             public bool IsInitOnly => (_bits & IsInitOnlyBit) != 0;
             public bool IsInitOnlyPopulated => (_bits & IsInitOnlyPopulatedBit) != 0;
-            public bool IsUnmanagedCallersOnlyAttributePopulated => (_bits & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
+            public bool IsUnmanagedCallersOnlyAttributePopulated => (Volatile.Read(ref _bits) & IsUnmanagedCallersOnlyAttributePopulatedBit) != 0;
             public bool HasSetsRequiredMembers => (_bits & HasSetsRequiredMembersBit) != 0;
             public bool HasSetsRequiredMembersPopulated => (_bits & HasSetsRequiredMembersPopulatedBit) != 0;
             public bool IsUnscopedRef => (_bits & IsUnscopedRefBit) != 0;
             public bool IsUnscopedRefPopulated => (_bits & IsUnscopedRefPopulatedBit) != 0;
+            public bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(ref _bits) & OverloadResolutionPriorityPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -268,11 +271,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
+
+            public void SetIsOverloadResolutionPriorityPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, OverloadResolutionPriorityPopulatedBit);
+            }
         }
 
         /// <summary>
-        /// Holds infrequently accessed fields. See <seealso cref="_uncommonFields"/> for an explanation.
+        /// This type is used to hold lazily-initialized fields that many methods will not need. We avoid creating it unless one of the fields is needed;
+        /// unfortunately, this means that we need to be careful of data races. The general pattern that we use is to check for a flag in <see cref="_packedFlags"/>.
+        /// If the flag for that field is set, and there was a positive result (ie, there are indeed custom attributes, or there is obsolete data), then it
+        /// is safe to rely on the data in the field. If the flag for a field is set but the result is empty (ie, there is no obsolete data), then we can be in
+        /// one of 3 scenarios:
+        /// <list type="number">
+        /// <item><see cref="_uncommonFields"/> is itself null. In this case, no race has occurred, and the consuming code can safely handle the lack of
+        /// <see cref="_uncommonFields"/> however it chooses.</item>
+        /// <item><see cref="_uncommonFields"/> is not null, and the backing field has been initialized to some empty value, such as
+        /// <see cref="ImmutableArray{T}.Empty"/>. In this case, again, no race has occurred, and the consuming code can simply trust the empty value.</item>
+        /// <item><see cref="_uncommonFields"/> is not null, and the backing field is uninitialized, either being <see langword="default" />, or is some
+        /// kind of sentinel value. In this case, a data race has occurred, and the consuming code must initialize the field to empty to bring it back
+        /// into scenario 2.</item>
+        /// </list>
         /// </summary>
+        /// <remarks>
+        /// The initialization pattern for this type <b>must</b> follow the following pattern to make the safety guarantees above:
+        /// If the field initialization code determines that the backing field needs to be set to some non-empty value, it <b>must</b> first call <see cref="AccessUncommonFields"/>,
+        /// set the backing field using an atomic operation, and then set the flag in <see cref="_packedFlags"/>. This ensures that the field is always set before the flag is set.
+        /// If this order is reversed, the consuming code may see the flag set, but the field not initialized, and incorrectly assume that there is no data.
+        /// </remarks>
         private sealed class UncommonFields
         {
             public ParameterSymbol _lazyThisParameter;
@@ -287,66 +314,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public ImmutableArray<string> _lazyNotNullMembersWhenTrue;
             public ImmutableArray<string> _lazyNotNullMembersWhenFalse;
             public MethodSymbol _lazyExplicitClassOverride;
-        }
-
-        private UncommonFields CreateUncommonFields()
-        {
-            var retVal = new UncommonFields();
-            if (!_packedFlags.IsObsoleteAttributePopulated)
-            {
-                retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-            }
-
-            if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
-            {
-                retVal._lazyUnmanagedCallersOnlyAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
-            }
-
-            //
-            // Do not set _lazyUseSiteDiagnostic !!!!
-            //
-            // "null" Indicates "no errors" or "unknown state",
-            // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
-            //
-            // Setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
-            // a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
-            // Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
-            //
-
-            if (_packedFlags.IsCustomAttributesPopulated)
-            {
-                retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-            }
-
-            if (_packedFlags.IsConditionalPopulated)
-            {
-                retVal._lazyConditionalAttributeSymbols = ImmutableArray<string>.Empty;
-            }
-
-            if (_packedFlags.IsOverriddenOrHiddenMembersPopulated)
-            {
-                retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
-            }
-
-            if (_packedFlags.IsMemberNotNullPopulated)
-            {
-                retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
-                retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
-                retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
-            }
-
-            if (_packedFlags.IsExplicitOverrideIsPopulated)
-            {
-                retVal._lazyExplicitClassOverride = null;
-            }
-
-            return retVal;
+            public int _lazyOverloadResolutionPriority;
         }
 
         private UncommonFields AccessUncommonFields()
         {
             var retVal = _uncommonFields;
-            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, CreateUncommonFields());
+            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, createUncommonFields());
+
+            UncommonFields createUncommonFields()
+            {
+                var retVal = new UncommonFields();
+                if (!_packedFlags.IsObsoleteAttributePopulated)
+                {
+                    retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+                }
+
+                if (!_packedFlags.IsUnmanagedCallersOnlyAttributePopulated)
+                {
+                    retVal._lazyUnmanagedCallersOnlyAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
+                }
+
+                //
+                // Do not set _lazyUseSiteDiagnostic !!!!
+                //
+                // "null" Indicates "no errors" or "unknown state",
+                // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+                //
+                // Setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
+                // a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+                // Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+                //
+
+                if (_packedFlags.IsCustomAttributesPopulated)
+                {
+                    retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+                }
+
+                if (_packedFlags.IsConditionalPopulated)
+                {
+                    retVal._lazyConditionalAttributeSymbols = ImmutableArray<string>.Empty;
+                }
+
+                if (_packedFlags.IsOverriddenOrHiddenMembersPopulated)
+                {
+                    retVal._lazyOverriddenOrHiddenMembersResult = OverriddenOrHiddenMembersResult.Empty;
+                }
+
+                if (_packedFlags.IsMemberNotNullPopulated)
+                {
+                    retVal._lazyNotNullMembers = ImmutableArray<string>.Empty;
+                    retVal._lazyNotNullMembersWhenTrue = ImmutableArray<string>.Empty;
+                    retVal._lazyNotNullMembersWhenFalse = ImmutableArray<string>.Empty;
+                }
+
+                if (_packedFlags.IsExplicitOverrideIsPopulated)
+                {
+                    retVal._lazyExplicitClassOverride = null;
+                }
+
+                return retVal;
+            }
         }
 
         private readonly MethodDefinitionHandle _handle;
@@ -567,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsStatic => HasFlag(MethodAttributes.Static);
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.Virtual);
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => HasFlag(MethodAttributes.Virtual);
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => HasFlag(MethodAttributes.NewSlot);
 
@@ -982,10 +1010,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      : IsValidReadOnlyTarget;
 
                 bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+                bool isInstanceIncrementDecrementOrCompoundAssignmentOperator = SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this);
 
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator)
                 {
                     attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
                         filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
@@ -993,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
                         filterOut2: AttributeDescription.IsReadOnlyAttribute,
                         filteredOutAttribute3: out _,
-                        filterOut3: (checkForRequiredMembers && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        filterOut3: ((checkForRequiredMembers || isInstanceIncrementDecrementOrCompoundAssignmentOperator) && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
                         filteredOutAttribute4: out _,
                         filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
                         filteredOutAttribute5: out _,
@@ -1106,13 +1135,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool IsValidUserDefinedOperatorSignature(int parameterCount)
+        private bool IsValidStaticUserDefinedOperatorSignature(int parameterCount)
         {
             if (this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
             {
                 return false;
             }
 
+            return HasValidOperatorParameterRefKinds();
+        }
+
+        private bool HasValidOperatorParameterRefKinds()
+        {
             if (this.ParameterRefKinds.IsDefault)
             {
                 return true;
@@ -1135,6 +1169,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return true;
+        }
+
+        private bool IsValidInstanceUserDefinedOperatorSignature(int parameterCount)
+        {
+            if (!this.ReturnsVoid || this.IsGenericMethod || this.IsVararg || this.ParameterCount != parameterCount || this.IsParams())
+            {
+                return false;
+            }
+
+            return HasValidOperatorParameterRefKinds();
         }
 
         private MethodKind ComputeMethodKind()
@@ -1173,55 +1217,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return MethodKind.Ordinary;
                 }
 
-                if (!this.HasRuntimeSpecialName && this.IsStatic && this.DeclaredAccessibility == Accessibility.Public)
+                if (!this.HasRuntimeSpecialName && this.DeclaredAccessibility == Accessibility.Public)
                 {
-                    switch (_name)
+                    if (this.IsStatic)
                     {
-                        case WellKnownMemberNames.CheckedAdditionOperatorName:
-                        case WellKnownMemberNames.AdditionOperatorName:
-                        case WellKnownMemberNames.BitwiseAndOperatorName:
-                        case WellKnownMemberNames.BitwiseOrOperatorName:
-                        case WellKnownMemberNames.CheckedDivisionOperatorName:
-                        case WellKnownMemberNames.DivisionOperatorName:
-                        case WellKnownMemberNames.EqualityOperatorName:
-                        case WellKnownMemberNames.ExclusiveOrOperatorName:
-                        case WellKnownMemberNames.GreaterThanOperatorName:
-                        case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
-                        case WellKnownMemberNames.InequalityOperatorName:
-                        case WellKnownMemberNames.LeftShiftOperatorName:
-                        case WellKnownMemberNames.LessThanOperatorName:
-                        case WellKnownMemberNames.LessThanOrEqualOperatorName:
-                        case WellKnownMemberNames.ModulusOperatorName:
-                        case WellKnownMemberNames.CheckedMultiplyOperatorName:
-                        case WellKnownMemberNames.MultiplyOperatorName:
-                        case WellKnownMemberNames.RightShiftOperatorName:
-                        case WellKnownMemberNames.UnsignedRightShiftOperatorName:
-                        case WellKnownMemberNames.CheckedSubtractionOperatorName:
-                        case WellKnownMemberNames.SubtractionOperatorName:
-                            return IsValidUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
-                        case WellKnownMemberNames.CheckedDecrementOperatorName:
-                        case WellKnownMemberNames.DecrementOperatorName:
-                        case WellKnownMemberNames.FalseOperatorName:
-                        case WellKnownMemberNames.CheckedIncrementOperatorName:
-                        case WellKnownMemberNames.IncrementOperatorName:
-                        case WellKnownMemberNames.LogicalNotOperatorName:
-                        case WellKnownMemberNames.OnesComplementOperatorName:
-                        case WellKnownMemberNames.TrueOperatorName:
-                        case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
-                        case WellKnownMemberNames.UnaryNegationOperatorName:
-                        case WellKnownMemberNames.UnaryPlusOperatorName:
-                            return IsValidUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
-                        case WellKnownMemberNames.ImplicitConversionName:
-                        case WellKnownMemberNames.ExplicitConversionName:
-                        case WellKnownMemberNames.CheckedExplicitConversionName:
-                            return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
+                        switch (_name)
+                        {
+                            case WellKnownMemberNames.CheckedAdditionOperatorName:
+                            case WellKnownMemberNames.AdditionOperatorName:
+                            case WellKnownMemberNames.BitwiseAndOperatorName:
+                            case WellKnownMemberNames.BitwiseOrOperatorName:
+                            case WellKnownMemberNames.CheckedDivisionOperatorName:
+                            case WellKnownMemberNames.DivisionOperatorName:
+                            case WellKnownMemberNames.EqualityOperatorName:
+                            case WellKnownMemberNames.ExclusiveOrOperatorName:
+                            case WellKnownMemberNames.GreaterThanOperatorName:
+                            case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
+                            case WellKnownMemberNames.InequalityOperatorName:
+                            case WellKnownMemberNames.LeftShiftOperatorName:
+                            case WellKnownMemberNames.LessThanOperatorName:
+                            case WellKnownMemberNames.LessThanOrEqualOperatorName:
+                            case WellKnownMemberNames.ModulusOperatorName:
+                            case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                            case WellKnownMemberNames.MultiplyOperatorName:
+                            case WellKnownMemberNames.RightShiftOperatorName:
+                            case WellKnownMemberNames.UnsignedRightShiftOperatorName:
+                            case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                            case WellKnownMemberNames.SubtractionOperatorName:
+                                return IsValidStaticUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                            case WellKnownMemberNames.CheckedDecrementOperatorName:
+                            case WellKnownMemberNames.DecrementOperatorName:
+                            case WellKnownMemberNames.FalseOperatorName:
+                            case WellKnownMemberNames.CheckedIncrementOperatorName:
+                            case WellKnownMemberNames.IncrementOperatorName:
+                            case WellKnownMemberNames.LogicalNotOperatorName:
+                            case WellKnownMemberNames.OnesComplementOperatorName:
+                            case WellKnownMemberNames.TrueOperatorName:
+                            case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                            case WellKnownMemberNames.UnaryNegationOperatorName:
+                            case WellKnownMemberNames.UnaryPlusOperatorName:
+                                return IsValidStaticUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                            case WellKnownMemberNames.ImplicitConversionName:
+                            case WellKnownMemberNames.ExplicitConversionName:
+                            case WellKnownMemberNames.CheckedExplicitConversionName:
+                                return IsValidStaticUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
-                            //case WellKnownMemberNames.ConcatenateOperatorName:
-                            //case WellKnownMemberNames.ExponentOperatorName:
-                            //case WellKnownMemberNames.IntegerDivisionOperatorName:
-                            //case WellKnownMemberNames.LikeOperatorName:
-                            //// Non-C#-supported overloaded operator
-                            //return MethodKind.Ordinary;
+                                //case WellKnownMemberNames.ConcatenateOperatorName:
+                                //case WellKnownMemberNames.ExponentOperatorName:
+                                //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                                //case WellKnownMemberNames.LikeOperatorName:
+                                //// Non-C#-supported overloaded operator
+                                //return MethodKind.Ordinary;
+                        }
+                    }
+                    else
+                    {
+                        switch (_name)
+                        {
+                            case WellKnownMemberNames.CheckedDecrementAssignmentOperatorName:
+                            case WellKnownMemberNames.DecrementAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedIncrementAssignmentOperatorName:
+                            case WellKnownMemberNames.IncrementAssignmentOperatorName:
+                                return IsValidInstanceUserDefinedOperatorSignature(0) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+
+                            case WellKnownMemberNames.AdditionAssignmentOperatorName:
+                            case WellKnownMemberNames.SubtractionAssignmentOperatorName:
+                            case WellKnownMemberNames.MultiplicationAssignmentOperatorName:
+                            case WellKnownMemberNames.DivisionAssignmentOperatorName:
+                            case WellKnownMemberNames.ModulusAssignmentOperatorName:
+                            case WellKnownMemberNames.BitwiseAndAssignmentOperatorName:
+                            case WellKnownMemberNames.BitwiseOrAssignmentOperatorName:
+                            case WellKnownMemberNames.ExclusiveOrAssignmentOperatorName:
+                            case WellKnownMemberNames.LeftShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.RightShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedAdditionAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName:
+                            case WellKnownMemberNames.CheckedDivisionAssignmentOperatorName:
+                                return IsValidInstanceUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                        }
                     }
 
                     return MethodKind.Ordinary;
@@ -1406,6 +1481,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
 
+                if (diagnosticInfo == null && _containingType.IsExtension &&
+                    TryGetCorrespondingExtensionImplementationMethod() is null)
+                {
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
+                }
+
                 if (diagnosticInfo == null &&
                     _containingType.ContainingPEModule.RefSafetyRulesVersion == PEModuleSymbol.RefSafetyRulesAttributeVersion.UnrecognizedAttribute)
                 {
@@ -1437,7 +1519,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var containingModule = _containingType.ContainingPEModule;
             var decoder = new MetadataDecoder(containingModule, this);
-            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                this, containingModule, Handle,
+                allowedFeatures: MethodKind == MethodKind.Constructor ?
+                    CompilerFeatureRequiredFeatures.RequiredMembers :
+                    (SourceMethodSymbol.IsInstanceIncrementDecrementOrCompoundAssignmentOperator(this) ?
+                        CompilerFeatureRequiredFeatures.UserDefinedCompoundAssignmentOperators :
+                        CompilerFeatureRequiredFeatures.None),
+                decoder);
 
             if (diag != null)
             {
@@ -1485,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (useSiteInfo.DiagnosticInfo is object || !useSiteInfo.SecondaryDependencies.IsNullOrEmpty())
             {
-                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitialize(PrimaryDependency, useSiteInfo);
+                useSiteInfo = AccessUncommonFields()._lazyCachedUseSiteInfo.InterlockedInitializeFromDefault(PrimaryDependency, useSiteInfo);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
@@ -1625,12 +1714,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -1672,6 +1761,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             builderArgument = _containingType.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.AsyncMethodBuilderAttribute);
             return builderArgument is not null;
+        }
+
+        internal override int TryGetOverloadResolutionPriority()
+        {
+            if (!_packedFlags.IsOverloadResolutionPriorityPopulated)
+            {
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority) &&
+                    priority != 0)
+                {
+                    Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
+                }
+#if DEBUG
+                else
+                {
+                    // 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields is null or { _lazyOverloadResolutionPriority: 0 });
+                }
+#endif
+
+                _packedFlags.SetIsOverloadResolutionPriorityPopulated();
+            }
+
+            return _uncommonFields?._lazyOverloadResolutionPriority ?? 0;
         }
     }
 }

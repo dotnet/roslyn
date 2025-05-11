@@ -108,7 +108,7 @@ extern void M7();
 static void M12() { }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             var script = comp.ScriptClass;
             var m1 = script.GetMembers("M1").Single() as MethodSymbol;
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);

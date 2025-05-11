@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Text;
 
 namespace PrepareTests;
 internal class TestDiscovery
@@ -34,10 +35,11 @@ internal class TestDiscovery
                 ? dotnetFrameworkWorker
                 : dotnetCoreWorker;
 
-            var result = RunWorker(dotnetPath, workerPath, assembly);
+            var (workerSucceeded, output) = RunWorker(dotnetPath, workerPath, assembly);
             lock (s_lock)
             {
-                success &= result;
+                Console.WriteLine(output);
+                success &= workerSucceeded;
             }
         });
         stopwatch.Stop();
@@ -70,60 +72,35 @@ internal class TestDiscovery
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
-    static bool RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
+    static (bool Succeeded, string Output) RunWorker(string dotnetPath, string pathToWorker, string pathToAssembly)
     {
-        var success = true;
-        var pipeClient = new Process();
-        var arguments = new List<string>();
+        var worker = new Process();
+        var arguments = new StringBuilder();
         if (pathToWorker.EndsWith("dll"))
         {
-            arguments.Add(pathToWorker);
-            pipeClient.StartInfo.FileName = dotnetPath;
+            arguments.Append($"exec {pathToWorker}");
+            worker.StartInfo.FileName = dotnetPath;
         }
         else
         {
-            pipeClient.StartInfo.FileName = pathToWorker;
+            worker.StartInfo.FileName = pathToWorker;
         }
 
-        using (var pipeServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable))
-        {
-            // Pass the client process a handle to the server.
-            arguments.Add(pipeServer.GetClientHandleAsString());
-            pipeClient.StartInfo.Arguments = string.Join(" ", arguments);
-            pipeClient.StartInfo.UseShellExecute = false;
-            pipeClient.Start();
+        var pathToOutput = Path.Combine(Path.GetDirectoryName(pathToAssembly)!, "testlist.json");
+        arguments.Append($" --assembly {pathToAssembly} --out {pathToOutput}");
 
-            pipeServer.DisposeLocalCopyOfClientHandle();
+        var output = new StringBuilder();
+        worker.StartInfo.Arguments = arguments.ToString();
+        worker.StartInfo.UseShellExecute = false;
+        worker.StartInfo.RedirectStandardOutput = true;
+        worker.OutputDataReceived += (sender, e) => output.Append(e.Data);
+        worker.Start();
+        worker.BeginOutputReadLine();
+        worker.WaitForExit();
+        var success = worker.ExitCode == 0;
+        worker.Close();
 
-            try
-            {
-                // Read user input and send that to the client process.
-                using var sw = new StreamWriter(pipeServer);
-                sw.AutoFlush = true;
-                // Send a 'sync message' and wait for client to receive it.
-                sw.WriteLine("ASSEMBLY");
-                // Send the console input to the client process.
-                sw.WriteLine(pathToAssembly);
-            }
-            // Catch the IOException that is raised if the pipe is broken
-            // or disconnected.
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error: {e.Message}");
-                success = false;
-            }
-        }
-
-        pipeClient.WaitForExit();
-        success &= pipeClient.ExitCode == 0;
-        pipeClient.Close();
-
-        if (!success)
-        {
-            Console.WriteLine($"Failed to discover tests in {pathToAssembly}");
-        }
-
-        return success;
+        return (success, output.ToString());
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)

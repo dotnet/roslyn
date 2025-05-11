@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -715,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static XmlElementSyntax XmlSeeAlsoElement(Uri linkAddress, SyntaxList<XmlNodeSyntax> linkText)
         {
             XmlElementSyntax element = XmlElement(DocumentationCommentXmlNames.SeeAlsoElementName, linkText);
-            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute(DocumentationCommentXmlNames.CrefAttributeName, linkAddress.ToString())));
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute(DocumentationCommentXmlNames.HrefAttributeName, linkAddress.ToString())));
         }
 
         /// <summary>
@@ -1673,6 +1674,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Creates a token parser that can be used to parse tokens from a given source text.
+        /// </summary>
+        /// <param name="sourceText">The source to parse tokens from.</param>
+        /// <param name="options">Parse options for the source.</param>
+        [Experimental(RoslynExperiments.SyntaxTokenParser, UrlFormat = RoslynExperiments.SyntaxTokenParser_Url)]
+        public static SyntaxTokenParser CreateTokenParser(SourceText sourceText, CSharpParseOptions? options = null)
+        {
+            return new SyntaxTokenParser(new InternalSyntax.Lexer(sourceText, options ?? CSharpParseOptions.Default));
+        }
+
+        /// <summary>
         /// Parse a NameSyntax node using the grammar rule for names.
         /// </summary>
         public static NameSyntax ParseName(string text, int offset = 0, bool consumeFullText = true)
@@ -1805,7 +1817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList();
+                var node = parser.ParseParenthesizedParameterList(forExtension: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }

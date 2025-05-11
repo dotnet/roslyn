@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     subpatternBuilder.Append(", ");
                                 subpatternBuilder.Append(newPattern);
                             }
-                            subpatternBuilder.Append(")");
+                            subpatternBuilder.Append(')');
                             var result = subpatternBuilder.ToString();
                             if (deconstruction != null && needsPropertyString)
                             {

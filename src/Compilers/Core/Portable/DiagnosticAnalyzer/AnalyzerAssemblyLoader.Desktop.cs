@@ -5,6 +5,8 @@
 #if !NETCOREAPP
 
 using System;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -12,27 +14,29 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    /// <summary>
-    /// Loads analyzer assemblies from their original locations in the file system.
-    /// Assemblies will only be loaded from the locations specified when the loader
-    /// is instantiated.
-    /// </summary>
-    /// <remarks>
-    /// This type is meant to be used in scenarios where it is OK for the analyzer
-    /// assemblies to be locked on disk for the lifetime of the host; for example,
-    /// csc.exe and vbc.exe. In scenarios where support for updating or deleting
-    /// the analyzer on disk is required a different loader should be used.
-    /// </remarks>
     internal partial class AnalyzerAssemblyLoader
     {
         private bool _hookedAssemblyResolve;
 
         internal AnalyzerAssemblyLoader()
+         : this(analyzerPathResolvers: [])
         {
+        }
+
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerPathResolver> analyzerPathResolvers)
+        {
+            AnalyzerPathResolvers = analyzerPathResolvers;
+        }
+
+        private partial void DisposeWorker()
+        {
+            EnsureResolvedUnhooked();
         }
 
         public bool IsHostAssembly(Assembly assembly)
         {
+            CheckIfDisposed();
+
             // When an assembly is loaded from the GAC then the load result would be the same if 
             // this ran on command line compiler. So there is no consistency issue here, this 
             // is just runtime rules expressing themselves.
@@ -53,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
+        private partial Assembly? Load(AssemblyName assemblyName, string resolvedPath)
         {
             EnsureResolvedHooked();
 
@@ -67,6 +71,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedHooked()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (!_hookedAssemblyResolve)
@@ -82,6 +88,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedUnhooked()
         {
+            // Called from Dispose. We don't want to throw if we're disposed.
+
             lock (_guard)
             {
                 if (_hookedAssemblyResolve)
@@ -99,11 +107,28 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
+                const string resourcesExtension = ".resources";
                 var assemblyName = new AssemblyName(args.Name);
-                string? bestPath = GetBestPath(assemblyName);
-                if (bestPath is not null)
+                var simpleName = assemblyName.Name;
+
+                string? loadPath;
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(resourcesExtension, SimpleNameComparer.Comparison))
                 {
-                    return Assembly.LoadFrom(bestPath);
+                    // Satellite assemblies should get the best path information using the
+                    // non-resource part of the assembly name. Once the path information is obtained
+                    // GetSatelliteLoadPath will translate to the resource assembly path.
+                    assemblyName.Name = simpleName[..^resourcesExtension.Length];
+                    var (_, resolvedPath) = GetBestResolvedPath(assemblyName);
+                    loadPath = resolvedPath is not null ? GetSatelliteLoadPath(resolvedPath, assemblyName.CultureInfo) : null;
+                }
+                else
+                {
+                    (_, loadPath) = GetBestResolvedPath(assemblyName);
+                }
+
+                if (loadPath is not null)
+                {
+                    return Assembly.LoadFrom(loadPath);
                 }
 
                 return null;

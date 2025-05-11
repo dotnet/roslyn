@@ -257,6 +257,7 @@ End Class", fileName:="C:\Enc1.vb")
                                       New SemanticEdit(SemanticEditKind.Insert, Nothing, b2)))
 
             diff2.VerifySynthesizedMembers(
+                "System.Runtime.CompilerServices.HotReloadException",
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I4-3#1, $I4-1, _Lambda$__4-1, _Lambda$__4-3#1, $I4-0, $I4-2, _Lambda$__4-0, _Lambda$__4-2}")
 
@@ -266,6 +267,9 @@ End Class", fileName:="C:\Enc1.vb")
                 Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -274,7 +278,9 @@ End Class", fileName:="C:\Enc1.vb")
                 Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default))
+                Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default))
 
             If format = DebugInformationFormat.PortablePdb Then
                 Using pdbProvider = MetadataReaderProvider.FromPortablePdbImage(diff2.PdbDelta)
@@ -286,7 +292,8 @@ End Class", fileName:="C:\Enc1.vb")
                         Handle(17, TableIndex.MethodDebugInformation),
                         Handle(18, TableIndex.MethodDebugInformation),
                         Handle(19, TableIndex.MethodDebugInformation),
-                        Handle(20, TableIndex.MethodDebugInformation))
+                        Handle(20, TableIndex.MethodDebugInformation),
+                        Handle(21, TableIndex.MethodDebugInformation))
                 End Using
             End If
 

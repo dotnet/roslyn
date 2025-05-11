@@ -22,24 +22,28 @@
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="compile" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" Condition="'$(DotNetBuildFromSource)' != 'true'" />
-    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="Humanizer.Core" PrivateAssets="compile" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" PrivateAssets="all" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
+    <PackageReference Include="System.Composition" />
     <!-- We only need to reference Microsoft.Bcl.AsyncInterfaces for netstandard2.0 builds; referencing it for regular .NET builds can cause problems
          since it's now automatic, and Source Build will ensure we get a proper one automatically if we do nothing; if we reference the older version
          then source build may only give us a reference assembly would fail if we then try to actually run that output. -->
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="$(MicrosoftBclAsyncInterfacesVersion)" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.IO.Pipelines" Version="$(SystemIOPipelinesVersion)" />
-    <PackageReference Include="System.Threading.Channels" Version="$(SystemThreadingChannelsVersion)" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="System.IO.Pipelines" />
+    <PackageReference Include="System.Threading.Channels" />
   </ItemGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Remove="Storage\SQLite\**\*.cs" Condition="'$(DotNetBuildSourceOnly)' == 'true'" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Core.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Core.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Desktop.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerAssemblyLoader.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerPathResolver.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerPathResolver.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\IAnalyzerAssemblyResolver.cs" Link="Diagnostics\CompilerShared\IAnalyzerAssemblyResolver.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\IAnalyzerPathResolver.cs" Link="Diagnostics\CompilerShared\IAnalyzerAssemblyResolver.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ProgramFilesAnalyzerPathResolver.cs" Link="Diagnostics\CompilerShared\ProgramFilesAnalyzerPathResolver.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\CodeAnalysisEventSource.Common.cs" Link="Diagnostics\CompilerShared\CodeAnalysisEventSource.Common.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\SourceHashAlgorithms.cs" Link="Text\SourceHashAlgorithms.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyUtilitiesCore.cs" Link="AssemblyUtilitiesCore.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AnalyzerRunner" />
@@ -51,7 +55,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Text" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Apex" />
@@ -104,9 +107,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities"/>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
@@ -120,18 +123,23 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Setup" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Copilot" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Extensions" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.TypeScript" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
     <InternalsVisibleTo Include="Roslyn.Services.Editor.TypeScript.UnitTests" Key="$(TypeScriptKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35077" />
@@ -141,6 +149,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode" Partner="Pythia" Key="$(IntelliCodeKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.Net.Sdk.AnalyzerRedirecting" Namespace="Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting" />
   </ItemGroup>
   <ItemGroup>
     <!-- TODO: Remove the below IVTs to CodeStyle Unit test projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
@@ -159,5 +168,7 @@
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CompilerExtensions.projitems" Label="Shared" />
   <Import Project="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Workspace\Core\WorkspaceExtensions.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
 </Project>

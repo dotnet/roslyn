@@ -8,20 +8,19 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static partial class ISymbolExtensions
 {
-    internal static partial class ISymbolExtensions
+    public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
     {
-        public static DeclarationModifiers GetSymbolModifiers(this ISymbol symbol)
-        {
-            return new DeclarationModifiers(
-                isStatic: symbol.IsStatic,
-                isAbstract: symbol.IsAbstract,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
-                isVirtual: symbol.IsVirtual,
-                isOverride: symbol.IsOverride,
-                isSealed: symbol.IsSealed,
-                isRequired: symbol.IsRequired());
-        }
+        return new DeclarationModifiers(
+            isStatic: symbol.IsStatic,
+            isAbstract: symbol.IsAbstract,
+            isUnsafe: symbol.RequiresUnsafeModifier(),
+            isVirtual: symbol.IsVirtual,
+            isOverride: symbol.IsOverride,
+            isSealed: symbol.IsSealed,
+            isRequired: symbol.IsRequired());
     }
 }

@@ -5,11 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,61 +14,55 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap
+namespace Microsoft.CodeAnalysis.CSharp.UseTupleSwap;
+
+using static SyntaxFactory;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseTupleSwap), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpUseTupleSwapCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    using static SyntaxFactory;
+    public override ImmutableArray<string> FixableDiagnosticIds { get; }
+        = [IDEDiagnosticIds.UseTupleSwapDiagnosticId];
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseTupleSwap), Shared]
-    internal partial class CSharpUseTupleSwapCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpUseTupleSwapCodeFixProvider()
-        {
-        }
+        RegisterCodeFix(context, CSharpAnalyzersResources.Use_tuple_to_swap_values, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values));
+        return Task.CompletedTask;
+    }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseTupleSwapDiagnosticId);
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        foreach (var diagnostic in diagnostics)
+            FixOne(editor, diagnostic, cancellationToken);
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, CSharpAnalyzersResources.Use_tuple_to_swap_values, nameof(CSharpAnalyzersResources.Use_tuple_to_swap_values));
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
+    }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            foreach (var diagnostic in diagnostics)
-                FixOne(editor, diagnostic, cancellationToken);
+    private static void FixOne(
+        SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        // `expr_a = expr_b`;
+        var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var secondAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            return Task.CompletedTask;
-        }
+        editor.RemoveNode(firstAssignmentStatement);
+        editor.RemoveNode(secondAssignmentStatement);
 
-        private static void FixOne(
-            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var localDeclarationStatement = (LocalDeclarationStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            // `expr_a = expr_b`;
-            var firstAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
-            var secondAssignmentStatement = (ExpressionStatementSyntax)diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
+        var assignment = (AssignmentExpressionSyntax)firstAssignmentStatement.Expression;
+        var exprA = assignment.Left.WalkDownParentheses().WithoutTrivia();
+        var exprB = assignment.Right.WalkDownParentheses().WithoutTrivia();
 
-            editor.RemoveNode(firstAssignmentStatement);
-            editor.RemoveNode(secondAssignmentStatement);
+        var tupleAssignmentStatement = ExpressionStatement(AssignmentExpression(
+            SyntaxKind.SimpleAssignmentExpression,
+            TupleExpression([Argument(exprB), Argument(exprA)]),
+            TupleExpression([Argument(exprA), Argument(exprB)])));
 
-            var assignment = (AssignmentExpressionSyntax)firstAssignmentStatement.Expression;
-            var exprA = assignment.Left.WalkDownParentheses().WithoutTrivia();
-            var exprB = assignment.Right.WalkDownParentheses().WithoutTrivia();
-
-            var tupleAssignmentStatement = ExpressionStatement(AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                TupleExpression(SeparatedList(new[] { Argument(exprB), Argument(exprA) })),
-                TupleExpression(SeparatedList(new[] { Argument(exprA), Argument(exprB) }))));
-
-            editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
-        }
+        editor.ReplaceNode(localDeclarationStatement, tupleAssignmentStatement.WithTriviaFrom(localDeclarationStatement));
     }
 }

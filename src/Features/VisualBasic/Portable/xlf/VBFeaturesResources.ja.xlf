@@ -67,11 +67,6 @@
         <target state="translated">不足している '{0}' を挿入します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">競合が検出されました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">’Using’ ステートメントの導入</target>
@@ -222,30 +217,10 @@
         <target state="translated">無効な関数の戻り値の型を修正する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">名前 '{0}' の単純化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">メンバーのアクセス '{0}' を単純化します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">修飾子 'Me' を削除します</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">返されないコード パスがあります</target>
-        <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
@@ -302,11 +277,6 @@
         <target state="translated">選択範囲に有効なノードが含まれていません</target>
         <note />
       </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">抽出する有効なステートメントの範囲がありません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Deprecated">
         <source>Deprecated</source>
         <target state="translated">非推奨</target>
@@ -324,7 +294,7 @@
       </trans-unit>
       <trans-unit id="Awaitable_Extension">
         <source>Awaitable, Extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="new_variable">
@@ -1462,16 +1432,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">NameOf 関数</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">'{0}' で縮小変換を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">'{0}' で拡大変換を生成する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try ブロック</target>
@@ -1657,16 +1617,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">指定されたアセンブリとそのすべての依存関係へのメタデータ参照を追加します (例: #r "myLib.dll")。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">プロパティ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;名前空間名&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">名前空間を宣言するには、ここに名前を入力してください。</target>
@@ -1675,16 +1625,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">部分クラスを宣言する名前をここに入力します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;クラス名&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;インターフェイス名&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

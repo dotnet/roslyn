@@ -41,7 +41,7 @@
                     </StackPanel>
                     <StackPanel>
                         <CheckBox x:Name="DisplayDiagnosticsInline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline_experimental}"/>
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Display_diagnostics_inline}"/>
                         <StackPanel Margin="15, 0, 0, 0">
                             <RadioButton GroupName="Inline_diagnostic_location"
                                      x:Name="at_the_end_of_the_line_of_code"
@@ -52,49 +52,34 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
-                              Checked="Run_code_analysis_in_separate_process_Checked"
-                              Unchecked="Run_code_analysis_in_separate_process_Unchecked"/>
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <CheckBox x:Name="Run_code_analysis_on_dotnet"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
-                    </StackPanel>
+                    <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer}" />
 
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-                    <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
                     <CheckBox x:Name="Enable_file_logging_for_diagnostics"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_file_logging_for_diagnostics}" />
+
                     <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
-            
-            <GroupBox x:Uid="GoToDefinitionGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
-                <StackPanel>
-                    <CheckBox x:Name="Navigate_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Navigate_asynchronously_exerimental}" />
-                </StackPanel>
-            </GroupBox>
 
-            <GroupBox x:Uid="RenameGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Rename}">
+            <GroupBox x:Uid="SourceGeneratorsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Source_Generators}">
                 <StackPanel>
-                    <CheckBox x:Name="Rename_asynchronously_exerimental"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Rename_asynchronously_experimental}" />
+  
+                    <StackPanel Margin="0, -5, 0, 5">
+                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Source_generator_execution_requires_restart}"/>
 
-                    <Label x:Name="Rename_UI_setting_label" Content="{x:Static local:AdvancedOptionPageStrings.Where_should_the_rename_UI_be_shown}" />
-                    <ComboBox x:Name="Rename_UI_setting">
-                        <ComboBoxItem x:Name="Rename_UI_inline"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_inline}"
-                            Tag="{StaticResource True}" />
-                        <ComboBoxItem x:Name="Rename_UI_dashboard"
-                            Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_UI_as_dashboard_in_top_right}" 
-                            Tag="{StaticResource False}" />
-                    </ComboBox>
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Automatic_Run_generators_after_any_change"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatic_Run_generators_after_any_change}" />
+  
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Balanced_Run_generators_after_saving_or_building"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}" />
+                        </StackPanel>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
             
@@ -165,6 +150,8 @@
                 <StackPanel>
                     <CheckBox x:Name="Fade_out_unused_imports"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
+                    <CheckBox x:Name="Fade_out_unused_members"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_members}" />
                 </StackPanel>
             </GroupBox>
             
@@ -175,6 +162,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
                     <CheckBox x:Name="Show_guides_for_code_level_constructs"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_comments_and_preprocessor_regions}" />
                 </StackPanel>
             </GroupBox>
             
@@ -205,8 +194,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                     <CheckBox x:Name="Underline_reassigned_variables"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
+                    <CheckBox x:Name="Strike_out_obsolete_symbols"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Strike_out_obsolete_symbols}" />
                 </StackPanel>
             </GroupBox>
             
@@ -251,22 +240,6 @@
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2019}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2019_Tag}" />
                         <ComboBoxItem Content="{x:Static local:AdvancedOptionPageStrings.Option_Color_Scheme_VisualStudio2017}" Tag="{x:Static local:AdvancedOptionPageStrings.Color_Scheme_VisualStudio2017_Tag}" />
                     </ComboBox>
-                    <TextBlock x:Name="Customized_Theme_Warning"
-                           TextWrapping="WrapWithOverflow"
-                           Margin="0, 0, 0, 8"
-                           Text="{x:Static local:AdvancedOptionPageStrings.Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations}"/>
-                    <TextBlock x:Name="Custom_VS_Theme_Warning"
-                           TextWrapping="WrapWithOverflow"
-                           Margin="0, 0, 0, 8"
-                           Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="ExtractMethodGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
-                <StackPanel>
-                    <CheckBox x:Name="DontPutOutOrRefOnStruct"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
                 </StackPanel>
             </GroupBox>
 
@@ -354,14 +327,6 @@
                     <CheckBox x:Uid="IncludeGlobalImports"
                               x:Name="IncludeGlobalImports"
                               Content="{x:Static local:AdvancedOptionPageStrings.Include_global_imports}"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="DocumentOutlineGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Document_Outline}">
-                <StackPanel>
-                    <CheckBox x:Uid="EnableDocumentOutline"
-                              x:Name="EnableDocumentOutline"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_document_outline_experimental_requires_restart}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

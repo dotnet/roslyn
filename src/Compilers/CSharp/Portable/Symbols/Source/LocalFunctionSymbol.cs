@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ScopeBinder = binder;
 
-            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
+            _binder = binder;
 
             if (syntax.TypeParameterList != null)
             {
@@ -85,8 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
-
-            _binder = binder;
         }
 
         /// <summary>
@@ -126,6 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
+            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for local functions
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ComputeParameters()
         {
-            if (_lazyParameters != null)
+            if (!RoslynImmutableInterlocked.VolatileRead(in _lazyParameters).IsDefault)
             {
                 return;
             }
@@ -201,6 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
+            foreach (var parameter in this.Syntax.ParameterList.Parameters)
+            {
+                WithTypeParametersBinder.ReportFieldContextualKeywordConflictIfAny(parameter, diagnostics);
+            }
+
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (_lazyParameters != null)
+                if (!_lazyParameters.IsDefault)
                 {
                     diagnostics.Free();
                     return;
@@ -221,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
                 _lazyIsVarArg = isVararg;
-                _lazyParameters = parameters;
+                RoslynImmutableInterlocked.VolatileWrite(ref _lazyParameters, parameters);
             }
         }
 
@@ -378,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
@@ -451,13 +457,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(typeError, location, name, tpEnclosing.ContainingSymbol);
                 }
 
-                var typeParameter = new SourceMethodTypeParameterSymbol(
+                var typeParameter = new SourceNotOverridingMethodTypeParameterSymbol(
                         this,
                         name,
                         ordinal,
                         ImmutableArray.Create(location),
                         ImmutableArray.Create(parameter.GetReference()));
 
+                _binder.ReportFieldContextualKeywordConflictIfAny(typeParameter, parameter, identifier, diagnostics);
                 result.Add(typeParameter);
             }
 

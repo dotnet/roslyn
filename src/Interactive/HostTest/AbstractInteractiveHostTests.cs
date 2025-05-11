@@ -10,7 +10,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
@@ -84,8 +82,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
-            var expectedOutput = new List<string>();
-            expectedOutput.Add(string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider))));
+            var expectedOutput = new List<string>
+            {
+                string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)))
+            };
 
             if (UseDefaultInitializationFile)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public static ImmutableArray<string> SplitLines(string text)
         {
-            return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+            return ImmutableArray.Create(text.Split(["\r\n"], StringSplitOptions.RemoveEmptyEntries));
         }
 
         public async Task<bool> LoadReference(string reference)

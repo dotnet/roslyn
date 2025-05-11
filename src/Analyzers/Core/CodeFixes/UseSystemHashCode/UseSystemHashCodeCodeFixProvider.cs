@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -21,10 +20,10 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
+        = [IDEDiagnosticIds.UseSystemHashCode];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -34,7 +33,7 @@ internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProv
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

@@ -12,6 +12,11 @@
         <target state="translated">Agregar llaves a la instrucción '{0}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="translated">La función anónima se puede hacer estática</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">No se permite una línea en blanco después del token de la cláusula de expresión de flecha</target>
@@ -77,6 +82,11 @@
         <target state="translated">Las instrucciones incrustadas deben estar en su propia línea</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">La indexación de direcciones se puede simplificar</target>
@@ -90,6 +100,16 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">Se puede quitar la expresión lambda</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_simplified">
+        <source>Lambda expression can be simplified</source>
+        <target state="new">Lambda expression can be simplified</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="translated">Hacer que la función anónima sea estática</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_readonly">
@@ -172,11 +192,6 @@
         <target state="translated">Quitar directiva redundante que admite un valor NULL</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Quitar operadores de supresión</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Quitar la expresión lambda innecesaria</target>
@@ -231,6 +246,11 @@
         <source>Unreachable code detected</source>
         <target state="translated">Se detectó código inaccesible</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="translated">Usar "System.Threading.Lock"</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
@@ -342,6 +362,11 @@
         <target state="translated">Usar un tipo implícito</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_implicitly_typed_lambda">
+        <source>Use implicitly typed lambda</source>
+        <target state="new">Use implicitly typed lambda</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_index_operator">
         <source>Use index operator</source>
         <target state="translated">Usar operador de índice</target>
@@ -412,6 +437,11 @@
         <target state="translated">Utilizar tupla para intercambiar valores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="translated">Usar tipo genérico no enlazado</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
         <source>Using directives must be placed inside of a namespace declaration</source>
         <target state="translated">Las directivas using deben colocarse dentro de una declaración de namespace</target>
@@ -457,8 +487,8 @@
         <target state="translated">La expresión "new" se puede simplificar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">"typeof" puede convertirse en "nameof"</target>
         <note />
       </trans-unit>

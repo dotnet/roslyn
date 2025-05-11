@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal { get; }
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+        internal override bool HasEnumeratorCancellationAttribute => false;
 
         internal override ScopedKind EffectiveScope
             => ParameterHelpers.IsRefScopedByDefault(this) ? ScopedKind.ScopedRef : ScopedKind.None;
@@ -70,7 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations => ImmutableArray<Location>.Empty;
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
         public override bool IsDiscard => false;
-        public override bool IsParams => false;
+        public override bool IsParamsArray => false;
+        public override bool IsParamsCollection => false;
         public override bool IsImplicitlyDeclared => true;
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => null;
         internal override bool IsMetadataOptional => false;

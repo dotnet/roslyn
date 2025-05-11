@@ -591,7 +591,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If nextToken IsNot Nothing Then
-                result = result.AddLeadingSyntax(SyntaxList.List(CurrentToken, nextToken), ERRID.ERR_ExpectedRelational)
+                result = result.AddLeadingSyntax(
+                    CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(CurrentToken, nextToken), ERRID.ERR_ExpectedRelational)
                 GetNextToken()
             End If
 
@@ -6130,14 +6131,20 @@ checkNullable:
         Friend Shared Function CheckFeatureAvailability(diagnosticsOpt As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean
             If Not CheckFeatureAvailability(languageVersion, feature) Then
                 If diagnosticsOpt IsNot Nothing Then
-                    Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
-                    Dim requiredVersion = New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion())
-                    diagnosticsOpt.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName, requiredVersion)
+                    diagnosticsOpt.Add(GetFeatureAvailabilityError(feature, languageVersion), location)
                 End If
 
                 Return False
             End If
             Return True
+        End Function
+
+        Friend Shared Function GetFeatureAvailabilityError(feature As Feature, languageVersion As LanguageVersion) As DiagnosticInfo
+            Return ErrorFactory.ErrorInfo(
+                ERRID.ERR_LanguageVersion,
+                languageVersion.GetErrorName(),
+                ErrorFactory.ErrorInfo(feature.GetResourceId()),
+                New VisualBasicRequiredLanguageVersion(feature.GetLanguageVersion()))
         End Function
 
         Friend Shared Function CheckFeatureAvailability(diagnostics As BindingDiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature) As Boolean

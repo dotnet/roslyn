@@ -8,7 +8,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.Client;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -25,7 +24,7 @@ internal sealed class SolutionSnapshotRegistry : ISolutionSnapshotRegistry
     private static int s_solutionSnapshotId;
 
     // lock on access
-    private readonly Dictionary<SolutionSnapshotId, Solution> _pendingSolutionSnapshots = new();
+    private readonly Dictionary<SolutionSnapshotId, Solution> _pendingSolutionSnapshots = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

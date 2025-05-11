@@ -46,7 +46,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
     }
 
     /// <summary>
-    /// A generator that produces diagnostics against existng source trees, rather than generating new content.
+    /// A generator that produces diagnostics against existing source trees, rather than generating new content.
     /// </summary>
     internal class DiagnosticProducingGenerator : ISourceGenerator
     {
@@ -77,6 +77,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor parameters
     internal class CallbackGenerator(
         Action<GeneratorInitializationContext> onInit,
         Action<GeneratorExecutionContext> onExecute,
@@ -90,6 +91,17 @@ namespace Roslyn.Test.Utilities.TestGenerators
 
         public CallbackGenerator(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, Func<(string hintName, string? source)> computeSource)
             : this(onInit, onExecute, () =>
+            {
+                var (hint, source) = computeSource();
+                return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
+                    ? null
+                    : SourceText.From(source, Encoding.UTF8)));
+            })
+        {
+        }
+
+        public CallbackGenerator(Func<(string hintName, string? source)> computeSource)
+            : this(onInit: static _ => { }, onExecute: static _ => { }, () =>
             {
                 var (hint, source) = computeSource();
                 return ImmutableArray.Create((hint, string.IsNullOrWhiteSpace(source)
@@ -113,6 +125,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             }
         }
     }
+#pragma warning restore RS0062 // Do not implicitly capture primary constructor parameters
 
     internal class CallbackGenerator2 : CallbackGenerator
     {

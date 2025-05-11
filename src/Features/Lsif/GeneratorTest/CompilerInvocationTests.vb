@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                          }]
                 }")
 
-            Dim compilation = Await Project.GetCompilationAsync()
+            Dim compilation = Await project.GetCompilationAsync()
             Dim syntaxTree = Assert.Single(compilation.SyntaxTrees)
 
             Assert.Equal("T:\Directory\SourceFile.cs", syntaxTree.FilePath)
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         Public Async Function TestSourceGeneratorOutputIncludedInCompilation() As Task
             Dim sourceGeneratorLocation = GetType(TestSourceGenerator.HelloWorldGenerator).Assembly.Location
 
-            Dim project = Await Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.CompilerInvocation.CreateFromJsonAsync("
+            Dim project = Await CompilerInvocation.CreateFromJsonAsync("
                     {
                         ""tool"": ""csc"",
                         ""arguments"": ""/noconfig /analyzer:\""" + sourceGeneratorLocation.Replace("\", "\\") + "\""  /out:Output.dll"",

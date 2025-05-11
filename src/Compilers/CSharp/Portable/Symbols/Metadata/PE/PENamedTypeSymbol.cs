@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,8 +14,10 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -34,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly TypeDefinitionHandle _handle;
         private readonly string _name;
         private readonly TypeAttributes _flags;
-        private readonly SpecialType _corTypeId;
+        private readonly ExtendedSpecialType _corTypeId;
 
         /// <summary>
         /// A set of all the names of the members in this type.
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return true;
             }
 
-            if (this.TypeKind == TypeKind.Enum)
+            if (this.TypeKind is TypeKind.Enum or TypeKind.Extension)
             {
                 return true;
             }
@@ -144,11 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal CollectionBuilderAttributeData lazyCollectionBuilderAttributeData = CollectionBuilderAttributeData.Uninitialized;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
+            internal ExtensionInfo lazyExtensionInfo;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -167,10 +172,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasRequiredMembers.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
-                    lazyDisplayFileName == null;
+                    lazyDisplayFileName == null &&
+                    lazyExtensionInfo is null;
             }
 #endif
         }
+
+#nullable enable
+
+        private class ExtensionInfo(MethodDefinitionHandle markerMethod)
+        {
+            public readonly MethodDefinitionHandle MarkerMethod = markerMethod;
+            public StrongBox<ParameterSymbol?>? LazyExtensionParameter;
+            public ConcurrentDictionary<MethodSymbol, MethodSymbol?>? LazyImplementationMap;
+        }
+
+#nullable disable
 
         #endregion  // Uncommon properties
 
@@ -356,13 +373,173 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override SpecialType SpecialType
+        public override ExtendedSpecialType ExtendedSpecialType
         {
             get
             {
                 return _corTypeId;
             }
         }
+
+#nullable enable
+
+        internal sealed override ParameterSymbol? ExtensionParameter
+        {
+            get
+            {
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
+                var uncommon = GetUncommonProperties().lazyExtensionInfo;
+
+                if (uncommon.LazyExtensionParameter is null)
+                {
+                    var extensionParameter = makeExtensionParameter(this, uncommon);
+                    Interlocked.CompareExchange(ref uncommon.LazyExtensionParameter, new StrongBox<ParameterSymbol?>(extensionParameter), null);
+                }
+
+                return uncommon.LazyExtensionParameter.Value;
+
+                static ParameterSymbol? makeExtensionParameter(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+                {
+                    var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
+
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?)
+                    if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
+                        methodSymbol.IsGenericMethod ||
+                        !methodSymbol.IsStatic ||
+                        !methodSymbol.ReturnsVoid ||
+                        methodSymbol.ParameterCount != 1)
+                    {
+                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
+                }
+
+                static MethodSymbol getMarkerMethodSymbol(PENamedTypeSymbol @this, ExtensionInfo uncommon)
+                {
+                    Debug.Assert(!uncommon.MarkerMethod.IsNil);
+
+                    foreach (var member in @this.GetMembers(WellKnownMemberNames.ExtensionMarkerMethodName))
+                    {
+                        if (member is PEMethodSymbol candidate && candidate.Handle == uncommon.MarkerMethod)
+                        {
+                            return candidate;
+                        }
+                    }
+
+                    throw ExceptionUtilities.Unreachable();
+                }
+            }
+        }
+
+        public sealed override MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            Debug.Assert(this.IsExtension);
+            Debug.Assert(method.IsDefinition);
+            Debug.Assert(method.ContainingType == (object)this);
+
+            if (this.ContainingType is null)
+            {
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+            }
+
+            if (!method.IsStatic && ExtensionParameter is null)
+            {
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+            }
+
+            var uncommon = GetUncommonProperties().lazyExtensionInfo;
+
+            if (uncommon.LazyImplementationMap is null)
+            {
+                Interlocked.CompareExchange(ref uncommon.LazyImplementationMap, new ConcurrentDictionary<MethodSymbol, MethodSymbol?>(ReferenceEqualityComparer.Instance), null);
+            }
+
+            return uncommon.LazyImplementationMap.GetOrAdd(method, findCorrespondingExtensionImplementationMethod, this);
+
+            static MethodSymbol? findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
+            {
+                Debug.Assert(@this.ExtensionParameter is not null);
+
+                foreach (var member in @this.ContainingType.GetMembers(method.Name))
+                {
+                    if (member is not MethodSymbol { IsStatic: true } candidate)
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well
+
+                    if (candidate.Arity != @this.Arity + method.Arity)
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    int additionalParameterCount = method.IsStatic ? 0 : 1;
+                    if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
+                    var typeMap = combinedTypeParameters.IsEmpty ? null : new TypeMap(combinedTypeParameters, candidate.TypeParameters);
+
+                    if (!MemberSignatureComparer.HaveSameReturnTypes(
+                            candidate,
+                            typeMap1: null,
+                            method,
+                            typeMap,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    if (!method.IsStatic &&
+                        !MemberSignatureComparer.HaveSameParameterType(
+                            candidate.Parameters[0],
+                            typeMap1: null,
+                            @this.ExtensionParameter,
+                            typeMap,
+                            MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                            considerDefaultValues: false,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    if (!MemberSignatureComparer.HaveSameParameterTypes(
+                            candidate.Parameters.AsSpan(additionalParameterCount, candidate.ParameterCount - additionalParameterCount),
+                            typeMap1: null,
+                            method.Parameters.AsSpan(),
+                            typeMap,
+                            MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
+                            considerDefaultValues: false,
+                            TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    }
+
+                    if (MemberSignatureComparer.HaveSameConstraints(
+                            candidate.TypeParameters,
+                            typeMap1: null,
+                            combinedTypeParameters,
+                            typeMap))
+                    {
+                        return candidate;
+                    }
+
+                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                }
+
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+            }
+        }
+
+#nullable disable
 
         internal PEModuleSymbol ContainingPEModule
         {
@@ -464,6 +641,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return uncommon.lazyHasEmbeddedAttribute.Value();
+            }
+        }
+
+        internal override bool HasCompilerLoweringPreserveAttribute
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasCompilerLoweringPreserveAttribute.HasValue())
+                {
+                    uncommon.lazyHasCompilerLoweringPreserveAttribute = ContainingPEModule.Module.HasCompilerLoweringPreserveAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasCompilerLoweringPreserveAttribute.Value();
             }
         }
 
@@ -1260,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureAllMembersAreLoaded()
         {
-            if (_lazyMembersByName == null)
+            if (Volatile.Read(ref _lazyMembersByName) == null)
             {
                 LoadMembers();
             }
@@ -1270,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             ArrayBuilder<Symbol> members = null;
 
-            if (_lazyMembersInDeclarationOrder.IsDefault)
+            if (RoslynImmutableInterlocked.VolatileRead(ref _lazyMembersInDeclarationOrder).IsDefault)
             {
                 EnsureNestedTypesAreLoaded();
 
@@ -1440,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            if (_lazyMembersByName == null)
+            if (Volatile.Read(ref _lazyMembersByName) == null)
             {
                 if (members == null)
                 {
@@ -1756,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                TypeKind result = _lazyKind;
+                var result = (TypeKind)Volatile.Read(ref Unsafe.As<TypeKind, byte>(ref _lazyKind));
 
                 if (result == TypeKind.Unknown)
                 {
@@ -1794,6 +1990,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                         result = TypeKind.Struct;
                                     }
                                     break;
+
+                                default:
+                                    if (TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
+                                    {
+                                        // Extension
+                                        result = TypeKind.Extension;
+
+                                        if (_lazyUncommonProperties is null)
+                                        {
+                                            Interlocked.CompareExchange(ref _lazyUncommonProperties, new UncommonProperties(), null);
+                                        }
+
+                                        Interlocked.CompareExchange(ref _lazyUncommonProperties.lazyExtensionInfo, new ExtensionInfo(markerHandle), null);
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -1803,6 +2014,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return result;
             }
+        }
+
+        /// <summary>
+        /// Superficially checks whether this is a valid extension type
+        /// and returns the extension marker method (to be validated later)
+        /// if it is.
+        /// </summary>
+        private MethodDefinitionHandle TryGetExtensionMarkerMethod()
+        {
+            var moduleSymbol = this.ContainingPEModule;
+            var module = moduleSymbol.Module;
+
+            try
+            {
+                // They must have a single marker method (to be validated later)
+                MethodDefinitionHandle foundMarkerMethod = default;
+                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
+                {
+                    string methodName;
+                    MethodAttributes flags;
+                    module.GetMethodDefPropsOrThrow(methodHandle, out methodName, out _, out flags, out _);
+
+                    if ((flags & MethodAttributes.SpecialName) != 0 && methodName is WellKnownMemberNames.ExtensionMarkerMethodName)
+                    {
+                        if (!foundMarkerMethod.IsNil)
+                        {
+                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        }
+
+                        foundMarkerMethod = methodHandle;
+                    }
+                }
+
+                return foundMarkerMethod;
+            }
+            catch (BadImageFormatException)
+            {
+            }
+
+            return default;
         }
 
         internal sealed override bool IsInterface
@@ -1906,12 +2157,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None)
                 {
-                    isOrdinaryStruct = true;
                     isOrdinaryEmbeddableStruct = this.ContainingAssembly.IsLinked;
                 }
-                else
+
+                switch (this.SpecialType)
                 {
-                    isOrdinaryStruct = (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Nullable_T);
+                    case SpecialType.System_Void:
+                    case SpecialType.System_Boolean:
+                    case SpecialType.System_Char:
+                    case SpecialType.System_Byte:
+                    case SpecialType.System_SByte:
+                    case SpecialType.System_Int16:
+                    case SpecialType.System_UInt16:
+                    case SpecialType.System_Int32:
+                    case SpecialType.System_UInt32:
+                    case SpecialType.System_Int64:
+                    case SpecialType.System_UInt64:
+                    case SpecialType.System_Single:
+                    case SpecialType.System_Double:
+                    case SpecialType.System_Decimal:
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                    case SpecialType.System_DateTime:
+                    case SpecialType.System_TypedReference:
+                    case SpecialType.System_ArgIterator:
+                    case SpecialType.System_RuntimeArgumentHandle:
+                    case SpecialType.System_RuntimeFieldHandle:
+                    case SpecialType.System_RuntimeMethodHandle:
+                    case SpecialType.System_RuntimeTypeHandle:
+                        isOrdinaryStruct = false;
+                        break;
+                    default:
+                        isOrdinaryStruct = true;
+                        break;
                 }
             }
 
@@ -1960,11 +2238,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
             var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
 
+            MethodDefinitionHandle? extensionMarkerMethod = _lazyUncommonProperties?.lazyExtensionInfo?.MarkerMethod;
+            Debug.Assert(extensionMarkerMethod is not null || this.TypeKind is not TypeKind.Extension);
+
             try
             {
                 foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
-                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions))
+                    if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(_handle, methodHandle, moduleSymbol.ImportOptions) ||
+                        extensionMarkerMethod == methodHandle)
                     {
                         var method = new PEMethodSymbol(moduleSymbol, this, methodHandle);
                         members.Add(method);
@@ -2109,7 +2391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         if ((object)missingType != null && missingType.Arity == 0)
                         {
                             string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
-                            switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
+                            switch ((SpecialType)SpecialTypes.GetTypeFromMetadataName(emittedName))
                             {
                                 case SpecialType.System_Enum:
                                 case SpecialType.System_MulticastDelegate:
@@ -2274,6 +2556,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return uncommon.lazyIsByRefLike.Value();
             }
         }
+
+        internal override string ExtensionName
+            => Name; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Confirm implementation
 
         public override bool IsReadOnly
         {

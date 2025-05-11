@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options;
 
@@ -63,7 +61,7 @@ internal static class PublicOptionFactory
                 option.Definition.ToPublicOptionDefinition(internalOption, toPublicValue, toInternalValue),
                 feature,
                 name,
-                ImmutableArray<OptionStorageLocation>.Empty));
+                []));
 
     public static PerLanguageOption2<T> WithPublicOption<T, TPublicValue>(this PerLanguageOption2<T> option, string feature, string name, Func<T, TPublicValue> toPublicValue, Func<TPublicValue, T> toInternalValue)
         => new(
@@ -72,7 +70,7 @@ internal static class PublicOptionFactory
                 option.Definition.ToPublicOptionDefinition(internalOption, toPublicValue, toInternalValue),
                 feature,
                 name,
-                ImmutableArray<OptionStorageLocation>.Empty));
+                []));
 
     public static Option2<T> WithPublicOption<T>(this Option2<T> option, string feature, string name)
         => WithPublicOption(option, feature, name, static value => value, static value => value);

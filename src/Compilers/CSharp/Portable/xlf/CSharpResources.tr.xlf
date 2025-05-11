@@ -32,6 +32,11 @@
         <target state="translated">'{0}': soyut olay, olay erişeni söz dizimini kullanamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AddressOfInIterator">
+        <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
+        <target state="translated">'&amp;' işleci, yineleyici metotlardaki parametrelerde veya yerel değişkenlerde kullanılamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
         <target state="translated">Metot gruplarındaki '&amp;', ifade ağaçlarında kullanılamaz</target>
@@ -40,6 +45,11 @@
       <trans-unit id="ERR_AddressOfToNonFunctionPointer">
         <source>Cannot convert &amp;method group '{0}' to non-function pointer type '{1}'.</source>
         <target state="translated">'{0}' &amp;metot grubu, işlev dışı '{1}' işaretçi türüne dönüştürülemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AllowsClauseMustBeLast">
+        <source>The 'allows' constraint clause must be the last constraint specified</source>
+        <target state="translated">'İzin verilenler' kısıtlama yan tümcesi belirtilen son kısıtlama olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -182,9 +192,14 @@
         <target state="translated">Birli işlecin parametresi, içeren tür veya tür parametresi ile kısıtlanmış olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
+        <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
+        <target state="translated">foreach deyimi, başvuru yapısına izin veren bir tür parametresi olduğundan ve derleme sırasında IDisposable uygulamak için bilinmediğinden '{0}' türündeki numaralandırıcılarda çalışamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">Bağımsız {0}, dil sürümü sürümündeki 'ref' anahtar sözcüğüyle {1}. 'ref' bağımsız değişkenlerini 'in' parametrelerine geçiremiyorsanız, dil sürümüne {2} veya daha yüksek bir sürüme yükseltin.</target>
+        <target state="translated">{0} bağımsız değişkeni, {1} dil sürümündeki 'ref' anahtar sözcüğüyle geçirilemez. 'ref' bağımsız değişkenlerini 'in' parametrelerine geçirmek için{2} dil sürümüne yükseltin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -202,9 +217,19 @@
         <target state="translated">Bir switch ifadesi kolu 'case' anahtar sözcüğüyle başlamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
+        <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
+        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">Zaman uyumsuz bir foreach içinde dinamik tür koleksiyonu oluşturulamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionContainingType">
+        <source>Extensions must be declared in a top-level, non-generic, static class</source>
+        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -230,6 +255,11 @@
       <trans-unit id="ERR_BadInitAccessor">
         <source>The 'init' accessor is not valid on static members</source>
         <target state="translated">'init' erişimcisi statik üyelerde geçerli değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
+        <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
+        <target state="translated">Başvuru yapısına izin veren bir tür parametresinde sanal olmayan bir örnek arabirim üyesine erişilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -267,9 +297,9 @@
         <target state="translated">{0} kayıt üyesi, {1} konumsal parametresi ile eşleşmesi için {2} türünde okunabilir bir örnek özelliği veya alan olmalıdır.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefUsing">
-        <source>A using statement resource of type '{0}' cannot be used in async methods or async lambda expressions.</source>
-        <target state="translated">'{0}' türündeki bir using deyimi kaynağı, asenkron yöntemlerde veya asenkron lambda ifadelerinde kullanılamaz.</target>
+      <trans-unit id="ERR_BadSpecialByRefParameter">
+        <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
+        <target state="translated">Zaman uyumsuz yöntemlerde veya zaman uyumsuz lambda ifadelerinde '{0}' türündeki parametreler bildirilemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -297,9 +327,24 @@
         <target state="translated">'{0}' türü 'using static' için geçerli değil. Yalnızca bir sınıf, yapı, arabirim, sabit liste, temsilci veya ad alanı kullanılabilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadYieldInUnsafe">
+        <source>Cannot use 'yield return' in an 'unsafe' block</source>
+        <target state="translated">'güvenli yield return' bloğunda 'yield return' kullanılamadı</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Açık dönüş türü olmadan, anonim yöntemlerde AsyncMethodBuilder özniteliğine izin verilmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">Bu üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">Geçersiz kılan bir üyede 'OverloadResolutionPriorityAttribute' kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -322,14 +367,19 @@
         <target state="translated">'{0}' &amp;metot grubu, '{1}' temsilci türüne dönüştürülemiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
+        <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
+        <target state="translated">'{0}' türüne sahip bir ifadede dinamik çağrı yapılamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
         <source>The delegate type could not be inferred.</source>
         <target state="translated">Temsilci türü çıkarsanamadı.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotMatchOnINumberBase">
-        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</source>
-        <target state="translated">'INumberBase&lt;T&gt;' öğesinden devraldığı veya genişlediği için '{0}' öğesinde sayısal bir sabit veya ilişkisel desen kullanılamaz. Belirli bir sayısal türe daraltmak için bir tür deseni kullanmayı düşünün.</target>
+        <source>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specific numeric type.</source>
+        <target state="needs-review-translation">'INumberBase&lt;T&gt;' öğesinden devraldığı veya genişlediği için '{0}' öğesinde sayısal bir sabit veya ilişkisel desen kullanılamaz. Belirli bir sayısal türe daraltmak için bir tür deseni kullanmayı düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotSpecifyManagedWithUnmanagedSpecifiers">
@@ -387,6 +437,11 @@
         <target state="translated">'{0}' işleci, işlecin eşleşen denetlenmemiş bir sürümünün de tanımlanmasını gerektirir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
+        <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
+        <target state="translated">Diğer kısıtlamalardan bilinen bir tür parametresi için başvuru yapıları bir sınıf olamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
         <source>Members named 'Clone' are disallowed in records.</source>
         <target state="translated">'Clone' adlı üyelere kayıtlarda izin verilmez.</target>
@@ -395,6 +450,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
         <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
         <target state="translated">'{0}', '{1}' statik arabirim üyesini uygulamıyor. '{2}' statik olmadığından arabirim üyesini uygulayamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -414,17 +474,17 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Beklenen imzaya sahip erişilebilir '{0}' yöntem bulunamadı: 'ReadOnlySpan&lt;{1}&gt;' türünde tek parametreli statik bir yöntem ve '{2}'.</target>
+        <target state="translated">Beklenen imzaya sahip erişilebilir bir '{0}' yöntemi bulunamadı: 'ReadOnlySpan&lt;{1}&gt;' türünde tek bir parametreye ve '{2}' dönüş türüne sahip statik bir yöntem.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="translated">'{0}' CollectionBuilderAttribute içeriyor ancak öğe türü yok.</target>
+        <target state="translated">'{0}' bir CollectionBuilderAttribute içeriyor ancak öğe türü yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">'{0}' türündeki bir koleksiyon ifadesi, mevcut kapsamın dışında kullanıma sunulabileceğinden bu bağlamda kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,19 +492,34 @@
         <target state="translated">Bu '{0}' sürümü koleksiyon ifadeleri ile kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">'{0}' koleksiyon ifade türünün tek bir bağımsız değişken ile çağrılabilecek bir örnek veya 'Add' genişletme yöntemi içermesi gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">Koleksiyon ifade türünün, bağımsız değişken olmadan çağrılabilecek geçerli bir oluşturucusu olmalıdır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="new">There is no target type for the collection expression.</target>
+        <target state="translated">Koleksiyon ifadesi için hedef tür yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
         <source>Collection expression target '{0}' has no element type.</source>
-        <target state="new">Collection expression target '{0}' has no element type.</target>
+        <target state="translated">'{0}' koleksiyon ifadesi hedefinin öğe türü yok.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <target state="translated">Tür, yapılandırılamadığından '{0}' türü bir koleksiyon ifadesiyle başlatılamıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="translated">Koleksiyon başlatıcısı, '{0}' koleksiyonunun sonsuz sayıda örneklem zinciriyle sonuçlanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -475,6 +550,11 @@
       <trans-unit id="ERR_CopyConstructorWrongAccessibility">
         <source>A copy constructor '{0}' must be public or protected because the record is not sealed.</source>
         <target state="translated">Kayıt mühürlü olmadığından, '{0}' kopya oluşturucusu genel veya korumalı olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DataSectionStringLiteralHashCollision">
+        <source>Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</source>
+        <target state="new">Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
@@ -562,9 +642,19 @@
         <target state="translated">'readonly' değiştiricileri, '{0}' özelliğinin veya dizin oluşturucusunun her iki erişimcisinde de belirtilemez. Bunun yerine özelliğin kendisine bir 'readonly' değiştiricisi koyun.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DynamicDispatchToParamsCollection">
+        <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
+        <target state="translated">'{0}', yalnızca dinamik dağıtım sırasında desteklenmeyen, dizi olmayan parametre koleksiyonunun genişletilmiş biçimiyle uygulanabilir.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' bir deyim başlatamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot emit update; {0} '{1}' is missing.</source>
+        <target state="translated">Güncelleştirme gönderilemiyor; {0} '{1}' eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -595,6 +685,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Açık 'System.Runtime.CompilerServices.NullableAttribute' uygulamasına izin verilmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="translated">'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute' kullanmayın. Bunun yerine 'params' anahtar sözcüğünü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -634,7 +729,12 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">İfade ağacı bir koleksiyon ifadesi içermeyebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
+        <source>An expression tree may not contain an extension property access</source>
+        <target state="new">An expression tree may not contain an extension property access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -650,6 +750,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">Bir ifade ağacı, düz metin arasına kod eklenmiş dize işleyicisi dönüşümü içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -682,6 +787,31 @@
         <target state="translated">İfade ağacı, with ifadesi içeremez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsMember">
+        <source>Extension declarations can include only methods or properties</source>
+        <target state="new">Extension declarations can include only methods or properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
+        <source>The receiver parameter of an extension cannot have a default value</source>
+        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionResolutionFailed">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
         <source>'{0}': extern event cannot have initializer</source>
         <target state="translated">'{0}': dış etkinliğin başlatıcısı olamaz</target>
@@ -709,7 +839,12 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">'{0}' özelliği C# 12.0'da kullanılamıyor. Lütfen {1} veya daha yüksek dil sürümü kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="translated">'{0}' özelliği C# 13.0 sürümünde kullanılamıyor. Lütfen {1} veya daha yüksek dil sürümünü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -897,9 +1032,19 @@
         <target state="translated">Türü örtük olarak belirlenmiş lambda '{0}' parametresi varsayılan bir değere sahip olamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitlyTypedParamsParameter">
+        <source>Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</source>
+        <target state="new">Implicitly typed lambda parameter '{0}' cannot have the 'params' modifier.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -910,6 +1055,16 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="translated">'System.Runtime.CompilerServices.InlineArray' özniteliği bir kayıt yapısına uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
@@ -929,7 +1084,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">türdeki satır içi dizideki foreach '{0}' desteklenmiyor</target>
+        <target state="translated">'{0}' türündeki satır içi dizideki foreach deyimi desteklenmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -940,6 +1095,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">Satır içi dizi öğesi alanı gerekli, salt okunur, geçici veya sabit boyutlu arabellek olarak bildirilemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,7 +1114,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">Yöntem '{0}' genel olmamalı veya parametreyle eşleşmesi {1} parametre sayısı '{2}'.</target>
+        <target state="translated">'{0}' yöntemi, '{2}' ile eşleşmek için genel olmamalı veya {1} parametresine sahip olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
@@ -979,7 +1139,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">'{0}' metodu, kapsayan türünde tür parametreleri olduğundan engelleyici olarak kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1068,8 +1228,33 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">'Engelleyiciler' deneysel özelliği bu ad alanında etkin değil. Projenize '{0}' ekleyin.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">'Engelleyiciler' özelliği bu ad alanında etkin değil. Projenize '{0}' ekleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
+        <source>The data argument to InterceptsLocationAttribute is not in the correct format.</source>
+        <target state="translated">InterceptsLocationAttribute için veri bağımsız değişkeni doğru biçimde değil.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDataInvalidPosition">
+        <source>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</source>
+        <target state="translated">InterceptsLocationAttribute veri bağımsız değişkeni, '{0}' dosyasında geçersiz bir konuma başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationDuplicateFile">
+        <source>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</source>
+        <target state="translated">'{0}' dosyasındaki çağrı, derlemenin başka bir yerde yinelenmesi nedeniyle kesilemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationFileNotFound">
+        <source>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</source>
+        <target state="translated">Derlemede eşleşen bir dosya bulunamadığından '{0}' dosyasındaki çağrı kesilemedi.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptsLocationUnsupportedVersion">
+        <source>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</source>
+        <target state="translated">Engelleyicilerin '{0}' sürümü desteklenmiyor. Desteklenen en son sürüm:'1'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1124,7 +1309,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
-        <target state="new">The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</target>
+        <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExtensionParameterReference">
+        <source>Cannot use extension parameter '{0}' in this context.</source>
+        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1217,6 +1407,11 @@
         <target state="translated">Yineleyici bloku olan '{0}' yönteminin '{1}' döndürmek için 'zaman uyumsuz' olması gerekir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IteratorRefLikeElementType">
+        <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="translated">Bir iterator öğesinin öğe türü bir başvuru yapısı veya başvuru yapı birimlerine izin veren bir tür parametresi olamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
         <target state="translated">Bağlamsal 'var' anahtar sözcüğü, açık lambda dönüş türü olarak kullanılamaz</target>
@@ -1262,6 +1457,16 @@
         <target state="translated">Liste desenleri, '{0}' türündeki bir değer için kullanılamaz. Uygun 'Length' veya 'Count' özelliği bulunamadı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">'{0}' için aşırı yüklemelerin hiçbiri '{1}' işlev işaretçisiyle eşleşmiyor</target>
@@ -1290,6 +1495,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Desen eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1358,13 +1568,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': Asenkron bir using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır. 'await using' yerine 'using' mi kullanmak istediniz?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="translated">Zaman uyumsuz bir ‘using’ deyiminde kullanılan '{0}' türü 'System.IAsyncDisposable' metodunu uygulamalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır. 'await using' yerine 'using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürülebilir olmalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="translated">Bir ‘using’ deyiminde kullanılan '{0}' türü 'System.IDisposable' metodunu uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1390,6 +1600,11 @@
       <trans-unit id="ERR_NoImplicitConvTargetTypedConditional">
         <source>Conditional expression is not valid in language version {0} because a common type was not found between '{1}' and '{2}'. To use a target-typed conversion, upgrade to language version {3} or greater.</source>
         <target state="translated">'{1}' ve '{2}' arasında ortak bir tür bulunamadığından, koşullu ifade {0} dil sürümünde geçerli değil. Hedef türündeki dönüştürmeyi kullanmak için dil sürümü {3} veya daha üstüne yükseltin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="translated">Değiştiriciler using bildirimlerine koyulamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
@@ -1437,6 +1652,11 @@
         <target state="translated">'{0}', kapsayan kayıt mühürlü olmadığından geçersiz kılmaya izin vermelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
+        <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="translated">'{2}' türü, genel türde veya '{0}' metodunda '{1}' parametresi olarak kullanmak için başvuru yapılarına izin veren bir başvuru yapısı veya tür parametresi olamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
         <source>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</source>
         <target state="translated">null geçerli bir parametre adı değil. Örnek metodu alıcısı için erişim almak için parametre adı olarak boş dizeyi kullanın.</target>
@@ -1472,9 +1692,29 @@
         <target state="translated">Kullanıcı tanımlı '{0}' işleci işaretlenmiş olarak bildirilemiyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorMismatchOnOverride">
+        <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorMustReturnVoid">
+        <source>The return type for this operator must be void</source>
+        <target state="new">The return type for this operator must be void</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBePublic">
+        <source>User-defined operator '{0}' must be declared public</source>
+        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
+        <source>User-defined operator '{0}' must be declared static and public</source>
+        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
-        <target state="translated">Bir ref salt okunur parametresi Out özniteliğine sahip olamaz.</target>
+        <target state="translated">Bir ref readonly parametresinin Out özniteliği olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1502,29 +1742,139 @@
         <target state="translated">'{0}' yöntemi, '{1}' tür parametresi için bir 'struct' kısıtlaması belirtiyor, ancak geçersiz kılınan veya açıkça uygulanan '{3}' yönteminin karşılık gelen '{2}' tür parametresi boş değer atanamaz bir tip değil.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">'Parametre null denetimi' özelliği desteklenmiyor.</target>
+      <trans-unit id="ERR_PPIgnoredFollowsIf">
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">Her iki kısmi metot bildirimi aynı erişilebilirlik değiştiricilerine sahip olmalıdır.</target>
+      <trans-unit id="ERR_PPIgnoredFollowsToken">
+        <source>'#:' directives cannot be after first token in file</source>
+        <target state="new">'#:' directives cannot be after first token in file</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Her iki kısmi metot bildirimi 'virtual', 'override', 'sealed' ve 'new' değiştiricilerinde oluşan aynı bileşimlere sahip olmalıdır.</target>
+      <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">İki kısmi yöntem bildiriminin de saltokunur olması ya da hiçbirinin saltokunur olmaması gerekir</target>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
-        <target state="translated">Kısmi yöntem bildirimlerinin eşleşen başvuru dönüş değerleri olmalıdır.</target>
+      <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
+        <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
+        <target state="translated">Oluşturucu '{0}', gerekli '{1}' üyesinin başlatmasını geri alıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExpressionTree">
+        <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
+        <target state="translated">İfade ağacı, dizi olmayan params koleksiyonu parametresinin genişletilmiş bir formunu içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
+        <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
+        <target state="translated">'{0}', uygun bir örnek 'Add' metodu için bir tanım içermiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
+        <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
+        <target state="translated">Params koleksiyonu '{0}' oluşturma işlemi sonsuz bir oluşturucu '{1}' çağrısı zinciriyle sonuçlanıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionMissingConstructor">
+        <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">Dizi olmayan params koleksiyon türünün, bağımsız değişken olmadan çağrılabilecek geçerli bir oluşturucusu olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
+        <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
+        <target state="translated">Metot '{0}', '{1}' params koleksiyonuna sahip üyeden daha az görünür olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="translated">Params parametresi geçerli bir koleksiyon türüne sahip olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de aynı erişilebilirlik değiştiricilerine sahip olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="translated">Kısmi üyede 'abstract' değiştiricisi olamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de ('{0}' ve '{1}') aynı tanımlama grubu adını kullanmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="translated">Kısmi metot, kısmi tür içinde bildirilmelidir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de bir params parametresi kullanmalı veya hiçbiri kullanmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de salt okunur olmalı veya hiçbiri salt okunur olmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de 'virtual', 'override', 'sealed' ve 'new' değiştiricilerinde oluşan aynı bileşimlere sahip olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
+        <target state="translated">Kısmi üye bildirimlerinde eşleşen başvuru dönüş değerleri olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de güvensiz olmalı veya hiçbiri güvensiz olmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1552,6 +1902,51 @@
         <target state="translated">'{0}' kısmi metodunun 'out' parametreleri olduğundan erişilebilirlik değiştiricileri olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="translated">Kısmi özellikte birden çok tanımlama bildirimi olamaz ve otomatik özellik olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
+        <source>A partial property may not have multiple implementing declarations</source>
+        <target state="translated">Bir kısmi özellikte birden fazla uygulama bildirimi olamaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="translated">Kısmi bir özellik hem tanımda hem de uygulama üzerinde başlatıcıya sahip olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="translated">'{0}' özellik erişimcisi, tanım bölümüyle eşleşmek için '{1}' olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingAccessor">
+        <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
+        <target state="translated">'{0}' özellik erişimcisi, tanım bölümünde bildirildiği için uygulanmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingDefinition">
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="translated">'{0}' kısmi özelliğinde bir tanım bölümü olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingImplementation">
+        <source>Partial property '{0}' must have an implementation part.</source>
+        <target state="translated">'{0}' kısmi özelliğinde bir uygulama bölümü olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="translated">Kısmi özellik bildirimlerinin ikisi de gerekli olmalı veya hiçbiri gerekli olmamalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
+        <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
+        <target state="translated">'{0}' özellik erişimcisi, tanım bölümünde bildirilen hiçbir erişimciyi uygulamaz</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
         <source>A string 'null' constant is not supported as a pattern for '{0}'. Use an empty string instead.</source>
         <target state="translated">Dize 'null' sabiti, '{0}' için desen olarak desteklenmiyor. Bunun yerine boş bir dize kullanın.</target>
@@ -1575,6 +1970,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Bir özellik alt deseni, özellik veya alan başvurusunun eşleşmesini gerektiriyor, ör. '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -1607,6 +2007,16 @@
         <target state="translated">'{0}': 'readonly' erişimcilerde yalnızca özellik veya dizin oluşturucusu hem alma hem ayarlama erişimcisine sahipse kullanılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterOnlyOne">
+        <source>An extension container can have only one receiver parameter</source>
+        <target state="new">An extension container can have only one receiver parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
+        <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Birincil oluşturucu, sentezlenmiş kopya oluşturucusuyla çakışıyor.</target>
@@ -1628,8 +2038,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
-        <target state="translated">'{1}' başvuru değeri, '{0}' olarak atanamaz çünkü '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
+        <target state="translated">'{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verdiği için '{1}' başvuru değeri, '{0}' olarak atanamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -1642,6 +2057,11 @@
         <target state="translated">Başvuru alanı yalnızca başvuru yapısında bildirilebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefLocalAcrossAwait">
+        <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">'ref' yereli 'await' veya 'yield' çerçevesi boyunca korunamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref atamasının sol tarafı, ref değişkeni olmalıdır.</target>
@@ -1649,7 +2069,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
-        <target state="translated">'readonly' değiştiricisi 'ref' öğesinden sonra belirtilmelidir.</target>
+        <target state="translated">'readonly' değiştiricisi, 'ref' ardından belirtilmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -1702,6 +2122,16 @@
         <target state="translated">Başvuru döndüren özellikler gerekli kılınamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
+        <source>'ref struct' is already specified.</source>
+        <target state="translated">'başvuru yapısı' zaten belirtilmiş.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
+        <target state="translated">'{0}', '{2}' başvuru yapısı için '{1}' arabirim üyesini yürütümez.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">İlişkisel desenler, kayan noktalı NaN için kullanılamaz.</target>
@@ -1745,6 +2175,16 @@
       <trans-unit id="ERR_RequiredNameDisallowed">
         <source>Types and aliases cannot be named 'required'.</source>
         <target state="translated">Türler ve diğer adlar 'gerekli' olarak adlandırılamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EmbeddedAttributeMustFollowPattern">
+        <source>The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.</source>
+        <target state="translated">'Microsoft.CodeAnalysis.EmbeddedAttribute' türü genel olmayan, iç, korumalı, statik olmayan, parametresiz bir oluşturucuya sahip, System.Attribute'tan devralınmalıdır ve herhangi bir türe uygulanmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
+        <source>Target runtime doesn't support by-ref-like generics.</source>
+        <target state="translated">Hedef çalışma zamanı başvuru benzeri genel türleri desteklemez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1798,8 +2238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, kısmi yöntem bildirimiyle eşleşmiyor.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="translated">'{0}' parametresinin 'scoped' değiştiricisi, kısmi tanımla eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -1864,7 +2304,7 @@
       </trans-unit>
       <trans-unit id="ERR_SpreadMissingMember">
         <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
-        <target state="new">Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</target>
+        <target state="translated">'{0}', '{0}' için bir genel örnek veya uzantı tanımı içermediğinden '..' yayılma işleci, '{1}' türündeki değişkenler üzerinde çalışamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -1957,6 +2397,11 @@
         <target state="translated">Ham dize sabit değeri, içerik olarak bu kadar çok ardışık tırnak işareti karakterine izin vermek için yeterli sayıda tırnak işareti karakteriyle başlamıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Üst düzey deyimler ad alanı ve tür bildirimlerinden önce gelmelidir.</target>
@@ -1992,6 +2437,16 @@
         <target state="translated">'{0}' türünün bir çağırma kuralı olarak kullanılabilmesi için genel olması gerekir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
+        <source>Type parameter '{0}' has the same name as an extension parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
+        <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
         <target state="translated">Denetim çağırana döndürülmeden önce otomatik uygulanan '{0}' özelliği tam olarak atanmalıdır. Özelliği otomatik olarak varsayılan durumuna getirmek için '{1}' dil sürümüne güncelleştirmeyi düşünün.</target>
@@ -2000,6 +2455,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">Denetim çağırana döndürülmeden önce '{0}' alanı tam olarak atanmalıdır. Alanı otomatik olarak varsayılan durumuna getirmek için '{1}' dil sürümüne güncelleştirmeyi düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedExtension">
+        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
+        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2023,13 +2483,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
-        <source>UnscopedRefAttribute cannot be applied to an interface implementation.</source>
-        <target state="translated">UnscopedRefAttribute bir arabirim uygulamasına uygulanamaz.</target>
+        <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
+        <target state="translated">Uygulanan '{0}' üyesi bu özniteliğe sahip olmadığından UnscopedRefAttribute bir arabirim uygulamasına uygulanamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
-        <source>UnscopedRefAttribute can only be applied to struct instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="translated">UnscopedRefAttribute yalnızca örnek metodları ve özellikleri yapılandırmak için uygulanabilir ve oluşturuculara veya yalnızca init üyelerine uygulanamaz.</target>
+        <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
+        <target state="translated">UnscopedRefAttribute yalnızca yapılandırmak için veya sanal arabirim örnek metodlarına uygulanabilir ve oluşturuculara veya yalnızca init üyelerine uygulanamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -2092,6 +2552,21 @@
         <target state="translated">'this' nesnesi, tüm alanları atanmadan önce kullanılamaz. Atanmamış alanları otomatik olarak varsayılan durumuna getirmek için '{0}' dil sürümüne güncelleştirmeyi düşünün.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_VariableDeclarationNamedField">
+        <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
+        <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Genel bir görev benzeri dönüş türü bekleniyordu, ancak ' AsyncMethodBuilder ' özniteliğinde bulunan '{0}' türü uygun değildi. İlişkisiz bir genel tür olması ve içeren türü (varsa) genel olmayan olması gerekir.</target>
@@ -2117,6 +2592,16 @@
         <target state="translated">zaman uyumsuz yöntem oluşturucusunu geçersiz kılma</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="translated">ref struct kısıtlamasına izin verir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">otomatik varsayılan yapı alanları</target>
@@ -2129,7 +2614,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">koleksiyon ifadeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2152,6 +2637,16 @@
         <target state="translated">genişletilmiş özellik desenleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="translated">alan anahtar sözcüğü</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
         <source>file-scoped namespace</source>
         <target state="translated">dosya kapsamlı ad alanı</target>
@@ -2162,6 +2657,11 @@
         <target state="translated">dosya türleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFirstClassSpan">
+        <source>first-class Span types</source>
+        <target state="translated">birinci sınıf Yayılma türleri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">genel öznitelikler</target>
@@ -2170,6 +2670,11 @@
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="translated">genel using yönergesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="translated">örtük dizin oluşturucu başlatıcısı</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2222,14 +2727,39 @@
         <target state="translated">liste deseni</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLockObject">
+        <source>Lock object</source>
+        <target state="translated">Nesne kilitleme</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">ilişkilendirmedeki yeni satırlar</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureOverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">aşırı yükleme çözümlemesi önceliği</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">parametresiz yapı oluşturucuları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="translated">params koleksiyonları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2259,7 +2789,17 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">salt okunur ref parametreleri</target>
+        <target state="translated">ref salt okunur parametreleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefStructInterfaces">
+        <source>ref struct interfaces</source>
+        <target state="translated">başvuru yapısı arabirimleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
+        <source>ref and unsafe in async and iterator methods</source>
+        <target state="translated">zaman uyumsuz ve yineleyici metotlarda başvuru ve güvenli olmayan</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2277,14 +2817,34 @@
         <target state="translated">kayıtta mühürlü ToString</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSimpleLambdaParameterModifiers">
+        <source>simple lambda parameter modifiers</source>
+        <target state="new">simple lambda parameter modifiers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="translated">dize kaçış karakteri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">struct alan başlatıcıları</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="translated">nameof işlecindeki bağlı olmayan genel türler</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">işaretsiz sağ kaydırma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
+        <source>user-defined compound assignment operators</source>
+        <target state="new">user-defined compound assignment operators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -2317,11 +2877,6 @@
         <target state="translated">sabit dizede ReadOnly/Span&lt;char&gt; ile eşleşen desen</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ImplicitIndexerInitializer">
-        <source>implicit indexer initializer</source>
-        <target state="new">implicit indexer initializer</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
@@ -2352,14 +2907,29 @@
         <target state="translated">işaretçi</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StringEscapeCharacter">
-        <source>string escape character</source>
-        <target state="translated">dize kaçış karakteri</target>
+      <trans-unit id="INF_TooManyBoundLambdas">
+        <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
+        <target state="translated">Derleme için lambda ifadesinin en az {0} kez bağlanması gerekir. Lambda ifadesini açık parametre türleriyle bildirin veya kapsayan metot çağrısı genelse açık genel tür bağımsız değişkenlerini kullanmayı göz önünde bulundurun.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_TooManyBoundLambdas_Title">
+        <source>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
+        <target state="translated">Derleme işlemi, lambda ifadesinin birçok kez bağlamasını gerektirir. Lambda ifadesini açık parametre türleriyle bildirin veya kapsayan metot çağrısı genelse açık genel tür bağımsız değişkenlerini kullanmayı göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
-        <target state="new">{0} is not a valid C# spread operation</target>
+        <target state="translated">{0}, geçerli bir C# yayma işlemi değil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
+        <target state="translated">Diğer '{0}' erişimci tarafından '{1}' için özellik erişimcisi 'field' kullanamıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use 'field' because the other accessor is using it.</source>
+        <target state="translated">Diğer erişimci tarafından kullanılıyor olduğundan özellik erişimcisi 'field' kullanamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2383,28 +2953,28 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">{0} bağımsız değişkeni, 'in' anahtar sözcüğüyle geçirilmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">Bağımsız değişken, 'in' anahtar sözcüğüyle geçirilmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">Bağımsız {0} 'ref' veya 'in' anahtar sözcüğüyle geçirilmelidir</target>
+        <target state="translated">{0} bağımsız değişkeni 'ref' veya 'in' anahtar sözcüğüyle geçirilmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
@@ -2424,22 +2994,22 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">'in' parametresine karşılık gelen bağımsız {0} 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
+        <target state="translated">'in' parametresine karşılık gelen{0} bağımsız değişkeni için 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">'in' parametresine karşılık gelen bir bağımsız değişkenin 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
+        <target state="translated">'in' parametresine karşılık gelen bir bağımsız değişken için 'ref' değiştiricisi 'in' ile eşdeğerdir. Bunun yerine 'in' kullanmayı düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">'SizeConst' öznitelik parametresi belirtilmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">'SizeConst' öznitelik parametresi belirtilmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2534,22 +3104,22 @@
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">Koleksiyon türündeki koleksiyon '{0}' beklenmeyen yığın ayırmaları olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açıkça '{0}' diziye dönüştürmeyi düşünün.</target>
+        <target state="translated">'{0}' türündeki koleksiyon ifadesi, beklenmeyen yığın ayırmalarına neden olabilir. Ayırmayı açık hale getirmek için açıkça bir dizi oluşturup sonra '{0}' olarak dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">Koleksiyon ifadesi beklenmeyen yığın ayırmaları içeriyor olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açık yapmak için son türe dönüştürmeyi düşünün.</target>
+        <target state="translated">Koleksiyon ifadesi, beklenmeyen yığın ayırmalarına neden olabilir. Ayırmayı açık hale getirmek için açıkça bir dizi oluşturup sonra son türe dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
         <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
-        <target state="translated">'..' yayılmaları '{0}' türdeki koleksiyon ifadesi beklenmeyen yığın ayırmaları içerebilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açıkça '{0}' diziye dönüştürmeyi düşünün.</target>
+        <target state="translated">'{0}' türündeki koleksiyon ifadesi, '..' yayılmaları kullanılması nedeniyle beklenmeyen yığın ayırmalarına neden olabilir. Ayırmayı açık hale getirmek için açıkça bir dizi oluşturup sonra '{0}' olarak dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
         <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
-        <target state="translated">Koleksiyon ifadesi , '..' yayılmaları kullanımı nedeniyle beklenmeyen yığın ayırmaları içeriyor olabilir. Açıkça bir dizi oluşturmayı, sonra ayırmayı açık yapmak için son türe dönüştürmeyi düşünün.</target>
+        <target state="translated">Koleksiyon ifadesi, '..' yayılmaları kullanılması nedeniyle beklenmeyen yığın ayırmalarına neden olabilir. Ayırmayı açık hale getirmek için açıkça bir dizi oluşturup sonra son türe dönüştürmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
@@ -2560,6 +3130,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">İşlem, çalışma zamanında taşabilir (geçersiz kılmak için “denetlenmemiş” sözdizimini kullanın)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">Farklı bir türe dönüştürülen 'System.Threading.Lock' türündeki bir değer, 'lock' deyiminde muhtemelen istenmeyen izleyici tabanlı kilitlemeyi kullanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">Farklı bir türe dönüştürülen 'System.Threading.Lock' türündeki bir değer, 'lock' deyiminde muhtemelen istenmeyen izleyici tabanlı kilitlemeyi kullanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2622,49 +3202,69 @@
         <target state="translated">Bu bağlamda değişken kullanımı, başvurulan değişkenleri bildirim kapsamının dışında gösterebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates: '{1}'. Suppress this diagnostic to proceed.</source>
+        <target state="translated">'{0}' yalnızca değerlendirme amaçlıdır ve gelecekteki güncelleştirmelerde değiştirilebilir veya kaldırılabilir: '{1}'. Devam etmek için bu tanılamayı durdurun.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ExperimentalWithMessage_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">Tür, yalnızca değerlendirme amaçlıdır ve gelecekteki güncelleştirmelerde değiştirilebilir veya kaldırılabilir. Devam etmek için bu tanılamayı gizleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="translated">{0} dil sürümünde, 'field' anahtar sözcüğü, özellik için sentezlenmiş bir destek alanına bağlanır. Sentezlenmiş bir destek alanı oluşturmaktan kaçınmak ve mevcut üyeye başvurmak için bunun yerine 'this.field' veya '@field' kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="translated">'Field' anahtar sözcüğü, özellik için sentezlenmiş bir destek alanına bağlanır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">Satır içi dizi dönüştürme işleci, bildirim türünün ifadelerinden dönüştürme için kullanılmaz.</target>
+        <target state="translated">Bildirim türündeki ifadeden dönüştürme için satır içi dizi dönüştürme işleci kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">Satır içi dizi dönüştürme işleci, bildirim türünün ifadelerinden dönüştürme için kullanılmaz.</target>
+        <target state="translated">Bildirim türündeki ifadeden dönüştürme için satır içi dizi dönüştürme işleci kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Satır içi dizi dizin oluşturucusu öğe erişim ifadesi için kullanılmaz.</target>
+        <target state="translated">Satır içi dizi dizin oluşturucu, öğe erişim ifadesi için kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Satır içi dizi dizin oluşturucusu öğe erişim ifadesi için kullanılmaz.</target>
+        <target state="translated">Satır içi dizi dizin oluşturucu, öğe erişim ifadesi için kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">'Satır içi diziler' dil özelliği, tür bağımsız değişkeni olarak geçerli olmayan veya tür bağımsız değişkeni olarak geçerli olmayan öğe türüne sahip satır içi dizi türü için desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
         <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
-        <target state="new">'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</target>
+        <target state="translated">'Satır içi diziler' dil özelliği, tür bağımsız değişkeni olarak geçerli olmayan veya tür bağımsız değişkeni olarak geçerli olmayan öğe türüne sahip satır içi dizi türü için desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">Satır içi dizi 'Slice' yöntemi öğe erişim ifadesi için kullanılmaz.</target>
+        <target state="translated">Satır içi dizi 'Slice' yöntemi, öğe erişimi ifadesi için kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
         <source>Inline array 'Slice' method will not be used for element access expression.</source>
-        <target state="translated">Satır içi dizi 'Slice' yöntemi öğe erişim ifadesi için kullanılmaz.</target>
+        <target state="translated">Satır içi dizi 'Slice' yöntemi, öğe erişimi ifadesi için kullanılmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">Parametre türü değiştiricisi '{0}', gizli üyedeki karşılık gelen parametre '{1}' eşleşmiyor.</target>
+        <target state="translated">'{0}' parametresinin başvuru türü değiştiricisi, gizli üyedeki karşılık gelen '{1}' parametresiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
@@ -2680,6 +3280,16 @@
       <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
         <source>Signatures of interceptable and interceptor methods do not match.</source>
         <target state="translated">Engellenebilirlerin ve engelleyicilerin imzaları eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)' desteklenmiyor. Bunun yerine bu özniteliklerin 'InterceptableLocation' tabanlı nesline gidin. (https://github.com/dotnet/roslyn/issues/72133)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptsLocationAttributeUnsupportedSignature_Title">
+        <source>'InterceptsLocationAttribute(string, int, int)' is not supported. Move to 'InterceptableLocation'-based generation of these attributes instead. (https://github.com/dotnet/roslyn/issues/72133)</source>
+        <target state="translated">'InterceptsLocationAttribute(string, int, int)' desteklenmiyor. Bunun yerine bu özniteliklerin 'InterceptableLocation' tabanlı nesline gidin. (https://github.com/dotnet/roslyn/issues/72133)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
@@ -2774,12 +3384,12 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">Parametre türü değiştiricisi'{0}' geçersiz kılınan veya uygulanan üyedeki '{1}' parametre türü değiştiricisi ile eşleşmiyor.</target>
+        <target state="translated">'{0}' parametresinin başvuru türü değiştiricisi, geçersiz kılınan veya uygulanan üyedeki karşılık gelen '{1}' parametresiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="translated">Parametrenin başvuru türü değiştiricisi geçersiz kılınan veya uygulanan üyedeki karşılık gelen parametreyle eşleşmiyor.</target>
+        <target state="translated">Parametrenin başvuru türü değiştiricisi, geçersiz kılınan veya uygulanan üyedeki karşılık gelen parametreyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2812,14 +3422,24 @@
         <target state="translated">Parametre, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">Birincil oluşturucu parametresi '{0}' temeldeki bir üye tarafından gölgelendi.</target>
+        <target state="translated">'{0}' birincil oluşturucu parametresi, temel üye tarafından gölgelendi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">Birincil oluşturucu parametresi temeldeki bir üye tarafından gölgelendi</target>
+        <target state="translated">Birincil oluşturucu parametresi, temel üye tarafından gölgelendi.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2878,7 +3498,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Bu başvuru, '{1}' değerini '{0}' olarak atar ancak '{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verir.</target>
         <note />
       </trans-unit>
@@ -2889,7 +3509,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">Bağımsız {0} bir 'ref readonly' parametresine geçirildiğinden değişken olmalıdır</target>
+        <target state="translated">{0} bağımsız değişkeni bir 'ref readonly' parametresine geçirildiğinden bir değişken olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
@@ -2899,12 +3519,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">'ref readonly' parametresi için varsayılan bir değer '{0}' ancak 'ref readonly' yalnızca başvurular için kullanılmalıdır. Parametreyi 'in' olarak bildirmeyi düşünün.</target>
+        <target state="translated">'{0}' 'ref readonly' parametresi için varsayılan değer belirtildi ancak 'ref readonly' yalnızca başvurular için kullanılmalıdır. Parametreyi 'in' olarak bildirmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">'ref readonly' parametresi için varsayılan bir değer belirtildi, ancak 'ref readonly' yalnızca başvurular için kullanılmalıdır. Parametreyi 'in' olarak bildirmeyi düşünün.</target>
+        <target state="translated">'ref readonly' parametresi için varsayılan değer belirtildi ancak 'ref readonly' yalnızca başvurular için kullanılmalıdır. Parametreyi 'in' olarak bildirmeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -3374,7 +3994,7 @@
                               bir derleme üretir
 -sourcelink:&lt;file&gt;                PDB dosyasına eklenecek kaynak bağlantısı bilgileri.
 
-                       - HATALAR VE UYARILAR - 
+                       - HATALAR VE UYARILAR -
 -warnaserror[+|-]                 Tüm uyarıları hata olarak bildirir.
 -warnaserror[+|-]:&lt;warn list&gt; Belirli uyarıları hata olarak bildirir
                               (tüm null atanabilirlik uyarıları için "nullable" kullanın)
@@ -3392,7 +4012,7 @@
                               raporlar.
 -skipanalyzers[+|-]               Tanılama çözümleyicilerinin yürütülmesini atlar.
 
-                       - DİL - 
+                       - DİL -
 -checked[+|-]                 Taşma denetimleri oluştur
 -unsafe[+|-]                  'Güvenli olmayan' koda izin ver
 -define:&lt;symbol list&gt;         Koşullu derleme sembollerini tanımlar (Kısa
@@ -3417,7 +4037,7 @@
 -keycontainer:&lt;string&gt;            Tanımlayıcı ad anahtarı kapsayıcısını belirtir.
 -highentropyva[+|-]               Yüksek entropili ASLR’yi etkinleştirir.
 
-                       - DİĞER - 
+                       - DİĞER -
 @&lt;file&gt;                       Daha fazla seçenek için yanıt dosyasını okur
 -help                         Bu kullanım iletisini görüntüler (Kısa biçimi: -?)
 -nologo                       Derleyici telif hakkı iletisini gizler
@@ -3425,7 +4045,7 @@
 -parallel[+|-]                    Eş zamanlı derleme.
 -version                          Derleyici sürüm numarasını görüntüler ve çıkar.
 
-                       - GELİŞMİŞ - 
+                       - GELİŞMİŞ -
 -baseaddress:&lt;address&gt;        Oluşturulacak kitaplığın temel adresi
 -checksumalgorithm:&lt;alg&gt;          PDB’de depolanan sağlama toplamı kaynak dosyasını hesaplamak için
                               kullanılan algoritmayı belirtir. Desteklenen değerler şunlardır:
@@ -4790,7 +5410,7 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">Parametre türü değiştiricisi '{0}', hedefte karşılık gelen parametre '{1}' eşleşmiyor.</target>
+        <target state="translated">{0} parametresinin başvuru türü değiştiricisi, hedefte karşılık gelen{1} parametresiyle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
@@ -4888,6 +5508,16 @@
         <target state="translated">Tür parametresi dış metottaki tür parametresi ile aynı türe sahip</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField">
+        <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="translated">'{0}' alanı hiçbir zaman başvuru olarak atanmaz ve her zaman kendi varsayılan değerini alır (boş başvuru)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField_Title">
+        <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="translated">Alan hiçbir zaman başvuru olarak atanmaz ve her zaman kendi varsayılan değerini alır (boş başvuru)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
         <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
         <target state="translated">Denetim, otomatik uygulanan '{0}' özelliği açıkça atanmadan önce çağırana döndürülür ve bu da 'default' öğesinin önceki örtük ataması ile sonuçlanır.</target>
@@ -4958,14 +5588,24 @@
         <target state="translated">Zaman uyumsuz yineleyici üyesinde 'CancellationToken' türünde bir veya daha fazla parametre var ancak bunların hiçbiri 'EnumeratorCancellation' özniteliği ile dekore edilmemiş, bu nedenle oluşturulan 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' öğesindeki iptal belirteci parametresi tüketilmeyecek</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, {0} null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
+        <target state="translated">Null atanamaz özelliği, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, özelliği null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider declaring the {0} as nullable.</source>
-        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. {0} alanını null atanabilir olarak bildirmeyi düşünün.</target>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
+        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya {0} değerini null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
-        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.</source>
-        <target state="translated">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. Alanı null atanabilir olarak bildirmeyi düşünün.</target>
+        <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
+        <target state="translated">Null atanamaz alan, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'Gerekli' değiştiricisini ekleyin veya null atanabilir olarak bildirmeyi göz önünde bulundurun.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -4986,6 +5626,16 @@
       <trans-unit id="WRN_UnreadRecordParameter_Title">
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Parametre okunmadı. Bu ada sahip özelliği başlatmak için bu parametreyi kullanmayı unutmuş olabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="translated">UnscopedRefAttribute yalnızca C# 11 veya sonraki sürümde veya net7.0 veya üzeri hedeflendiğinde geçerlidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnscopedRefAttributeOldRules_Title">
+        <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
+        <target state="translated">UnscopedRefAttribute yalnızca C# 11 veya sonraki sürümde veya net7.0 veya üzeri hedeflendiğinde geçerlidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolation">
@@ -5065,12 +5715,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">Başvuru alanı '{0}' önce başvuru atanmalı.</target>
+        <target state="translated">'{0}' başvuru alanı, kullanımdan önce başvurarak atanmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="translated">Başvuru alanı, kullanımdan önce başvuruya atanabilir olmalıdır.</target>
+        <target state="translated">Başvuru alanı, kullanımdan önce başvurarak atanmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
@@ -6113,11 +6763,6 @@
         <target state="translated">Vararg içeren bir yöntem genel olamaz, genel türde olamaz veya params parametresine sahip olamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Params parametresi tek boyutlu bir dizi olmalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_IllegalArglist">
         <source>An __arglist expression may only appear inside of a call or new expression</source>
         <target state="translated">__arglist ifadesi yalnızca call veya new ifadesinde görünebilir</target>
@@ -6294,8 +6939,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot dönüş türünden hemen önce gelebilir.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot ya da özellik dönüş türünden hemen önce gelebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -6454,8 +7099,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
-        <source>The new() constraint must be the last constraint specified</source>
-        <target state="translated">new() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
+        <source>The new() constraint must be the last restrictive constraint specified</source>
+        <target state="translated">Yeni() kısıtlaması belirtilen son kısıtlama olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -7117,11 +7762,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">'{0}' türünde yinelenen kullanıcı tanımlı dönüştürme</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_OperatorsMustBeStatic">
-        <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="translated">Kullanıcı tanımlı işleç '{0}' statik ve ortak olarak ifade edilmelidir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the containing type</source>
         <target state="translated">++ veya -- işlecinin parametre türü, kapsayan tür olmalıdır</target>
@@ -7275,11 +7915,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
         <target state="translated">DllImport özniteliği 'static' ve 'extern' olarak işaretlenmiş bir yöntem üzerinde belirtilmelidir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">'{0}' güncelleştirilemiyor; '{1}' özniteliği eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
@@ -7592,11 +8227,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">System.Void C# içinden kullanılamaz; void türdeki nesneyi almak için typeof(void) kullanın</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">System.ParamArrayAttribute' kullanmayın. Bunun yerine 'params' anahtar sözcüğünü kullanın.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
         <source>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</source>
         <target state="translated">İşaret bölümü eklenen bir işlenen üzerinde bit düzeyinde OR işleci kullanılıyor; önce daha küçük bir işaretsiz türe dönüştürmeyi düşünün</target>
@@ -7757,11 +8387,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">'{0}': statik sınıfları arabirimler uygulayamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefStructInterfaceImpl">
-        <source>'{0}': ref structs cannot implement interfaces</source>
-        <target state="translated">'{0}': başvuru yapı birimleri arabirim uygulayamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_OperatorInStaticClass">
         <source>'{0}': static classes cannot contain user-defined operators</source>
         <target state="translated">'{0}': statik sınıflar kullanıcı tanımlı işleçler içeremez</target>
@@ -7912,19 +8537,9 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Tutarsız lambda parametresi kullanımı; parametre türlerinin tümü explicit veya tümü implicit olmalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">Kısmi metot 'abstract' değiştiricisine sahip olamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">Parçalı bir metodun parçalı tür içinde bildirilmesi gerekir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
-        <target state="translated">Kısmi bir yöntem bir arabirim yöntemini açık olarak uygulayamaz</target>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
+        <target state="translated">Kısmi üye, arabirim üyesini açıkça uygulayamayabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -7942,19 +8557,9 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Kısmi yöntemin birden fazla uygulama bildirimi olamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">Her iki kısmi yöntem bildirimi de bir params parametresi kullanmalı ya da hiçbiri kullanmamalıdır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">
         <source>No defining declaration found for implementing declaration of partial method '{0}'</source>
         <target state="translated">'{0}' kısmi yönteminin bildirimini uygulamak için tanımlayıcı bildirim bulunamadı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">Kısmi metot bildirimlerinin ikisi de ('{0}' ve '{1}') aynı demet öğesi adını kullanmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
@@ -7967,14 +8572,9 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">Uygulama bildirimi olmayan bir kısmi yöntem olduğundan '{0}' yönteminden temsilci oluşturulamıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
-        <target state="translated">İki kısmi yöntem bildiriminin de statik olması ya da hiçbirinin statik olmaması gerekir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">İki kısmi yöntem bildiriminin de güvensiz olması ya da hiçbirinin güvensiz olmaması gerekir</target>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
+        <target state="translated">Kısmi üye bildirimlerinin ikisi de statik olmalı veya hiçbiri statik olmamalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -8412,8 +9012,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -8442,8 +9042,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -8537,8 +9137,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">
@@ -9031,11 +9631,6 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <target state="translated">Anonim metot, lambda ifadesi, sorgu ifadesi veya yerel işlev içinde '{0}' ref, out veya in parametresi kullanılamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_IllegalInnerUnsafe">
-        <source>Unsafe code may not appear in iterators</source>
-        <target state="translated">Güvenli olmayan kod yineleyicilerde görünmeyebilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadYieldInCatch">
         <source>Cannot yield a value in the body of a catch clause</source>
         <target state="translated">Catch yan tümcesinin gövdesinde yield ile bir değer döndürülemez</target>
@@ -9307,8 +9902,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}': using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürülebilir olmalıdır.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="translated">Bir ‘using’ deyiminde kullanılan '{0}' türü 'System.IDisposable' metodunu uygulamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -9990,8 +10585,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">'{0}' yazma için açılamıyor -- '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="translated">'{0}' yazma için açılamıyor -- {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
@@ -10420,8 +11015,8 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
         <note />
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
-        <source>'await' cannot be used in an expression containing the type '{0}'</source>
-        <target state="translated">'await', '{0}' türünü içeren bir ifadede kullanılamaz</target>
+        <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">'{0}' türünde örnek, 'await' veya 'yield' çerçevesi boyunca korunamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -10487,16 +11082,6 @@ Derleyiciye yöntemleri ayrıştırma yolu verin. Örneğin, bunlara farklı adl
       <trans-unit id="ERR_BadAsyncLacksBody">
         <source>The 'async' modifier can only be used in methods that have a body.</source>
         <target state="translated">Async' değiştiricisi yalnızca gövdesi olan metotlarda kullanılabilir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefLocal">
-        <source>Parameters or locals of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="translated">Zaman uyumsuz yöntemlerde veya zaman uyumsuz lambda ifadelerinde '{0}' türündeki parametreler veya yerel öğeler bildirilemez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</source>
-        <target state="translated">'{0}' bir başvuru yapısı olduğundan foreach deyimi, async veya iterator metotlarındaki '{0}' türü numaralandırıcılar üzerinde çalışamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync">
@@ -10847,8 +11432,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Parametre dizisi için varsayılan değer belirtilemez</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="translated">Parametre koleksiyonu için varsayılan değer belirtilemez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">
@@ -11895,8 +12480,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Yalnızca otomatik uygulanan özelliklerin başlatıcıları olabilir.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="translated">Yalnızca otomatik olarak uygulanan özellikler veya 'field' anahtar sözcüğünü kullanan özellikler başlatıcılara sahip olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
@@ -12329,16 +12914,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">'{0}' ref yerel değeri bir anonim metotta, lambda ifadesinde veya sorgu ifadesinde kullanılamaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadIteratorLocalType">
-        <source>Iterators cannot have by-reference locals</source>
-        <target state="translated">Yineleyiciler başvuruya göre yerel değerlere sahip olamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_BadAsyncLocalType">
-        <source>Async methods cannot have by-reference locals</source>
-        <target state="translated">Zaman uyumsuz metotlar başvuruya göre yerel değerlere sahip olamaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
         <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
         <target state="translated">'{0}' hedefine bir çağrı tarafından döndürülen başvuru, 'await' veya 'yield' sınırında korunamıyor.</target>
@@ -12375,8 +12950,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
-        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize sabit değerlerinin kullanımını azaltmayı deneyin.</target>
+        <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</source>
+        <target state="translated">Program tarafından kullanılan kullanıcı dizelerinin toplam uzunluğu, izin verilen sınırı aşıyor. Dize değişmezlerini daha az kullanmayı deneyin veya 'experimental-data-section-string-literals' EXPERIMENTAL özellik bayrağını deneyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -12725,8 +13300,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</source>
-        <target state="translated">'{2}' bütünleştirilmiş kodundan '{0}' metodunun hata ayıklama bilgileri okunamıyor (belirteç 0x{1:X8}) </target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="translated">'{2}' bütünleştirilmiş kodundan '{0}' metodunun (belirteç 0x{1:X8}) hata ayıklama bilgileri okunamıyor: {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">
@@ -12855,8 +13430,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': Asenkron bir using deyiminde kullanılan tür örtük olarak 'System.IAsyncDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="translated">Zaman uyumsuz bir ‘using’ deyiminde kullanılan '{0}' türü 'System.IAsyncDisposable' metodunu uygulamalı veya uygun bir 'DisposeAsync' metodunu uygulamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

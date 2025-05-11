@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -18,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionExpressionForEmptyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
-public class UseCollectionExpressionForEmptyTests
+public sealed class UseCollectionExpressionForEmptyTests
 {
     private const string CollectionBuilderAttributeDefinition = """
 
@@ -120,6 +119,35 @@ public class UseCollectionExpressionForEmptyTests
         await new VerifyCS.Test
         {
             TestCode = """
+                using System;
+                class C
+                {
+                    void M()
+                    {
+                        object[] v = Array.[|Empty|]<string>();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                class C
+                {
+                    void M()
+                    {
+                        object[] v = [];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task ArrayEmpty3_Strict()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             class C
             {
@@ -130,6 +158,10 @@ public class UseCollectionExpressionForEmptyTests
             }
             """,
             LanguageVersion = LanguageVersion.CSharp12,
+            EditorConfig = """
+                [*]
+                dotnet_style_prefer_collection_expression=when_types_exactly_match
+                """
         }.RunAsync();
     }
 

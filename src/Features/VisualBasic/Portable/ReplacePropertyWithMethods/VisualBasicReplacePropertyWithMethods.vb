@@ -30,7 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String,
-                fallbackOptions As CodeGenerationOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode))
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)

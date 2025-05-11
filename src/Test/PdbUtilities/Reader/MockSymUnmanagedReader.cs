@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
 using DSR::Microsoft.DiaSymReader;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -244,7 +244,7 @@ namespace Roslyn.Test.Utilities
         {
             _children = children;
             _namespaces = namespaces;
-            _constants = constants ?? new ISymUnmanagedConstant[0];
+            _constants = constants ?? [];
             _startOffset = startOffset;
             _endOffset = endOffset;
         }
@@ -320,10 +320,7 @@ namespace Roslyn.Test.Utilities
         {
             if (name != null)
             {
-                var builder = ArrayBuilder<char>.GetInstance();
-                builder.AddRange(name);
-                builder.AddRange('\0');
-                _nameChars = builder.ToImmutableAndFree();
+                _nameChars = [.. name, '\0'];
             }
         }
 

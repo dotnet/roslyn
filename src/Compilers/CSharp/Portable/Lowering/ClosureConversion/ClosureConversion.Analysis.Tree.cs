@@ -697,6 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (type.IsRestrictedType() == true)
                     {
+                        Debug.Assert(false); // Add test(s) for scenarios that hit this code path
                         _diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);
                     }
                 }
@@ -763,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     }
 
-                    Debug.Assert(scope == _currentScope.Parent, $"{nameof(scope)} must be {nameof(_currentScope)} or {nameof(_currentScope)}.{nameof(_currentScope.Parent)}");
+                    RoslynDebug.Assert(scope == _currentScope.Parent, $"{nameof(scope)} must be {nameof(_currentScope)} or {nameof(_currentScope)}.{nameof(_currentScope.Parent)}");
 
                     // Since it is forbidden to jump into a scope, 
                     // we can forget all information we have about labels in the child scope

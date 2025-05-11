@@ -3,7 +3,8 @@
 # the generator source files. 
 [CmdletBinding(PositionalBinding=$false)]
 param ([string]$configuration = "Debug", 
-       [switch]$test = $false)
+       [switch]$test = $false,
+       [switch]$ci = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -11,7 +12,7 @@ $ErrorActionPreference="Stop"
 function Run-Tool($projectFilePath, $toolArgs, $targetFramework) {
   $toolName = Split-Path -leaf $projectFilePath
   Write-Host "Running $toolName $toolArgs"
-  Exec-Console $dotnet "run --project $projectFilePath --framework $targetFramework $toolArgs"
+  Exec-DotNet "run --project $projectFilePath --framework $targetFramework $toolArgs"
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
@@ -22,7 +23,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
   $errorFileName = if ($language -eq "CSharp") { "ErrorCode.cs" } else { "Errors.vb" }
   $errorFilePath = Join-Path $languageDir "Errors\$errorFileName"
   $errorGeneratedFilePath = Join-Path $generatedDir "ErrorFacts.Generated.$($languageSuffix)"
-  $targetFramework = "net8.0"
+  $targetFramework = "net9.0"
 
   Create-Directory $generatedDir
   Create-Directory $generatedTestDir
@@ -41,7 +42,7 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProje
 # in code with the freshly generated code. 
 function Test-GeneratedContent($generatedDir, $scratchDir) {
   $algo = "MD5"
-  foreach ($fileName in (Get-ChildItem $scratchDir)) { 
+  foreach ($fileName in (Get-ChildItem $scratchDir | Select-Object -ExpandProperty Name)) {
     Write-Host "Checking $fileName"
     $realFilePath = Join-Path $generatedDir $fileName
     $scratchFilePath = Join-Path $scratchDir $fileName
@@ -74,7 +75,7 @@ function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
   $generationDir = Join-Path $coreDir "Generated"
-  $targetFramework = "net8.0"
+  $targetFramework = "net9.0"
 
   if (-not $test) {
     Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`"" $targetFramework
@@ -91,7 +92,7 @@ function Run-GetTextCore($generatedDir) {
   $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
   Create-Directory $generatedDir
-  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net8.0"
+  Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext" "net9.0"
 }
 
 function Run-GetText() {
@@ -115,6 +116,7 @@ function Get-ToolPath($projectRelativePath) {
 try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   $dotnet = Ensure-DotnetSdk
   $boundTreeGenProject = Get-ToolPath 'BoundTreeGenerator\CompilersBoundTreeGenerator.csproj'
@@ -136,11 +138,11 @@ try {
   Run-IOperation $coreDir $operationsProject
   Run-GetText
 
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
   Pop-Location

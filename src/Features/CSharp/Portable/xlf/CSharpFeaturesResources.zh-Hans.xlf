@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_await">
-        <source>Add 'await'</source>
-        <target state="translated">添加 "await"</target>
-        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
         <target state="translated">添加 "await" 和 "ConfigureAwait(false)"</target>
@@ -20,6 +15,16 @@
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
         <target state="translated">添加所需的单行控制语句的大括号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">应用“{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">应用 Copilot 的建议</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -57,6 +62,11 @@
         <target state="translated">应用表达式/块主体首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">应用来自以下位置的修复</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">应用内联 “out” 变量首选项</target>
@@ -80,11 +90,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">应用新的()首选项</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">应用参数 Null 首选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,11 +132,6 @@
         <target state="translated">由于可能出现模式变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">更改为 "as" 表达式</target>
@@ -142,10 +142,20 @@
         <target state="translated">更改为强制转换</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">将“{0}”转换为 record</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -159,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_constructor">
         <source>Convert to regular constructor</source>
-        <target state="new">Convert to regular constructor</target>
+        <target state="translated">转换为常规构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -195,11 +205,6 @@
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">全局 'using' 指令</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">检测到冲突。</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
@@ -242,6 +247,11 @@
         <target state="translated">警告: 内联临时变量可能会更改代码含义。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">警告：AI 建议可能不准确。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">异步 foreach 语句</target>
@@ -251,6 +261,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">异步 using 声明</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while 循环</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -307,24 +322,9 @@
         <target state="translated">由于可能出现范围变量声明，已禁用自动选择。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">简化名称“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">简化成员访问“{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">删除 "this" 资格</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">未返回所有代码路径</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
@@ -372,11 +372,6 @@
         <target state="translated">所选代码位于不安全的上下文中。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">没有可供提取的有效语句范围</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">弃用的</target>
@@ -402,16 +397,6 @@
         <target state="translated">组织 Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_explicit_conversion_operator_in_0">
-        <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">在“{0}”中生成显示转换运算符</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_implicit_conversion_operator_in_0">
-        <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">在“{0}”中生成隐式转换运算符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">记录</target>
@@ -420,6 +405,11 @@
       <trans-unit id="record_struct">
         <source>record struct</source>
         <target state="translated">记录结构</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="translated">必需属性</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">
@@ -577,11 +567,6 @@
         <target state="translated">元组</target>
         <note />
       </trans-unit>
-      <trans-unit id="local_function">
-        <source>local function</source>
-        <target state="translated">本地函数</target>
-        <note />
-      </trans-unit>
       <trans-unit id="out_var">
         <source>out variable</source>
         <target state="translated">out 变量</target>
@@ -647,19 +632,9 @@
         <target state="translated">当前上下文中不存在名称“{0}”。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">属性</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">自动选择由于命名空间声明而被禁用。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;命名空间名称&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -670,16 +645,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">由于可能有析构声明，禁用了自动选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;类名&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;接口名称&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">

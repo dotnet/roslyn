@@ -5,40 +5,39 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.ExtractInterface
+namespace Microsoft.CodeAnalysis.ExtractInterface;
+
+internal sealed class ExtractInterfaceTypeAnalysisResult
 {
-    internal sealed class ExtractInterfaceTypeAnalysisResult
+    public readonly bool CanExtractInterface;
+    public readonly Document DocumentToExtractFrom;
+    public readonly SyntaxNode TypeNode;
+    public readonly INamedTypeSymbol TypeToExtractFrom;
+    public readonly ImmutableArray<ISymbol> ExtractableMembers;
+    public readonly SyntaxFormattingOptions FormattingOptions;
+    public readonly string ErrorMessage;
+
+    public ExtractInterfaceTypeAnalysisResult(
+        Document documentToExtractFrom,
+        SyntaxNode typeNode,
+        INamedTypeSymbol typeToExtractFrom,
+        ImmutableArray<ISymbol> extractableMembers,
+        SyntaxFormattingOptions formattingOptions)
     {
-        public readonly bool CanExtractInterface;
-        public readonly Document DocumentToExtractFrom;
-        public readonly SyntaxNode TypeNode;
-        public readonly INamedTypeSymbol TypeToExtractFrom;
-        public readonly IEnumerable<ISymbol> ExtractableMembers;
-        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
-        public readonly string ErrorMessage;
+        CanExtractInterface = true;
+        DocumentToExtractFrom = documentToExtractFrom;
+        TypeNode = typeNode;
+        TypeToExtractFrom = typeToExtractFrom;
+        ExtractableMembers = extractableMembers;
+        FormattingOptions = formattingOptions;
+    }
 
-        public ExtractInterfaceTypeAnalysisResult(
-            Document documentToExtractFrom,
-            SyntaxNode typeNode,
-            INamedTypeSymbol typeToExtractFrom,
-            IEnumerable<ISymbol> extractableMembers,
-            CleanCodeGenerationOptionsProvider fallbackOptions)
-        {
-            CanExtractInterface = true;
-            DocumentToExtractFrom = documentToExtractFrom;
-            TypeNode = typeNode;
-            TypeToExtractFrom = typeToExtractFrom;
-            ExtractableMembers = extractableMembers;
-            FallbackOptions = fallbackOptions;
-        }
-
-        public ExtractInterfaceTypeAnalysisResult(string errorMessage)
-        {
-            CanExtractInterface = false;
-            ErrorMessage = errorMessage;
-        }
+    public ExtractInterfaceTypeAnalysisResult(string errorMessage)
+    {
+        CanExtractInterface = false;
+        ErrorMessage = errorMessage;
     }
 }

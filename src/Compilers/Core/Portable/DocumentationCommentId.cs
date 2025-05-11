@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -41,26 +42,30 @@ namespace Microsoft.CodeAnalysis
         private static readonly ListPool<INamespaceOrTypeSymbol> s_namespaceOrTypeListPool = new ListPool<INamespaceOrTypeSymbol>();
 
         /// <summary>
-        /// Creates an id string used by external documentation comment files to identify declarations
-        /// of types, namespaces, methods, properties, etc.
+        /// Creates an id string used by external documentation comment files to identify declarations of types,
+        /// namespaces, methods, properties, etc.
         /// </summary>
-        public static string CreateDeclarationId(ISymbol symbol)
+        /// <exception cref="ArgumentNullException">If <paramref name="symbol"/> is <see langword="null"/>.</exception>
+        /// <returns>The documentation comment Id for this symbol, if it can be created. <see langword="null"/> if it cannot be.</returns>
+        public static string? CreateDeclarationId(ISymbol symbol)
         {
             if (symbol == null)
             {
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var builder = new StringBuilder();
-            var generator = new DeclarationGenerator(builder);
+            var builder = PooledStringBuilder.GetInstance();
+            var generator = new PrefixAndDeclarationGenerator(builder);
             generator.Visit(symbol);
-            return builder.ToString();
+
+            return generator.Failed ? null : builder.ToStringAndFree();
         }
 
         /// <summary>
-        /// Creates an id string used to reference type symbols (not strictly declarations, includes
-        /// arrays, pointers, type parameters, etc.)
+        /// Creates an id string used to reference type symbols (not strictly declarations, includes arrays, pointers,
+        /// type parameters, etc.).
         /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="symbol"/> is <see langword="null"/>.</exception>
         public static string CreateReferenceId(ISymbol symbol)
         {
             if (symbol == null)
@@ -70,13 +75,21 @@ namespace Microsoft.CodeAnalysis
 
             if (symbol is INamespaceSymbol)
             {
-                return CreateDeclarationId(symbol);
+                // This is very odd.  For anything other than a namespace, we defer to ReferenceGenerator, which just
+                // spits out a reference.  But for a namespace, we spit out a declaration (which means we prefix with
+                // `N:`).  None of the other paths do this.  This is likely a bug, but it appears as if it has never
+                // been noticed.
+                var result = CreateDeclarationId(symbol);
+
+                // All namespaces should succeed at being converted into a declaration ID.
+                RoslynDebug.AssertNotNull(result);
+                return result;
             }
 
-            var builder = new StringBuilder();
+            var builder = PooledStringBuilder.GetInstance();
             var generator = new ReferenceGenerator(builder, typeParameterContext: null);
             generator.Visit(symbol);
-            return builder.ToString();
+            return builder.ToStringAndFree();
         }
 
         /// <summary>
@@ -301,21 +314,39 @@ namespace Microsoft.CodeAnalysis
             return name;
         }
 
-        private class DeclarationGenerator : SymbolVisitor
+        /// <summary>
+        /// Callers should only call into <see cref="SymbolVisitor{TResult}.Visit(ISymbol?)"/> and should check <see
+        /// cref="Failed"/> to see if it failed (in the case of an arbitrary symbol) or that it produced an expected
+        /// value (in the case a known symbol type was used).
+        /// </summary>
+        /// <remarks>
+        /// This will always succeed for a <see cref="INamespaceSymbol"/> or <see cref="INamedTypeSymbol"/>.  It may not
+        /// succeed for other symbols.
+        /// <para/> Once used, an instance of this visitor should be discarded.  Specifically it is stateful, and will
+        /// stay in the failed state once it transitions there.
+        /// </remarks>
+        private sealed class PrefixAndDeclarationGenerator : SymbolVisitor
         {
             private readonly StringBuilder _builder;
-            private readonly Generator _generator;
+            private readonly DeclarationGenerator _generator;
 
-            public DeclarationGenerator(StringBuilder builder)
+            private bool _failed;
+
+            public PrefixAndDeclarationGenerator(StringBuilder builder)
             {
                 _builder = builder;
-                _generator = new Generator(builder);
+                _generator = new DeclarationGenerator(builder);
             }
 
+            /// <summary>
+            /// If we hit anything we don't know about, indicate failure.
+            /// </summary>
             public override void DefaultVisit(ISymbol symbol)
             {
-                throw new InvalidOperationException("Cannot generated a documentation comment id for symbol.");
+                _failed = true;
             }
+
+            public bool Failed => _failed || _generator.Failed;
 
             public override void VisitEvent(IEventSymbol symbol)
             {
@@ -353,12 +384,14 @@ namespace Microsoft.CodeAnalysis
                 _generator.Visit(symbol);
             }
 
-            private class Generator : SymbolVisitor<bool>
+            private sealed class DeclarationGenerator : SymbolVisitor<bool>
             {
                 private readonly StringBuilder _builder;
                 private ReferenceGenerator? _referenceGenerator;
 
-                public Generator(StringBuilder builder)
+                public bool Failed;
+
+                public DeclarationGenerator(StringBuilder builder)
                 {
                     _builder = builder;
                 }
@@ -373,16 +406,20 @@ namespace Microsoft.CodeAnalysis
                     return _referenceGenerator;
                 }
 
+                /// <summary>
+                /// If we hit anything we don't know about, indicate failure.
+                /// </summary>
                 public override bool DefaultVisit(ISymbol symbol)
                 {
-                    throw new InvalidOperationException("Cannot generated a documentation comment id for symbol.");
+                    Failed = true;
+                    return true;
                 }
 
                 public override bool VisitEvent(IEventSymbol symbol)
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -393,7 +430,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -404,7 +441,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     var name = EncodePropertyName(symbol.Name);
@@ -419,7 +456,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                         _builder.Append(EncodeName(symbol.Name));
                     }
 
@@ -433,7 +470,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (!symbol.ReturnsVoid)
                     {
-                        _builder.Append("~");
+                        _builder.Append('~');
                         this.GetReferenceGenerator(symbol).Visit(symbol.ReturnType);
                     }
 
@@ -444,24 +481,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (parameters.Length > 0)
                     {
-                        _builder.Append("(");
+                        _builder.Append('(');
 
                         for (int i = 0, n = parameters.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             var p = parameters[i];
                             this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
-                                _builder.Append("@");
+                                _builder.Append('@');
                             }
                         }
 
-                        _builder.Append(")");
+                        _builder.Append(')');
                     }
                 }
 
@@ -474,7 +511,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
@@ -485,14 +522,14 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (this.Visit(symbol.ContainingSymbol))
                     {
-                        _builder.Append(".");
+                        _builder.Append('.');
                     }
 
                     _builder.Append(EncodeName(symbol.Name));
 
                     if (symbol.TypeParameters.Length > 0)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
 
@@ -521,7 +558,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.Visit(symbol.ContainingSymbol))
                 {
-                    _builder.Append(".");
+                    _builder.Append('.');
                 }
 
                 _builder.Append(EncodeName(symbol.Name));
@@ -551,24 +588,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (symbol.OriginalDefinition == symbol)
                     {
-                        _builder.Append("`");
+                        _builder.Append('`');
                         _builder.Append(symbol.TypeParameters.Length);
                     }
                     else if (symbol.TypeArguments.Length > 0)
                     {
-                        _builder.Append("{");
+                        _builder.Append('{');
 
                         for (int i = 0, n = symbol.TypeArguments.Length; i < n; i++)
                         {
                             if (i > 0)
                             {
-                                _builder.Append(",");
+                                _builder.Append(',');
                             }
 
                             this.Visit(symbol.TypeArguments[i]);
                         }
 
-                        _builder.Append("}");
+                        _builder.Append('}');
                     }
                 }
 
@@ -586,7 +623,7 @@ namespace Microsoft.CodeAnalysis
             {
                 this.Visit(symbol.ElementType);
 
-                _builder.Append("[");
+                _builder.Append('[');
 
                 for (int i = 0, n = symbol.Rank; i < n; i++)
                 {
@@ -594,11 +631,11 @@ namespace Microsoft.CodeAnalysis
 
                     if (i > 0)
                     {
-                        _builder.Append(",");
+                        _builder.Append(',');
                     }
                 }
 
-                _builder.Append("]");
+                _builder.Append(']');
 
                 return true;
             }
@@ -606,7 +643,7 @@ namespace Microsoft.CodeAnalysis
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
             {
                 this.Visit(symbol.PointedAtType);
-                _builder.Append("*");
+                _builder.Append('*');
                 return true;
             }
 
@@ -615,9 +652,14 @@ namespace Microsoft.CodeAnalysis
                 if (!IsInScope(symbol))
                 {
                     // reference to type parameter not in scope, make explicit scope reference
-                    var declarer = new DeclarationGenerator(_builder);
+
+                    // Containing symbol may be null in error cases.
+                    Debug.Assert(symbol.ContainingSymbol is null or INamedTypeSymbol or IMethodSymbol);
+                    var declarer = new PrefixAndDeclarationGenerator(_builder);
                     declarer.Visit(symbol.ContainingSymbol);
-                    _builder.Append(":");
+                    Debug.Assert(!declarer.Failed);
+
+                    _builder.Append(':');
                 }
 
                 if (symbol.DeclaringMethod != null)
@@ -630,7 +672,7 @@ namespace Microsoft.CodeAnalysis
                     // get count of all type parameter preceding the declaration of the type parameters containing symbol.
                     var container = symbol.ContainingSymbol?.ContainingSymbol;
                     var b = GetTotalTypeParameterCount(container as INamedTypeSymbol);
-                    _builder.Append("`");
+                    _builder.Append('`');
                     _builder.Append(b + symbol.Ordinal);
                 }
 

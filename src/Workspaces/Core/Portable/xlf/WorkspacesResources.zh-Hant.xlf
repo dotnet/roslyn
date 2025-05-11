@@ -7,14 +7,29 @@
         <target state="translated">專案不可參考自己本身。</target>
         <note />
       </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="translated">必須是絕對路徑</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">不支援新增分析器組態文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="After">
+        <source>After</source>
+        <target state="translated">後方</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_error_occurred_while_reading_the_specified_configuration_file_colon_0">
         <source>An error occurred while reading the specified configuration file: {0}</source>
         <target state="translated">讀取指定的組態檔時發生錯誤: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Applying_changes_to_0">
+        <source>Applying changes to {0}</source>
+        <target state="translated">正在將變更套用至 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_files">
@@ -37,7 +52,17 @@
         <target state="translated">不支援變更文件 '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
+        <source>Changing project between ordinary and interactive submission is not supported</source>
+        <target state="translated">不支援在一般與互動式提交之間變更專案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_language_is_not_supported">
+        <source>Changing project language is not supported</source>
+        <target state="translated">不支援變更專案語言</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">CodeAction '{0}' 未產生變更的解決方案</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -50,11 +75,6 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind 必須是 Utc</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">文件不支援語法樹</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
@@ -75,16 +95,6 @@
       <trans-unit id="FixAllScope_Custom_is_not_supported_with_this_API">
         <source>'FixAllScope.Custom' is not supported with this API</source>
         <target state="translated">此 API 不支援 'FixAllScope.Custom'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indentation_and_spacing">
-        <source>Indentation and spacing</source>
-        <target state="translated">縮排和間距</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="New_line_preferences">
-        <source>New line preferences</source>
-        <target state="translated">新行喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
@@ -122,9 +132,29 @@
         <target state="translated">不支援移除分析器組態文件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_compilation_options_is_not_supported">
+        <source>Removing compilation options is not supported</source>
+        <target state="translated">不支援移除編譯選項</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_parse_options_is_not_supported">
+        <source>Removing parse options is not supported</source>
+        <target state="translated">不支援移除剖析選項</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
         <target state="translated">將 '{0}' 重新命名為 '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_cleanup_on_fixed_documents">
+        <source>Running code cleanup on fixed documents</source>
+        <target state="translated">在固定文件上執行程式碼清除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
+        <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
+        <target state="translated">需要 '{0}' 類型的服務才能完成工作，但無法從 '{1}' 工作區取得。</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -137,19 +167,9 @@
         <target state="translated">符號 "{0}" 非來自來源。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">文件註解 ID 必須以 E、F、M、N、P 或 T 開頭</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">在擴充功能中偵測到循環</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">節點類型不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -176,6 +196,11 @@
         <source>Sync namespace to folder structure</source>
         <target state="translated">將命名空間同步到資料夾結構</target>
         <note />
+      </trans-unit>
+      <trans-unit id="TODO_Unmerged_change_from_project_0">
+        <source>TODO: Unmerged change from project '{0}'</source>
+        <target state="translated">TODO: 取消合併專案 '{0}' 的變更</target>
+        <note>{Locked="TODO"}</note>
       </trans-unit>
       <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
         <source>The contents of a SourceGeneratedDocument may not be changed.</source>
@@ -302,11 +327,6 @@
         <target state="translated">此專案已經參考目標專案。</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">此方案已含有指定的文件。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">無法多次寫入暫時儲存區。</target>
@@ -315,16 +335,6 @@
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
         <target state="translated">'{0}' 未開啟。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
-        <source>A language name cannot be specified for this option.</source>
-        <target state="translated">無法指定此選項的語言名稱。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_language_name_must_be_specified_for_this_option">
-        <source>A language name must be specified for this option.</source>
-        <target state="translated">必須指定此選項的語言名稱。</target>
         <note />
       </trans-unit>
       <trans-unit id="File_was_externally_modified_colon_0">
@@ -347,21 +357,6 @@
         <target state="translated">無法解析分析器參考: '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">專案區塊無效，專案之後必須是 "="。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">專案區塊無效，專案名稱之後必須是 ","。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">專案區塊無效，專案路徑之後必須是 ","。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">必須是 {0}。</target>
@@ -370,21 +365,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}" 必須是非 null 和非空白的字串。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">預期的標頭: "{0}"。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">預期的檔案結尾。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">必須要有 {0} 行。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -400,26 +380,6 @@
       <trans-unit id="_0_is_still_open">
         <source>{0} is still open.</source>
         <target state="translated">{0} 仍在開啟中。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">無法序列化包含多個維度的陣列。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
-        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">值太大，無法呈現為 30 位元不帶正負號的整數。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">指定的路徑必須是絕對路徑。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">未知的識別項。</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -452,34 +412,9 @@
         <target state="translated">找不到方案檔: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unmerged_change_from_project_0">
-        <source>Unmerged change from project '{0}'</source>
-        <target state="translated">取消合併專案 '{0}' 的變更</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Added_colon">
-        <source>Added:</source>
-        <target state="translated">已加入:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="After_colon">
-        <source>After:</source>
-        <target state="translated">之後:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Before_colon">
         <source>Before:</source>
         <target state="translated">之前:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removed_colon">
-        <source>Removed:</source>
-        <target state="translated">已移除:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">無效的字碼頁值: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
@@ -497,11 +432,6 @@
         <target state="translated">不支援新增文件。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">不支援新增中繼資料參考。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
         <source>Adding project references is not supported.</source>
         <target state="translated">不支援新增專案參考。</target>
@@ -515,11 +445,6 @@
       <trans-unit id="Changing_documents_is_not_supported">
         <source>Changing documents is not supported.</source>
         <target state="translated">不支援變更文件。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">不支援變更專案屬性。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
@@ -537,19 +462,9 @@
         <target state="translated">不支援移除文件。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">不支援移除中繼資料參考。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
         <source>Removing project references is not supported.</source>
         <target state="translated">不支援移除專案參考。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
-        <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">完成工作需要 '{0}' 類型的服務，但是無法從工作區取得。</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -560,21 +475,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">診斷範圍必須涵蓋 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">無法將類型 '{0}' 還原序列化。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">無法將類型 '{0}' 序列化。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">序列化繫結器無法辨識類型 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -670,16 +570,6 @@
       <trans-unit id="Show_Stack_Trace">
         <source>Show Stack Trace</source>
         <target state="translated">顯示堆疊追蹤</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Stream_is_too_long">
-        <source>Stream is too long.</source>
-        <target state="translated">資料流過長。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">'{0}' 的還原序列化讀取器所讀取的值數目不正確。</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

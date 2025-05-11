@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 
-namespace Microsoft.CodeAnalysis.PdbSourceDocument
+namespace Microsoft.CodeAnalysis.PdbSourceDocument;
+
+internal interface IPdbFileLocatorService
 {
-    internal interface IPdbFileLocatorService
-    {
-        Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken);
-    }
+    Task<DocumentDebugInfoReader?> GetDocumentDebugInfoReaderAsync(string dllPath, bool useDefaultSymbolServers, TelemetryMessage telemetry, CancellationToken cancellationToken);
 }

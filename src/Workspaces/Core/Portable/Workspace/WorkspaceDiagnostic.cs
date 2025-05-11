@@ -2,29 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis;
 
-using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis
+public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
 {
-    public class WorkspaceDiagnostic(WorkspaceDiagnosticKind kind, string message)
+    public WorkspaceDiagnosticKind Kind { get; } = kind;
+    public string Message { get; } = message;
+
+    public override string ToString()
     {
-        public WorkspaceDiagnosticKind Kind { get; } = kind;
-        public string Message { get; } = message;
+        string kindText;
 
-        public override string ToString()
+        switch (Kind)
         {
-            string kindText;
-
-            switch (Kind)
-            {
-                case WorkspaceDiagnosticKind.Failure: kindText = WorkspacesResources.Failure; break;
-                case WorkspaceDiagnosticKind.Warning: kindText = WorkspacesResources.Warning; break;
-                default: throw ExceptionUtilities.UnexpectedValue(Kind);
-            }
-
-            return $"[{kindText}] {Message}";
+            case WorkspaceDiagnosticKind.Failure: kindText = WorkspacesResources.Failure; break;
+            case WorkspaceDiagnosticKind.Warning: kindText = WorkspacesResources.Warning; break;
+            default: throw ExceptionUtilities.UnexpectedValue(Kind);
         }
+
+        return $"[{kindText}] {Message}";
     }
 }

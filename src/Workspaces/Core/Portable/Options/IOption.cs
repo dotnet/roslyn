@@ -5,16 +5,15 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Options
-{
-    public interface IOption
-    {
-        string Feature { get; }
-        string Name { get; }
-        Type Type { get; }
-        object? DefaultValue { get; }
-        bool IsPerLanguage { get; }
+namespace Microsoft.CodeAnalysis.Options;
 
-        ImmutableArray<OptionStorageLocation> StorageLocations { get; }
-    }
+public interface IOption
+{
+    string Feature { get; }
+    string Name { get; }
+    Type Type { get; }
+    object? DefaultValue { get; }
+    bool IsPerLanguage { get; }
+
+    ImmutableArray<OptionStorageLocation> StorageLocations { get; }
 }

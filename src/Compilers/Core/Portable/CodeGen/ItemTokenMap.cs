@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        public IEnumerable<T> GetAllItems()
+        public T[] CopyItems()
         {
             lock (_items)
             {

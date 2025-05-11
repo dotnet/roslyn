@@ -6,14 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal interface IVSTypeScriptNavigateToSearchService
-    {
-        IImmutableSet<string> KindsProvided { get; }
-        bool CanFilter { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-        Task<ImmutableArray<IVSTypeScriptNavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
-        Task<ImmutableArray<IVSTypeScriptNavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
-    }
+internal interface IVSTypeScriptNavigateToSearchService
+{
+    IImmutableSet<string> KindsProvided { get; }
+    bool CanFilter { get; }
+
+    Task<ImmutableArray<IVSTypeScriptNavigateToSearchResult>> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
+    Task<ImmutableArray<IVSTypeScriptNavigateToSearchResult>> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken);
 }

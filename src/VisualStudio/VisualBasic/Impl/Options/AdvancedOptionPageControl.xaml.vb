@@ -24,6 +24,8 @@ Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
+Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.InheritanceMargin
@@ -37,22 +39,16 @@ Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterfaceMembers
-Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.DocumentOutline
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Private ReadOnly _threadingContext As IThreadingContext
-        Private ReadOnly _colorSchemeApplier As ColorSchemeApplier
-
-        Public Sub New(optionStore As OptionStore, componentModel As IComponentModel)
+        Public Sub New(optionStore As OptionStore)
             MyBase.New(optionStore)
-
-            _threadingContext = componentModel.GetService(Of IThreadingContext)()
-            _colorSchemeApplier = componentModel.GetService(Of ColorSchemeApplier)()
 
             InitializeComponent()
 
@@ -60,30 +56,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Analysis
             BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, label:=Run_background_code_analysis_for_label)
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles,
-                         Function()
-                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag)
-                         End Function)
 
             BindToOption(Show_compiler_errors_and_warnings_for, SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic)
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
-            BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit)
-            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr)
 
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
-            BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences,
+            BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer, FeatureOnOffOptions.OfferRemoveUnusedReferences,
                          Function()
-                             ' If the option has not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag)
+                             Return True
                          End Function)
 
-            ' Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
-            BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label:=Rename_UI_setting_label)
+            ' Source Generators
+            BindToOption(Automatic_Run_generators_after_any_change, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic)
+            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced)
 
             ' Import directives
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic)
@@ -110,10 +98,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Fading
             BindToOption(Fade_out_unused_imports, FadingOptions.FadeOutUnusedImports, LanguageNames.VisualBasic)
+            BindToOption(Fade_out_unused_members, FadingOptions.FadeOutUnusedMembers, LanguageNames.VisualBasic)
 
             ' Block structure guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.VisualBasic)
+            BindToOption(Show_guides_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.VisualBasic)
 
             ' Comments
             BindToOption(GenerateXmlDocCommentsForTripleApostrophes, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.VisualBasic)
@@ -125,32 +115,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
             BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.VisualBasic)
             BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.VisualBasic)
+            BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.VisualBasic)
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, LanguageNames.VisualBasic)
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
-                         Function()
-                             ' If the option has Not been set by the user, check if the option is enabled from experimentation.
-                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag)
-                         End Function)
 
             ' Regular expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_regular_expressions, IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_regular_expressions, RegexOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_regular_expression_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
             BindToOption(Show_completion_list, CompletionOptionsStorage.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Colorize_JSON_strings, ClassificationOptionsStorage.ColorizeJsonPatterns, LanguageNames.VisualBasic)
-            BindToOption(Report_invalid_JSON_strings, IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Report_invalid_JSON_strings, JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
 
             ' Editor color scheme
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme)
-
-            ' Extract method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.VisualBasic)
 
             ' Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
@@ -176,32 +159,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowInheritanceMargin, InheritanceMarginOptionsStorage.ShowInheritanceMargin, LanguageNames.VisualBasic, Function() True)
             BindToOption(InheritanceMarginCombinedWithIndicatorMargin, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)
             BindToOption(IncludeGlobalImports, InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, LanguageNames.VisualBasic)
-
-            ' Document Outline
-            BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline,
-                Function()
-                    ' If the option has Not been set by the user, check if the option is disabled from experimentation.
-                    ' If so, default to reflect that.
-                    Return Not optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag)
-                End Function)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
         ' we need to update the visibility of our combobox and warnings based on the current VS theme before being rendered.
         Friend Overrides Sub OnLoad()
-            Dim cancellationToken = _threadingContext.DisposalToken
-            Dim values = _threadingContext.JoinableTaskFactory.Run(
-                Async Function()
-                    Return (isSupportedTheme:=Await _colorSchemeApplier.IsSupportedThemeAsync(cancellationToken).ConfigureAwait(False),
-                            isCustomized:=Await _colorSchemeApplier.IsThemeCustomizedAsync(cancellationToken).ConfigureAwait(False))
-                End Function)
-
-            Dim isSupportedTheme = values.isSupportedTheme
-            Dim isCustomized = values.isCustomized
-            Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
-            Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
-            Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
-
             UpdateInlineHintsOptions()
 
             MyBase.OnLoad()
@@ -240,14 +202,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Collapse_imports_on_file_open.IsEnabled = False
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
             Collapse_metadata_signature_files_on_open.IsEnabled = False
-        End Sub
-
-        Private Sub Run_code_analysis_in_separate_process_Checked(sender As Object, e As RoutedEventArgs)
-            Run_code_analysis_on_dotnet.IsEnabled = True
-        End Sub
-
-        Private Sub Run_code_analysis_in_separate_process_Unchecked(sender As Object, e As RoutedEventArgs)
-            Run_code_analysis_on_dotnet.IsEnabled = False
         End Sub
     End Class
 End Namespace

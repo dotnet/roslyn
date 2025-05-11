@@ -1003,7 +1003,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         static ParameterSymbol (param, translator) => new SignatureOnlyParameterSymbol(
                             translator.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                             translator.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
-                            param.IsParams,
+                            isParamsArray: param.IsParamsArray,
+                            isParamsCollection: param.IsParamsCollection,
                             param.RefKind),
                         translator);
 
@@ -1076,7 +1077,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     static ParameterSymbol (param, self) => new SignatureOnlyParameterSymbol(
                         self.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         self.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
-                        param.IsParams,
+                        isParamsArray: param.IsParamsArray,
+                        isParamsCollection: param.IsParamsCollection,
                         param.RefKind),
                     this);
 

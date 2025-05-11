@@ -9,15 +9,14 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
-{
-    internal sealed class ClassificationTypeDefinitions
-    {
-        public const string BraceMatchingName = "brace matching";
+namespace Microsoft.CodeAnalysis.BraceMatching;
 
-        [Export]
-        [Name(BraceMatchingName)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition BraceMatching;
-    }
+internal sealed class ClassificationTypeDefinitions
+{
+    public const string BraceMatchingName = "brace matching";
+
+    [Export]
+    [Name(BraceMatchingName)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal readonly ClassificationTypeDefinition BraceMatching;
 }

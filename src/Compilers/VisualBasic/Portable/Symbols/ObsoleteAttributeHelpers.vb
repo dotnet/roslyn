@@ -142,15 +142,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.
-                Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+                Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat), "", "")
             End If
 
             If data.Kind = ObsoleteAttributeKind.Experimental Then
-                Debug.Assert(data.Message Is Nothing)
                 Debug.Assert(Not data.IsError)
                 ' Provide an explicit format for fully-qualified type names.
-                Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, ERRID.WRN_Experimental,
-                    data, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+                If String.IsNullOrEmpty(data.Message) Then
+                    Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, ERRID.WRN_Experimental, data, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+                Else
+                    Return New CustomObsoleteDiagnosticInfo(MessageProvider.Instance, ERRID.WRN_ExperimentalWithMessage, data, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat),
+                                                            data.Message)
+                End If
             End If
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.

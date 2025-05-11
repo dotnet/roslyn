@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpFeaturesResources.resx">
     <body>
-      <trans-unit id="Add_await">
-        <source>Add 'await'</source>
-        <target state="translated">"await" hinzufügen</target>
-        <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
         <target state="translated">"await" und "ConfigureAwait(false)" hinzufügen</target>
@@ -20,6 +15,16 @@
       <trans-unit id="Add_required_braces_for_single_line_control_statements">
         <source>Add required braces for single-line control statements</source>
         <target state="translated">Geschweifte Klammern für einzeilige Steuerungsanweisungen hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">Anwenden von "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">Copilot-Vorschlag anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
@@ -57,6 +62,11 @@
         <target state="translated">Ausdrucks-/Blocktextkörpereinstellungen anwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">Korrektur anwenden von</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">Einstellungen für out-Inlinevariablen anwenden</target>
@@ -80,11 +90,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">new()-Einstellungen anwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Parameter-NULL-Einstellungen anwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,11 +132,6 @@
         <target state="translated">Automatische Auswahl aufgrund einer potenziellen Mustervariablendeklaration deaktiviert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
-        <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">In as-Ausdruck ändern</target>
@@ -142,10 +142,20 @@
         <target state="translated">In "cast" ändern</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_0_extension_methods_to_extension">
+        <source>Convert '{0}' extension methods to extension</source>
+        <target state="new">Convert '{0}' extension methods to extension</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_0_to_record">
         <source>Convert '{0}' to record</source>
         <target state="translated">„{0}“ in record konvertieren</target>
         <note>{Locked="record"} "record" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_all_extension_methods_in_0_to_extension">
+        <source>Convert all extension methods in '{0}' to extension</source>
+        <target state="new">Convert all extension methods in '{0}' to extension</target>
+        <note />
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
@@ -159,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_constructor">
         <source>Convert to regular constructor</source>
-        <target state="new">Convert to regular constructor</target>
+        <target state="translated">In regulären Konstruktor konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -195,11 +205,6 @@
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Globale "Using"-Anweisungen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Konflikt(e) erkannt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
@@ -242,6 +247,11 @@
         <target state="translated">Warnung: Durch das Inlining einer temporären Variablen kann sich die Codebedeutung ändern.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">Warnung: KI-Vorschläge sind möglicherweise ungenau.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">asynchrone foreach-Anweisung</target>
@@ -251,6 +261,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">asynchrone using-Deklaration</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do while-Schleife</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -307,24 +322,9 @@
         <target state="translated">Automatische Auswahl aufgrund einer potzenziellen Bereichvariablendeklaration deaktiviert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Name '{0}' vereinfachen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Memberzugriff '{0}' vereinfachen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">Qualifikation 'this' entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Nicht alle Codepfadrückgaben</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_node">
@@ -372,11 +372,6 @@
         <target state="translated">Der ausgewählte Code befindet sich in einem unsicheren Kontext.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_valid_statement_range_to_extract">
-        <source>No valid statement range to extract</source>
-        <target state="translated">Kein gültiger Anweisungsbereich für die Extraktion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="deprecated">
         <source>deprecated</source>
         <target state="translated">veraltet</target>
@@ -402,16 +397,6 @@
         <target state="translated">Using-Direktiven organisieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_explicit_conversion_operator_in_0">
-        <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">Expliziten Konversionsoperator in '{0}' generieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_implicit_conversion_operator_in_0">
-        <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">Impliziten Konversionsoperator in '{0}' generieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">Datensatz</target>
@@ -420,6 +405,11 @@
       <trans-unit id="record_struct">
         <source>record struct</source>
         <target state="translated">Datensatzstruktur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="translated">Erforderliche Eigenschaft</target>
         <note />
       </trans-unit>
       <trans-unit id="reversed_for_loop">
@@ -577,11 +567,6 @@
         <target state="translated">Tupel</target>
         <note />
       </trans-unit>
-      <trans-unit id="local_function">
-        <source>local function</source>
-        <target state="translated">Lokale Funktion</target>
-        <note />
-      </trans-unit>
       <trans-unit id="out_var">
         <source>out variable</source>
         <target state="translated">out-Variable</target>
@@ -647,19 +632,9 @@
         <target state="translated">Der Name "{0}" ist im aktuellen Kontext nicht vorhanden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Eigenschaften</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_namespace_declaration">
         <source>Autoselect disabled due to namespace declaration.</source>
         <target state="translated">Die automatische Auswahl ist aufgrund der Namespacedeklaration deaktiviert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;Namespacename&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -670,16 +645,6 @@
       <trans-unit id="Autoselect_disabled_due_to_possible_deconstruction_declaration">
         <source>Autoselect disabled due to possible deconstruction declaration.</source>
         <target state="translated">Die automatische Auswahl wurde aufgrund einer möglichen Dekonstruktionsdeklaration deaktiviert.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;Klassenname&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;Schnittstellenname&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">

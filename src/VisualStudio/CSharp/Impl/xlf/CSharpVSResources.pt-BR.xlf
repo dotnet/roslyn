@@ -32,11 +32,6 @@
         <target state="translated">Permitir instruções inseridas na mesma linha</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Aplicar todas as regras de formatação de C# (recuo, quebra de linha, espaçamento)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Concluir a instrução automaticamente no ponto e vírgula</target>
@@ -59,7 +54,17 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Interativo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Cancelar Consulta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Cancelar (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +90,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Escopo do arquivo</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Formatar Configurações do Documento (Experimento)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -122,19 +122,9 @@
         <target state="translated">Namespace interno</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Outside_namespace">
-        <source>Outside namespace</source>
-        <target state="translated">Namespace externo</target>
-        <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferências de correspondência de padrões:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Executar limpeza de código adicional durante a formatação</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -152,14 +142,9 @@
         <target state="translated">Preferir a criação de objeto implícito quando o tipo for aparente</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Preferir 'is null' para as verificações de igualdade de referência</target>
-        <note>'is null' is a C# string and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">Preferir a verificação 'nula' à verificação de tipo</target>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
@@ -182,9 +167,14 @@
         <target state="translated">Posicionamento da diretiva 'using' preferencial</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_usings">
-        <source>Remove unnecessary usings</source>
-        <target state="translated">Remover Usos Desnecessários</target>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Executar Consulta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Executar (Ctrl+Enter)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -192,24 +182,19 @@
         <target state="translated">Mostrar as dicas para as expressões 'new'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_items_from_unimported_namespaces">
-        <source>Show items from unimported namespaces</source>
-        <target state="translated">Mostrar os itens de namespaces não importados</target>
+      <trans-unit id="Show_name_s_uggestions">
+        <source>Show name s_uggestions</source>
+        <target state="translated">Mostrar s_ugestões de nomes</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_new_snippet_experience">
+        <source>Show new snippet experience</source>
+        <target state="translated">Mostrar a nova experiência de trecho</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">Mostrar nova experiência de snippet de código (experimental)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_remarks_in_Quick_Info">
-        <source>Show remarks in Quick Info</source>
-        <target state="translated">Mostrar os comentários nas Informações Rápidas</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Classificar usos</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -220,11 +205,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Envolver com</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_Snippet">
-        <source>Insert Snippet</source>
-        <target state="translated">Inserir Snippet</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -517,49 +497,9 @@
         <target state="translated">Novas opções de linha para palavras-chaves</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unused_local">
-        <source>Unused local</source>
-        <target state="translated">Local não usado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Usar "var" ao gerar locais</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">_Mostrar separadores de linha de procedimento</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_Não colocar ref nem out no struct personalizado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Editor_Help">
-        <source>Editor Help</source>
-        <target state="translated">Ajuda do Editor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Realçar _palavras-chave relacionadas usando o cursor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">_Realçar referências a símbolo sob o cursor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter _outlining mode when files open</source>
         <target state="translated">Entrar no modo de _estrutura de tópicos ao abrir arquivos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Extract_Method">
-        <source>Extract Method</source>
-        <target state="translated">Extrair Método</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
@@ -567,34 +507,9 @@
         <target state="translated">_Gerar comentário da documentação XML ///</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlighting">
-        <source>Highlighting</source>
-        <target state="translated">Destaque</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>_Insert * at the start of new lines when writing /* */ comments</source>
         <target state="translated">_Insira um * no início das novas linhas ao escrever /* */ comentários</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Otimizar para o tamanho de solução</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Grande</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normal</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Pequeno</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -602,19 +517,9 @@
         <target state="translated">Usando Diretivas</target>
         <note />
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Desempenho</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>_Place 'System' directives first when sorting usings</source>
         <target state="translated">_Colocar as diretivas 'System' primeiro ao classificar usos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_typed">
-        <source>_Show completion list after a character is typed</source>
-        <target state="translated">_Mostrar lista de conclusão depois que um caractere é digitado</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -632,11 +537,6 @@
         <target state="translated">Seleção na Lista de Conclusão</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Mostrar visualização para acompanhamento de _renomeação</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_property_indexer_and_event_accessors">
         <source>Place open brace on new line for property, indexer, and event accessors</source>
         <target state="translated">Colocar chave de abertura em nova linha para acessadores de eventos, propriedades e indexadores</target>
@@ -650,11 +550,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Sugerir usos para tipos nos pacotes _NuGet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Preferências de Inferência de Tipos:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -742,36 +637,6 @@
         <target state="translated">Dividir sequências literais em _enter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_matching_portions_of_completion_list_items">
-        <source>_Highlight matching portions of completion list items</source>
-        <target state="translated">_Realçar partes correspondentes dos itens da lista de conclusão</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_item_filters">
-        <source>Show completion item _filters</source>
-        <target state="translated">Mostrar _filtros de itens de conclusão</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_key_behavior_colon">
-        <source>Enter key behavior:</source>
-        <target state="translated">Insira o comportamento da tecla:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
-        <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="translated">_Só adicionar nova linha ao inserir depois do final de uma palavra totalmente digitada</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_add_new_line_on_enter">
-        <source>_Always add new line on enter</source>
-        <target state="translated">_Sempre adicionar nova linha ao inserir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_add_new_line_on_enter">
-        <source>_Never add new line on enter</source>
-        <target state="translated">_Nunca adicionar nova linha ao inserir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
         <target state="translated">Sempre incluir snippets</target>
@@ -780,21 +645,6 @@
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
         <target state="translated">Incluir snippets quando ?-Tab for digitado após um identificador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Nunca incluir snippets</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Snippets_behavior">
-        <source>Snippets behavior</source>
-        <target state="translated">Comportamento de snippets</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_completion_list_after_a_character_is_deleted">
-        <source>Show completion list after a character is _deleted</source>
-        <target state="translated">Mostrar lista de conclusão após um caractere ser _excluído</target>
         <note />
       </trans-unit>
       <trans-unit id="null_checking_colon">
@@ -822,16 +672,6 @@
         <target state="translated">Preferir a correspondência de padrões 'as' com a seleção 'null'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Preferir o corpo do bloco</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">Preferir o corpo da expressão</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_format_on_return">
         <source>Automatically format on return</source>
         <target state="translated">Formatar automaticamente no retorno</target>
@@ -840,11 +680,6 @@
       <trans-unit id="Automatically_format_when_typing">
         <source>Automatically format when typing</source>
         <target state="translated">Formatar automaticamente ao digitar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never">
-        <source>Never</source>
-        <target state="translated">Nunca</target>
         <note />
       </trans-unit>
       <trans-unit id="When_on_single_line">
@@ -878,8 +713,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_name_suggestions">
-        <source>Show name s_uggestions</source>
-        <target state="translated">Mostrar s_ugestões de nomes</target>
+        <source>Show name suggestions</source>
+        <target state="translated">Mostrar sugestões de nome</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

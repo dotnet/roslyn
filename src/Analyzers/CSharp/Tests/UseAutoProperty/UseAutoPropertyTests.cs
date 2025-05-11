@@ -18,9 +18,11 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
+public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
+    private readonly ParseOptions CSharp12 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());
 
@@ -667,7 +669,7 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestGetterWithMutipleStatements()
+    public async Task TestGetterWithMultipleStatements_CSharp12()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -684,11 +686,11 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
                     }
                 }
             }
-            """);
+            """, new TestParameters(parseOptions: CSharp12));
     }
 
     [Fact]
-    public async Task TestSetterWithMutipleStatements()
+    public async Task TestSetterWithMultipleStatements_CSharp12()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -731,7 +733,7 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
                     }
                 }
             }
-            """);
+            """, new TestParameters(parseOptions: CSharp12));
     }
 
     [Fact]
@@ -1153,9 +1155,9 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestNotWithFieldWithAttribute()
+    public async Task TestWithFieldWithAttribute()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1169,6 +1171,13 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
                         return i;
                     }
                 }
+            }
+            """,
+            """
+            class Class
+            {
+                [field: A]
+                int P { get; }
             }
             """);
     }
@@ -1868,7 +1877,7 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23216")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/23215")]
-    public async Task TestFixAllInDocument()
+    public async Task TestFixAllInDocument1()
     {
         await TestInRegularAndScript1Async(
             """
@@ -1901,6 +1910,53 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
                 int P { get; }
 
                 int Q { get; }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
+    public async Task TestFixAllInDocument2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            internal struct StringFormat
+            {
+                private readonly object {|FixAllInDocument:_argument1|};
+                private readonly object _argument2;
+                private readonly object _argument3;
+                private readonly object[] _arguments;
+
+                public object Argument1
+                {
+                    get { return _argument1; }
+                }
+
+                public object Argument2
+                {
+                    get { return _argument2; }
+                }
+
+                public object Argument3
+                {
+                    get { return _argument3; }
+                }
+
+                public object[] Arguments
+                {
+                    get { return _arguments; }
+                }
+            }
+            """,
+            """
+            internal struct StringFormat
+            {
+                public object Argument1 { get; }
+
+                public object Argument2 { get; }
+
+                public object Argument3 { get; }
+
+                public object[] Arguments { get; }
             }
             """);
     }
@@ -3055,6 +3111,74 @@ public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
 
                 private void SetAction(string newAction) => _action = newAction;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76634")]
+    public async Task TestRefField()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|ref int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P
+                {
+                    get
+                    {
+                        return ref i;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P => ref i;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                readonly ref int P => ref i;
             }
             """);
     }

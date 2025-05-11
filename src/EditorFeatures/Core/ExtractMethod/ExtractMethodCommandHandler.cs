@@ -8,14 +8,12 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -40,7 +38,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
     private readonly IThreadingContext _threadingContext;
     private readonly ITextBufferUndoManagerProvider _undoManager;
     private readonly IInlineRenameService _renameService;
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IAsynchronousOperationListener _asyncListener;
 
     [ImportingConstructor]
@@ -49,7 +46,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         IThreadingContext threadingContext,
         ITextBufferUndoManagerProvider undoManager,
         IInlineRenameService renameService,
-        IGlobalOptionService globalOptions,
         IAsynchronousOperationListenerProvider asyncListenerProvider)
     {
         Contract.ThrowIfNull(threadingContext);
@@ -59,7 +55,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         _threadingContext = threadingContext;
         _undoManager = undoManager;
         _renameService = renameService;
-        _globalOptions = globalOptions;
         _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.ExtractMethod);
     }
 
@@ -89,7 +84,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         // wait indicator for Extract Method
         if (_renameService.ActiveSession != null)
         {
-            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None));
+            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, context.OperationContext));
         }
 
         if (!args.SubjectBuffer.SupportsRefactorings())
@@ -119,8 +114,12 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
     {
         _threadingContext.ThrowIfNotOnUIThread();
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+
+        // Note: we do not want to cancel on 'focus lost'.  That's because extract-method may show the user a
+        // notification dialog about proceeding or not.  We don't want the act of showing them a dialog about proceeding
+        // to then cause the whole operation to then fail.
         using var indicatorContext = indicatorFactory.Create(
-            view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring, cancelOnEdit: true, cancelOnFocusLost: true);
+            view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring, cancelOnEdit: true, cancelOnFocusLost: false);
 
         using var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ExecuteCommand));
         await ExecuteWorkerAsync(view, textBuffer, span.Span.ToTextSpan(), indicatorContext).ConfigureAwait(false);
@@ -140,13 +139,36 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (document is null)
             return;
 
-        var options = await document.GetExtractMethodGenerationOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
-        var result = await ExtractMethodService.ExtractMethodAsync(
-            document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetExtractMethodGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+        var result = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
+
+        if (!Succeeded(result))
+        {
+            // Extract method didn't succeed.  Or succeeded, but had some reasons to notify the user about.  See if
+            // extracting a local function would be better..
+
+            var localFunctionResult = await ExtractMethodService.ExtractMethodAsync(document, span, localFunction: true, options, cancellationToken).ConfigureAwait(false);
+            if (Succeeded(localFunctionResult))
+            {
+                // Extract local function completely succeeded.  Use that instead.
+                result = localFunctionResult;
+            }
+            else if (!result.Succeeded && localFunctionResult.Succeeded)
+            {
+                // Extract method entirely failed.  But extract local function was able to proceed, albeit with reasons
+                // to notify the user about.  Continue one with extract local function instead.
+                result = localFunctionResult;
+            }
+            else
+            {
+                // Extract local function was just as bad as extract method.  Just report the extract method issues below.
+            }
+        }
+
         Contract.ThrowIfNull(result);
 
-        result = await NotifyUserIfNecessaryAsync(
-            document, span, options, result, cancellationToken).ConfigureAwait(false);
+        result = await NotifyUserIfNecessaryAsync(document, result, cancellationToken).ConfigureAwait(false);
         if (result is null)
             return;
 
@@ -179,18 +201,22 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        waitContext.CancelOnEdit = false;
+        using var _ = waitContext.SuppressAutoCancel();
+
         textBuffer.ApplyChanges(changes);
 
         // apply changes
         undoTransaction.Complete();
     }
 
+    private static bool Succeeded(ExtractMethodResult result)
+        => result is { Succeeded: true, Reasons.Length: 0 };
+
     private async Task<ExtractMethodResult?> NotifyUserIfNecessaryAsync(
-        Document document, TextSpan span, ExtractMethodGenerationOptions options, ExtractMethodResult result, CancellationToken cancellationToken)
+        Document document, ExtractMethodResult result, CancellationToken cancellationToken)
     {
         // If we succeeded without any problems, just proceed without notifying the user.
-        if (result is { Succeeded: true, Reasons.Length: 0 })
+        if (Succeeded(result))
             return result;
 
         // We have some sort of issue.  See what the user wants to do.  If we have no way to inform the user bail
@@ -199,30 +225,8 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (notificationService is null)
             return null;
 
-        // The initial extract method failed, or it succeeded with warning reasons.  Attempt again with
-        // different options to see if we get better results.
-        var alternativeResult = await TryWithoutMakingValueTypesRefAsync(
-            document, span, result, options, cancellationToken).ConfigureAwait(false);
-
         // We're about to show an notification to the user.  Switch to the ui thread to do so.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (alternativeResult is { Succeeded: true, Reasons.Length: 0 })
-        {
-            if (!notificationService.ConfirmMessageBox(
-                    EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
-                    string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                    EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
-                    title: EditorFeaturesResources.Extract_Method,
-                    severity: NotificationSeverity.Error))
-            {
-                // We handled the command, displayed a notification and did not produce code.
-                return null;
-            }
-
-            // Otherwise, prefer the new approach that has less problems.
-            return alternativeResult;
-        }
 
         // The alternative approach wasn't better.  If we failed, just let the user know and bail out.  Otherwise,
         // if we succeeded with messages, tell the user and let them decide if they want to proceed or not.
@@ -253,30 +257,5 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         }
 
         return result;
-    }
-
-    private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
-        Document document, TextSpan span, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-    {
-        if (options.ExtractOptions.DoNotPutOutOrRefOnStruct || !result.Reasons.IsSingle())
-            return null;
-
-        var reason = result.Reasons.FirstOrDefault();
-        var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
-        if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket[..length], 0, length, StringComparison.Ordinal) >= 0)
-        {
-            var newResult = await ExtractMethodService.ExtractMethodAsync(
-                document,
-                span,
-                localFunction: false,
-                options with { ExtractOptions = options.ExtractOptions with { DoNotPutOutOrRefOnStruct = true } },
-                cancellationToken).ConfigureAwait(false);
-
-            // retry succeeded, return new result
-            if (newResult.Succeeded)
-                return newResult;
-        }
-
-        return null;
     }
 }

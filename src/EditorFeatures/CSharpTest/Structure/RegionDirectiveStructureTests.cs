@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
+public sealed class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTests<RegionDirectiveTriviaSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new RegionDirectiveStructureProvider();
 
@@ -114,5 +114,19 @@ public class RegionDirectiveStructureTests : AbstractCSharpSyntaxNodeStructureTe
 
         await VerifyBlockSpansAsync(code,
             Region("span", "Region", autoCollapse: false, isDefaultCollapsed: true));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+    public async Task Trailing()
+    {
+        var code = """
+            {|span:#region R$$1
+            /* comment */ #endregion
+            /* comment */ #region R2
+            #endregion|}
+            """;
+
+        await VerifyBlockSpansAsync(code,
+            Region("span", "R1", autoCollapse: false, isDefaultCollapsed: true));
     }
 }

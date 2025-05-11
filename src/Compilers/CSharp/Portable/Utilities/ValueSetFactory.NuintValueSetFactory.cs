@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public IValueSet<uint> Related(BinaryOperatorKind relation, uint value)
             {
                 return new NuintValueSet(
-                    values: NumericValueSetFactory<uint, UIntTC>.Instance.Related(relation, value),
+                    values: new NumericValueSetFactory<uint>(UIntTC.Instance).Related(relation, value),
                     hasLarge: relation switch { GreaterThan => true, GreaterThanOrEqual => true, _ => false }
                     );
             }
@@ -31,21 +31,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             IValueSet IValueSetFactory.Random(int expectedSize, Random random)
             {
                 return new NuintValueSet(
-                    values: (IValueSet<uint>)NumericValueSetFactory<uint, UIntTC>.Instance.Random(expectedSize, random),
+                    values: (IValueSet<uint>)new NumericValueSetFactory<uint>(UIntTC.Instance).Random(expectedSize, random),
                     hasLarge: random.NextDouble() < 0.25
                     );
             }
 
-            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeUInt(default(UIntTC).Random(random));
+            ConstantValue IValueSetFactory.RandomValue(Random random) => ConstantValue.CreateNativeUInt(UIntTC.Instance.Random(random));
 
             IValueSet IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue value)
             {
-                return value.IsBad ? NuintValueSet.AllValues : Related(relation, default(UIntTC).FromConstantValue(value));
+                return value.IsBad ? NuintValueSet.AllValues : Related(relation, UIntTC.Instance.FromConstantValue(value));
             }
 
             bool IValueSetFactory.Related(BinaryOperatorKind relation, ConstantValue left, ConstantValue right)
             {
-                var tc = default(UIntTC);
+                var tc = UIntTC.Instance;
                 return tc.Related(relation, tc.FromConstantValue(left), tc.FromConstantValue(right));
             }
         }

@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
     Friend NotInheritable Class VisualBasicSymbolMatcher
@@ -46,7 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' For simplicity, PID helpers and no-PIA embedded definitions are not reused across generations, so we don't map them here.
             ' Instead, new ones are regenerated as needed.
-            Debug.Assert(TypeOf definition Is PrivateImplementationDetails OrElse TypeOf definition Is Cci.IEmbeddedDefinition)
+            Debug.Assert(TypeOf definition Is PrivateImplementationDetails OrElse
+                         TypeOf definition Is Cci.IEmbeddedDefinition OrElse
+                         TypeOf definition Is MappedField OrElse
+                         TypeOf definition Is ExplicitSizeStruct)
 
             Return Nothing
         End Function
@@ -475,8 +477,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' edit. Furthermore, comparing constraint types might lead to a cycle.
                 Debug.Assert(type.HasConstructorConstraint = other.HasConstructorConstraint)
                 Debug.Assert(type.HasValueTypeConstraint = other.HasValueTypeConstraint)
+                Debug.Assert(type.AllowsRefLikeType = other.AllowsRefLikeType)
                 Debug.Assert(type.HasReferenceTypeConstraint = other.HasReferenceTypeConstraint)
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length = other.ConstraintTypesNoUseSiteDiagnostics.Length)
+                Debug.Assert(type.HasUnmanagedTypeConstraint = other.HasUnmanagedTypeConstraint)
                 Return True
             End Function
 

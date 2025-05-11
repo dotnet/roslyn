@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -386,9 +385,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(HaveDeterminedTopLevelTypes)
 
             If _lazyExportedTypes.IsDefault Then
-                _lazyExportedTypes = CalculateExportedTypes()
+                Dim initialized = ImmutableInterlocked.InterlockedInitialize(_lazyExportedTypes, CalculateExportedTypes())
 
-                If _lazyExportedTypes.Length > 0 Then
+                If initialized AndAlso _lazyExportedTypes.Length > 0 Then
                     ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics)
                 End If
             End If
@@ -715,7 +714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Private Shared Sub GetDocumentsForMethodsAndNestedTypes(documentList As PooledHashSet(Of Cci.DebugSourceDocument), typesToProcess As ArrayBuilder(Of Cci.ITypeDefinition), context As EmitContext)
 
-            ' Temporarily disable assert to unblock getting net8.0 teststing re-nabled on Unix. Will 
+            ' Temporarily disable assert to unblock getting net8.0 testing re-enabled on Unix. Will 
             ' remove this shortly.
             ' https://github.com/dotnet/roslyn/issues/71571
             ' Debug.Assert(Not context.MetadataOnly)

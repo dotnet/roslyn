@@ -164,6 +164,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Public Overrides Function GetOverloadResolutionPriority() As Integer
+                Return 0
+            End Function
+
             Friend Overrides ReadOnly Property ShadowsExplicitly As Boolean
                 Get
                     Return False

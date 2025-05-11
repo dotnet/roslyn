@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -35,13 +33,57 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
+        internal struct EmitBuilders
+        {
+            internal BlobBuilder IlBlobBuilder;
+            internal PooledBlobBuilder? MappedFieldDataBlobBuilder;
+            internal PooledBlobBuilder? ManagedResourceBlobBuilder;
+            internal PooledBlobBuilder? PortableExecutableBlobBuilder;
+            internal PooledBlobBuilder? PortablePdbBlobBuilder;
+
+            public EmitBuilders()
+            {
+                IlBlobBuilder = new BlobBuilder(32 * 1024);
+                MappedFieldDataBlobBuilder = null;
+                ManagedResourceBlobBuilder = null;
+                PortableExecutableBlobBuilder = null;
+                PortablePdbBlobBuilder = null;
+            }
+
+            internal void Free()
+            {
+                // There is a bug in LinkSuffix / LinkPrefix which causes the ownership to not
+                // transfer when these have Count of 0. To avoid this problem we should not be
+                // creating these builders unless we will actually put content into them.
+                //
+                // https://github.com/dotnet/runtime/issues/99266
+                Debug.Assert(ManagedResourceBlobBuilder == null || ManagedResourceBlobBuilder.Count > 0);
+                Debug.Assert(MappedFieldDataBlobBuilder == null || MappedFieldDataBlobBuilder.Count > 0);
+
+                if (PortableExecutableBlobBuilder is null)
+                {
+                    MappedFieldDataBlobBuilder?.Free();
+                    ManagedResourceBlobBuilder?.Free();
+                }
+                else
+                {
+                    // Once PortableExecutableBuilder is created it becomes the owner of the 
+                    // MappedFieldDataBuilder and ManagedResourceBuilder instances. Freeing 
+                    // it is sufficient to free both of them.
+                    PortableExecutableBlobBuilder.Free();
+                }
+
+                PortablePdbBlobBuilder?.Free();
+            }
+        }
+
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
-            Func<Stream> getPeStream,
-            Func<Stream> getPortablePdbStreamOpt,
-            PdbWriter nativePdbWriterOpt,
-            string pdbPathOpt,
+            Func<Stream?> getPeStream,
+            Func<Stream?>? getPortablePdbStreamOpt,
+            PdbWriter? nativePdbWriterOpt,
+            string? pdbPathOpt,
             bool metadataOnly,
             bool isDeterministic,
             bool emitTestCoverageData,
@@ -64,16 +106,13 @@ namespace Microsoft.Cci
             // based on the contents of the generated stream.
             Debug.Assert(properties.PersistentIdentifier == default(Guid));
 
-            var ilBuilder = new BlobBuilder(32 * 1024);
-            var mappedFieldDataBuilder = new BlobBuilder();
-            var managedResourceBuilder = new BlobBuilder(1024);
-
+            var emitBuilders = new EmitBuilders();
             Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
-                ilBuilder,
-                mappedFieldDataBuilder,
-                managedResourceBuilder,
+                emitBuilders.IlBlobBuilder,
+                out emitBuilders.MappedFieldDataBlobBuilder,
+                out emitBuilders.ManagedResourceBlobBuilder,
                 out mvidFixup,
                 out mvidStringFixup);
 
@@ -113,9 +152,10 @@ namespace Microsoft.Cci
                 nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
-            Stream peStream = getPeStream();
+            Stream? peStream = getPeStream();
             if (peStream == null)
             {
+                emitBuilders.Free();
                 return false;
             }
 
@@ -155,7 +195,7 @@ namespace Microsoft.Cci
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
 
-            BlobBuilder portablePdbToEmbed = null;
+            PooledBlobBuilder? portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
                 mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
@@ -167,25 +207,25 @@ namespace Microsoft.Cci
                     new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(portablePdbContentHash = CryptographicHashProvider.ComputeHash(context.Module.PdbChecksumAlgorithm, content))) :
                     null;
 
-                var portablePdbBlob = new BlobBuilder();
+                emitBuilders.PortablePdbBlobBuilder = PooledBlobBuilder.GetInstance(zero: true);
                 var portablePdbBuilder = mdWriter.GetPortablePdbBuilder(metadataRootBuilder.Sizes.RowCounts, debugEntryPointHandle, portablePdbIdProvider);
-                pdbContentId = portablePdbBuilder.Serialize(portablePdbBlob);
+                pdbContentId = portablePdbBuilder.Serialize(emitBuilders.PortablePdbBlobBuilder);
                 portablePdbVersion = portablePdbBuilder.FormatVersion;
 
                 if (getPortablePdbStreamOpt == null)
                 {
                     // embed to debug directory:
-                    portablePdbToEmbed = portablePdbBlob;
+                    portablePdbToEmbed = emitBuilders.PortablePdbBlobBuilder;
                 }
                 else
                 {
                     // write to Portable PDB stream:
-                    Stream portablePdbStream = getPortablePdbStreamOpt();
+                    Stream? portablePdbStream = getPortablePdbStreamOpt();
                     if (portablePdbStream != null)
                     {
                         try
                         {
-                            portablePdbBlob.WriteContentTo(portablePdbStream);
+                            emitBuilders.PortablePdbBlobBuilder.WriteContentTo(portablePdbStream);
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
@@ -195,7 +235,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            DebugDirectoryBuilder debugDirectoryBuilder;
+            DebugDirectoryBuilder? debugDirectoryBuilder;
             if (pdbPathOpt != null || isDeterministic || portablePdbToEmbed != null)
             {
                 debugDirectoryBuilder = new DebugDirectoryBuilder();
@@ -209,7 +249,7 @@ namespace Microsoft.Cci
                         // Emit PDB Checksum entry for Portable and Embedded PDBs. The checksum is not as useful when the PDB is embedded, 
                         // however it allows the client to efficiently validate a standalone Portable PDB that 
                         // has been extracted from Embedded PDB and placed next to the PE file.
-                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name, portablePdbContentHash);
+                        debugDirectoryBuilder.AddPdbChecksumEntry(context.Module.PdbChecksumAlgorithm.Name!, portablePdbContentHash);
                     }
                 }
 
@@ -234,9 +274,9 @@ namespace Microsoft.Cci
             var peBuilder = new ExtendedPEBuilder(
                 peHeaderBuilder,
                 metadataRootBuilder,
-                ilBuilder,
-                mappedFieldDataBuilder,
-                managedResourceBuilder,
+                emitBuilders.IlBlobBuilder,
+                emitBuilders.MappedFieldDataBlobBuilder,
+                emitBuilders.ManagedResourceBlobBuilder,
                 CreateNativeResourceSectionSerializer(context.Module),
                 debugDirectoryBuilder,
                 CalculateStrongNameSignatureSize(context.Module, privateKeyOpt),
@@ -245,29 +285,36 @@ namespace Microsoft.Cci
                 peIdProvider,
                 metadataOnly && !context.IncludePrivateMembers);
 
-            var peBlob = new BlobBuilder();
-            var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
+            // This needs to force the backing builder to zero due to the issue writing COFF
+            // headers. Can remove once this issue is fixed and we've moved to SRM with the 
+            // fix
+            // https://github.com/dotnet/runtime/issues/99244
+            emitBuilders.PortableExecutableBlobBuilder = PooledBlobBuilder.GetInstance(zero: true);
+            var peContentId = peBuilder.Serialize(emitBuilders.PortableExecutableBlobBuilder, out Blob mvidSectionFixup);
 
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
+                Debug.Assert(strongNameProvider != null);
+                strongNameProvider.SignBuilder(peBuilder, emitBuilders.PortableExecutableBlobBuilder, privateKeyOpt.Value);
             }
 
             try
             {
-                peBlob.WriteContentTo(peStream);
+                emitBuilders.PortableExecutableBlobBuilder.WriteContentTo(peStream);
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
                 throw new PeWritingException(e);
             }
 
+            emitBuilders.Free();
             return true;
         }
 
-        private static MethodInfo s_calculateChecksumMethod;
+        private static MethodInfo? s_calculateChecksumMethod;
+
         // internal for testing
         internal static uint CalculateChecksum(BlobBuilder peBlob, Blob checksumBlob)
         {
@@ -282,7 +329,7 @@ namespace Microsoft.Cci
             {
                 peBlob,
                 checksumBlob,
-            });
+            })!;
         }
 
         private static void PatchModuleVersionIds(Blob guidFixup, Blob guidSectionFixup, Blob stringFixup, Guid mvid)
@@ -318,7 +365,7 @@ namespace Microsoft.Cci
             return path + new string('\0', Math.Max(0, minLength - Encoding.UTF8.GetByteCount(path) - 1));
         }
 
-        private static ResourceSectionBuilder CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
+        private static ResourceSectionBuilder? CreateNativeResourceSectionSerializer(CommonPEModuleBuilder module)
         {
             // Win32 resources are supplied to the compiler in one of two forms, .RES (the output of the resource compiler),
             // or .OBJ (the output of running cvtres.exe on a .RES file). A .RES file is parsed and processed into

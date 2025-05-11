@@ -20,7 +20,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
-public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
+public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
     private const string s_testMarkup = """
 
@@ -30,7 +30,7 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         }
         """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp;
 
-    protected async Task TestEmbeddedCSharpAsync(
+    private async Task TestEmbeddedCSharpAsync(
        string code,
        TestHost testHost,
        params FormattedClassification[] expected)
@@ -53,7 +53,28 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
     }
 
-    protected async Task TestEmbeddedCSharpWithMultipleSpansAsync(
+    private async Task TestSingleLineEmbeddedCSharpAsync(
+       string code,
+       TestHost testHost,
+       params FormattedClassification[] expected)
+    {
+        var allCode = $$"""""
+            class C
+            {
+                void M()
+                {
+                    Test.M(""""{{code}}"""");
+                }
+            }
+            """"" + s_testMarkup;
+
+        var start = allCode.IndexOf(code, StringComparison.Ordinal);
+        var length = code.Length;
+        var spans = ImmutableArray.Create(new TextSpan(start, length));
+        await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
+    }
+
+    private async Task TestEmbeddedCSharpWithMultipleSpansAsync(
        string allCode,
        TestHost testHost,
        ImmutableArray<TextSpan> spans,
@@ -456,5 +477,27 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
                     """"),
             Punctuation.Semicolon,
             Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76575")]
+    public async Task TestOnlyMarkup1(TestHost testHost)
+    {
+        await TestEmbeddedCSharpAsync(
+            "[||]",
+            testHost,
+            TestCodeMarkdown("[|"),
+            TestCodeMarkdown("|]"));
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/76575")]
+    public async Task TestOnlyMarkup2(TestHost testHost)
+    {
+        await TestSingleLineEmbeddedCSharpAsync(
+            "[||]",
+            testHost,
+            TestCodeMarkdown("[|"),
+            TestCodeMarkdown("|]"));
     }
 }

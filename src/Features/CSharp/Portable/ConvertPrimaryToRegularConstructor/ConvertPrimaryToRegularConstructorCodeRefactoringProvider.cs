@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPrimaryToRegularConstructor), Shared]
@@ -50,13 +51,18 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         if (typeDeclaration is RecordDeclarationSyntax)
             return;
 
+        // Extensions use the .ParameterList to represent the parameters of the extension method.  But this is not a
+        // constructor, and we cannot offer to convert it to have a regular constructor.
+        if (typeDeclaration is ExtensionDeclarationSyntax)
+            return;
+
         var triggerSpan = TextSpan.FromBounds(typeDeclaration.SpanStart, typeDeclaration.ParameterList.FullSpan.End);
         if (!triggerSpan.Contains(span))
             return;
 
         context.RegisterRefactoring(CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_regular_constructor,
-                cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, context.Options, cancellationToken),
+                cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_regular_constructor)),
             triggerSpan);
     }
@@ -65,7 +71,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         Document document,
         TypeDeclarationSyntax typeDeclaration,
         ParameterListSyntax parameterList,
-        CodeActionOptionsProvider optionsProvider,
         CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -73,14 +78,14 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
 
-        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
+        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             DeclarationModifiers.None,
             Accessibility.Private,
-            optionsProvider,
             cancellationToken).ConfigureAwait(false);
 
         // Get the named type and all its parameters for use during the rewrite.
@@ -239,7 +244,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
             }
 
-            return result.ToImmutableHashSet();
+            return [.. result];
         }
 
         void RemovePrimaryConstructorParameterList()
@@ -326,6 +331,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                     if (lastFieldOrProperty < 0)
                         lastFieldOrProperty = currentTypeDeclaration.Members.LastIndexOf(m => m is PropertyDeclarationSyntax);
 
+                    currentTypeDeclaration = currentTypeDeclaration.EnsureOpenAndCloseBraceTokens();
                     if (lastFieldOrProperty >= 0)
                     {
                         constructorDeclaration = constructorDeclaration
@@ -343,6 +349,9 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         async Task RewritePrimaryConstructorParameterReferencesAsync()
         {
+            using var _ = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var removedInitializers);
+            removedInitializers.AddRange(initializedFieldsAndProperties.Select(t => t.initializer));
+
             foreach (var (parameter, references) in parameterReferences)
             {
                 // Only have to update references if we're synthesizing a field for this parameter.
@@ -358,13 +367,18 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
                     foreach (var identifierName in grouping)
                     {
+                        // Don't both updating an identifier that was in a node we already decided to explicitly remove.  For
+                        // example, if we have `int Prop { get; } = p;` and we already deleted `= p`, then no need to update
+                        // the `p` reference here.
+                        if (identifierName.GetAncestors<EqualsValueClauseSyntax>().Any(removedInitializers.Contains))
+                            continue;
+
                         var xmlElement = identifierName.AncestorsAndSelf().OfType<XmlEmptyElementSyntax>().FirstOrDefault();
                         if (xmlElement is { Name.LocalName.ValueText: "paramref" })
                         {
                             var seeTag = xmlElement
                                 .ReplaceToken(xmlElement.Name.LocalName, Identifier("see").WithTriviaFrom(xmlElement.Name.LocalName))
-                                .WithAttributes(SingletonList<XmlAttributeSyntax>(XmlCrefAttribute(
-                                    TypeCref(fieldName))));
+                                .WithAttributes([XmlCrefAttribute(TypeCref(fieldName))]);
 
                             editor.ReplaceNode(xmlElement, seeTag);
                         }
@@ -380,7 +394,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         void FixParameterAndBaseArgumentListIndentation()
         {
             var currentRoot = mainDocumentEditor.GetChangedRoot();
-            var formattingOptions = optionsProvider.GetOptions(document.Project.Services).CleanupOptions.FormattingOptions;
             var indentationOptions = new IndentationOptions(formattingOptions);
 
             var formattedRoot = Formatter.Format(currentRoot, SyntaxAnnotation.ElasticAnnotation, solution.Services, formattingOptions, cancellationToken);
@@ -470,8 +483,8 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 (parameter, _) => RewriteNestedReferences(parameter));
 
             var constructorDeclaration = ConstructorDeclaration(
-                List(methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))),
-                TokenList(Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)),
+                [.. methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))],
+                [PublicKeyword.WithAppendedTrailingTrivia(Space)],
                 typeDeclaration.Identifier.WithoutTrivia(),
                 rewrittenParameters.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),

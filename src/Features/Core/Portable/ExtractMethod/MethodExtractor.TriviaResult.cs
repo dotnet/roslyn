@@ -11,9 +11,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal abstract partial class AbstractExtractMethodService<
+    TStatementSyntax,
+    TExecutableStatementSyntax,
+    TExpressionSyntax>
 {
-    internal abstract partial class MethodExtractor<TSelectionResult, TStatementSyntax, TExpressionSyntax>
+    internal abstract partial class MethodExtractor
     {
         protected abstract class TriviaResult(SemanticDocument document, ITriviaSavedResult result, int endOfLineKind, int whitespaceKind)
         {
@@ -27,13 +32,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             public SemanticDocument SemanticDocument { get; } = document;
 
-            public async Task<SemanticDocument> ApplyAsync(GeneratedCode generatedCode, CancellationToken cancellationToken)
+            public async Task<SemanticDocument> ApplyAsync(SemanticDocument document, CancellationToken cancellationToken)
             {
-                var document = generatedCode.SemanticDocument;
                 var root = document.Root;
 
-                var callsiteAnnotation = generatedCode.CallSiteAnnotation;
-                var methodDefinitionAnnotation = generatedCode.MethodDefinitionAnnotation;
+                var callsiteAnnotation = CallSiteAnnotation;
+                var methodDefinitionAnnotation = MethodDefinitionAnnotation;
 
                 var callsite = root.GetAnnotatedNodesAndTokens(callsiteAnnotation).SingleOrDefault().AsNode();
                 var method = root.GetAnnotatedNodesAndTokens(methodDefinitionAnnotation).SingleOrDefault().AsNode();

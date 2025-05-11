@@ -120,10 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 
         Private Shared Async Function AnalyzeDocumentAsync(oldProject As Project, newDocument As Document, Optional activeStatementMap As ActiveStatementsMap = Nothing) As Task(Of DocumentAnalysisResults)
-            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Dim analyzer = oldProject.Services.GetRequiredService(Of IEditAndContinueAnalyzer)
             Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
-            Dim capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities)
-            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, capabilities, CancellationToken.None)
+            Dim capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities)
+            Dim log = New TraceLog("Test")
+            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, log, CancellationToken.None)
         End Function
 #End Region
 
@@ -485,7 +486,7 @@ End Class
                     {
                         KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
-                                ordinal:=0,
+                                New ActiveStatementId(0),
                                 ActiveStatementFlags.LeafFrame,
                                 New SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                                 instructionId:=Nothing)))
@@ -689,7 +690,7 @@ End Class
                 Next
 
                 Assert.True(result.IsSingle())
-                Assert.Empty(result.Single().RudeEditErrors)
+                Assert.Empty(result.Single().RudeEdits)
             End Using
         End Function
     End Class

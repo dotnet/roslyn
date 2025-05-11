@@ -8,23 +8,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
-{
-    /// <summary>
-    /// Provides an argument provider that always appears before any built-in argument provider. This argument
-    /// provider does not provide any argument values.
-    /// </summary>
-    [ExportArgumentProvider(nameof(FirstBuiltInArgumentProvider), LanguageNames.CSharp)]
-    [Shared]
-    internal sealed class FirstBuiltInArgumentProvider : ArgumentProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FirstBuiltInArgumentProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-        public override Task ProvideArgumentAsync(ArgumentContext context)
-            => Task.CompletedTask;
+/// <summary>
+/// Provides an argument provider that always appears before any built-in argument provider. This argument
+/// provider does not provide any argument values.
+/// </summary>
+[ExportArgumentProvider(nameof(FirstBuiltInArgumentProvider), LanguageNames.CSharp)]
+[Shared]
+internal sealed class FirstBuiltInArgumentProvider : ArgumentProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FirstBuiltInArgumentProvider()
+    {
     }
+
+    public override Task ProvideArgumentAsync(ArgumentContext context)
+        => Task.CompletedTask;
 }

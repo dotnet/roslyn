@@ -4,13 +4,12 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// A factory that creates either sequential or parallel task schedulers.
+/// </summary>
+internal interface ITaskSchedulerProvider : IWorkspaceService
 {
-    /// <summary>
-    /// A factory that creates either sequential or parallel task schedulers.
-    /// </summary>
-    internal interface ITaskSchedulerProvider : IWorkspaceService
-    {
-        TaskScheduler CurrentContextScheduler { get; }
-    }
+    TaskScheduler CurrentContextScheduler { get; }
 }

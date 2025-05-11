@@ -2,28 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.SignatureHelp
+namespace Microsoft.CodeAnalysis.SignatureHelp;
+
+internal interface ISignatureHelpProvider
 {
-    internal interface ISignatureHelpProvider
-    {
-        /// <summary>
-        /// Returns true if the character might trigger completion, 
-        /// e.g. '(' and ',' for method invocations 
-        /// </summary>
-        bool IsTriggerCharacter(char ch);
+    /// <summary>
+    /// The set of characters that might trigger a Signature Help session,
+    /// e.g. '(' and ',' for method invocations 
+    /// </summary>
+    ImmutableArray<char> TriggerCharacters { get; }
 
-        /// <summary>
-        /// Returns true if the character might end a Signature Help session, 
-        /// e.g. ')' for method invocations.  
-        /// </summary>
-        bool IsRetriggerCharacter(char ch);
+    /// <summary>
+    /// The set of characters that might end a Signature Help session,
+    /// e.g. ')' for method invocations.  
+    /// </summary>
+    ImmutableArray<char> RetriggerCharacters { get; }
 
-        /// <summary>
-        /// Returns valid signature help items at the specified position in the document.
-        /// </summary>
-        Task<SignatureHelpItems?> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
-    }
+    /// <summary>
+    /// Returns valid signature help items at the specified position in the document.
+    /// </summary>
+    Task<SignatureHelpItems?> GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 }

@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 
 [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
+public sealed class DelegateKeywordRecommenderTests : KeywordRecommenderTests
 {
     [Fact]
     public async Task TestAtRoot_Interactive()
@@ -30,9 +30,9 @@ public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact]
-    public async Task TestAfterGlobalStatement_Interactive()
+    public async Task TestAfterGlobalStatement()
     {
-        await VerifyKeywordAsync(SourceCodeKind.Script,
+        await VerifyKeywordAsync(
             """
             System.Console.WriteLine();
             $$
@@ -515,6 +515,15 @@ public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68399")]
+    public async Task TestNotInRecordParameterAttribute()
+    {
+        await VerifyAbsenceAsync(
+            """
+            record R([$$] int i) { }
+            """);
+    }
+
     #region Collection expressions
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
@@ -632,4 +641,19 @@ public class DelegateKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     #endregion
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
+    }
 }

@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -16,7 +14,8 @@ namespace Microsoft.CodeAnalysis
     {
         #region ObsoleteAttribute
         private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        public ObsoleteAttributeData ObsoleteAttributeData
+        [DisallowNull]
+        public ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {
@@ -33,6 +32,25 @@ namespace Microsoft.CodeAnalysis
                     return;
 
                 _obsoleteAttributeData = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region OverloadResolutionPriorityAttribute
+        private int _overloadResolutionPriority = 0;
+        [DisallowNull]
+        public int OverloadResolutionPriority
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _overloadResolutionPriority;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _overloadResolutionPriority = value;
                 SetDataStored();
             }
         }

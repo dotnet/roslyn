@@ -7,72 +7,73 @@ using System.Linq;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
 {
-    internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
+    public readonly RudeEditKind RudeEditKind;
+    private readonly string? _squiggle;
+    private readonly string[] _arguments;
+
+    internal RudeEditDiagnosticDescription(RudeEditKind rudeEditKind, string? squiggle, string[] arguments, string? firstLine)
     {
-        private readonly RudeEditKind _rudeEditKind;
-        private readonly string? _firstLine;
-        private readonly string? _squiggle;
-        private readonly string[] _arguments;
+        RudeEditKind = rudeEditKind;
+        _squiggle = squiggle;
+        FirstLine = firstLine;
+        _arguments = arguments ?? [];
+    }
 
-        internal RudeEditDiagnosticDescription(RudeEditKind rudeEditKind, string? squiggle, string[] arguments, string? firstLine)
+    public string? FirstLine { get; }
+
+    public RudeEditDiagnosticDescription WithFirstLine(string value)
+        => new(RudeEditKind, _squiggle, _arguments, value.Trim());
+
+    public bool Equals(RudeEditDiagnosticDescription other)
+    {
+        return RudeEditKind == other.RudeEditKind
+            && _squiggle == other._squiggle
+            && (FirstLine == other.FirstLine || FirstLine == null || other.FirstLine == null)
+            && _arguments.SequenceEqual(other._arguments, object.Equals);
+    }
+
+    public override bool Equals(object? obj)
+        => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
+
+    public override int GetHashCode()
+    {
+        return
+            Hash.Combine(_squiggle,
+            Hash.CombineValues(_arguments, (int)RudeEditKind));
+    }
+
+    public override string ToString()
+        => ToString(tryGetResource: null);
+
+    public string ToString(Func<string, string?>? tryGetResource)
+    {
+        var formattedSquiggle = _squiggle is null
+            ? "null"
+            : _squiggle.IndexOfAny(['\r', '\n']) >= 0
+            ? $"\"\"\"{Environment.NewLine}{_squiggle}{Environment.NewLine}\"\"\""
+            : $"\"{_squiggle}\"";
+
+        string[] arguments = [formattedSquiggle, .. _arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\"")];
+        var withLine = (FirstLine != null) ? $".WithFirstLine(\"{FirstLine}\")" : null;
+
+        return $"Diagnostic(RudeEditKind.{RudeEditKind}, {string.Join(", ", arguments)}){withLine}";
+    }
+
+    internal void VerifyMessageFormat()
+    {
+        var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind);
+        var format = descriptior.MessageFormat.ToString();
+        try
         {
-            _rudeEditKind = rudeEditKind;
-            _squiggle = squiggle;
-            _firstLine = firstLine;
-            _arguments = arguments ?? Array.Empty<string>();
+            string.Format(format, _arguments);
         }
-
-        public string? FirstLine => _firstLine;
-
-        public RudeEditDiagnosticDescription WithFirstLine(string value)
-            => new(_rudeEditKind, _squiggle, _arguments, value.Trim());
-
-        public bool Equals(RudeEditDiagnosticDescription other)
+        catch (FormatException)
         {
-            return _rudeEditKind == other._rudeEditKind
-                && _squiggle == other._squiggle
-                && (_firstLine == other._firstLine || _firstLine == null || other._firstLine == null)
-                && _arguments.SequenceEqual(other._arguments, object.Equals);
-        }
-
-        public override bool Equals(object obj)
-            => obj is RudeEditDiagnosticDescription && Equals((RudeEditDiagnosticDescription)obj);
-
-        public override int GetHashCode()
-        {
-            return
-                Hash.Combine(_squiggle,
-                Hash.CombineValues(_arguments, (int)_rudeEditKind));
-        }
-
-        public override string ToString()
-            => ToString(tryGetResource: null);
-
-        public string ToString(Func<string, string?>? tryGetResource)
-        {
-            var arguments =
-                new[] { (_squiggle != null) ? "\"" + _squiggle.Replace("\r\n", "\\r\\n") + "\"" : "null" }
-                .Concat(_arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\""));
-
-            var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
-
-            return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {string.Join(", ", arguments)}){withLine}";
-        }
-
-        internal void VerifyMessageFormat()
-        {
-            var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(_rudeEditKind);
-            var format = descriptior.MessageFormat.ToString();
-            try
-            {
-                string.Format(format, _arguments);
-            }
-            catch (FormatException)
-            {
-                Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {_rudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
-            }
+            Assert.True(false, $"Message format string was not supplied enough arguments.\nRudeEditKind: {RudeEditKind}\nArguments supplied: {_arguments.Length}\nFormat string: {format}");
         }
     }
 }

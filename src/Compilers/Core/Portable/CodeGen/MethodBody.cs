@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
         private readonly ImmutableArray<Cci.SequencePoint> _sequencePoints;
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
-        private readonly Cci.IImportScope _importScopeOpt;
-        private readonly string _stateMachineTypeNameOpt;
+        private readonly Cci.IImportScope? _importScopeOpt;
+        private readonly string? _stateMachineTypeNameOpt;
         private readonly ImmutableArray<StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
         private readonly bool _hasDynamicLocalVariables;
-        private readonly StateMachineMoveNextBodyDebugInfo _stateMachineMoveNextDebugInfoOpt;
+        private readonly StateMachineMoveNextBodyDebugInfo? _stateMachineMoveNextDebugInfoOpt;
 
         // Debug information emitted to Debug PDBs supporting EnC:
         private readonly DebugId _methodId;
@@ -54,23 +54,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Cci.IMethodDefinition parent,
             DebugId methodId,
             ImmutableArray<Cci.ILocalDefinition> locals,
-            SequencePointList sequencePoints,
-            DebugDocumentProvider debugDocumentProvider,
+            SequencePointList? sequencePoints,
+            DebugDocumentProvider? debugDocumentProvider,
             ImmutableArray<Cci.ExceptionHandlerRegion> exceptionHandlers,
             bool areLocalsZeroed,
             bool hasStackalloc,
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
-            Cci.IImportScope importScopeOpt,
+            Cci.IImportScope? importScopeOpt,
             ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
             ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits,
             ImmutableArray<EncClosureInfo> closureDebugInfo,
-            string stateMachineTypeNameOpt,
+            string? stateMachineTypeNameOpt,
             ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
             ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlots,
             StateMachineStatesDebugInfo stateMachineStatesDebugInfo,
-            StateMachineMoveNextBodyDebugInfo stateMachineMoveNextDebugInfoOpt,
+            StateMachineMoveNextBodyDebugInfo? stateMachineMoveNextDebugInfoOpt,
             ImmutableArray<SourceSpan> codeCoverageSpans,
             bool isPrimaryConstructor)
         {
@@ -103,12 +103,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _isPrimaryConstructor = isPrimaryConstructor;
         }
 
-        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList? sequencePoints, DebugDocumentProvider debugDocumentProvider)
+        private static ImmutableArray<Cci.SequencePoint> GetSequencePoints(SequencePointList? sequencePoints, DebugDocumentProvider? debugDocumentProvider)
         {
             if (sequencePoints == null || sequencePoints.IsEmpty)
             {
                 return ImmutableArray<Cci.SequencePoint>.Empty;
             }
+
+            Debug.Assert(debugDocumentProvider != null);
 
             var sequencePointsBuilder = ArrayBuilder<Cci.SequencePoint>.GetInstance();
             sequencePoints.GetSequencePoints(debugDocumentProvider, sequencePointsBuilder);
@@ -125,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         Cci.IMethodDefinition Cci.IMethodBody.MethodDefinition => _parent;
 
-        StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => _stateMachineMoveNextDebugInfoOpt;
+        StateMachineMoveNextBodyDebugInfo? Cci.IMethodBody.MoveNextBodyInfo => _stateMachineMoveNextDebugInfoOpt;
 
         ushort Cci.IMethodBody.MaxStack => _maxStack;
 
@@ -138,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// This is a list of the using directives that were in scope for this method body.
         /// </summary>
-        Cci.IImportScope Cci.IMethodBody.ImportScope => _importScopeOpt;
+        Cci.IImportScope? Cci.IMethodBody.ImportScope => _importScopeOpt;
 
-        string Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
+        string? Cci.IMethodBody.StateMachineTypeName => _stateMachineTypeNameOpt;
 
         ImmutableArray<StateMachineHoistedLocalScope> Cci.IMethodBody.StateMachineHoistedLocalScopes
             => _stateMachineHoistedLocalScopes;

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
+using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,20 +18,28 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LocalInProgressBinder : Binder
     {
-        private readonly LocalSymbol _inProgress;
+        public readonly EqualsValueClauseSyntax InitializerSyntax;
+        private LocalSymbol? _localSymbol;
 
-        internal LocalInProgressBinder(LocalSymbol inProgress, Binder next)
+        internal LocalInProgressBinder(EqualsValueClauseSyntax initializerSyntax, Binder next)
             : base(next)
         {
-            _inProgress = inProgress;
+            InitializerSyntax = initializerSyntax;
         }
 
         internal override LocalSymbol LocalInProgress
         {
             get
             {
-                return _inProgress;
+                // The local symbol should have been initialized by now
+                Debug.Assert(_localSymbol is not null);
+                return _localSymbol;
             }
+        }
+
+        internal void SetLocalSymbol(LocalSymbol local)
+        {
+            Interlocked.CompareExchange(ref _localSymbol, local, null);
         }
     }
 }

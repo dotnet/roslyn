@@ -44,13 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+#nullable enable
+        internal void LookupAllExtensions(LookupResult result, string? name, LookupOptions options)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            foreach (var scope in new ExtensionScopes(this))
             {
-                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteInfo);
+                scope.Binder.LookupAllExtensionMembersInSingleBinder(
+                    result, name, arity: 0, options: options,
+                    originalBinder: this, useSiteInfo: ref discardedUseSiteInfo, classicExtensionUseSiteInfo: ref discardedUseSiteInfo);
             }
         }
+#nullable disable
 
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
@@ -176,6 +182,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+        private void LookupAllExtensionMembersInSingleBinder(LookupResult result, string? name,
+            int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        {
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            EnumerateAllExtensionMembersInSingleBinder(singleLookupResults, name, arity, options, originalBinder, ref useSiteInfo, ref classicExtensionUseSiteInfo);
+            foreach (var singleLookupResult in singleLookupResults)
+            {
+                result.MergeEqual(singleLookupResult);
+            }
+
+            singleLookupResults.Free();
+        }
+
+        internal void EnumerateAllExtensionMembersInSingleBinder(ArrayBuilder<SingleLookupResult> result,
+            string? name, int arity, LookupOptions options, Binder originalBinder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ref CompoundUseSiteInfo<AssemblySymbol> classicExtensionUseSiteInfo)
+        {
+            PooledHashSet<MethodSymbol>? implementationsToShadow = null;
+
+            // 1. Collect new extension members
+            if (this.Compilation.LanguageVersion.AllowNewExtensions())
+            {
+                var extensionDeclarations = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                this.GetExtensionDeclarations(extensionDeclarations, originalBinder);
+
+                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
+                {
+                    var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
+
+                    foreach (var candidate in candidates)
+                    {
+                        SingleLookupResult resultOfThisMember = originalBinder.CheckViability(candidate, arity, options, null, diagnose: true, useSiteInfo: ref useSiteInfo);
+                        result.Add(resultOfThisMember);
+
+                        if (candidate is MethodSymbol { IsStatic: false } shadows &&
+                            shadows.OriginalDefinition.TryGetCorrespondingExtensionImplementationMethod() is { } toShadow)
+                        {
+                            implementationsToShadow ??= PooledHashSet<MethodSymbol>.GetInstance();
+                            implementationsToShadow.Add(toShadow);
+                        }
+                    }
+                }
+
+                extensionDeclarations.Free();
+            }
+
+            // 2. Collect classic extension methods
+            var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+            this.GetCandidateExtensionMethods(extensionMethods, name, arity, options, originalBinder: originalBinder);
+
+            foreach (var method in extensionMethods)
+            {
+                // Prefer instance extension declarations vs. their implementations
+                if (implementationsToShadow is null || !implementationsToShadow.Remove(method.OriginalDefinition))
+                {
+                    SingleLookupResult resultOfThisMember = originalBinder.CheckViability(method, arity, options, null, diagnose: true, useSiteInfo: ref classicExtensionUseSiteInfo);
+                    result.Add(resultOfThisMember);
+                }
+            }
+
+            extensionMethods.Free();
+            implementationsToShadow?.Free();
+        }
+#nullable disable
+
         // Looks up a member of given name and arity in a particular type.
         protected void LookupMembersInType(LookupResult result, TypeSymbol type, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
@@ -205,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TypeKind.Pointer:
                 case TypeKind.FunctionPointer:
+                case TypeKind.Extension:
                     result.Clear();
                     break;
 
@@ -451,13 +523,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should be able to remove this method once all the callers are updated to account for new extension members
         /// <summary>
         /// Lookup extension methods by name and arity in the given binder and
         /// check viability in this binder. The lookup is performed on a single
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private void LookupExtensionMethodsInSingleBinder(ExtensionScope scope, LookupResult result, string name, int arity, LookupOptions options, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
@@ -738,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        internal virtual bool SupportsExtensions
         {
             get { return false; }
         }
@@ -758,6 +831,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder originalBinder)
         {
         }
+
+#nullable enable
+        /// <summary>
+        /// Return the extension declarations from this specific binding scope
+        /// Since the lookup of extension members is iterative, proceeding one binding scope at a time,
+        /// GetExtensionDeclarations should not defer to the next binding scope. Instead, the caller is
+        /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
+        /// to search the available members list in binding types that represent types, namespaces, and usings.
+        /// </summary>
+        internal virtual void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+        {
+        }
+#nullable disable
 
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
@@ -1399,6 +1485,10 @@ symIsHidden:;
             {
                 return LookupResult.Empty();
             }
+            else if ((options & LookupOptions.MustBeOperator) != 0 && unwrappedSymbol is not MethodSymbol { MethodKind: MethodKind.UserDefinedOperator })
+            {
+                return LookupResult.Empty();
+            }
             else if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
@@ -1417,7 +1507,7 @@ symIsHidden:;
             {
                 return LookupResult.WrongArity(symbol, diagInfo);
             }
-            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters)
+            else if (!InCref && !unwrappedSymbol.CanBeReferencedByNameIgnoringIllegalCharacters && (options & LookupOptions.MustBeOperator) == 0)
             {
                 // Strictly speaking, this test should actually check CanBeReferencedByName.
                 // However, we don't want to pay that cost in cases where the lookup is based
@@ -1793,7 +1883,7 @@ symIsHidden:;
                     if (arity != 0 || (options & LookupOptions.AllMethodsOnArityZero) == 0)
                     {
                         MethodSymbol method = (MethodSymbol)symbol;
-                        if (method.Arity != arity)
+                        if (method.GetMemberArityIncludingExtension() != arity)
                         {
                             if (method.Arity == 0)
                             {

@@ -14,17 +14,17 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     using static TestCompilationFactory;
 
-    public class CommandLineRunnerTests : TestBase
+    public class CommandLineRunnerTests : CSharpScriptTestBase
     {
         private static readonly string s_compilerVersion = CommonCompiler.GetProductVersion(typeof(CSharpInteractiveCompiler));
 
@@ -32,80 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {CSharpScriptingResources.LogoLine2}
 
 {ScriptingResources.HelpPrompt}";
-
-        // default csi.rsp
-        private static readonly string[] s_defaultArgs =
-        [
-            "/r:" + string.Join(";", GetReferences()),
-            "/u:System;System.IO;System.Collections.Generic;System.Diagnostics;System.Dynamic;System.Linq;System.Linq.Expressions;System.Text;System.Threading.Tasks",
-        ];
-
-        private static IEnumerable<string> GetReferences()
-        {
-            if (GacFileResolver.IsAvailable)
-            {
-                // keep in sync with list in csi.rsp
-                yield return "System";
-                yield return "System.Core";
-                yield return "Microsoft.CSharp";
-            }
-            else
-            {
-                // keep in sync with list in core csi.rsp
-                yield return "System.Collections";
-                yield return "System.Collections.Concurrent";
-                yield return "System.Console";
-                yield return "System.Diagnostics.Debug";
-                yield return "System.Diagnostics.Process";
-                yield return "System.Diagnostics.StackTrace";
-                yield return "System.Globalization";
-                yield return "System.IO";
-                yield return "System.IO.FileSystem";
-                yield return "System.IO.FileSystem.Primitives";
-                yield return "System.Reflection";
-                yield return "System.Reflection.Extensions";
-                yield return "System.Reflection.Primitives";
-                yield return "System.Runtime";
-                yield return "System.Runtime.Extensions";
-                yield return "System.Runtime.InteropServices";
-                yield return "System.Text.Encoding";
-                yield return "System.Text.Encoding.CodePages";
-                yield return "System.Text.Encoding.Extensions";
-                yield return "System.Text.RegularExpressions";
-                yield return "System.Threading";
-                yield return "System.Threading.Tasks";
-                yield return "System.Threading.Tasks.Parallel";
-                yield return "System.Threading.Thread";
-                yield return "System.Linq";
-                yield return "System.Linq.Expressions";
-                yield return "System.Runtime.Numerics";
-                yield return "System.Dynamic.Runtime";
-                yield return "Microsoft.CSharp";
-            }
-        }
-
-        private static CommandLineRunner CreateRunner(
-            string[] args = null,
-            string input = "",
-            string responseFile = null,
-            string workingDirectory = null)
-        {
-            var io = new TestConsoleIO(input);
-            var clientDir = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(CommandLineRunnerTests)));
-            var buildPaths = new BuildPaths(
-                clientDir: clientDir,
-                workingDir: workingDirectory ?? clientDir,
-                sdkDir: null,
-                tempDir: Path.GetTempPath());
-
-            var compiler = new CSharpInteractiveCompiler(
-                responseFile,
-                buildPaths,
-                args?.Where(a => a != null).ToArray() ?? s_defaultArgs,
-                new NotImplementedAnalyzerLoader());
-
-            return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
-        }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
         public void Await()
@@ -121,6 +47,9 @@ select x * x
 ");
             runner.RunInteractive();
 
+            var iteratorType = RuntimeUtilities.IsCoreClr9OrHigherRuntime
+                ? "ArrayWhereSelectIterator"
+                : "WhereSelectArrayIterator";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > async Task<int[]> GetStuffAsync()
@@ -133,7 +62,7 @@ $@"{LogoAndHelpPrompt}
 > from x in await GetStuffAsync()
 . where x > 2
 . select x * x
-Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
+Enumerable.{iteratorType}<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
@@ -866,28 +795,28 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { Net451.mscorlib }, libBaseName);
+", new[] { NetFramework.mscorlib }, libBaseName);
 
             var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { Net451.mscorlib }, libBaseName);
+", new[] { NetFramework.mscorlib }, libBaseName);
 
             var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { NetFramework.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { NetFramework.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();

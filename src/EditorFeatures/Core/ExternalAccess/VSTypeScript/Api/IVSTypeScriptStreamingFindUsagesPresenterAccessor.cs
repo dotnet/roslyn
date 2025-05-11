@@ -4,13 +4,12 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal interface IVSTypeScriptStreamingFindUsagesPresenterAccessor
-    {
-        (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
-            string title, bool supportsReferences);
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-        void ClearAll();
-    }
+internal interface IVSTypeScriptStreamingFindUsagesPresenterAccessor
+{
+    (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
+        string title, bool supportsReferences);
+
+    void ClearAll();
 }

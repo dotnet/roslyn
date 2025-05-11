@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal BasicBlock(ILBuilder builder)
             {
-                Debug.Assert(BitConverter.IsLittleEndian);
                 Initialize(builder);
             }
 

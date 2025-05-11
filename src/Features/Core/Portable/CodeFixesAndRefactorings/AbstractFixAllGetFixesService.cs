@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
@@ -42,7 +40,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         var codeAction = await GetFixAllCodeActionAsync(fixAllContext).ConfigureAwait(false);
         if (codeAction == null)
         {
-            return ImmutableArray<CodeActionOperation>.Empty;
+            return [];
         }
 
         return await GetFixAllOperationsAsync(
@@ -66,7 +64,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
             fixAllState.Solution, progressTracker, cancellationToken).ConfigureAwait(false);
         if (operations == null)
         {
-            return ImmutableArray<CodeActionOperation>.Empty;
+            return [];
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -76,7 +74,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
         if (newSolution is null)
         {
             // No changed documents
-            return ImmutableArray<CodeActionOperation>.Empty;
+            return [];
         }
 
         if (showPreviewChangesDialog)
@@ -93,7 +91,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 cancellationToken);
             if (newSolution == null)
             {
-                return ImmutableArray<CodeActionOperation>.Empty;
+                return [];
             }
         }
 
@@ -123,7 +121,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         using (Logger.LogBlock(
             functionId,
-            KeyValueLogMessage.Create(LogType.UserAction, m =>
+            KeyValueLogMessage.Create(LogType.UserAction, static (m, correlationId) =>
             {
                 // only set when correlation id is given
                 // we might not have this info for suppression
@@ -131,7 +129,7 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
                 {
                     m[FixAllLogger.CorrelationId] = correlationId;
                 }
-            }),
+            }, correlationId),
             cancellationToken))
         {
             var glyph = language == null
@@ -167,11 +165,11 @@ internal abstract class AbstractFixAllGetFixesService : IFixAllGetFixesService
 
         using (Logger.LogBlock(
             functionId,
-            KeyValueLogMessage.Create(LogType.UserAction, m =>
+            KeyValueLogMessage.Create(LogType.UserAction, static (m, fixAllContext) =>
             {
                 m[FixAllLogger.CorrelationId] = fixAllContext.State.CorrelationId;
                 m[FixAllLogger.FixAllScope] = fixAllContext.State.Scope.ToString();
-            }),
+            }, fixAllContext),
             fixAllContext.CancellationToken))
         {
             CodeAction? action = null;

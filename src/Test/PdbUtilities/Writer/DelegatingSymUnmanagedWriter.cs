@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Cci;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities
@@ -26,11 +27,16 @@ namespace Roslyn.Test.PdbUtilities
             set => _target.DocumentTableCapacity = value;
         }
 
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            _target.AddCompilerInfo(major, minor, build, revision, name);
+        }
+
         public override void Dispose() => _target.Dispose();
         public override void CloseMethod() => _target.CloseMethod();
         public override void CloseScope(int endOffset) => _target.CloseScope(endOffset);
         public override void CloseTokensToSourceSpansMap() => _target.CloseTokensToSourceSpansMap();
-        public override void DefineCustomMetadata(byte[] metadata) => _target.DefineCustomMetadata(metadata);
+        public override void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition) => _target.DefineCustomMetadata(metadata, methodDefinition);
 
         public override int DefineDocument(string name, Guid language, Guid vendor, Guid type, Guid algorithmId, ReadOnlySpan<byte> checksum, ReadOnlySpan<byte> source)
             => _target.DefineDocument(name, language, vendor, type, algorithmId, checksum, source);

@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Literal((int)binderFlags),
 
                 // target type:
-                _factory.Typeof(resultType),
+                _factory.Typeof(resultType, _factory.WellKnownType(WellKnownType.System_Type)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType()
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool receiverIsStaticType;
             if (loweredReceiver.Kind == BoundKind.TypeExpression)
             {
-                loweredReceiver = _factory.Typeof(((BoundTypeExpression)loweredReceiver).Type);
+                loweredReceiver = _factory.Typeof(((BoundTypeExpression)loweredReceiver).Type, _factory.WellKnownType(WellKnownType.System_Type));
                 receiverRefKind = RefKind.None;
                 receiverIsStaticType = true;
             }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type arguments:
                 typeArgumentsWithAnnotations.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations, _factory.WellKnownType(WellKnownType.System_Type))),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _factory.Syntax = syntax;
 
-            var loweredReceiver = _factory.Typeof(type);
+            var loweredReceiver = _factory.Typeof(type, _factory.WellKnownType(WellKnownType.System_Type));
 
             MethodSymbol argumentInfoFactory = GetArgumentInfoFactory();
             var binderConstruction = ((object)argumentInfoFactory != null) ? MakeBinderConstruction(WellKnownMember.Microsoft_CSharp_RuntimeBinder_Binder__InvokeConstructor, new[]
@@ -547,8 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RefKind.None;
             }
 
-            var hasHome = Binder.HasHome(loweredReceiver,
-                Binder.AddressKind.Writeable,
+            var hasHome = CodeGenerator.HasHome(loweredReceiver,
+                CodeGenerator.AddressKind.Writeable,
                 _factory.CurrentFunction,
                 peVerifyCompatEnabled: false,
                 stackLocalsOpt: null);

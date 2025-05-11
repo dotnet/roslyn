@@ -270,11 +270,18 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
+            }
+        }
+
+        private void AccumulateDiagnosticInfoAndRecordPresenceOfAnError(DiagnosticInfo diagnosticInfo)
+        {
+            Debug.Assert(_diagnostics is not null);
+
+            if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                RecordPresenceOfAnError();
             }
         }
 
@@ -291,10 +298,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
             }
         }
@@ -312,12 +316,21 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
             }
+        }
+
+        public void AddDiagnosticInfo(DiagnosticInfo diagnosticInfo)
+        {
+            if (!AccumulatesDiagnostics)
+            {
+                return;
+            }
+
+            _diagnostics ??= new HashSet<DiagnosticInfo>();
+
+            AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
         }
 
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)
@@ -517,7 +530,7 @@ namespace Microsoft.CodeAnalysis
             return info;
         }
 
-        public void InterlockedCompareExchange(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
+        public void InterlockedInitializeFromSentinel(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
         {
             if ((object?)_info == Sentinel)
             {
@@ -526,7 +539,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public UseSiteInfo<TAssemblySymbol> InterlockedInitialize(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
+        /// <summary>
+        /// Atomically initializes the cache with the given value if it is currently fully default.
+        /// This <i>will not</i> initialize <see cref="CachedUseSiteInfo{TAssemblySymbol}.Uninitialized"/>.
+        /// </summary>
+        public UseSiteInfo<TAssemblySymbol> InterlockedInitializeFromDefault(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
         {
             object? info = Compact(value.DiagnosticInfo, GetDependenciesToCache(primaryDependency, value));
             Debug.Assert(info is object);

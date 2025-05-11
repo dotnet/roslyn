@@ -183,24 +183,24 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Starting indexing");
 
             var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
-            {
-                Console.WriteLine("Successfully got persistent storage instance");
-                var start = DateTime.Now;
-                var indexTime = TimeSpan.Zero;
-                var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
-                    async () =>
-                    {
-                        var tree = await d.GetSyntaxRootAsync();
-                        var stopwatch = SharedStopwatch.StartNew();
-                        await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
-                        await SyntaxTreeIndex.GetIndexAsync(d, default);
-                        indexTime += stopwatch.Elapsed;
-                    })).ToList();
-                await Task.WhenAll(tasks);
-                Console.WriteLine("Indexing time    : " + indexTime);
-                Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
-            }
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None);
+
+            Console.WriteLine("Successfully got persistent storage instance");
+            var start = DateTime.Now;
+            var indexTime = TimeSpan.Zero;
+            var tasks = _workspace.CurrentSolution.Projects.SelectMany(p => p.Documents).Select(d => Task.Run(
+                async () =>
+                {
+                    var tree = await d.GetSyntaxRootAsync();
+                    var stopwatch = SharedStopwatch.StartNew();
+                    await TopLevelSyntaxTreeIndex.GetIndexAsync(d, default);
+                    await SyntaxTreeIndex.GetIndexAsync(d, default);
+                    indexTime += stopwatch.Elapsed;
+                })).ToList();
+            await Task.WhenAll(tasks);
+            Console.WriteLine("Indexing time    : " + indexTime);
+            Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
+
             Console.WriteLine("DB flushed");
             Console.ReadLine();
         }
@@ -229,10 +229,10 @@ namespace IdeCoreBenchmarks
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectsAsync(
                 solution, grouping.ToImmutableArray(), priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
-                (_, r) =>
+                r =>
                 {
                     lock (results)
-                        results.Add(r);
+                        results.AddRange(r);
 
                     return Task.CompletedTask;
                 },

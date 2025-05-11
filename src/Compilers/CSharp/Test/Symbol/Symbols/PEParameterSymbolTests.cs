@@ -89,7 +89,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { vbComp }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { vbComp }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Class1.Test(out object, ref object, int)'
                 //         Class1.Test();

@@ -11,14 +11,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
     Public Class LoadingEvents : Inherits BasicTestBase
         <Fact>
         Public Sub LoadNonGenericEvents()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("NonGeneric")
@@ -27,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub LoadGenericEvents()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("Generic")
@@ -36,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
         <Fact>
         Public Sub LoadClosedGenericEvents()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("ClosedGeneric")
@@ -126,7 +125,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub LoadSignatureMismatchEvents()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("SignatureMismatch")
             Dim mismatchedAddEvent = [class].GetMember(Of EventSymbol)("AddMismatch")
@@ -137,7 +136,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub LoadMissingParameterEvents()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("AccessorMissingParameter")
             Dim noParamAddEvent = [class].GetMember(Of EventSymbol)("AddNoParam")
@@ -148,7 +147,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub LoadNonDelegateEvent()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.Events})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.Events})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [class] = globalNamespace.GetMember(Of NamedTypeSymbol)("NonDelegateEvent")
             Dim nonDelegateEvent = [class].GetMember(Of EventSymbol)("NonDelegate")
@@ -157,7 +156,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub TestExplicitImplementationSimple()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [interface] = DirectCast(globalNamespace.GetTypeMembers("Interface").Single(), NamedTypeSymbol)
             Assert.Equal(TypeKind.[Interface], [interface].TypeKind)
@@ -172,7 +171,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [interface] = DirectCast(globalNamespace.GetTypeMembers("IGeneric").Single(), NamedTypeSymbol)
             Assert.Equal(TypeKind.[Interface], [interface].TypeKind)
@@ -190,7 +189,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim [interface] = DirectCast(globalNamespace.GetTypeMembers("IGeneric").Single(), NamedTypeSymbol)
             Assert.Equal(TypeKind.[Interface], [interface].TypeKind)
@@ -208,7 +207,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub TestExplicitImplementationDefRefDef()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim defInterface = DirectCast(globalNamespace.GetTypeMembers("Interface").Single(), NamedTypeSymbol)
             Assert.Equal(TypeKind.[Interface], defInterface.TypeKind)
@@ -229,7 +228,7 @@ BC30005: Reference required to assembly 'System.Drawing, Version=4.0.0.0, Cultur
 
         <Fact>
         Public Sub TestTypeParameterPositions()
-            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({Net451.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
+            Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetFramework.mscorlib, TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
             Dim outerInterface = DirectCast(globalNamespace.GetTypeMembers("IGeneric2").Single(), NamedTypeSymbol)
             Assert.Equal(1, outerInterface.Arity)

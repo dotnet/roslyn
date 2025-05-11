@@ -228,4 +228,19 @@
   <data name="FeatureName_SourceGeneration" xml:space="preserve">
     <value>Source generation</value>
   </data>
+  <data name="FeatureName_SemanticSearch" xml:space="preserve">
+    <value>Semantic search</value>
+  </data>
+  <data name="FeatureName_RelatedDocuments" xml:space="preserve">
+    <value>Related documents</value>
+  </data>
+  <data name="FeatureName_ExtensionMessageHandler" xml:space="preserve">
+    <value>Extension message handler</value>
+  </data>
+  <data name="FeatureName_Initialization" xml:space="preserve">
+    <value>Initialization</value>
+  </data>
+  <data name="FeatureName_CopilotChangeAnalysis" xml:space="preserve">
+    <value>Copilot change analysis</value>
+  </data>
 </root>

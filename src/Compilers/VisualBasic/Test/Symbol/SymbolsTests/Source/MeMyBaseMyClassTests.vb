@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class MeMyBaseMyClassTests
@@ -1438,7 +1439,7 @@ Module MyExtensionModule
     End Function
 End Module
     </file>
-</compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
+</compilation>, references:={Net40.References.SystemCore}).VerifyIL("C1.Goo", <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1

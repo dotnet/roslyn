@@ -60,7 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _ordinal; }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsCollection
         {
             get { return false; }
         }
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 
             // in order to facilitate debugging.  In the case the necessary attributes are missing 
@@ -191,9 +196,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor));
             }
 
-            if (this.IsParams && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            if (this.IsParamsArray && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
             {
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ParamArrayAttribute__ctor));
+            }
+            else if (this.IsParamsCollection && this.ContainingSymbol is SynthesizedDelegateInvokeMethod)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeParamCollectionAttribute(this));
             }
 
             var defaultValue = this.ExplicitDefaultConstantValue;
@@ -314,6 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
+        internal override bool HasEnumeratorCancellationAttribute => false;
+
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation
         {
             get { return null; }
@@ -367,11 +378,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _baseParameterForAttributes?.GetAttributes() ?? ImmutableArray<CSharpAttributeData>.Empty;
         }
 
-        public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
+        internal override bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
 
-        public override bool IsParams => _isParams;
+        public override bool IsParamsArray => _isParams && Type.IsSZArray();
+
+        public override bool IsParamsCollection => _isParams && !Type.IsSZArray();
 
         internal override bool HasUnscopedRefAttribute => _hasUnscopedRefAttribute;
 

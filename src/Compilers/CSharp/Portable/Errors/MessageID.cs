@@ -276,9 +276,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
-        IDS_StringEscapeCharacter = MessageBase + 12839,
+        IDS_FeatureStringEscapeCharacter = MessageBase + 12839,
 
-        IDS_ImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureLockObject = MessageBase + 12841,
+
+        IDS_FeatureParamsCollections = MessageBase + 12842,
+
+        IDS_FeatureRefUnsafeInIteratorAsync = MessageBase + 12843,
+
+        IDS_FeatureRefStructInterfaces = MessageBase + 12844,
+
+        IDS_FeaturePartialProperties = MessageBase + 12845,
+        IDS_FeatureFieldKeyword = MessageBase + 12846,
+
+        IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
+        IDS_FeatureOverloadResolutionPriority = MessageBase + 12848,
+
+        IDS_FeatureFirstClassSpan = MessageBase + 12849,
+
+        IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12850,
+        IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12851,
+
+        IDS_FeaturePartialEventsAndConstructors = MessageBase + 12852,
+        IDS_FeatureExtensions = MessageBase + 12853,
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12854,
+        IDS_FeatureExpressionOptionalAndNamedArguments = MessageBase + 12855,
+        IDS_CollectionExpression = MessageBase + 12856,
+
+        IDS_FeatureUserDefinedCompoundAssignmentOperators = MessageBase + 12857,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -459,9 +485,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_StringEscapeCharacter:
-                case MessageID.IDS_ImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureFieldKeyword:
+                case MessageID.IDS_FeatureFirstClassSpan:
+                case MessageID.IDS_FeatureUnboundGenericTypesInNameof:
+                case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
+                case MessageID.IDS_FeaturePartialEventsAndConstructors:
+                case MessageID.IDS_FeatureExtensions:
+                case MessageID.IDS_FeatureNullConditionalAssignment:
+                case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
+                case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
                     return LanguageVersion.Preview;
+
+                // C# 13.0 features.
+                case MessageID.IDS_FeatureStringEscapeCharacter: // lexer check
+                case MessageID.IDS_FeatureImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
+                case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
+                case MessageID.IDS_FeatureRefStructInterfaces:
+                case MessageID.IDS_FeatureAllowsRefStructConstraint:
+                case MessageID.IDS_FeaturePartialProperties:
+                case MessageID.IDS_FeatureOverloadResolutionPriority:
+                    return LanguageVersion.CSharp13;
 
                 // C# 12.0 features.
                 case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check

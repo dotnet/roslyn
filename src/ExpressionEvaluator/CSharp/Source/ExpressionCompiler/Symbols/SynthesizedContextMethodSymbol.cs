@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     /// expressions outside of a method - specifically, binding
     /// DebuggerDisplayAttribute expressions.
     /// </summary>
-    internal sealed class SynthesizedContextMethodSymbol : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedContextMethodSymbol : SynthesizedMethodSymbol
     {
         private readonly NamedTypeSymbol _container;
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             throw ExceptionUtilities.Unreachable();
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             throw ExceptionUtilities.Unreachable();
         }

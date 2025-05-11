@@ -237,6 +237,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        public override void VisitMethod(MethodSymbol symbol)
+        {
+            if (symbol is SourceExtensionImplementationMethodSymbol implementation)
+            {
+                MethodSymbol underlyingMethod = implementation.UnderlyingMethod;
+                Symbol symbolForDocComment = underlyingMethod.IsAccessor()
+                    ? underlyingMethod.AssociatedSymbol
+                    : underlyingMethod;
+
+                if (!hasDocumentationTrivia(symbolForDocComment))
+                {
+                    return;
+                }
+
+                WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
+                Indent();
+                WriteLine("<inheritdoc cref=\"{0}\"/>", symbolForDocComment.GetDocumentationCommentId());
+                Unindent();
+                WriteLine("</member>");
+                return;
+            }
+
+            base.VisitMethod(symbol);
+            return;
+
+            static bool hasDocumentationTrivia(Symbol symbol)
+            {
+                foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
+                {
+                    foreach (var trivia in reference.GetSyntax().GetLeadingTrivia())
+                    {
+                        if (trivia.IsDocumentationCommentTrivia)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.
@@ -258,7 +299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                if (symbol is MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
+                Symbol? implementationPart = symbol.GetPartialImplementationPart();
+                if (implementationPart is not null)
                 {
                     Visit(implementationPart);
 
@@ -1231,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetAndEndTemporaryString()
         {
             TemporaryStringBuilder t = _temporaryStringBuilders.Pop();
-            Debug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
+            RoslynDebug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
             _indentDepth = t.InitialIndentDepth;
             return t.Pooled.ToStringAndFree();
         }

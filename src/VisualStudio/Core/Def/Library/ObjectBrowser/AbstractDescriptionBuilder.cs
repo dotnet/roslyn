@@ -7,476 +7,472 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
+
+internal abstract partial class AbstractDescriptionBuilder
 {
-    internal abstract partial class AbstractDescriptionBuilder
+    private readonly IVsObjectBrowserDescription3 _description;
+    private readonly AbstractObjectBrowserLibraryManager _libraryManager;
+    private readonly ObjectListItem _listItem;
+    private readonly Project _project;
+
+    private static readonly SymbolDisplayFormat s_typeDisplay = new(
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+    protected AbstractDescriptionBuilder(
+        IVsObjectBrowserDescription3 description,
+        AbstractObjectBrowserLibraryManager libraryManager,
+        ObjectListItem listItem,
+        Project project)
     {
-        private readonly IVsObjectBrowserDescription3 _description;
-        private readonly AbstractObjectBrowserLibraryManager _libraryManager;
-        private readonly ObjectListItem _listItem;
-        private readonly Project _project;
+        _description = description;
+        _libraryManager = libraryManager;
+        _listItem = listItem;
+        _project = project;
+    }
 
-        private static readonly SymbolDisplayFormat s_typeDisplay = new(
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    private Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken)
+        => _project.GetCompilationAsync(cancellationToken);
 
-        protected AbstractDescriptionBuilder(
-            IVsObjectBrowserDescription3 description,
-            AbstractObjectBrowserLibraryManager libraryManager,
-            ObjectListItem listItem,
-            Project project)
+    protected void AddAssemblyLink(IAssemblySymbol assemblySymbol)
+    {
+        var name = assemblySymbol.Identity.Name;
+        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForAssembly(assemblySymbol);
+
+        _description.AddDescriptionText3(name, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+    }
+
+    protected void AddComma()
+        => _description.AddDescriptionText3(", ", VSOBDESCRIPTIONSECTION.OBDS_COMMA, null);
+
+    protected void AddEndDeclaration()
+        => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_ENDDECL, null);
+
+    protected void AddIndent()
+        => _description.AddDescriptionText3("    ", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
+
+    protected void AddLineBreak()
+        => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
+
+    protected void AddName(string text)
+        => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
+
+    protected async Task AddNamespaceLinkAsync(INamespaceSymbol namespaceSymbol, CancellationToken cancellationToken)
+    {
+        if (namespaceSymbol.IsGlobalNamespace)
         {
-            _description = description;
-            _libraryManager = libraryManager;
-            _listItem = listItem;
-            _project = project;
+            return;
         }
 
-        private Compilation GetCompilation()
+        var text = namespaceSymbol.ToDisplayString();
+        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForNamespace(
+            namespaceSymbol, _project, await GetCompilationAsync(cancellationToken).ConfigureAwait(true), useExpandedHierarchy: false);
+
+        _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+    }
+
+    protected void AddParam(string text)
+        => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_PARAM, null);
+
+    protected void AddText(string text)
+        => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
+
+    protected async Task AddTypeLinkAsync(
+        ITypeSymbol typeSymbol, LinkFlags flags, CancellationToken cancellationToken)
+    {
+        if (typeSymbol.TypeKind is TypeKind.Unknown or TypeKind.Error or TypeKind.TypeParameter ||
+            typeSymbol.SpecialType == SpecialType.System_Void)
         {
-            return _project
-                .GetCompilationAsync(CancellationToken.None)
-                .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
+            AddName(typeSymbol.ToDisplayString(s_typeDisplay));
+            return;
         }
 
-        protected void AddAssemblyLink(IAssemblySymbol assemblySymbol)
-        {
-            var name = assemblySymbol.Identity.Name;
-            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForAssembly(assemblySymbol);
+        var useSpecialTypes = (flags & LinkFlags.ExpandPredefinedTypes) == 0;
+        var splitLink = !useSpecialTypes & (flags & LinkFlags.SplitNamespaceAndType) != 0;
 
-            _description.AddDescriptionText3(name, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+        if (splitLink && !typeSymbol.ContainingNamespace.IsGlobalNamespace)
+        {
+            await AddNamespaceLinkAsync(typeSymbol.ContainingNamespace, cancellationToken).ConfigureAwait(true);
+            AddText(".");
         }
 
-        protected void AddComma()
-            => _description.AddDescriptionText3(", ", VSOBDESCRIPTIONSECTION.OBDS_COMMA, null);
+        var typeQualificationStyle = splitLink
+            ? SymbolDisplayTypeQualificationStyle.NameAndContainingTypes
+            : SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces;
 
-        protected void AddEndDeclaration()
-            => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_ENDDECL, null);
+        var miscellaneousOptions = useSpecialTypes
+            ? SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+            : SymbolDisplayMiscellaneousOptions.ExpandNullable;
 
-        protected void AddIndent()
-            => _description.AddDescriptionText3("    ", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
+        var typeDisplayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: typeQualificationStyle,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
+            miscellaneousOptions: miscellaneousOptions);
 
-        protected void AddLineBreak()
-            => _description.AddDescriptionText3("\n", VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
+        var text = typeSymbol.ToDisplayString(typeDisplayFormat);
+        var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForType(
+            typeSymbol, _project, await GetCompilationAsync(cancellationToken).ConfigureAwait(true), useExpandedHierarchy: false);
 
-        protected void AddName(string text)
-            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_NAME, null);
+        _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+    }
 
-        protected void AddNamespaceLink(INamespaceSymbol namespaceSymbol)
+    private void BuildProject(ProjectListItem projectListItem)
+    {
+        AddText(ServicesVSResources.Project);
+        AddName(projectListItem.DisplayText);
+    }
+
+    private void BuildReference(ReferenceListItem referenceListItem)
+    {
+        AddText(ServicesVSResources.Assembly);
+        AddName(referenceListItem.DisplayText);
+        AddEndDeclaration();
+        AddIndent();
+
+        if (referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference)
         {
-            if (namespaceSymbol.IsGlobalNamespace)
-            {
-                return;
-            }
+            AddText(portableExecutableReference.FilePath);
+        }
+    }
 
-            var text = namespaceSymbol.ToDisplayString();
-            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForNamespace(namespaceSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
-
-            _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+    private async Task BuildNamespaceAsync(
+        NamespaceListItem namespaceListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
+    {
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
+        if (compilation == null)
+        {
+            return;
         }
 
-        protected void AddParam(string text)
-            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_PARAM, null);
-
-        protected void AddText(string text)
-            => _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_MISC, null);
-
-        protected void AddTypeLink(ITypeSymbol typeSymbol, LinkFlags flags)
+        var namespaceSymbol = namespaceListItem.ResolveTypedSymbol(compilation);
+        if (namespaceSymbol == null)
         {
-            if (typeSymbol.TypeKind is TypeKind.Unknown or TypeKind.Error or TypeKind.TypeParameter ||
-                typeSymbol.SpecialType == SpecialType.System_Void)
-            {
-                AddName(typeSymbol.ToDisplayString(s_typeDisplay));
-                return;
-            }
-
-            var useSpecialTypes = (flags & LinkFlags.ExpandPredefinedTypes) == 0;
-            var splitLink = !useSpecialTypes & (flags & LinkFlags.SplitNamespaceAndType) != 0;
-
-            if (splitLink && !typeSymbol.ContainingNamespace.IsGlobalNamespace)
-            {
-                AddNamespaceLink(typeSymbol.ContainingNamespace);
-                AddText(".");
-            }
-
-            var typeQualificationStyle = splitLink
-                ? SymbolDisplayTypeQualificationStyle.NameAndContainingTypes
-                : SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces;
-
-            var miscellaneousOptions = useSpecialTypes
-                ? SymbolDisplayMiscellaneousOptions.UseSpecialTypes
-                : SymbolDisplayMiscellaneousOptions.ExpandNullable;
-
-            var typeDisplayFormat = new SymbolDisplayFormat(
-                typeQualificationStyle: typeQualificationStyle,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-                miscellaneousOptions: miscellaneousOptions);
-
-            var text = typeSymbol.ToDisplayString(typeDisplayFormat);
-            var navInfo = _libraryManager.LibraryService.NavInfoFactory.CreateForType(typeSymbol, _project, GetCompilation(), useExpandedHierarchy: false);
-
-            _description.AddDescriptionText3(text, VSOBDESCRIPTIONSECTION.OBDS_TYPE, navInfo);
+            return;
         }
 
-        private void BuildProject(ProjectListItem projectListItem)
+        BuildNamespaceDeclaration(namespaceSymbol, options);
+
+        AddEndDeclaration();
+        await BuildMemberOfAsync(namespaceSymbol.ContainingAssembly, cancellationToken).ConfigureAwait(true);
+    }
+
+    private async Task BuildTypeAsync(TypeListItem typeListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
+    {
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
+        if (compilation == null)
         {
-            AddText(ServicesVSResources.Project);
-            AddName(projectListItem.DisplayText);
+            return;
         }
 
-        private void BuildReference(ReferenceListItem referenceListItem)
+        var symbol = typeListItem.ResolveTypedSymbol(compilation);
+        if (symbol == null)
         {
-            AddText(ServicesVSResources.Assembly);
-            AddName(referenceListItem.DisplayText);
-            AddEndDeclaration();
-            AddIndent();
-
-            if (referenceListItem.MetadataReference is PortableExecutableReference portableExecutableReference)
-            {
-                AddText(portableExecutableReference.FilePath);
-            }
+            return;
         }
 
-        private void BuildNamespace(NamespaceListItem namespaceListItem, _VSOBJDESCOPTIONS options)
+        if (symbol.TypeKind == TypeKind.Delegate)
         {
-            var compilation = GetCompilation();
-            if (compilation == null)
-            {
-                return;
-            }
-
-            var namespaceSymbol = namespaceListItem.ResolveTypedSymbol(compilation);
-            if (namespaceSymbol == null)
-            {
-                return;
-            }
-
-            BuildNamespaceDeclaration(namespaceSymbol, options);
-
-            AddEndDeclaration();
-            BuildMemberOf(namespaceSymbol.ContainingAssembly);
+            await BuildDelegateDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
+        }
+        else
+        {
+            await BuildTypeDeclarationAsync(symbol, options, cancellationToken).ConfigureAwait(true);
         }
 
-        private void BuildType(TypeListItem typeListItem, _VSOBJDESCOPTIONS options)
+        AddEndDeclaration();
+        await BuildMemberOfAsync(symbol.ContainingNamespace, cancellationToken).ConfigureAwait(true);
+        await BuildXmlDocumentationAsync(symbol, compilation, cancellationToken).ConfigureAwait(true);
+    }
+
+    private async Task BuildMemberAsync(MemberListItem memberListItem, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
+    {
+        var compilation = await GetCompilationAsync(cancellationToken).ConfigureAwait(true);
+        if (compilation == null)
+            return;
+
+        var symbol = memberListItem.ResolveTypedSymbol(compilation);
+        if (symbol == null)
+            return;
+
+        switch (symbol.Kind)
         {
-            var compilation = GetCompilation();
-            if (compilation == null)
-            {
+            case SymbolKind.Method:
+                await BuildMethodDeclarationAsync((IMethodSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
+                break;
+
+            case SymbolKind.Field:
+                await BuildFieldDeclarationAsync((IFieldSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
+                break;
+
+            case SymbolKind.Property:
+                await BuildPropertyDeclarationAsync((IPropertySymbol)symbol, options, cancellationToken).ConfigureAwait(true);
+                break;
+
+            case SymbolKind.Event:
+                await BuildEventDeclarationAsync((IEventSymbol)symbol, options, cancellationToken).ConfigureAwait(true);
+                break;
+
+            default:
+                Debug.Fail("Unsupported member kind: " + symbol.Kind.ToString());
                 return;
-            }
-
-            var symbol = typeListItem.ResolveTypedSymbol(compilation);
-            if (symbol == null)
-            {
-                return;
-            }
-
-            if (symbol.TypeKind == TypeKind.Delegate)
-            {
-                BuildDelegateDeclaration(symbol, options);
-            }
-            else
-            {
-                BuildTypeDeclaration(symbol, options);
-            }
-
-            AddEndDeclaration();
-            BuildMemberOf(symbol.ContainingNamespace);
-
-            BuildXmlDocumentation(symbol, compilation);
         }
 
-        private void BuildMember(MemberListItem memberListItem, _VSOBJDESCOPTIONS options)
+        AddEndDeclaration();
+        await BuildMemberOfAsync(symbol.ContainingType, cancellationToken).ConfigureAwait(true);
+        await BuildXmlDocumentationAsync(symbol, compilation, cancellationToken).ConfigureAwait(true);
+    }
+
+    protected abstract void BuildNamespaceDeclaration(INamespaceSymbol namespaceSymbol, _VSOBJDESCOPTIONS options);
+    protected abstract Task BuildDelegateDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildTypeDeclarationAsync(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildMethodDeclarationAsync(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildFieldDeclarationAsync(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildPropertyDeclarationAsync(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+    protected abstract Task BuildEventDeclarationAsync(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options, CancellationToken cancellationToken);
+
+    private async Task BuildMemberOfAsync(ISymbol containingSymbol, CancellationToken cancellationToken)
+    {
+        if (containingSymbol is INamespaceSymbol &&
+            ((INamespaceSymbol)containingSymbol).IsGlobalNamespace)
         {
-            var compilation = GetCompilation();
-            if (compilation == null)
-            {
-                return;
-            }
-
-            var symbol = memberListItem.ResolveTypedSymbol(compilation);
-            if (symbol == null)
-            {
-                return;
-            }
-
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Method:
-                    BuildMethodDeclaration((IMethodSymbol)symbol, options);
-                    break;
-
-                case SymbolKind.Field:
-                    BuildFieldDeclaration((IFieldSymbol)symbol, options);
-                    break;
-
-                case SymbolKind.Property:
-                    BuildPropertyDeclaration((IPropertySymbol)symbol, options);
-                    break;
-
-                case SymbolKind.Event:
-                    BuildEventDeclaration((IEventSymbol)symbol, options);
-                    break;
-
-                default:
-                    Debug.Fail("Unsupported member kind: " + symbol.Kind.ToString());
-                    return;
-            }
-
-            AddEndDeclaration();
-            BuildMemberOf(symbol.ContainingType);
-
-            BuildXmlDocumentation(symbol, compilation);
+            containingSymbol = containingSymbol.ContainingAssembly;
         }
 
-        protected abstract void BuildNamespaceDeclaration(INamespaceSymbol namespaceSymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildDelegateDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildTypeDeclaration(INamedTypeSymbol typeSymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildMethodDeclaration(IMethodSymbol methodSymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildFieldDeclaration(IFieldSymbol fieldSymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildPropertyDeclaration(IPropertySymbol propertySymbol, _VSOBJDESCOPTIONS options);
-        protected abstract void BuildEventDeclaration(IEventSymbol eventSymbol, _VSOBJDESCOPTIONS options);
+        var memberOfText = ServicesVSResources.Member_of_0;
+        const string specifier = "{0}";
 
-        private void BuildMemberOf(ISymbol containingSymbol)
+        var index = memberOfText.IndexOf(specifier, StringComparison.Ordinal);
+        if (index < 0)
         {
-            if (containingSymbol is INamespaceSymbol &&
-                ((INamespaceSymbol)containingSymbol).IsGlobalNamespace)
-            {
-                containingSymbol = containingSymbol.ContainingAssembly;
-            }
-
-            var memberOfText = ServicesVSResources.Member_of_0;
-            const string specifier = "{0}";
-
-            var index = memberOfText.IndexOf(specifier, StringComparison.Ordinal);
-            if (index < 0)
-            {
-                Debug.Fail("MemberOf string resource is incorrect.");
-                return;
-            }
-
-            var left = memberOfText[..index];
-            var right = memberOfText[(index + specifier.Length)..];
-
-            AddIndent();
-            AddText(left);
-
-            if (containingSymbol is IAssemblySymbol assemblySymbol)
-            {
-                AddAssemblyLink(assemblySymbol);
-            }
-            else if (containingSymbol is ITypeSymbol typeSymbol)
-            {
-                AddTypeLink(typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes);
-            }
-            else if (containingSymbol is INamespaceSymbol namespaceSymbol)
-            {
-                AddNamespaceLink(namespaceSymbol);
-            }
-
-            AddText(right);
-            AddEndDeclaration();
+            Debug.Fail("MemberOf string resource is incorrect.");
+            return;
         }
 
-        private void BuildXmlDocumentation(ISymbol symbol, Compilation compilation)
+        var left = memberOfText[..index];
+        var right = memberOfText[(index + specifier.Length)..];
+
+        AddIndent();
+        AddText(left);
+
+        if (containingSymbol is IAssemblySymbol assemblySymbol)
         {
-            var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
-            if (documentationComment == null)
-            {
-                return;
-            }
+            AddAssemblyLink(assemblySymbol);
+        }
+        else if (containingSymbol is ITypeSymbol typeSymbol)
+        {
+            await AddTypeLinkAsync(
+                typeSymbol, LinkFlags.SplitNamespaceAndType | LinkFlags.ExpandPredefinedTypes, cancellationToken).ConfigureAwait(true);
+        }
+        else if (containingSymbol is INamespaceSymbol namespaceSymbol)
+        {
+            await AddNamespaceLinkAsync(namespaceSymbol, cancellationToken).ConfigureAwait(true);
+        }
 
-            var formattingService = _project.Services.GetService<IDocumentationCommentFormattingService>();
-            if (formattingService == null)
-            {
-                return;
-            }
+        AddText(right);
+        AddEndDeclaration();
+    }
 
-            var emittedDocs = false;
+    private async Task BuildXmlDocumentationAsync(
+        ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+    {
+        var documentationComment = symbol.GetDocumentationComment(compilation, expandIncludes: true, expandInheritdoc: true, cancellationToken: CancellationToken.None);
+        if (documentationComment == null)
+        {
+            return;
+        }
 
-            if (documentationComment.SummaryText != null)
+        var formattingService = _project.Services.GetService<IDocumentationCommentFormattingService>();
+        if (formattingService == null)
+        {
+            return;
+        }
+
+        var emittedDocs = false;
+
+        if (documentationComment.SummaryText != null)
+        {
+            AddLineBreak();
+            AddName(FeaturesResources.Summary_colon);
+            AddLineBreak();
+
+            AddText(formattingService.Format(documentationComment.SummaryText, compilation));
+            emittedDocs = true;
+        }
+
+        if (documentationComment.TypeParameterNames.Length > 0)
+        {
+            if (emittedDocs)
             {
                 AddLineBreak();
-                AddName(ServicesVSResources.Summary_colon);
-                AddLineBreak();
-
-                AddText(formattingService.Format(documentationComment.SummaryText, compilation));
-                emittedDocs = true;
             }
 
-            if (documentationComment.TypeParameterNames.Length > 0)
+            AddLineBreak();
+            AddName(ServicesVSResources.Type_Parameters_colon);
+
+            foreach (var typeParameterName in documentationComment.TypeParameterNames)
             {
-                if (emittedDocs)
+                AddLineBreak();
+
+                var typeParameterText = documentationComment.GetTypeParameterText(typeParameterName);
+                if (typeParameterText != null)
                 {
-                    AddLineBreak();
+                    AddParam(typeParameterName);
+                    AddText(": ");
+
+                    AddText(formattingService.Format(typeParameterText, compilation));
+                    emittedDocs = true;
                 }
+            }
+        }
 
+        if (documentationComment.ParameterNames.Length > 0)
+        {
+            if (emittedDocs)
+            {
                 AddLineBreak();
-                AddName(ServicesVSResources.Type_Parameters_colon);
+            }
 
-                foreach (var typeParameterName in documentationComment.TypeParameterNames)
+            AddLineBreak();
+            AddName(FeaturesResources.Parameters_colon);
+
+            foreach (var parameterName in documentationComment.ParameterNames)
+            {
+                AddLineBreak();
+
+                var parameterText = documentationComment.GetParameterText(parameterName);
+                if (parameterText != null)
+                {
+                    AddParam(parameterName);
+                    AddText(": ");
+
+                    AddText(formattingService.Format(parameterText, compilation));
+                    emittedDocs = true;
+                }
+            }
+        }
+
+        if (ShowReturnsDocumentation(symbol) && documentationComment.ReturnsText != null)
+        {
+            if (emittedDocs)
+            {
+                AddLineBreak();
+            }
+
+            AddLineBreak();
+            AddName(FeaturesResources.Returns_colon);
+            AddLineBreak();
+
+            AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
+            emittedDocs = true;
+        }
+
+        if (ShowValueDocumentation(symbol) && documentationComment.ValueText != null)
+        {
+            if (emittedDocs)
+            {
+                AddLineBreak();
+            }
+
+            AddLineBreak();
+            AddName(FeaturesResources.Value_colon);
+            AddLineBreak();
+
+            AddText(formattingService.Format(documentationComment.ValueText, compilation));
+            emittedDocs = true;
+        }
+
+        if (documentationComment.RemarksText != null)
+        {
+            if (emittedDocs)
+            {
+                AddLineBreak();
+            }
+
+            AddLineBreak();
+            AddName(FeaturesResources.Remarks_colon);
+            AddLineBreak();
+
+            AddText(formattingService.Format(documentationComment.RemarksText, compilation));
+            emittedDocs = true;
+        }
+
+        if (documentationComment.ExceptionTypes.Length > 0)
+        {
+            if (emittedDocs)
+            {
+                AddLineBreak();
+            }
+
+            AddLineBreak();
+            AddName(WorkspacesResources.Exceptions_colon);
+
+            foreach (var exceptionType in documentationComment.ExceptionTypes)
+            {
+                if (DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) is INamedTypeSymbol exceptionTypeSymbol)
                 {
                     AddLineBreak();
 
-                    var typeParameterText = documentationComment.GetTypeParameterText(typeParameterName);
-                    if (typeParameterText != null)
+                    var exceptionTexts = documentationComment.GetExceptionTexts(exceptionType);
+                    if (exceptionTexts.Length == 0)
                     {
-                        AddParam(typeParameterName);
-                        AddText(": ");
-
-                        AddText(formattingService.Format(typeParameterText, compilation));
-                        emittedDocs = true;
+                        await AddTypeLinkAsync(exceptionTypeSymbol, LinkFlags.None, cancellationToken).ConfigureAwait(true);
                     }
-                }
-            }
-
-            if (documentationComment.ParameterNames.Length > 0)
-            {
-                if (emittedDocs)
-                {
-                    AddLineBreak();
-                }
-
-                AddLineBreak();
-                AddName(ServicesVSResources.Parameters_colon1);
-
-                foreach (var parameterName in documentationComment.ParameterNames)
-                {
-                    AddLineBreak();
-
-                    var parameterText = documentationComment.GetParameterText(parameterName);
-                    if (parameterText != null)
+                    else
                     {
-                        AddParam(parameterName);
-                        AddText(": ");
-
-                        AddText(formattingService.Format(parameterText, compilation));
-                        emittedDocs = true;
-                    }
-                }
-            }
-
-            if (ShowReturnsDocumentation(symbol) && documentationComment.ReturnsText != null)
-            {
-                if (emittedDocs)
-                {
-                    AddLineBreak();
-                }
-
-                AddLineBreak();
-                AddName(ServicesVSResources.Returns_colon);
-                AddLineBreak();
-
-                AddText(formattingService.Format(documentationComment.ReturnsText, compilation));
-                emittedDocs = true;
-            }
-
-            if (ShowValueDocumentation(symbol) && documentationComment.ValueText != null)
-            {
-                if (emittedDocs)
-                {
-                    AddLineBreak();
-                }
-
-                AddLineBreak();
-                AddName(ServicesVSResources.Value_colon);
-                AddLineBreak();
-
-                AddText(formattingService.Format(documentationComment.ValueText, compilation));
-                emittedDocs = true;
-            }
-
-            if (documentationComment.RemarksText != null)
-            {
-                if (emittedDocs)
-                {
-                    AddLineBreak();
-                }
-
-                AddLineBreak();
-                AddName(ServicesVSResources.Remarks_colon);
-                AddLineBreak();
-
-                AddText(formattingService.Format(documentationComment.RemarksText, compilation));
-                emittedDocs = true;
-            }
-
-            if (documentationComment.ExceptionTypes.Length > 0)
-            {
-                if (emittedDocs)
-                {
-                    AddLineBreak();
-                }
-
-                AddLineBreak();
-                AddName(ServicesVSResources.Exceptions_colon);
-
-                foreach (var exceptionType in documentationComment.ExceptionTypes)
-                {
-                    if (DocumentationCommentId.GetFirstSymbolForDeclarationId(exceptionType, compilation) is INamedTypeSymbol exceptionTypeSymbol)
-                    {
-                        AddLineBreak();
-
-                        var exceptionTexts = documentationComment.GetExceptionTexts(exceptionType);
-                        if (exceptionTexts.Length == 0)
+                        foreach (var exceptionText in exceptionTexts)
                         {
-                            AddTypeLink(exceptionTypeSymbol, LinkFlags.None);
-                        }
-                        else
-                        {
-                            foreach (var exceptionText in exceptionTexts)
-                            {
-                                AddTypeLink(exceptionTypeSymbol, LinkFlags.None);
-                                AddText(": ");
-                                AddText(formattingService.Format(exceptionText, compilation));
-                            }
+                            await AddTypeLinkAsync(exceptionTypeSymbol, LinkFlags.None, cancellationToken).ConfigureAwait(true);
+                            AddText(": ");
+                            AddText(formattingService.Format(exceptionText, compilation));
                         }
                     }
                 }
             }
         }
+    }
 
-        private static bool ShowReturnsDocumentation(ISymbol symbol)
+    private static bool ShowReturnsDocumentation(ISymbol symbol)
+    {
+        return symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
+            || symbol.Kind is SymbolKind.Method or SymbolKind.Property;
+    }
+
+    private static bool ShowValueDocumentation(ISymbol symbol)
+    {
+        // <returns> is often used in places where <value> was originally intended. Allow either to be used in
+        // documentation comments since they are not likely to be used together and it's not clear which one a
+        // particular code base will be using more often.
+        return ShowReturnsDocumentation(symbol);
+    }
+
+    internal async Task<bool> TryBuildAsync(_VSOBJDESCOPTIONS options, CancellationToken cancellationToken)
+    {
+        switch (_listItem)
         {
-            return symbol is INamedTypeSymbol { TypeKind: TypeKind.Delegate }
-                || symbol.Kind is SymbolKind.Method or SymbolKind.Property;
+            case ProjectListItem projectListItem:
+                BuildProject(projectListItem);
+                return true;
+            case ReferenceListItem referenceListItem:
+                BuildReference(referenceListItem);
+                return true;
+            case NamespaceListItem namespaceListItem:
+                await BuildNamespaceAsync(namespaceListItem, options, cancellationToken).ConfigureAwait(true);
+                return true;
+            case TypeListItem typeListItem:
+                await BuildTypeAsync(typeListItem, options, cancellationToken).ConfigureAwait(true);
+                return true;
+            case MemberListItem memberListItem:
+                await BuildMemberAsync(memberListItem, options, cancellationToken).ConfigureAwait(true);
+                return true;
         }
 
-        private static bool ShowValueDocumentation(ISymbol symbol)
-        {
-            // <returns> is often used in places where <value> was originally intended. Allow either to be used in
-            // documentation comments since they are not likely to be used together and it's not clear which one a
-            // particular code base will be using more often.
-            return ShowReturnsDocumentation(symbol);
-        }
-
-        internal bool TryBuild(_VSOBJDESCOPTIONS options)
-        {
-            switch (_listItem)
-            {
-                case ProjectListItem projectListItem:
-                    BuildProject(projectListItem);
-                    return true;
-                case ReferenceListItem referenceListItem:
-                    BuildReference(referenceListItem);
-                    return true;
-                case NamespaceListItem namespaceListItem:
-                    BuildNamespace(namespaceListItem, options);
-                    return true;
-                case TypeListItem typeListItem:
-                    BuildType(typeListItem, options);
-                    return true;
-                case MemberListItem memberListItem:
-                    BuildMember(memberListItem, options);
-                    return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

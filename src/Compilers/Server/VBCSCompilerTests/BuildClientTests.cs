@@ -344,6 +344,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // We only have ~50 total bytes to work with on mac, so the base path must be small
                 Assert.Equal(43, name.Length);
             }
+
+            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75714")]
+            public void GetPipeNameForPath_Casing()
+            {
+                var path1 = string.Format(@"q:{0}the{0}path", Path.DirectorySeparatorChar);
+                var path2 = string.Format(@"Q:{0}The{0}Path", Path.DirectorySeparatorChar);
+                Assert.Equal(BuildServerConnection.GetPipeName(path1), BuildServerConnection.GetPipeName(path2));
+            }
         }
     }
 }

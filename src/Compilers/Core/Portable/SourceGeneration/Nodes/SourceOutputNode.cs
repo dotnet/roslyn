@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SourceOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
     {
+        private static readonly string? s_tableType = typeof(TOutput).FullName;
+
         private readonly IIncrementalGeneratorNode<TInput> _source;
 
         private readonly Action<SourceProductionContext, TInput, CancellationToken> _action;
@@ -41,15 +43,15 @@ namespace Microsoft.CodeAnalysis
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
             if (sourceTable.IsCached && previousTable is not null)
             {
-                this.LogTables(stepName, previousTable, previousTable, sourceTable);
+                this.LogTables(stepName, s_tableType, previousTable, previousTable, sourceTable);
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, equalityComparer: null);
                 }
                 return previousTable;
             }
 
-            var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
+            var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
             foreach (var entry in sourceTable)
             {
                 var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                         _action(context, entry.Item, cancellationToken);
                         var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
 
-                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, EqualityComparer<TOutput>.Default, stopwatch.Elapsed, inputs, entry.State))
+                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, stopwatch.Elapsed, inputs, entry.State))
                         {
                             tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                         }
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();
-            this.LogTables(stepName, previousTable, newTable, sourceTable);
+            this.LogTables(stepName, s_tableType, previousTable, newTable, sourceTable);
             return newTable;
         }
 

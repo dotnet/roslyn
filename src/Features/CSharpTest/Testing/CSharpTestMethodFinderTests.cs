@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
 
 [UseExportProvider]
-public class CSharpTestMethodFinderTests
+public sealed class CSharpTestMethodFinderTests
 {
     #region Xunit
 
@@ -549,7 +549,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
@@ -563,7 +563,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestMatchAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
@@ -572,7 +572,7 @@ public class CSharpTestMethodFinderTests
         var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
         var semanticModel = await workspace.CurrentSolution.GetRequiredDocument(testDocument.Id).GetRequiredSemanticModelAsync(CancellationToken.None);
 
-        List<string> unmatchedTestNames = new();
+        List<string> unmatchedTestNames = [];
 
         foreach (var expectedTestName in expectedTestNames)
         {

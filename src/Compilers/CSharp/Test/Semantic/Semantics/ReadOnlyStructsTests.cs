@@ -410,9 +410,9 @@ public partial struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (10,27): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                // (10,27): error CS8662: Both partial member declarations must be readonly or neither may be readonly
                 //     readonly partial void M()
-                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "M").WithLocation(10, 27),
                 // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
@@ -443,9 +443,9 @@ public partial struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                // (10,18): error CS8662: Both partial member declarations must be readonly or neither may be readonly
                 //     partial void M()
-                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 18));
+                Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "M").WithLocation(10, 18));
 
             var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
             // Symbol APIs always return the declaration part of the partial method.
@@ -1608,12 +1608,12 @@ public struct S
     public int P1 { get; private set; }
 }
 ";
-            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib461).EmitToImageReference();
             var moduleComp = CreateCompilation("", new[] { moduleMetadata });
             var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
             Assert.False(moduleGetter.IsDeclaredReadOnly);
 
-            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461).EmitToImageReference();
             var dllComp = CreateCompilation("", new[] { dllMetadata });
             var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
             Assert.True(dllGetter.IsDeclaredReadOnly);
@@ -1636,12 +1636,12 @@ public struct S
     public int P1 { get; private set; }
 }
 ";
-            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib461).EmitToImageReference();
             var moduleComp = CreateCompilation("", new[] { moduleMetadata });
             var moduleGetter = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod;
             Assert.False(moduleGetter.IsDeclaredReadOnly);
 
-            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461).EmitToImageReference();
             var dllComp = CreateCompilation("", new[] { dllMetadata });
             var dllGetter = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod;
             Assert.False(dllGetter.IsDeclaredReadOnly);
@@ -1664,13 +1664,13 @@ public struct S
     public int P1 { readonly get; private set; }
 }
 ";
-            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib461);
             moduleComp.VerifyDiagnostics(
                 // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public int P1 { readonly get; private set; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 30));
 
-            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461);
             dllComp.VerifyDiagnostics(
                 // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public int P1 { readonly get; private set; }
@@ -1686,13 +1686,13 @@ public struct S
     public int P1 { readonly get; private set; }
 }
 ";
-            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib461);
             moduleComp.VerifyDiagnostics(
                 // (4,30): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
                 //     public int P1 { readonly get; private set; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 30));
 
-            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461);
             dllComp.VerifyDiagnostics();
         }
 

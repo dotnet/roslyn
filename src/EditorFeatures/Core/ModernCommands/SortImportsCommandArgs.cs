@@ -2,20 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.	
 
-#nullable disable
-
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands
+namespace Microsoft.CodeAnalysis.Editor.Commanding.Commands;
+
+/// <summary>	
+/// Arguments for the Sort Imports command being invoked.	
+/// </summary>	
+[ExcludeFromCodeCoverage]
+internal sealed class SortImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
 {
-    /// <summary>	
-    /// Arguments for the Sort Imports command being invoked.	
-    /// </summary>	
-    [ExcludeFromCodeCoverage]
-    internal class SortImportsCommandArgs(ITextView textView, ITextBuffer subjectBuffer) : EditorCommandArgs(textView, subjectBuffer)
-    {
-    }
 }

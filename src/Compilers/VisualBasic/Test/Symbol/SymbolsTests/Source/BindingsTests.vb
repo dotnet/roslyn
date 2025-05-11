@@ -489,7 +489,7 @@ BC30179: interface 'Q' and class 'Q' conflict in namespace 'Goo.Bar.N1.N2'.
             symbol = importsYellowSymInfo.Symbol
             Assert.NotNull(symbol)
             Assert.Equal(SymbolKind.NamedType, symbol.Kind)
-            Assert.Equal(Of ISymbol)(importsYellowSymInfo.Type, symbol)
+            AssertEx.Equal(Of ISymbol)(importsYellowSymInfo.Type, symbol)
             Assert.Equal("Goo.Bar.N1.N2.Yellow(Of System.Int32)", symbol.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
             ' Bind "N2.IAmbig" in "arg1 as N2.IAmbig". It is ambiguous.

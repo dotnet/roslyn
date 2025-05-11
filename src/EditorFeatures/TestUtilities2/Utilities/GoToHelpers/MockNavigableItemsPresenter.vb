@@ -5,7 +5,6 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.FindUsages
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockStreamingFindUsagesPresenter
@@ -14,21 +13,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public ReadOnly Context As SimpleFindUsagesContext
         Private ReadOnly _action As Action
 
-        Public Sub New(globalOptions As IGlobalOptionService, action As Action)
+        Public Sub New(action As Action)
             _action = action
-            Context = New SimpleFindUsagesContext(globalOptions)
+            Context = New SimpleFindUsagesContext()
         End Sub
 
         Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
             Throw New NotImplementedException()
         End Sub
 
-        Public Function StartSearch(title As String, alwaysShowDeclarations As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
+        Public Function StartSearch(title As String, options As StreamingFindUsagesPresenterOptions) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
             _action()
-            Return (Context, CancellationToken.None)
-        End Function
-
-        Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
             Return (Context, CancellationToken.None)
         End Function
     End Class

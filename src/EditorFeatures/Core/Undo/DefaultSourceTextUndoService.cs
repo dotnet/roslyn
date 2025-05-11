@@ -10,24 +10,23 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Undo
+namespace Microsoft.CodeAnalysis.Editor.Undo;
+
+[ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Default), Shared]
+internal sealed class DefaultSourceTextUndoService : ISourceTextUndoService
 {
-    [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Default), Shared]
-    internal sealed class DefaultSourceTextUndoService : ISourceTextUndoService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DefaultSourceTextUndoService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultSourceTextUndoService()
-        {
-        }
-
-        public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
-            => null;
-
-        public bool BeginUndoTransaction(ITextSnapshot snapshot)
-            => false;
-
-        public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
-            => false;
     }
+
+    public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
+        => null;
+
+    public bool BeginUndoTransaction(ITextSnapshot snapshot)
+        => false;
+
+    public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
+        => false;
 }

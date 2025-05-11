@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -18,11 +18,10 @@ namespace Microsoft.CodeAnalysis
         // Value 0 represents an unknown type
         Unknown = SpecialType.None,
 
-        First = SpecialType.Count + 1,
+        First = InternalSpecialType.NextAvailable,
 
         // The following type ids should be in sync with names in WellKnownTypes.metadataNames array.
         System_Math = First,
-        System_Array,
         System_Attribute,
         System_CLSCompliantAttribute,
         System_Convert,
@@ -31,9 +30,6 @@ namespace Microsoft.CodeAnalysis
         System_FormattableString,
         System_Guid,
         System_IFormattable,
-        System_RuntimeTypeHandle,
-        System_RuntimeFieldHandle,
-        System_RuntimeMethodHandle,
         System_MarshalByRefObject,
         System_Type,
         System_Reflection_AssemblyKeyFileAttribute,
@@ -247,11 +243,11 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
-        System_IFormatProvider,
 
-        CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
+        CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple,
+
         System_ValueTuple_T1,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
@@ -333,9 +329,33 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
-        System_MissingMethodException,
+        System_Runtime_CompilerServices_HotReloadException,
+        System_IndexOutOfRangeException,
+
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
         System_Runtime_CompilerServices_Unsafe,
+
+        System_Runtime_CompilerServices_ParamCollectionAttribute,
+
+        System_Linq_Expressions_BinaryExpression,
+        System_Linq_Expressions_MethodCallExpression,
+        System_Linq_Expressions_ConstantExpression,
+        System_Linq_Expressions_UnaryExpression,
+        System_Linq_Expressions_NewExpression,
+        System_Linq_Expressions_MemberExpression,
+        System_Linq_Expressions_MemberMemberBinding,
+        System_Linq_Expressions_MemberAssignment,
+        System_Linq_Expressions_MemberListBinding,
+        System_Linq_Expressions_ListInitExpression,
+        System_Linq_Expressions_MemberInitExpression,
+        System_Linq_Expressions_LambdaExpression,
+        System_Linq_Expressions_TypeBinaryExpression,
+        System_Linq_Expressions_ConditionalExpression,
+        System_Linq_Expressions_InvocationExpression,
+        System_Linq_Expressions_NewArrayExpression,
+        System_Linq_Expressions_DefaultExpression,
+
+        System_Text_Encoding,
 
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
@@ -354,10 +374,9 @@ namespace Microsoft.CodeAnalysis
         /// that we could use ids to index into the array
         /// </summary>
         /// <remarks></remarks>
-        private static readonly string[] s_metadataNames = new string[]
+        private static readonly string[] s_metadataNames = new string[Count]
         {
             "System.Math",
-            "System.Array",
             "System.Attribute",
             "System.CLSCompliantAttribute",
             "System.Convert",
@@ -366,9 +385,6 @@ namespace Microsoft.CodeAnalysis
             "System.FormattableString",
             "System.Guid",
             "System.IFormattable",
-            "System.RuntimeTypeHandle",
-            "System.RuntimeFieldHandle",
-            "System.RuntimeMethodHandle",
             "System.MarshalByRefObject",
             "System.Type",
             "System.Reflection.AssemblyKeyFileAttribute",
@@ -578,12 +594,10 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
-            "System.IFormatProvider",
-
             "System.ValueTuple",
             "System.ValueTuple`1",
 
-            "", // extension marker
+            "", // WellKnownType.ExtSentinel extension marker
 
             "System.ValueTuple`2",
             "System.ValueTuple`3",
@@ -659,9 +673,32 @@ namespace Microsoft.CodeAnalysis
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
-            "System.MissingMethodException",
+            "System.Runtime.CompilerServices.HotReloadException",
+            "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
+
+            "System.Runtime.CompilerServices.ParamCollectionAttribute",
+
+            "System.Linq.Expressions.BinaryExpression",
+            "System.Linq.Expressions.MethodCallExpression",
+            "System.Linq.Expressions.ConstantExpression",
+            "System.Linq.Expressions.UnaryExpression",
+            "System.Linq.Expressions.NewExpression",
+            "System.Linq.Expressions.MemberExpression",
+            "System.Linq.Expressions.MemberMemberBinding",
+            "System.Linq.Expressions.MemberAssignment",
+            "System.Linq.Expressions.MemberListBinding",
+            "System.Linq.Expressions.ListInitExpression",
+            "System.Linq.Expressions.MemberInitExpression",
+            "System.Linq.Expressions.LambdaExpression",
+            "System.Linq.Expressions.TypeBinaryExpression",
+            "System.Linq.Expressions.ConditionalExpression",
+            "System.Linq.Expressions.InvocationExpression",
+            "System.Linq.Expressions.NewArrayExpression",
+            "System.Linq.Expressions.DefaultExpression",
+
+            "System.Text.Encoding",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -696,7 +733,7 @@ namespace Microsoft.CodeAnalysis
                         typeIdName = "Microsoft.VisualBasic.CompilerServices.ObjectFlowControl+ForLoopControl";
                         break;
                     case WellKnownType.CSharp7Sentinel:
-                        typeIdName = "System.IFormatProvider";
+                        typeIdName = "System.Runtime.GCLatencyMode";
                         break;
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
@@ -714,11 +751,24 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+                RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
-            Debug.Assert((int)WellKnownType.ExtSentinel == 255);
-            Debug.Assert((int)WellKnownType.NextAvailable <= 512, "Time for a new sentinel");
+#if DEBUG
+            // Some compile time asserts
+            {
+                // We should not add new types to CSharp7 set
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - 252];
+                _ = new int[252 - (int)WellKnownType.CSharp7Sentinel];
+
+                // The WellKnownType.ExtSentinel value must be 255
+                _ = new int[(int)WellKnownType.ExtSentinel - 255];
+                _ = new int[255 - (int)WellKnownType.ExtSentinel];
+
+                // Once the last real id minus WellKnownType.ExtSentinel cannot fit into a byte, it is time to add a new sentinel.
+                _ = new int[255 - ((int)WellKnownType.NextAvailable - 1 - (int)WellKnownType.ExtSentinel)];
+            }
+#endif 
         }
 
         public static bool IsWellKnownType(this WellKnownType typeId)

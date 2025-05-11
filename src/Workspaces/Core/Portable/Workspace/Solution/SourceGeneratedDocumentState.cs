@@ -6,7 +6,6 @@ using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -38,38 +37,76 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
     public Checksum GetOriginalSourceTextContentHash()
         => _lazyContentHash.Value;
 
+    public readonly DateTime GenerationDateTime;
+
     public static SourceGeneratedDocumentState Create(
         SourceGeneratedDocumentIdentity documentIdentity,
         SourceText generatedSourceText,
         ParseOptions parseOptions,
         LanguageServices languageServices,
-        Checksum? originalSourceTextChecksum)
+        Checksum? originalSourceTextChecksum,
+        DateTime generationDateTime)
     {
+        return Create(documentIdentity, generatedSourceText, syntaxNode: null, parseOptions, languageServices, originalSourceTextChecksum, generationDateTime);
+    }
+
+    public static SourceGeneratedDocumentState Create(
+        SourceGeneratedDocumentIdentity documentIdentity,
+        SourceText? generatedSourceText,
+        SyntaxNode? syntaxNode,
+        ParseOptions parseOptions,
+        LanguageServices languageServices,
+        Checksum? originalSourceTextChecksum,
+        DateTime generationDateTime)
+    {
+        Contract.ThrowIfTrue(generatedSourceText is null && syntaxNode is null);
+        Contract.ThrowIfTrue(generatedSourceText is not null && syntaxNode is not null);
+
+        if (generatedSourceText is null)
+        {
+            // We don't currently support lazy source text in source generated documents, so just use the syntax to get it
+            Contract.ThrowIfNull(syntaxNode);
+            generatedSourceText = syntaxNode.GetText();
+        }
+
         // If the caller explicitly provided us with the checksum for the source text, then we always defer to that.
         // This happens on the host side, when we are given the data computed by the OOP side.
         //
         // If the caller didn't provide us with the checksum, then we'll compute it on demand.  This happens on the OOP
         // side when we're actually producing the SG doc in the first place.
         var lazyTextChecksum = new Lazy<Checksum>(() => originalSourceTextChecksum ?? ComputeContentHash(generatedSourceText));
-        return Create(documentIdentity, generatedSourceText, parseOptions, languageServices, lazyTextChecksum);
+        return Create(documentIdentity, generatedSourceText, syntaxNode, parseOptions, languageServices, lazyTextChecksum, generationDateTime);
     }
 
     private static SourceGeneratedDocumentState Create(
         SourceGeneratedDocumentIdentity documentIdentity,
         SourceText generatedSourceText,
+        SyntaxNode? syntaxNode,
         ParseOptions parseOptions,
         LanguageServices languageServices,
-        Lazy<Checksum> lazyTextChecksum)
+        Lazy<Checksum> lazyTextChecksum,
+        DateTime generationDateTime)
     {
         var loadTextOptions = new LoadTextOptions(generatedSourceText.ChecksumAlgorithm);
         var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
         var textSource = new ConstantTextAndVersionSource(textAndVersion);
-        var treeSource = CreateLazyFullyParsedTree(
-            textSource,
-            loadTextOptions,
-            documentIdentity.FilePath,
-            parseOptions,
-            languageServices);
+
+        ITreeAndVersionSource treeSource;
+        if (syntaxNode is null)
+        {
+            treeSource = CreateLazyFullyParsedTree(
+                textSource,
+                loadTextOptions,
+                documentIdentity.FilePath,
+                parseOptions,
+                languageServices);
+        }
+        else
+        {
+            var factory = languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+            var newTree = factory.CreateSyntaxTree(documentIdentity.FilePath, parseOptions, generatedSourceText, generatedSourceText.Encoding, generatedSourceText.ChecksumAlgorithm, syntaxNode);
+            treeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, VersionStamp.Create()));
+        }
 
         return new SourceGeneratedDocumentState(
             documentIdentity,
@@ -78,7 +115,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             new DocumentInfo.DocumentAttributes(
                 documentIdentity.DocumentId,
                 name: documentIdentity.HintName,
-                folders: SpecializedCollections.EmptyReadOnlyList<string>(),
+                folders: [],
                 parseOptions.Kind,
                 filePath: documentIdentity.FilePath,
                 isGenerated: true,
@@ -88,7 +125,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             generatedSourceText,
             loadTextOptions,
             treeSource,
-            lazyTextChecksum);
+            lazyTextChecksum,
+            generationDateTime);
     }
 
     private SourceGeneratedDocumentState(
@@ -97,17 +135,19 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         IDocumentServiceProvider? documentServiceProvider,
         DocumentInfo.DocumentAttributes attributes,
         ParseOptions options,
-        ConstantTextAndVersionSource textSource,
+        ITextAndVersionSource textSource,
         SourceText text,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
-        Lazy<Checksum> lazyContentHash)
-        : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
+        ITreeAndVersionSource treeSource,
+        Lazy<Checksum> lazyContentHash,
+        DateTime generationDateTime)
+        : base(languageServices, documentServiceProvider, attributes, textSource, loadTextOptions, options, treeSource)
     {
         Identity = documentIdentity;
 
         SourceText = text;
         _lazyContentHash = lazyContentHash;
+        GenerationDateTime = generationDateTime;
     }
 
     private static Checksum ComputeContentHash(SourceText text)
@@ -118,6 +158,12 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public SourceGeneratedDocumentContentIdentity GetContentIdentity()
         => new(this.GetOriginalSourceTextContentHash(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
+
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
@@ -135,7 +181,8 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             ParseOptions,
             LanguageServices,
             // Just pass along the checksum for the new source text since we've already computed it.
-            newSourceTextChecksum);
+            newSourceTextChecksum,
+            GenerationDateTime);
     }
 
     public SourceGeneratedDocumentState WithParseOptions(ParseOptions parseOptions)
@@ -147,10 +194,68 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         return Create(
             Identity,
             SourceText,
+            syntaxNode: null,
             parseOptions,
             LanguageServices,
             // We're just changing the parse options.  So the checksum will remain as is.
-            _lazyContentHash);
+            _lazyContentHash,
+            GenerationDateTime);
+    }
+
+    public SourceGeneratedDocumentState WithGenerationDateTime(DateTime generationDateTime)
+    {
+        // See if we can reuse this instance directly
+        if (this.GenerationDateTime == generationDateTime)
+            return this;
+
+        // Copy over all state as-is.  The generation time doesn't change any actual state (the same tree will be
+        // produced for example).
+        return new(
+            this.Identity,
+            this.LanguageServices,
+            this.DocumentServiceProvider,
+            this.Attributes,
+            this.ParseOptions,
+            this.TextAndVersionSource,
+            this.SourceText,
+            this.LoadTextOptions,
+            this.TreeSource!,
+            this._lazyContentHash,
+            generationDateTime);
+    }
+
+    public SourceGeneratedDocumentState WithSyntaxRoot(SyntaxNode newRoot)
+    {
+        // See if we can reuse this instance directly
+        if (this.TryGetSyntaxTree(out var tree) &&
+            tree.TryGetRoot(out var root) &&
+            root == newRoot)
+        {
+            return this;
+        }
+
+        var sourceText = newRoot.GetText();
+        var factory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+        var newTree = factory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, ParseOptions, sourceText, sourceText.Encoding, sourceText.ChecksumAlgorithm, newRoot);
+
+        var lazyTextChecksum = new Lazy<Checksum>(() => ComputeContentHash(sourceText));
+        var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Create());
+        var textSource = new ConstantTextAndVersionSource(textAndVersion);
+        var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, GetNewerVersion(), PreservationMode.PreserveValue);
+        var newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, newTreeVersion));
+
+        return new(
+            this.Identity,
+            this.LanguageServices,
+            this.DocumentServiceProvider,
+            this.Attributes,
+            this.ParseOptions,
+            textSource,
+            sourceText,
+            this.LoadTextOptions,
+            newTreeSource,
+            lazyTextChecksum,
+            this.GenerationDateTime);
     }
 
     /// <summary>
@@ -182,7 +287,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             return null;
         }
 
-        private class SourceGeneratedDocumentOperationService : IDocumentOperationService
+        private sealed class SourceGeneratedDocumentOperationService : IDocumentOperationService
         {
             public static readonly SourceGeneratedDocumentOperationService Instance = new();
 

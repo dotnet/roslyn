@@ -6,50 +6,49 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static partial class TypeSyntaxExtensions
 {
-    internal static partial class TypeSyntaxExtensions
+    public static bool IsVoid(this TypeSyntax typeSyntax)
+        => typeSyntax is PredefinedTypeSyntax predefinedType &&
+           predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword);
+
+    public static bool IsPartial(this TypeSyntax typeSyntax)
     {
-        public static bool IsVoid(this TypeSyntax typeSyntax)
-            => typeSyntax is PredefinedTypeSyntax predefinedType &&
-               predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword);
-
-        public static bool IsPartial(this TypeSyntax typeSyntax)
-        {
-            return typeSyntax is IdentifierNameSyntax &&
-                ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
-        }
-
-        /// <summary>
-        /// Determines whether the specified TypeSyntax is actually 'var'.
-        /// </summary>
-        public static bool IsTypeInferred(this TypeSyntax typeSyntax, SemanticModel semanticModel)
-        {
-            if (!typeSyntax.IsVar)
-            {
-                return false;
-            }
-
-            if (semanticModel.GetAliasInfo(typeSyntax) != null)
-            {
-                return false;
-            }
-
-            var type = semanticModel.GetTypeInfo(typeSyntax).Type;
-            if (type == null)
-            {
-                return false;
-            }
-
-            if (type.Name == "var")
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
-            => type is RefTypeSyntax refType ? refType.Type : type;
+        return typeSyntax is IdentifierNameSyntax &&
+            ((IdentifierNameSyntax)typeSyntax).Identifier.IsKind(SyntaxKind.PartialKeyword);
     }
+
+    /// <summary>
+    /// Determines whether the specified TypeSyntax is actually 'var'.
+    /// </summary>
+    public static bool IsTypeInferred(this TypeSyntax typeSyntax, SemanticModel semanticModel)
+    {
+        if (!typeSyntax.IsVar)
+        {
+            return false;
+        }
+
+        if (semanticModel.GetAliasInfo(typeSyntax) != null)
+        {
+            return false;
+        }
+
+        var type = semanticModel.GetTypeInfo(typeSyntax).Type;
+        if (type == null)
+        {
+            return false;
+        }
+
+        if (type.Name == "var")
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
+        => type is RefTypeSyntax refType ? refType.Type : type;
 }

@@ -47,11 +47,11 @@ End Class
         Public Sub Method_Reorder1()
             Dim src1 = "
 Class C
-    Shared Sub Goo()
+    Shared Sub G()
         Console.ReadLine(1)
     End Sub
 
-    Shared Sub Bar()
+    Shared Sub F()
         Console.ReadLine(2)
     End Sub
 End Class
@@ -59,69 +59,76 @@ End Class
 
             Dim src2 = "
 Class C
-    Shared Sub Bar()
+    Shared Sub F()
         Console.ReadLine(2)
     End Sub
 
-    Shared Sub Goo()
+    Shared Sub G()
         Console.ReadLine(1)
     End Sub
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
+
+            ' Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
                 New SourceLineUpdate(5, 5),
                 New SourceLineUpdate(6, 2)
-            }, {})
+            }, {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub Method_Reorder2()
             Dim src1 = "
-Class Program
+Class C
     Shared Sub Main()
-        Goo()
-        Bar()
+        G()
+        F()
     End Sub
 
-    Shared Function Goo() As Integer
+    Shared Function G() As Integer
         Return 1
     End Function
 
-    Shared Function Bar() As Integer
+    Shared Function F() As Integer
         Return 2
     End Function
 End Class
 "
 
             Dim src2 = "
-Class Program
-    Shared Function Goo() As Integer
+Class C
+    Shared Function G() As Integer
         Return 1
     End Function
 
     Shared Sub Main()
-        Goo()
-        Bar()
+        G()
+        F()
     End Sub
 
-    Shared Function Bar() As Integer
+    Shared Function F() As Integer
         Return 2
     End Function
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
+
+            ' Consider: we could detect that the body of the method hasn't changed and create line edits instead of an update.
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
                 New SourceLineUpdate(6, 6),
                 New SourceLineUpdate(7, 2),
                 New SourceLineUpdate(10, 10)
-            }, {})
+            },
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.G"))
+            })
         End Sub
 
         <Fact>
@@ -556,8 +563,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
-                Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared Bar As Integer = 2", FeaturesResources.field)})
+                {New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)},
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -576,8 +583,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
-                Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared c As New C()", FeaturesResources.field)})
+                {New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)},
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -598,8 +605,8 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits(
-                Array.Empty(Of SequencePointUpdates),
-                diagnostics:={Diagnostic(RudeEditKind.Move, "Shared c, d As New C()", FeaturesResources.field)})
+                {New SourceLineUpdate(2, 3), New SourceLineUpdate(3, 2)},
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>

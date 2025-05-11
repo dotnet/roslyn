@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis
             return (path, properties) =>
             {
                 var peStream = FileSystem.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return MetadataReference.CreateFromFile(peStream, path, properties);
+                return MetadataReference.CreateFromFile(peStream, path, PEStreamOptions.PrefetchEntireImage, properties, documentation: null);
             };
         }
 
@@ -561,9 +562,9 @@ namespace Microsoft.CodeAnalysis
                 // so that the suppression information is available in the binary logs and verbose build logs.
                 if (diag.ProgrammaticSuppressionInfo != null)
                 {
-                    foreach (var (id, justification) in diag.ProgrammaticSuppressionInfo.Suppressions)
+                    foreach (var suppression in diag.ProgrammaticSuppressionInfo.Suppressions)
                     {
-                        var suppressionDiag = new SuppressionDiagnostic(diag, id, justification);
+                        var suppressionDiag = new SuppressionDiagnostic(diag, suppression.Descriptor.Id, suppression.Descriptor.Justification);
                         if (_reportedDiagnostics.Add(suppressionDiag))
                         {
                             PrintError(suppressionDiag, consoleOutput);
@@ -802,6 +803,7 @@ namespace Microsoft.CodeAnalysis
         /// Perform source generation, if the compiler supports it.
         /// </summary>
         /// <param name="input">The compilation before any source generation has occurred.</param>
+        /// <param name="generatedFilesBaseDirectory">The base directory for the <see cref="SyntaxTree.FilePath"/> of generated files.</param>
         /// <param name="parseOptions">The <see cref="ParseOptions"/> to use when parsing any generated sources.</param>
         /// <param name="generators">The generators to run</param>
         /// <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options.</param>
@@ -810,12 +812,15 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         private protected (Compilation Compilation, GeneratorDriverTimingInfo DriverTimingInfo) RunGenerators(
             Compilation input,
+            string generatedFilesBaseDirectory,
             ParseOptions parseOptions,
             ImmutableArray<ISourceGenerator> generators,
             AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
             ImmutableArray<AdditionalText> additionalTexts,
             DiagnosticBag generatorDiagnostics)
         {
+            Debug.Assert(generatedFilesBaseDirectory is not null);
+
             GeneratorDriver? driver = null;
             string cacheKey = string.Empty;
             bool disableCache =
@@ -830,11 +835,15 @@ namespace Microsoft.CodeAnalysis
                                                   .ReplaceAdditionalTexts(additionalTexts);
             }
 
-            driver ??= CreateGeneratorDriver(parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
+            driver ??= CreateGeneratorDriver(generatedFilesBaseDirectory, parseOptions, generators, analyzerConfigOptionsProvider, additionalTexts);
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
-            if (!disableCache)
+            // We only cache the generator driver if it produced any generated files. While it's possible that it was expensive
+            // to calculate that nothing needed to be generated, real world usage has found that generators are generally only
+            // expensive when actually producing source. By only caching those with results, we help to keep memory usage down
+            // when it probably wouldn't improve the performance anyway.
+            if (!disableCache && driver.GetRunResult().GeneratedTrees.Any())
             {
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
@@ -865,7 +874,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private protected abstract GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
+        private protected abstract GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
@@ -1136,10 +1145,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     // At this point we have a compilation with nothing yet computed.
                     // We pass it to the generators, which will realize any symbols they require.
-                    (compilation, generatorTimingInfo) = RunGenerators(compilation, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+                    var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
+                    var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
+                    var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
+                    (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
-                    bool hasGeneratedOutputPath = !string.IsNullOrWhiteSpace(Arguments.GeneratedFilesOutputDirectory);
                     var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
                     var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
                     var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
@@ -1159,11 +1170,12 @@ namespace Microsoft.CodeAnalysis
                                 analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
                             }
 
-                            // write out the file if we have an output path
-                            if (hasGeneratedOutputPath)
+                            // write out the file if an output path was explicitly provided
+                            if (hasExplicitGeneratedOutDir)
                             {
-                                var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
-                                if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
+                                var path = tree.FilePath;
+                                Debug.Assert(path.StartsWith(explicitGeneratedOutDir!));
+                                if (Directory.Exists(explicitGeneratedOutDir))
                                 {
                                     Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                                 }

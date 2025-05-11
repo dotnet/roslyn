@@ -6,27 +6,31 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenAsyncTests : EmitMetadataTestBase
     {
+        internal static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, options: options, references: references);
+            return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -54,7 +58,7 @@ class Test
         F(123).Wait();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source);
+            var c = CreateCompilationWithMscorlib461(source);
 
             CompilationOptions options;
 
@@ -3304,7 +3308,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3334,7 +3338,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3365,7 +3369,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3703,7 +3707,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             // Builder
             var libB = @"public class B { }";
-            var cB = CreateCompilationWithMscorlib45(libB);
+            var cB = CreateCompilationWithMscorlib461(libB);
             var rB = cB.EmitToImageReference();
 
             // Tasklike
@@ -3714,7 +3718,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var cT = CreateCompilationWithMscorlib461(libT, references: new[] { rB });
             var rT = cT.EmitToImageReference();
 
             // Consumer, fails to reference builder
@@ -3726,7 +3730,7 @@ class Program {
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            var c = CreateCompilationWithMscorlib461(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
                 // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -4023,7 +4027,7 @@ class Mismatch2MethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS8940: A generic task-like return type was expected, but the type 'Mismatch1MethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
@@ -4501,7 +4505,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4510,7 +4514,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"await System.Threading.Tasks.Task.FromResult(4);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4520,7 +4524,7 @@ namespace CompilerCrashRepro2
             var source =
 @"int x = await System.Threading.Tasks.Task.Run(() => 2);
 System.Console.WriteLine(x);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4564,7 +4568,7 @@ System.Console.WriteLine(x);";
     await System.Threading.Tasks.Task.FromResult(1);
 int y = x +
     await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);
@@ -6052,6 +6056,298 @@ public class C
 ";
             var comp = CSharpTestBase.CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal()
+        {
+            string src = """
+using System.Reflection;
+
+var tcs = new System.Threading.Tasks.TaskCompletionSource();
+var task = C.ProduceAsync(true, tcs.Task);
+
+var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
+object stateMachineBox = callback.Target;
+object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
+
+System.Console.Write((string)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine) is null);
+
+class C
+{
+    public static async System.Threading.Tasks.Task<int> ProduceAsync(bool b, System.Threading.Tasks.Task task)
+    {
+        while (b)
+        {
+            string values2 = "value ";
+            await System.Threading.Tasks.Task.CompletedTask;
+            System.Console.Write(values2);
+            b = false;
+        }
+        await task; // block execution here to check what's in the field for "values2"
+        return 42;
+    }
+}
+""";
+            // Note: nested hoisted local gets cleared when exiting nested scope normally
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedLocalWithStructFromAnotherCompilation()
+        {
+            var libSrc = """
+public struct S
+{
+    public int field;
+    public override string ToString() => field.ToString();
+}
+""";
+            var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+            string src = """
+using System.Reflection;
+
+var tcs = new System.Threading.Tasks.TaskCompletionSource();
+var task = C.ProduceAsync(true, tcs.Task);
+
+var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(task);
+object stateMachineBox = callback.Target;
+object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
+
+System.Console.Write((S)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine));
+
+class C
+{
+    public static async System.Threading.Tasks.Task<int> ProduceAsync(bool b, System.Threading.Tasks.Task task)
+    {
+        while (b)
+        {
+            S values2 = new S { field = 42 };
+            await System.Threading.Tasks.Task.CompletedTask;
+            System.Console.Write(values2);
+            b = false;
+        }
+        await task; // block execution here to check what's in the field for "values2"
+        return 10;
+    }
+}
+""";
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("4242"), references: [libComp.EmitToImageReference()],
+                targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<ProduceAsync>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      309 (0x135)
+  .maxstack  3
+  .locals init (int V_0,
+                int V_1,
+                S V_2,
+                System.Runtime.CompilerServices.TaskAwaiter V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<ProduceAsync>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0065
+    IL_000a:  ldloc.0
+    IL_000b:  ldc.i4.1
+    IL_000c:  beq        IL_00df
+    IL_0011:  br         IL_009f
+    IL_0016:  ldarg.0
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  initobj    "S"
+    IL_001f:  ldloca.s   V_2
+    IL_0021:  ldc.i4.s   42
+    IL_0023:  stfld      "int S.field"
+    IL_0028:  ldloc.2
+    IL_0029:  stfld      "S C.<ProduceAsync>d__0.<values2>5__2"
+    IL_002e:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0033:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_0038:  stloc.3
+    IL_0039:  ldloca.s   V_3
+    IL_003b:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0040:  brtrue.s   IL_0081
+    IL_0042:  ldarg.0
+    IL_0043:  ldc.i4.0
+    IL_0044:  dup
+    IL_0045:  stloc.0
+    IL_0046:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_004b:  ldarg.0
+    IL_004c:  ldloc.3
+    IL_004d:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_0052:  ldarg.0
+    IL_0053:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_0058:  ldloca.s   V_3
+    IL_005a:  ldarg.0
+    IL_005b:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ProduceAsync>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ProduceAsync>d__0)"
+    IL_0060:  leave      IL_0134
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_006b:  stloc.3
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_0072:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_0078:  ldarg.0
+    IL_0079:  ldc.i4.m1
+    IL_007a:  dup
+    IL_007b:  stloc.0
+    IL_007c:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_0081:  ldloca.s   V_3
+    IL_0083:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0088:  ldarg.0
+    IL_0089:  ldfld      "S C.<ProduceAsync>d__0.<values2>5__2"
+    IL_008e:  box        "S"
+    IL_0093:  call       "void System.Console.Write(object)"
+    IL_0098:  ldarg.0
+    IL_0099:  ldc.i4.0
+    IL_009a:  stfld      "bool C.<ProduceAsync>d__0.b"
+    IL_009f:  ldarg.0
+    IL_00a0:  ldfld      "bool C.<ProduceAsync>d__0.b"
+    IL_00a5:  brtrue     IL_0016
+    IL_00aa:  ldarg.0
+    IL_00ab:  ldfld      "System.Threading.Tasks.Task C.<ProduceAsync>d__0.task"
+    IL_00b0:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_00b5:  stloc.3
+    IL_00b6:  ldloca.s   V_3
+    IL_00b8:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_00bd:  brtrue.s   IL_00fb
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldc.i4.1
+    IL_00c1:  dup
+    IL_00c2:  stloc.0
+    IL_00c3:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldloc.3
+    IL_00ca:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00cf:  ldarg.0
+    IL_00d0:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_00d5:  ldloca.s   V_3
+    IL_00d7:  ldarg.0
+    IL_00d8:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<ProduceAsync>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<ProduceAsync>d__0)"
+    IL_00dd:  leave.s    IL_0134
+    IL_00df:  ldarg.0
+    IL_00e0:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00e5:  stloc.3
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<ProduceAsync>d__0.<>u__1"
+    IL_00ec:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00f2:  ldarg.0
+    IL_00f3:  ldc.i4.m1
+    IL_00f4:  dup
+    IL_00f5:  stloc.0
+    IL_00f6:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_00fb:  ldloca.s   V_3
+    IL_00fd:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0102:  ldc.i4.s   10
+    IL_0104:  stloc.1
+    IL_0105:  leave.s    IL_0120
+  }
+  catch System.Exception
+  {
+    IL_0107:  stloc.s    V_4
+    IL_0109:  ldarg.0
+    IL_010a:  ldc.i4.s   -2
+    IL_010c:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+    IL_0111:  ldarg.0
+    IL_0112:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+    IL_0117:  ldloc.s    V_4
+    IL_0119:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)"
+    IL_011e:  leave.s    IL_0134
+  }
+  IL_0120:  ldarg.0
+  IL_0121:  ldc.i4.s   -2
+  IL_0123:  stfld      "int C.<ProduceAsync>d__0.<>1__state"
+  IL_0128:  ldarg.0
+  IL_0129:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<ProduceAsync>d__0.<>t__builder"
+  IL_012e:  ldloc.1
+  IL_012f:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)"
+  IL_0134:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Threading.Tasks;
+
+class Test1
+{
+    async Task<T> M2<[Preserve1][Preserve2]T>(T x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Threading.Tasks;
+
+class Test1
+{
+    async Task<int> M2<T>([Preserve1][Preserve2][Preserve3]int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.x").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

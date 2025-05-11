@@ -2,24 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-    public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    #region SameProject
+    #region SameProject_SameFile 
+    [Fact]
+    public async Task GenerateTypeDefaultValues()
     {
-        #region SameProject
-        #region SameProject_SameFile 
-        [Fact]
-        public async Task GenerateTypeDefaultValues()
-        {
-            await TestWithMockedGenerateTypeDialog(
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -41,12 +40,12 @@ class Goo
 {
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeInsideNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeInsideNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -75,12 +74,12 @@ namespace A
     }
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeInsideFileScopedNamespace1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeInsideFileScopedNamespace1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 namespace A;
 
@@ -109,12 +108,12 @@ class Goo
 {
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeInsideFileScopedNamespace2()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeInsideFileScopedNamespace2()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 namespace A;
 
@@ -143,12 +142,12 @@ class Goo
 {
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeInsideQualifiedNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeInsideQualifiedNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -175,12 +174,12 @@ namespace A.B
     }
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithinQualifiedNestedNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithinQualifiedNestedNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -213,12 +212,12 @@ namespace A.B
     }
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithinNestedQualifiedNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithinNestedQualifiedNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -251,12 +250,12 @@ namespace A
     }
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithConstructorMembers()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithConstructorMembers()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -286,12 +285,12 @@ class Goo
     }
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithBaseTypes()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithBaseTypes()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System.Collections.Generic;
 class Program
 {
@@ -315,12 +314,12 @@ class Goo : List<int>
 {
 }",
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithPublicInterface()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithPublicInterface()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -355,12 +354,12 @@ namespace A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithInternalStruct()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithInternalStruct()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -395,12 +394,12 @@ namespace A
 accessibility: Accessibility.Internal,
 typeKind: TypeKind.Struct,
 isNewFile: false);
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithDefaultEnum()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithDefaultEnum()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -435,12 +434,12 @@ namespace A
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeWithDefaultEnum_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -470,12 +469,12 @@ defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeWithDefaultEnum_DefaultNamespace_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     void Main()
@@ -511,15 +510,15 @@ defaultNamespace: "ConsoleApplication",
 accessibility: Accessibility.NotApplicable,
 typeKind: TypeKind.Enum,
 isNewFile: false);
-        }
-        #endregion
+    }
+    #endregion
 
-        // Working is very similar to the adding to the same file
-        #region SameProject_ExistingFile
-        [Fact]
-        public async Task GenerateTypeInExistingEmptyFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    // Working is very similar to the adding to the same file
+    #region SameProject_ExistingFile
+    [Fact]
+    public async Task GenerateTypeInExistingEmptyFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -551,12 +550,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeInExistingEmptyFile_Usings_Folders()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -595,12 +594,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeInExistingEmptyFile_Usings_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -640,12 +639,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeInExistingEmptyFile_Usings_Folders_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -685,12 +684,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeInExistingEmptyFile_NoUsings_Folders_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -723,14 +722,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs");
-        }
-        #endregion
+    }
+    #endregion
 
-        #region SameProject_NewFile
-        [WpfFact]
-        public async Task GenerateTypeInNewFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    #region SameProject_NewFile
+    [WpfFact]
+    public async Task GenerateTypeInNewFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -758,15 +757,14 @@ expected: @"namespace A.B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -798,15 +796,14 @@ checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNeeded_InNewFile_InFolder()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -841,15 +838,14 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -878,15 +874,14 @@ checkIfUsingsNotIncluded: true,
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNeeded_InNewFile_InFolder_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -922,15 +917,14 @@ class Program
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -970,15 +964,14 @@ namespace ConsoleApplication.outer
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer"),
+newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateType_UsingsNotNeeded_InNewFile_InFolder_DefaultNamespace_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1020,15 +1013,14 @@ namespace A.B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
-newFileFolderContainers: ImmutableArray.Create("outer"),
+newFileFolderContainers: ["outer"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
-        [WpfFact]
-        public async Task GenerateType_InValidFolderNameNotMadeNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/898452")]
+    public async Task GenerateType_InValidFolderNameNotMadeNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1077,19 +1069,19 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 areFoldersValidIdentifiers: false,
-newFileFolderContainers: ImmutableArray.Create("123", "456"),
+newFileFolderContainers: ["123", "456"],
 newFileName: "Test2.cs");
-        }
+    }
 
-        #endregion
+    #endregion
 
-        #endregion
-        #region SameLanguageDifferentProject
-        #region SameLanguageDifferentProject_ExistingFile
-        [Fact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    #endregion
+    #region SameLanguageDifferentProject
+    #region SameLanguageDifferentProject_ExistingFile
+    [Fact]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectEmptyFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1123,12 +1115,12 @@ typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1172,12 +1164,12 @@ typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectExistingFile_Usings_Folders()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1231,14 +1223,14 @@ typeKind: TypeKind.Interface,
 isNewFile: false,
 existingFilename: "Test2.cs",
 projectName: "Assembly2");
-        }
+    }
 
-        #endregion
-        #region SameLanguageDifferentProject_NewFile
-        [WpfFact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    #endregion
+    #region SameLanguageDifferentProject_NewFile
+    [WpfFact]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1269,15 +1261,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1315,15 +1306,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1355,15 +1345,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_Usings_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1402,15 +1391,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoSameLanguageDifferentProjectNewFile_Folders_NoUsings_NotSimpleName_DefaultNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1443,16 +1431,16 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: true,
 newFileName: "Test2.cs",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
-        #endregion
-        #endregion
-        #region DifferentLanguage
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    }
+    #endregion
+    #endregion
+    #region DifferentLanguage
+    [WpfFact]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1482,15 +1470,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1527,15 +1514,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1566,15 +1552,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_Usings_RootNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1612,15 +1597,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1652,15 +1636,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFile_Folders_NoUsings_NotSimpleName_RootNamespace_ProjectReference()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""Visual Basic"" AssemblyName=""Assembly2"" CommonReferences=""true"">
                         <CompilationOptions RootNamespace=""BarBaz""/>
@@ -1698,15 +1681,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test3.vb",
-newFileFolderContainers: ImmutableArray.Create("outer", "inner"),
+newFileFolderContainers: ["outer", "inner"],
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
-        [WpfFact]
-        public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858826")]
+    public async Task GenerateTypeIntoDifferentLanguageNewFileAdjustFileExtension()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1736,14 +1718,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1777,12 +1759,12 @@ typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
-        public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850101")]
+    public async Task GenerateTypeIntoDifferentLanguageExistingEmptyFile_Usings_Folder()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1822,12 +1804,12 @@ typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1866,12 +1848,12 @@ typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeIntoDifferentLanguageExistingNonEmptyTargetFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1917,14 +1899,13 @@ typeKind: TypeKind.Class,
 isNewFile: false,
 existingFilename: "Test2.vb",
 projectName: "Assembly2");
-        }
+    }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
-        [WpfFact]
-        public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869593")]
+    public async Task GenerateModuleFromCSharpToVisualBasicInTypeContext()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -1954,18 +1935,18 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Module,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2",
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-        }
+    }
 
-        #endregion
-        #region Bugfix 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    #endregion
+    #region Bugfix 
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/873066")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
+    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 public class C : [|$$D|]
 {
@@ -1983,12 +1964,12 @@ public class D
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
+    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_2()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"public interface CCC : [|$$DDD|]
 {
 }",
@@ -2005,12 +1986,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
-        public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")]
+    public async Task GenerateTypeWithProperAccessibilityAndTypeKind_3()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"public struct CCC : [|$$DDD|]
 {
 }",
@@ -2027,12 +2008,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Interface,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Interface, false));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        public async Task GenerateTypeInMemberAccessExpression()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
+    public async Task GenerateTypeInMemberAccessExpression()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2057,12 +2038,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
-        public async Task GenerateTypeInMemberAccessExpressionInNamespace()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861362")]
+    public async Task GenerateTypeInMemberAccessExpressionInNamespace()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2094,12 +2075,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
+    public async Task GenerateTypeWithoutEnumForGenericsInMemberAccess()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2132,12 +2113,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
+    public async Task GenerateTypeWithoutEnumForGenericsInNameContext()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2170,12 +2151,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Interface | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        public async Task GenerateTypeInMemberAccessWithNSForModule()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
+    public async Task GenerateTypeInMemberAccessWithNSForModule()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2207,12 +2188,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
+    public async Task GenerateTypeInMemberAccessWithGlobalNSForModule()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2237,12 +2218,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.MemberAccessWithNamespace));
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
-        public async Task GenerateTypeInMemberAccessWithoutNS()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861600")]
+    public async Task GenerateTypeInMemberAccessWithoutNS()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2257,13 +2238,13 @@ namespace Bar
 languageName: LanguageNames.CSharp,
 typeName: "Bar",
 isMissing: true);
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
-        public async Task GenerateType_NoParameterLessConstructorForStruct()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/883531")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876202")]
+    public async Task GenerateType_NoParameterLessConstructorForStruct()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2288,13 +2269,111 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Structure,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
-        }
-        #endregion
-        #region Delegates
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    }
+
+    [Fact, WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")]
+    public async Task GenerateType_GenericBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<[|$$NewType|]>
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "NewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<NewType>
+{
+}
+
+public class NewType
+{
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Class,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
+    }
+
+    [Fact]
+    public async Task GenerateType_QualifiedBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+    }
+
+    [Fact]
+    public async Task GenerateType_AliasQualifiedBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+    }
+    #endregion
+    #region Delegates
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2324,12 +2403,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_MethodGroup_Generics()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2359,12 +2438,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_Delegate()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2392,12 +2471,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_Action()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_Action()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2425,12 +2504,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_Func()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_Func()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2458,12 +2537,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_ParenLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2487,12 +2566,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2516,13 +2595,13 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact(Skip = "872935")]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
-        public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact(Skip = "872935")]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872935")]
+    public async Task GenerateDelegateType_ObjectCreationExpression_SimpleLambdaEmpty()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2546,12 +2625,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_MethodGroup()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_MethodGroup()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2581,12 +2660,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_Delegate()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_Delegate()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2616,12 +2695,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_Action()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_Action()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2649,12 +2728,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_Func()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_Func()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2682,12 +2761,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_ParenLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_ParenLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2712,12 +2791,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_VarDecl_SimpleLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_VarDecl_SimpleLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2741,12 +2820,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_MethodGroup()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_MethodGroup()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2776,12 +2855,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_Delegate()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_Delegate()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2811,12 +2890,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_Action()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_Action()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2844,12 +2923,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_Func()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_Func()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"using System;
 class Program
 {
@@ -2877,12 +2956,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_ParenLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_ParenLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2907,12 +2986,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_Cast_SimpleLambda()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_Cast_SimpleLambda()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -2936,12 +3015,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions));
-        }
+    }
 
-        [WpfFact]
-        public async Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [WpfFact]
+    public async Task GenerateDelegateTypeIntoDifferentLanguageNewFile()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"<Workspace>
                     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
                         <Document FilePath=""Test1.cs"">
@@ -2970,14 +3049,14 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: true,
 newFileName: "Test2.vb",
-newFileFolderContainers: ImmutableArray<string>.Empty,
+newFileFolderContainers: [],
 projectName: "Assembly2");
-        }
+    }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
-        public async Task GenerateDelegateType_NoInfo()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860210")]
+    public async Task GenerateDelegateType_NoInfo()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3000,13 +3079,13 @@ public delegate void MyD<T>();
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false);
-        }
-        #endregion 
-        #region Dev12Filtering
-        [Fact]
-        public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    }
+    #endregion 
+    #region Dev12Filtering
+    [Fact]
+    public async Task GenerateDelegateType_NoEnum_InvocationExpression_0()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3030,13 +3109,13 @@ public class B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
-        }
+assertTypeKindAbsent: [TypeKindOptions.Enum]);
+    }
 
-        [Fact]
-        public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateDelegateType_NoEnum_InvocationExpression_1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3067,13 +3146,13 @@ namespace A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
-        }
+assertTypeKindAbsent: [TypeKindOptions.Enum]);
+    }
 
-        [Fact]
-        public async Task GenerateType_TypeConstraint_1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_TypeConstraint_1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3105,12 +3184,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_TypeConstraint_2()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_TypeConstraint_2()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3148,12 +3227,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_TypeConstraint_3()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_TypeConstraint_3()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"class Program
 {
     static void Main(string[] args)
@@ -3197,12 +3276,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithProperAccessibilityWithNesting_1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 public class B
 {
@@ -3226,12 +3305,12 @@ public class D
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.BaseList, false));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithProperAccessibilityWithNesting_2()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class B
 {
@@ -3255,12 +3334,12 @@ public class D
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateTypeWithProperAccessibilityWithNesting_3()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3290,12 +3369,12 @@ public class D
 accessibility: Accessibility.Public,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.BaseList, false));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_1()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_1()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3323,12 +3402,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_2()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_2()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3348,12 +3427,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_3()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_3()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3383,12 +3462,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_4()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_4()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3410,12 +3489,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_5()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_5()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3451,12 +3530,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_6()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_6()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 class A
 {
@@ -3484,12 +3563,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure | TypeKindOptions.Module));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_7()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_7()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 public class A
 {
@@ -3517,12 +3596,12 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
-        }
+    }
 
-        [Fact]
-        public async Task GenerateType_Event_8()
-        {
-            await TestWithMockedGenerateTypeDialog(
+    [Fact]
+    public async Task GenerateType_Event_8()
+    {
+        await TestWithMockedGenerateTypeDialog(
 initial: @"
 public class outer
 {
@@ -3556,7 +3635,6 @@ accessibility: Accessibility.Public,
 typeKind: TypeKind.Delegate,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(true, TypeKindOptions.Delegate));
-        }
-        #endregion
     }
+    #endregion
 }

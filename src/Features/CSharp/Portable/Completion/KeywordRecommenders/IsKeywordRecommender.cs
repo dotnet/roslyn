@@ -5,20 +5,14 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class IsKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public IsKeywordRecommender()
-            : base(SyntaxKind.IsKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            // cases:
-            //    expr |
-            return !context.IsInNonUserCode && context.IsIsOrAsOrSwitchOrWithExpressionContext;
-        }
+internal sealed class IsKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.IsKeyword)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        // cases:
+        //    expr |
+        return !context.IsInNonUserCode && context.IsIsOrAsOrSwitchOrWithExpressionContext;
     }
 }

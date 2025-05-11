@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class LineContinuationTrivia
             Inherits AbstractLineBreakTrivia
 
-            Public Sub New(options As SyntaxFormattingOptions,
+            Public Sub New(options As LineFormattingOptions,
                            originalString As String,
                            indentation As Integer)
                 MyBase.New(options, originalString, 1, indentation, False)

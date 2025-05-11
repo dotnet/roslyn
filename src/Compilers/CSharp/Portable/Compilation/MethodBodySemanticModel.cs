@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.ClassDeclaration:
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                     return binder.BindMethodBody(node, diagnostics);
             }
 
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableWalker.AnalyzeWithoutRewrite(Compilation, MemberSymbol, boundRoot, binder, diagnostics, createSnapshots);
         }
 
-        protected override bool IsNullableAnalysisEnabled()
+        protected override bool IsNullableAnalysisEnabledCore()
         {
             return Compilation.IsNullableAnalysisEnabledIn((MethodSymbol)MemberSymbol);
         }

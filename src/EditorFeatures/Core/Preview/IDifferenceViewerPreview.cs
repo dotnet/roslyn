@@ -5,11 +5,10 @@
 using System;
 using Microsoft.VisualStudio.Text.Differencing;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+
+internal interface IDifferenceViewerPreview<TDifferenceViewer> : IDisposable
+    where TDifferenceViewer : IDifferenceViewer
 {
-    internal interface IDifferenceViewerPreview<TDifferenceViewer> : IDisposable
-        where TDifferenceViewer : IDifferenceViewer
-    {
-        public TDifferenceViewer Viewer { get; }
-    }
+    public TDifferenceViewer Viewer { get; }
 }

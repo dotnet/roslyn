@@ -2,35 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private sealed class EventSymbolKey : AbstractSymbolKey<IEventSymbol>
     {
-        private sealed class EventSymbolKey : AbstractSymbolKey<IEventSymbol>
+        public static readonly EventSymbolKey Instance = new();
+
+        public sealed override void Create(IEventSymbol symbol, SymbolKeyWriter visitor)
         {
-            public static readonly EventSymbolKey Instance = new();
+            visitor.WriteString(symbol.MetadataName);
+            visitor.WriteSymbolKey(symbol.ContainingType);
+            visitor.WriteBoolean(symbol.PartialDefinitionPart is not null);
+        }
 
-            public sealed override void Create(IEventSymbol symbol, SymbolKeyWriter visitor)
+        protected sealed override SymbolKeyResolution Resolve(
+            SymbolKeyReader reader, IEventSymbol? contextualSymbol, out string? failureReason)
+        {
+            var metadataName = reader.ReadString();
+            var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
+            var isPartialImplementationPart = reader.ReadBoolean();
+
+            if (containingTypeFailureReason != null)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingType);
+                failureReason = $"({nameof(EventSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
+                return default;
             }
 
-            protected sealed override SymbolKeyResolution Resolve(
-                SymbolKeyReader reader, IEventSymbol? contextualSymbol, out string? failureReason)
-            {
-                var metadataName = reader.ReadString();
-                var containingTypeResolution = reader.ReadSymbolKey(contextualSymbol?.ContainingType, out var containingTypeFailureReason);
+            using var events = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
 
-                if (containingTypeFailureReason != null)
+            if (isPartialImplementationPart)
+            {
+                for (var i = 0; i < events.Builder.Count; i++)
                 {
-                    failureReason = $"({nameof(EventSymbolKey)} {nameof(containingTypeResolution)} failed -> {containingTypeFailureReason})";
-                    return default;
+                    var candidate = events.Builder[i];
+                    events.Builder[i] = candidate.PartialImplementationPart ?? candidate;
                 }
-
-                using var result = GetMembersOfNamedType<IEventSymbol>(containingTypeResolution, metadataName);
-                return CreateResolution(result, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);
             }
+
+            return CreateResolution(events, $"({nameof(EventSymbolKey)} '{metadataName}' not found)", out failureReason);
         }
     }
 }

@@ -3,24 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal static partial class DiagnosticSeverityExtensions
 {
-    internal static partial class DiagnosticSeverityExtensions
+    public static NotificationOption2 ToNotificationOption(this DiagnosticSeverity severity, bool isOverridenSeverity)
     {
-        public static NotificationOption2 ToNotificationOption(this DiagnosticSeverity severity, bool isOverridenSeverity)
+        var notificationOption = severity switch
         {
-            var notificationOption = severity switch
-            {
-                DiagnosticSeverity.Error => NotificationOption2.Error,
-                DiagnosticSeverity.Warning => NotificationOption2.Warning,
-                DiagnosticSeverity.Info => NotificationOption2.Suggestion,
-                DiagnosticSeverity.Hidden => NotificationOption2.Silent,
-                _ => throw ExceptionUtilities.UnexpectedValue(severity),
-            };
+            DiagnosticSeverity.Error => NotificationOption2.Error,
+            DiagnosticSeverity.Warning => NotificationOption2.Warning,
+            DiagnosticSeverity.Info => NotificationOption2.Suggestion,
+            DiagnosticSeverity.Hidden => NotificationOption2.Silent,
+            _ => throw ExceptionUtilities.UnexpectedValue(severity),
+        };
 
-            return notificationOption.WithIsExplicitlySpecified(isOverridenSeverity);
-        }
+        return notificationOption.WithIsExplicitlySpecified(isOverridenSeverity);
     }
 }

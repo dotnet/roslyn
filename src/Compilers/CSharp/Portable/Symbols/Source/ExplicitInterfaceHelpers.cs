@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            builder.Append(".");
+            builder.Append('.');
             builder.Append(name);
 
             return pooled.ToStringAndFree();

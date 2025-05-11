@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Completion;
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 internal sealed class EditorLayerExtensionManager(
     [ImportMany] IEnumerable<IExtensionErrorHandler> errorHandlers) : IWorkspaceServiceFactory
 {
-    private readonly ImmutableArray<IExtensionErrorHandler> _errorHandlers = errorHandlers.ToImmutableArray();
+    private readonly ImmutableArray<IExtensionErrorHandler> _errorHandlers = [.. errorHandlers];
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {

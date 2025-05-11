@@ -32,6 +32,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualBasic" Version="$(MicrosoftVisualBasicVersion)" />
+    <PackageReference Include="Microsoft.VisualBasic" />
   </ItemGroup>
 </Project>

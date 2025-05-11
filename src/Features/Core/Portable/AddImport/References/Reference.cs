@@ -16,113 +16,113 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    private abstract class Reference(
+        AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+        SearchResult searchResult,
+        bool isWithinImport) : IEquatable<Reference>
     {
-        private abstract class Reference : IEquatable<Reference>
+        protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider = provider;
+        public readonly SearchResult SearchResult = searchResult;
+
+        private readonly bool _isWithinImport = isWithinImport;
+
+        public int CompareTo(Document document, Reference other)
         {
-            protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
-            public readonly SearchResult SearchResult;
-
-            protected Reference(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                SearchResult searchResult)
+            var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+            if (diff != 0)
             {
-                this.provider = provider;
-                SearchResult = searchResult;
+                return diff;
             }
 
-            public int CompareTo(Document document, Reference other)
+            // Both our names need to change.  Sort by the name we're 
+            // changing to.
+            diff = StringComparer.OrdinalIgnoreCase.Compare(
+                SearchResult.DesiredName, other.SearchResult.DesiredName);
+            if (diff != 0)
             {
-                var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
-                if (diff != 0)
-                {
-                    return diff;
-                }
-
-                // Both our names need to change.  Sort by the name we're 
-                // changing to.
-                diff = StringComparer.OrdinalIgnoreCase.Compare(
-                    SearchResult.DesiredName, other.SearchResult.DesiredName);
-                if (diff != 0)
-                {
-                    return diff;
-                }
-
-                // If the weights are the same and no names changed, just order 
-                // them based on the namespace we're adding an import for.
-                return INamespaceOrTypeSymbolExtensions.CompareNameParts(
-                        SearchResult.NameParts, other.SearchResult.NameParts,
-                        placeSystemNamespaceFirst: true);
+                return diff;
             }
 
-            private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
-                = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
-                    // If references have different weights, order by the ones with lower weight (i.e.
-                    // they are better matches).
-                    (r, d) => r.SearchResult.Weight,
-                    // Prefer the name doesn't need to change.
-                    (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d));
+            // If the weights are the same and no names changed, just order 
+            // them based on the namespace we're adding an import for.
+            return INamespaceOrTypeSymbolExtensions.CompareNameParts(
+                    SearchResult.NameParts, other.SearchResult.NameParts,
+                    placeSystemNamespaceFirst: true);
+        }
 
-            public override bool Equals(object obj)
-                => Equals(obj as Reference);
+        private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
+            =
+            [
+                (r, d) => r.SearchResult.Weight,
+                (r, d) => !r.SearchResult.DesiredNameMatchesSourceName(d),
+            ];
 
-            public bool Equals(Reference other)
+        public override bool Equals(object obj)
+            => Equals(obj as Reference);
+
+        public bool Equals(Reference other)
+        {
+            return other != null &&
+                other.SearchResult.NameParts != null &&
+                SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
+        }
+
+        public override int GetHashCode()
+            => Hash.CombineValues(SearchResult.NameParts);
+
+        protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
+            SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
+        {
+            if (!SearchResult.DesiredNameDiffersFromSourceName())
             {
-                return other != null &&
-                    other.SearchResult.NameParts != null &&
-                    SearchResult.NameParts.SequenceEqual(other.SearchResult.NameParts);
+                return (contextNode, document);
             }
 
-            public override int GetHashCode()
-                => Hash.CombineValues(SearchResult.NameParts);
+            var identifier = SearchResult.NameNode.GetFirstToken();
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var newIdentifier = generator.IdentifierName(SearchResult.DesiredName).GetFirstToken().WithTriviaFrom(identifier);
+            var annotation = new SyntaxAnnotation();
 
-            protected async Task<(SyntaxNode, Document)> ReplaceNameNodeAsync(
-                SyntaxNode contextNode, Document document, CancellationToken cancellationToken)
-            {
-                if (!SearchResult.DesiredNameDiffersFromSourceName())
-                {
-                    return (contextNode, document);
-                }
+            var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
+            root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
 
-                var identifier = SearchResult.NameNode.GetFirstToken();
-                var generator = SyntaxGenerator.GetGenerator(document);
-                var newIdentifier = generator.IdentifierName(SearchResult.DesiredName).GetFirstToken().WithTriviaFrom(identifier);
-                var annotation = new SyntaxAnnotation();
+            var newDocument = document.WithSyntaxRoot(root);
+            var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newContextNode = newRoot.GetAnnotatedTokens(annotation).First().Parent;
 
-                var root = contextNode.SyntaxTree.GetRoot(cancellationToken);
-                root = root.ReplaceToken(identifier, newIdentifier.WithAdditionalAnnotations(annotation));
+            return (newContextNode, newDocument);
+        }
 
-                var newDocument = document.WithSyntaxRoot(root);
-                var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newContextNode = newRoot.GetAnnotatedTokens(annotation).First().Parent;
+        public abstract Task<AddImportFixData> TryGetFixDataAsync(
+            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken);
 
-                return (newContextNode, newDocument);
-            }
+        protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
+            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
+        {
+            // Within an import, we're only adding a package/nuget reference (and we're not going to add another
+            // using/import as we're already in one).  So no need for text changes.
+            if (_isWithinImport)
+                return [];
 
-            public abstract Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken);
+            var originalDocument = document;
 
-            protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
-            {
-                var originalDocument = document;
+            (node, document) = await ReplaceNameNodeAsync(
+                node, document, cancellationToken).ConfigureAwait(false);
 
-                (node, document) = await ReplaceNameNodeAsync(
-                    node, document, cancellationToken).ConfigureAwait(false);
+            var newDocument = await provider.AddImportAsync(
+                node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-                var newDocument = await provider.AddImportAsync(
-                    node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+            var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                newDocument, options, cancellationToken).ConfigureAwait(false);
 
-                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    newDocument, options, cancellationToken).ConfigureAwait(false);
+            var textChanges = await cleanedDocument.GetTextChangesAsync(
+                originalDocument, cancellationToken).ConfigureAwait(false);
 
-                var textChanges = await cleanedDocument.GetTextChangesAsync(
-                    originalDocument, cancellationToken).ConfigureAwait(false);
-
-                return textChanges.ToImmutableArray();
-            }
+            return [.. textChanges];
         }
     }
 }

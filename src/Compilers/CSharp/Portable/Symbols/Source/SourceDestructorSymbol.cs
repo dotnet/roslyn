@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = IsExpressionBodied;
 
-            if (syntax.Identifier.ValueText != containingType.Name)
+            if (syntax.Identifier.ValueText != containingType.Name && !containingType.IsExtension)
             {
                 diagnostics.Add(ErrorCode.ERR_BadDestructorName, syntax.Identifier.GetLocation());
             }
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: containingType.IsInterface, modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors, out _);
 
             mods = (mods & ~DeclarationModifiers.AccessibilityMask) | DeclarationModifiers.Protected; // we mark destructors protected in the symbol table
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return OneOrMany.Create(default(SyntaxList<AttributeListSyntax>));
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return true;
         }
@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo
         {
             get { return true; }
+        }
+
+        internal sealed override int TryGetOverloadResolutionPriority()
+        {
+            return 0;
         }
     }
 }

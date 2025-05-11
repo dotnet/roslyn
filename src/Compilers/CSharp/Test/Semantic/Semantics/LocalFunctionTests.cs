@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
     }
@@ -2391,24 +2391,55 @@ class C
                 // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (37,40): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(37, 40),
+                // (39,23): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "&x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(39, 23),
+                // (39,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(39, 17),
                 // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
-                // (33,36): error CS1629: Unsafe code may not appear in iterators
+                // (33,36): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "M4").WithLocation(33, 36),
-                // (37,40): error CS1629: Unsafe code may not appear in iterators
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int*").WithLocation(37, 40),
-                // (39,23): error CS1629: Unsafe code may not appear in iterators
-                //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&x").WithLocation(39, 23),
-                // (39,17): error CS1629: Unsafe code may not appear in iterators
-                //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "Local(&x)").WithLocation(39, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "M4").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 36),
                 // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (37,40): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(37, 40),
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45),
+                // (39,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "Local(&x)").WithLocation(39, 17),
+                // (39,23): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(39, 23)
+            };
+
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular13.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -2454,43 +2485,29 @@ class C
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
         {
-            var src = @"
-class C
-{
-    public void M1()
-    {
-    // forget closing brace
+            var src = """
+                class C
+                {
+                    public void M1()
+                    {
+                    // forget closing brace
 
-    public void BadLocal1()
-    {
-        this.BadLocal2();
-    }
+                    public void BadLocal1()
+                    {
+                        this.BadLocal2();
+                    }
 
-    public void BadLocal2()
-    {
-    }
+                    public void BadLocal2()
+                    {
+                    }
 
-    public int P => 0;
-}";
+                    public int P => 0;
+                }
+                """;
             VerifyDiagnostics(src,
-                // (8,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(8, 5),
-                // (13,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(13, 5),
-                // (15,6): error CS1513: } expected
-                //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
-                // (10,14): error CS1061: 'C' does not contain a definition for 'BadLocal2' and no extension method 'BadLocal2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         this.BadLocal2();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BadLocal2").WithArguments("C", "BadLocal2").WithLocation(10, 14),
-                // (8,17): warning CS8321: The local function 'BadLocal1' is declared but never used
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal1").WithArguments("BadLocal1").WithLocation(8, 17),
-                // (13,17): warning CS8321: The local function 'BadLocal2' is declared but never used
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6));
         }
 
         [Fact]
@@ -2550,9 +2567,9 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): error CS0225: The params parameter must be a single dimensional array
+    // (8,21): error CS0225: The params parameter must have a valid collection type
     //         void Params(params int x)
-    Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(8, 21)
+    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(8, 21)
     );
         }
 
@@ -2676,7 +2693,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2) // 1
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32),
@@ -2705,15 +2722,15 @@ class C
     }
 }";
             VerifyDiagnostics(src,
-                // (10,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                // (10,17): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(val, val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(val, val)").WithArguments("ys", "L1").WithLocation(10, 9),
-                // (11,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(10, 17),
+                // (11,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val, x: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val, x: val)").WithArguments("ys", "L1").WithLocation(11, 9),
-                // (12,9): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(11, 16),
+                // (12,16): error CS8106: Cannot pass argument with dynamic type to params parameter 'ys' of local function 'L1'.
                 //         L1(ys: val);
-                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "L1(ys: val)").WithArguments("ys", "L1").WithLocation(12, 9));
+                Diagnostic(ErrorCode.ERR_DynamicLocalFunctionParamsParameter, "val").WithArguments("ys", "L1").WithLocation(12, 16));
         }
 
         [Fact]
@@ -2762,6 +2779,71 @@ class C
                 // (10,9): error CS1501: No overload for method 'Local' takes 2 arguments
                 //         Local(val, val);
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Local").WithArguments("Local", "2").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_01()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local1(i);
+        local1(ref i);
+
+        local2(i);
+        local3(i);
+        
+        void local1(ref int x){ x++; }
+        void local2(ref object x){ }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            VerifyDiagnostics(src,
+                // (8,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local1(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(8, 16),
+                // (9,20): error CS1503: Argument 1: cannot convert from 'ref dynamic' to 'ref int'
+                //         local1(ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "ref dynamic", "ref int").WithLocation(9, 20),
+                // (11,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local2(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(11, 16),
+                // (12,16): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         local3(i);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "i").WithArguments("1", "ref").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71399")]
+        [CompilerTrait(CompilerFeature.Dynamic)]
+        public void DynamicArgWithRefKind_02()
+        {
+            var src = @"
+class C
+{
+    static void Main()
+    {
+        dynamic i = 1;
+        
+        local2(ref i);
+        System.Console.Write(i);
+        local3(ref i);
+        System.Console.Write(i);
+        
+        void local2(ref object x){ ref dynamic y = ref x; y++; }
+        void local3(ref dynamic x){ x++; }
+    }
+}";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
         }
 
         [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
@@ -3451,7 +3533,7 @@ class Program
                 // (10,31): error CS0190: The __arglist construct is valid only within a variable argument method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_ArgsInvalid, "__arglist").WithLocation(10, 31),
-                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (18,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(18, 31),
                 // (24,20): error CS1669: __arglist is not valid in this context
@@ -3463,7 +3545,7 @@ class Program
                 // (32,20): error CS1669: __arglist is not valid in this context
                 //         void Local(__arglist)
                 Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(32, 20),
-                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (34,31): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //             Console.WriteLine(__arglist);
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(34, 31)
     );
@@ -4005,7 +4087,7 @@ class Program
         Console.WriteLine(f());
     }
 }";
-                var comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
+                var comp = CreateCompilationWithMscorlib461(source, parseOptions: DefaultParseOptions);
                 comp.VerifyDiagnostics(
                     // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                     //         var f() => 42;
@@ -4518,7 +4600,7 @@ namespace System
 ";
             // the scope of an expression variable introduced in the default expression
             // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            var compilation = CreateCompilationWithMscorlib461(text);
             compilation.VerifyDiagnostics(
                 // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
@@ -4867,7 +4949,7 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
@@ -4901,7 +4983,7 @@ class C
         L(m => L(d => d, m), null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         L(m => L(d => d, m), null);
@@ -4926,7 +5008,7 @@ class C
             => await L(async m => L(async d => await d, m), p);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //             => await L(async m => L(async d => await d, m), p);
@@ -10092,7 +10174,13 @@ int P
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
                 .Single();
 
-            Assert.Null(model.GetSymbolInfo(node).Symbol);
+            // int P ... should be pulled into MyAttribute as it's more likely that there's an errant close curly in the
+            // type, versus a property in a compilation unit.
+            var symbol = model.GetSymbolInfo(node).Symbol;
+            Assert.NotNull(symbol);
+            var property = (IPropertySymbol)symbol;
+            Assert.Equal("P", property.Name);
+            Assert.Equal("MyAttribute", property.ContainingType.Name);
         }
 
         [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
@@ -10298,6 +10386,328 @@ public class C
             IMethodSymbol methodSymbol = semanticModel.GetDeclaredSymbol(localFunction);
 
             Assert.Equal("System.Int32 LocalFunc(System.String s)", methodSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    event EventHandler E
+    {
+        add
+        {
+            [param: A(nameof(p))] void F(int p) { }
+        }
+        remove
+        {
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (15,14): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //             [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(15, 14),
+                // (15,40): warning CS8321: The local function 'F' is declared but never used
+                //             [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(15, 40));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nameof = GetSyntax<InvocationExpressionSyntax>(tree, "nameof(p)");
+            var p = nameof.ArgumentList.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(p).Type.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInMethod()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    void M()
+    {
+        [param: A(nameof(p))] void F(int p) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInMethodWithParameter()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C
+{
+    void M(int p)
+    {
+        [param: A(nameof(p))] void F(int p2) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInParamAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(int p)
+{
+    void M()
+    {
+        [param: A(nameof(p))] void F(int p2) { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): warning CS9113: Parameter 'p' is unread.
+                // class C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 13),
+                // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "param").WithArguments("param", "method, return").WithLocation(13, 10),
+                // (13,36): warning CS8321: The local function 'F' is declared but never used
+                //         [param: A(nameof(p))] void F(int p2) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInNameofInAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(int p)
+{
+    void M()
+    {
+        [A(nameof(p))] void F() { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,13): warning CS9113: Parameter 'p' is unread.
+                // class C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 13),
+                // (13,29): warning CS8321: The local function 'F' is declared but never used
+                //         [A(nameof(p))] void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 29));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
+        public void IdentifierInAttributeOnLocalFunctionInPrimaryConstructorType()
+        {
+            var src = """
+using System;
+
+[AttributeUsage(AttributeTargets.All)]
+class A : Attribute
+{
+    public A(string s) { }
+}
+
+class C(string p)
+{
+    void M()
+    {
+        [A(p)] void F() { }
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS9113: Parameter 'p' is unread.
+                // class C(string p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(9, 16),
+                // (13,12): error CS9105: Cannot use primary constructor parameter 'string p' in this context.
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.ERR_InvalidPrimaryConstructorParameterReference, "p").WithArguments("string p").WithLocation(13, 12),
+                // (13,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(13, 12),
+                // (13,21): warning CS8321: The local function 'F' is declared but never used
+                //         [A(p)] void F() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(13, 21));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_FieldInitializer(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [InlineData("")]
+        [InlineData("static ")]
+        public void Repro76528_StaticLambda(string modifiers)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C
+                {
+                    public static string? _field;
+
+                    public Action Prop1 { get; } = static () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{modifiers}}void init() => _field ??= "";
+                    };
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76528")]
+        [CombinatorialData]
+        public void Repro76528_FieldInitializer_PrimaryConstructor(bool isStatic)
+        {
+            var source = $$"""
+                #nullable enable
+
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                public class C(string p)
+                {
+                    public static string? _field;
+
+                    public Action _field2 = () =>
+                    {
+                        init();
+                        Console.WriteLine(_field.Length);
+
+                        [MemberNotNull(nameof(_field))]
+                        {{(isStatic ? "static " : "")}}void init() => _field ??= p;
+                    };
+
+                    string M() => p;
+                }
+                """;
+            var comp = CreateCompilation([source, MemberNotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(isStatic ? [
+                // (16,42): error CS8421: A static local function cannot contain a reference to 'p'.
+                //         static void init() => _field ??= p;
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "p").WithArguments("p").WithLocation(16, 42)
+                ] : []);
         }
     }
 }

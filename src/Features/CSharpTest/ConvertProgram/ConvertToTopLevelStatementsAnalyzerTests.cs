@@ -13,25 +13,25 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
+
+using VerifyCS = CSharpCodeFixVerifier<ConvertToTopLevelStatementsDiagnosticAnalyzer, ConvertToTopLevelStatementsCodeFixProvider>;
+
+public sealed class ConvertToTopLevelStatementsAnalyzerTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<ConvertToTopLevelStatementsDiagnosticAnalyzer, ConvertToTopLevelStatementsCodeFixProvider>;
-
-    public class ConvertToTopLevelStatementsAnalyzerTests
+    public static IEnumerable<object[]> EndOfDocumentSequences
     {
-        public static IEnumerable<object[]> EndOfDocumentSequences
+        get
         {
-            get
-            {
-                yield return new object[] { "" };
-                yield return new object[] { "\r\n" };
-            }
+            yield return new object[] { "" };
+            yield return new object[] { "\r\n" };
         }
+    }
 
-        [Fact]
-        public async Task NotOfferedWhenUserPrefersProgramMain()
-        {
-            var code = @"
+    [Fact]
+    public async Task NotOfferedWhenUserPrefersProgramMain()
+    {
+        var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -41,20 +41,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOfferedPriorToCSharp9()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, false } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOfferedPriorToCSharp9()
+    {
+        var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -64,22 +63,21 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp8,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task OfferedInCSharp9()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp8,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task OfferedInCSharp9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 class Program
 {
     {|IDE0210:static void Main(string[] args)
@@ -88,21 +86,21 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFileHeader1()
+    [Fact]
+    public async Task TestFileHeader1()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"// This is a file header
+            TestCode = @"// This is a file header
 
 class Program
 {
@@ -112,22 +110,22 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"// This is a file header
+            FixedCode = @"// This is a file header
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFileHeader2()
+    [Fact]
+    public async Task TestFileHeader2()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"// This is a file header
+            TestCode = @"// This is a file header
 
 namespace N
 {
@@ -140,22 +138,22 @@ namespace N
     }
 }
 ",
-                FixedCode = @"// This is a file header
+            FixedCode = @"// This is a file header
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFileHeader3()
+    [Fact]
+    public async Task TestFileHeader3()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"// This is a file header
+            TestCode = @"// This is a file header
 
 namespace N;
 
@@ -167,23 +165,23 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"// This is a file header
+            FixedCode = @"// This is a file header
 
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFileHeader4()
+    [Fact]
+    public async Task TestFileHeader4()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"// This is a file header
+            TestCode = @"// This is a file header
 using System;
 
 namespace N;
@@ -196,23 +194,23 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"// This is a file header
+            FixedCode = @"// This is a file header
 using System;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task OfferedWithoutArgs()
+    [Fact]
+    public async Task OfferedWithoutArgs()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     {|IDE0210:static void Main()
@@ -221,19 +219,19 @@ class Program
     }|}
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task NotOfferedInLibrary()
-        {
-            var code = @"
+    [Fact]
+    public async Task NotOfferedInLibrary()
+    {
+        var code = @"
 class Program
 {
     static void Main()
@@ -243,21 +241,20 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task OfferedOnNameWhenNotHidden()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task OfferedOnNameWhenNotHidden()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 class Program
 {
     static void {|IDE0210:Main|}(string[] args)
@@ -266,19 +263,19 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task NotOnNonStaticMain()
-        {
-            var code = @"
+    [Fact]
+    public async Task NotOnNonStaticMain()
+    {
+        var code = @"
 class Program
 {
     void Main(string[] args)
@@ -288,25 +285,24 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-                ExpectedDiagnostics =
-                {
-                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                    DiagnosticResult.CompilerError("CS5001"),
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnGenericMain()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            ExpectedDiagnostics =
+            {
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                DiagnosticResult.CompilerError("CS5001"),
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnGenericMain()
+    {
+        var code = @"
 class Program
 {
     static void Main<T>(string[] args)
@@ -316,25 +312,24 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-                ExpectedDiagnostics =
-                {
-                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                    DiagnosticResult.CompilerError("CS5001"),
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnRandomMethod()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            ExpectedDiagnostics =
+            {
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                DiagnosticResult.CompilerError("CS5001"),
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnRandomMethod()
+    {
+        var code = @"
 class Program
 {
     static void Main1(string[] args)
@@ -344,46 +339,44 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-                ExpectedDiagnostics =
-                {
-                    // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                    DiagnosticResult.CompilerError("CS5001"),
-                }
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnMethodWithNoBody()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+            ExpectedDiagnostics =
+            {
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                DiagnosticResult.CompilerError("CS5001"),
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnMethodWithNoBody()
+    {
+        var code = @"
 class Program
 {
     static void {|CS0501:Main|}(string[] args);
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnExpressionBody()
+        await new VerifyCS.Test
         {
-            // we could choose to support this in the future.  It's not supported for now for simplicity.
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnExpressionBody()
+    {
+        // we could choose to support this in the future.  It's not supported for now for simplicity.
+        var code = @"
 class Program
 {
     static void Main(string[] args)
@@ -391,20 +384,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnTypeWithInheritance1()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnTypeWithInheritance1()
+    {
+        var code = @"
 class Program : System.Exception
 {
     static void Main(string[] args)
@@ -414,20 +406,19 @@ class Program : System.Exception
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnTypeWithInheritance2()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnTypeWithInheritance2()
+    {
+        var code = @"
 class Program : {|CS0535:System.IComparable|}
 {
     static void Main(string[] args)
@@ -437,20 +428,19 @@ class Program : {|CS0535:System.IComparable|}
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnMultiPartType()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnMultiPartType()
+    {
+        var code = @"
 partial class Program
 {
     static void Main(string[] args)
@@ -464,20 +454,19 @@ partial class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnPublicType()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnPublicType()
+    {
+        var code = @"
 public class Program
 {
     static void Main(string[] args)
@@ -487,20 +476,19 @@ public class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnTypeWithAttribute()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnTypeWithAttribute()
+    {
+        var code = @"
 [System.CLSCompliant(true)]
 class Program
 {
@@ -511,20 +499,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnTypeWithDocComment()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnTypeWithDocComment()
+    {
+        var code = @"
 /// <summary></summary>
 class Program
 {
@@ -535,22 +522,21 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotOnTypeWithNormalComment()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotOnTypeWithNormalComment()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 // <summary></summary>
 class Program
 {
@@ -560,20 +546,20 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 // <summary></summary>
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task NotWithMemberWithAttributes()
-        {
-            var code = @"
+    [Fact]
+    public async Task NotWithMemberWithAttributes()
+    {
+        var code = @"
 class Program
 {
     [System.CLSCompliant(true)]
@@ -586,20 +572,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithMethodWithAttribute1()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithMethodWithAttribute1()
+    {
+        var code = @"
 class Program
 {
     [System.CLSCompliant(true)]
@@ -612,20 +597,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithMethodWithAttribute2()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithMethodWithAttribute2()
+    {
+        var code = @"
 class Program
 {
     static void M() { }
@@ -638,20 +622,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithMemberWithDocComment()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithMemberWithDocComment()
+    {
+        var code = @"
 class Program
 {
     /// <summary></summary>
@@ -664,20 +647,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithNonPrivateMember()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithNonPrivateMember()
+    {
+        var code = @"
 class Program
 {
     public static int x;
@@ -689,20 +671,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithNonStaticMember()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithNonStaticMember()
+    {
+        var code = @"
 class Program
 {
     int x;
@@ -714,20 +695,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithStaticConstructor()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithStaticConstructor()
+    {
+        var code = @"
 class Program
 {
     static Program()
@@ -741,20 +721,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithInstanceConstructor()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithInstanceConstructor()
+    {
+        var code = @"
 class Program
 {
     private Program()
@@ -768,20 +747,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithProperty()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithProperty()
+    {
+        var code = @"
 class Program
 {
     private int X { get; }
@@ -793,20 +771,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithEvent()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithEvent()
+    {
+        var code = @"
 class Program
 {
     private event System.Action X;
@@ -818,20 +795,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithOperator()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithOperator()
+    {
+        var code = @"
 class Program
 {
     public static Program operator+(Program p1, Program p2) => null;
@@ -843,20 +819,19 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task NotWithMethodWithWrongArgsName()
+        await new VerifyCS.Test
         {
-            var code = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task NotWithMethodWithWrongArgsName()
+    {
+        var code = @"
 class Program
 {
     static void Main(string[] args1)
@@ -866,22 +841,21 @@ class Program
 }
 ";
 
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
-
-        [Fact]
-        public async Task TestFieldWithNoAccessibility()
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = code,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestFieldWithNoAccessibility()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = @"
 class Program
 {
     static int x;
@@ -892,23 +866,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFollowingField()
+    [Fact]
+    public async Task TestFollowingField()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     static void {|IDE0210:Main|}(string[] args)
@@ -919,23 +893,23 @@ class Program
     static int x;
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 
 int x = 0;
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFieldWithPrivateAccessibility()
+    [Fact]
+    public async Task TestFieldWithPrivateAccessibility()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x;
@@ -946,23 +920,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFieldWithMultipleDeclarators()
+    [Fact]
+    public async Task TestFieldWithMultipleDeclarators()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x, y;
@@ -973,23 +947,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0, y = 0;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFieldWithInitializer()
+    [Fact]
+    public async Task TestFieldWithInitializer()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x = 1;
@@ -1000,23 +974,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 1;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestReferenceField()
+    [Fact]
+    public async Task TestReferenceField()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static string x;
@@ -1027,23 +1001,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 string x = null;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestBooleanField()
+    [Fact]
+    public async Task TestBooleanField()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static bool x;
@@ -1054,23 +1028,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 bool x = false;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestStructField()
+    [Fact]
+    public async Task TestStructField()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static System.DateTime x;
@@ -1081,23 +1055,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 System.DateTime x = default;
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestFieldWithComments()
+    [Fact]
+    public async Task TestFieldWithComments()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     // Leading
@@ -1109,24 +1083,24 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 // Leading
 int x = 0; // Trailing
 
 System.Console.WriteLine(0);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestEmptyMethod()
+    [Fact]
+    public async Task TestEmptyMethod()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x = 0;
@@ -1136,21 +1110,21 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestMultipleStatements()
+    [Fact]
+    public async Task TestMultipleStatements()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x = 0;
@@ -1162,24 +1136,24 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 
 System.Console.WriteLine(args);
 return;
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestOtherMethodBecomesLocalFunction()
+    [Fact]
+    public async Task TestOtherMethodBecomesLocalFunction()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x = 0;
@@ -1195,7 +1169,7 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 
 void OtherMethod()
@@ -1205,18 +1179,18 @@ void OtherMethod()
 
 System.Console.WriteLine(args);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestWithUnsafeMethod()
+    [Fact]
+    public async Task TestWithUnsafeMethod()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 class Program
 {
     private static int x = 0;
@@ -1232,7 +1206,7 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 int x = 0;
 
 unsafe void OtherMethod()
@@ -1242,18 +1216,18 @@ unsafe void OtherMethod()
 
 System.Console.WriteLine(args);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestOtherComplexMethodBecomesLocalFunction()
+    [Fact]
+    public async Task TestOtherComplexMethodBecomesLocalFunction()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 class Program
@@ -1271,7 +1245,7 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 
 int x = 0;
@@ -1283,18 +1257,18 @@ async Task OtherMethod<T>(T param) where T : struct
 
 System.Console.WriteLine(args);
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestAwaitExpression()
+    [Fact]
+    public async Task TestAwaitExpression()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 class Program
@@ -1305,23 +1279,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 
 await Task.CompletedTask;
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestInNamespaceWithOtherType()
+    [Fact]
+    public async Task TestInNamespaceWithOtherType()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 namespace X.Y
@@ -1339,7 +1313,7 @@ namespace X.Y
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 
 await Task.CompletedTask;
@@ -1351,19 +1325,19 @@ namespace X.Y
     }
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Theory]
-        [MemberData(nameof(EndOfDocumentSequences))]
-        public async Task TestInTopLevelNamespaceWithOtherType(string endOfDocumentSequence)
+    [Theory]
+    [MemberData(nameof(EndOfDocumentSequences))]
+    public async Task TestInTopLevelNamespaceWithOtherType(string endOfDocumentSequence)
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = $@"
+            TestCode = $@"
 using System.Threading.Tasks;
 
 namespace X.Y;
@@ -1379,7 +1353,7 @@ class Program
 class Other
 {{
 }}{endOfDocumentSequence}",
-                FixedCode = $@"
+            FixedCode = $@"
 using System.Threading.Tasks;
 
 await Task.CompletedTask;
@@ -1390,18 +1364,18 @@ namespace X.Y
     {{
     }}
 }}{endOfDocumentSequence}",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestInNamespaceWithOtherTypeThatIsReferenced()
+    [Fact]
+    public async Task TestInNamespaceWithOtherTypeThatIsReferenced()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 namespace X.Y
@@ -1419,7 +1393,7 @@ namespace X.Y
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 using X.Y;
 
@@ -1432,19 +1406,19 @@ namespace X.Y
     }
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Theory]
-        [MemberData(nameof(EndOfDocumentSequences))]
-        public async Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced(string endOfDocumentSequence)
+    [Theory]
+    [MemberData(nameof(EndOfDocumentSequences))]
+    public async Task TestInTopLevelNamespaceWithOtherTypeThatIsReferenced(string endOfDocumentSequence)
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = $@"
+            TestCode = $@"
 using System.Threading.Tasks;
 
 namespace X.Y;
@@ -1460,7 +1434,7 @@ class Program
 class Other
 {{
 }}{endOfDocumentSequence}",
-                FixedCode = $@"
+            FixedCode = $@"
 using System.Threading.Tasks;
 using X.Y;
 
@@ -1472,18 +1446,18 @@ namespace X.Y
     {{
     }}
 }}{endOfDocumentSequence}",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestInNamespaceWithNoOtherTypes()
+    [Fact]
+    public async Task TestInNamespaceWithNoOtherTypes()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 namespace X.Y
@@ -1497,23 +1471,23 @@ namespace X.Y
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 
 System.Console.WriteLine();
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestInTopLevelNamespaceWithNoOtherTypes()
+    [Fact]
+    public async Task TestInTopLevelNamespaceWithNoOtherTypes()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 namespace X.Y;
@@ -1526,23 +1500,23 @@ class Program
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 
 System.Console.WriteLine();
 ",
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
+    }
 
-        [Fact]
-        public async Task TestInSingletonNamespaceWithOtherTypeThatIsReferenced()
+    [Fact]
+    public async Task TestInSingletonNamespaceWithOtherTypeThatIsReferenced()
+    {
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
-            {
-                TestCode = @"
+            TestCode = @"
 using System.Threading.Tasks;
 
 namespace X.Y
@@ -1563,7 +1537,7 @@ namespace X
     }
 }
 ",
-                FixedCode = @"
+            FixedCode = @"
 using System.Threading.Tasks;
 using X;
 
@@ -1576,10 +1550,9 @@ namespace X
     }
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp9,
-                TestState = { OutputKind = OutputKind.ConsoleApplication },
-                Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
-            }.RunAsync();
-        }
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            Options = { { CSharpCodeStyleOptions.PreferTopLevelStatements, true, NotificationOption2.Suggestion } },
+        }.RunAsync();
     }
 }

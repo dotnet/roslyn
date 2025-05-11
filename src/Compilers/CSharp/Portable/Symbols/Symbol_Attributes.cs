@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -302,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart = AttributeLocation.None,
             bool earlyDecodingOnly = false,
             Binder? binderOpt = null,
-            Func<AttributeSyntax, bool>? attributeMatchesOpt = null,
+            Func<AttributeSyntax, Binder?, bool>? attributeMatchesOpt = null,
             Action<AttributeSyntax>? beforeAttributePartBound = null,
             Action<AttributeSyntax>? afterAttributePartBound = null)
         {
@@ -419,7 +418,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var boundAttribute = boundAttributeArray[i];
                             Debug.Assert(boundAttribute is not null);
-                            NullableWalker.AnalyzeIfNeeded(binders[i], boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
+                            Binder attributeBinder = binders[i];
+                            if (boundAttribute.Constructor is { } ctor)
+                            {
+                                Binder.CheckRequiredMembersInObjectInitializer(ctor, ImmutableArray<BoundExpression>.CastUp(boundAttribute.NamedArguments), boundAttribute.Syntax, diagnostics);
+                                attributeBinder.ReportDiagnosticsIfObsolete(diagnostics, ctor, boundAttribute.Syntax, hasBaseReceiver: false);
+                            }
+                            NullableWalker.AnalyzeIfNeeded(attributeBinder, boundAttribute, boundAttribute.Syntax, diagnostics.DiagnosticBag);
                         }
                     }
 
@@ -580,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeLocation symbolPart,
             BindingDiagnosticBag diagnostics,
             CSharpCompilation compilation,
-            Func<AttributeSyntax, bool> attributeMatchesOpt,
+            Func<AttributeSyntax, Binder, bool> attributeMatchesOpt,
             Binder rootBinderOpt,
             out ImmutableArray<Binder> binders)
         {
@@ -618,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 foreach (var attribute in attributesToBind)
                                 {
-                                    if (attributeMatchesOpt(attribute))
+                                    if (attributeMatchesOpt(attribute, rootBinderOpt))
                                     {
                                         syntaxBuilder.Add(attribute);
                                         attributesToBindCount++;
@@ -660,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
+        protected Binder GetAttributeBinder(SyntaxList<AttributeListSyntax> attributeDeclarationSyntaxList, CSharpCompilation compilation, Binder? rootBinder = null)
         {
             var binder = rootBinder ?? compilation.GetBinderFactory(attributeDeclarationSyntaxList.Node!.SyntaxTree).GetBinder(attributeDeclarationSyntaxList.Node);
             binder = new ContextualAttributeBinder(binder, this);

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -4962,9 +4963,9 @@ End Class
             Dim tree = VisualBasicSyntaxTree.ParseText(source)
 
             Dim refBuilder = ArrayBuilder(Of MetadataReference).GetInstance()
-            refBuilder.Add(TestMetadata.Net40.mscorlib)
-            refBuilder.Add(TestMetadata.Net40.System)
-            refBuilder.Add(TestMetadata.Net40.MicrosoftVisualBasic)
+            refBuilder.Add(Net40.References.mscorlib)
+            refBuilder.Add(Net40.References.System)
+            refBuilder.Add(Net40.References.MicrosoftVisualBasic)
             refBuilder.AddRange(Net40XmlReferences)
             Dim refs = refBuilder.ToImmutableAndFree()
 

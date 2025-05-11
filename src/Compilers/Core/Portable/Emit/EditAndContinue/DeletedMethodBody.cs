@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed class DeletedMethodBody(IDeletedMethodDefinition methodDef, ImmutableArray<byte> il) : Cci.IMethodBody
     {
+        private readonly IDeletedMethodDefinition _methodDef = methodDef;
+
         public ImmutableArray<byte> IL { get; } = il;
 
 #nullable disable
@@ -24,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<Cci.ILocalDefinition> LocalVariables => ImmutableArray<Cci.ILocalDefinition>.Empty;
 
-        public Cci.IMethodDefinition MethodDefinition => methodDef;
+        public Cci.IMethodDefinition MethodDefinition => _methodDef;
 
         public StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo => null;
 
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public DebugId MethodId => default;
 
-        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => ImmutableArray<StateMachineHoistedLocalScope>.Empty;
+        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => default;
 
         public string StateMachineTypeName => null;
 
@@ -63,19 +66,32 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 #nullable enable
         public static ImmutableArray<byte> GetIL(EmitContext context, RuntimeRudeEdit? rudeEdit, bool isLambdaOrLocalFunction)
         {
-            var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctorString);
-            Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
+            var hotReloadExceptionCtorDef = context.Module.GetOrCreateHotReloadExceptionConstructorDefinition();
 
-            var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);
+            var builder = new ILBuilder(context.Module, localSlotManager: null, context.Diagnostics, OptimizationLevel.Debug, areLocalsZeroed: false);
 
-            builder.EmitStringConstant(rudeEdit.HasValue
-                ? string.Format(CodeAnalysisResources.EncLambdaRudeEdit, rudeEdit.Value.Message)
-                : isLambdaOrLocalFunction
-                    ? CodeAnalysisResources.EncDeletedLambdaInvoked
-                    : CodeAnalysisResources.EncDeletedMethodInvoked);
+            string message;
+            int codeValue;
+            if (rudeEdit.HasValue)
+            {
+                message = string.Format(CodeAnalysisResources.EncLambdaRudeEdit, rudeEdit.Value.Message);
+                codeValue = rudeEdit.Value.ErrorCode;
+            }
+            else
+            {
+                var code = isLambdaOrLocalFunction ? HotReloadExceptionCode.DeletedLambdaInvoked : HotReloadExceptionCode.DeletedMethodInvoked;
+                message = code.GetExceptionMessage();
+                codeValue = code.GetExceptionCodeValue();
+            }
 
-            builder.EmitOpCode(ILOpCode.Newobj, 4);
-            builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
+            var syntaxNode = context.SyntaxNode;
+
+            builder.EmitStringConstant(message, syntaxNode);
+            builder.EmitIntConstant(codeValue);
+
+            // consumes message and code, pushes the created exception object:
+            builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+            builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), syntaxNode);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 

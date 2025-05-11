@@ -7,6 +7,9 @@ dotnet_diagnostic.CA1821.severity = warning
 dotnet_diagnostic.CA1868.severity = warning
 dotnet_diagnostic.CA2009.severity = warning
 
+# CA1052: Static holder types should be Static or NotInheritable
+dotnet_diagnostic.CA1052.severity = warning
+
 # CA2012: Use ValueTasks correctly
 dotnet_diagnostic.CA2012.severity = warning
 
@@ -123,6 +126,9 @@ dotnet_diagnostic.VSTHRD103.severity = none
 dotnet_diagnostic.VSTHRD010.severity = none
 # VSTHRD110: Observe result of async calls
 dotnet_diagnostic.VSTHRD110.severity = none
+
+# Workaround for old Microsoft.VisualStudio.Progression.* packages: https://github.com/dotnet/roslyn/issues/71404
+dotnet_diagnostic.VSIXCompatibility1001.severity = none
 
 dotnet_diagnostic.HAA0101.severity = none
 dotnet_diagnostic.HAA0102.severity = none

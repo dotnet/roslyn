@@ -129,6 +129,64 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
+        Public Async Function TestMethodTypeParameter_TopLevelLocalFunction(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+[|T|] TopLevelLocalFunction<{|Definition:$$T|}>() where [|T|] : new()
+{
+    return new [|T|]();
+}]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
+        Public Async Function TestMethodTypeParameter_MethodLevelLocalFunction(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    void Goo()
+    {
+        [|T|] LocalFunction<{|Definition:$$T|}>() where [|T|] : new()
+        {
+            return new [|T|]();
+        }
+    }
+}]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/76650")>
+        Public Async Function TestMethodTypeParameter_NormalMethod(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    [|T|] TopLevelMethod<{|Definition:$$T|}>() where [|T|] : new()
+    {
+        return new [|T|]();
+    }
+}
+}]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
 #End Region
 
 #Region "FAR on generic partial methods"

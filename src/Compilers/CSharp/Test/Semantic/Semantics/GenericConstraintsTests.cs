@@ -3662,7 +3662,7 @@ public struct YourStruct<T> where T : unmanaged
         }
 
         [Fact]
-        public void UnmanagedExpandingTypeArgumentConstraintViolation()
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_01()
         {
             var code = @"
 public struct MyStruct<T>
@@ -3690,6 +3690,161 @@ public struct YourStruct<T> where T : unmanaged
         }
 
         [Fact]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_02()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public string s;
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (5,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(5, 46),
+                    // (5,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(5, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_03()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field {get;set;}
+    public string s;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_04()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public string s;
+    public YourStruct<MyStruct<MyStruct<T>>> field {get;set;}
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (5,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(5, 46),
+                    // (5,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(5, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75620")]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_05()
+        {
+            var code = @"
+#pragma warning disable CS0067 // The event 'MyStruct<T>.field' is never used
+
+public struct MyStruct<T>
+{
+    public event YourStruct<MyStruct<MyStruct<T>>> field;
+    public string s;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics(
+                    // (6,52): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(6, 52),
+                    // (6,52): error CS0066: 'MyStruct<T>.field': event must be of a delegate type
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "field").WithArguments("MyStruct<T>.field").WithLocation(6, 52),
+                    // (6,52): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(6, 52)
+                    );
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75620")]
+        public void UnmanagedExpandingTypeArgumentConstraintViolation_06()
+        {
+            var code = @"
+#pragma warning disable CS0067 // The event 'MyStruct<T>.field' is never used
+
+public struct MyStruct<T>
+{
+    public string s;
+    public event YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public T field;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (7,52): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(7, 52),
+                    // (7,52): error CS0066: 'MyStruct<T>.field': event must be of a delegate type
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "field").WithArguments("MyStruct<T>.field").WithLocation(7, 52),
+                    // (7,52): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(7, 52)
+                    );
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
         public void UnmanagedRecursiveTypeArgumentConstraintViolation_02()
         {
             var code = @"
@@ -3702,6 +3857,34 @@ public struct YourStruct<T> where T : unmanaged
 {
     public T field;
     public string s;
+}
+";
+            var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                    // (4,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(4, 46),
+                    // (4,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(4, 46));
+
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
+        }
+
+        [Fact]
+        public void UnmanagedRecursiveTypeArgumentConstraintViolation_03()
+        {
+            var code = @"
+public struct MyStruct<T>
+{
+    public YourStruct<MyStruct<MyStruct<T>>> field;
+}
+
+public struct YourStruct<T> where T : unmanaged
+{
+    public string s;
+    public T field;
 }
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);

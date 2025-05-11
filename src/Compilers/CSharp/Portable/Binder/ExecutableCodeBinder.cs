@@ -107,14 +107,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (var parameter in iterator.Parameters)
+            var parameters = iterator.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true);
+
+            foreach (var parameter in parameters)
             {
+                bool isReceiverParameter = parameter.IsExtensionParameter();
                 if (parameter.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.GetFirstLocation());
+                    var location = isReceiverParameter ? iterator.GetFirstLocation() : parameter.GetFirstLocation();
+                    diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, location);
                 }
-                else if (parameter.Type.IsPointerOrFunctionPointer())
+                else if (parameter.Type.IsPointerOrFunctionPointer() && !isReceiverParameter)
                 {
+                    // We already reported an error elsewhere if the receiver parameter of an extension is a pointer type.
                     diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.GetFirstLocation());
                 }
             }
@@ -129,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (((iterator as SourceMemberMethodSymbol)?.IsUnsafe == true || (iterator as LocalFunctionSymbol)?.IsUnsafe == true)
                 && compilation.Options.AllowUnsafe) // Don't cascade
             {
-                diagnostics.Add(ErrorCode.ERR_IllegalInnerUnsafe, errorLocation);
+                MessageID.IDS_FeatureRefUnsafeInIteratorAsync.CheckFeatureAvailability(diagnostics, compilation, errorLocation);
             }
 
             var returnType = iterator.ReturnType;
@@ -146,6 +151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, iterator, returnType);
                 }
+            }
+            else if (elementType.IsRefLikeOrAllowsRefLikeType())
+            {
+                Error(diagnostics, ErrorCode.ERR_IteratorRefLikeElementType, errorLocation);
             }
 
             bool asyncInterface = InMethodBinder.IsAsyncStreamInterface(compilation, refKind, returnType);

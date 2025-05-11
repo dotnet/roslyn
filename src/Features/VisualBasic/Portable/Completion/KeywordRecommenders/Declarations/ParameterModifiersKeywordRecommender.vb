@@ -33,13 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             ' Compute some basic properties of what is allowed at all in this context
-            Dim byRefAllowed = Not TypeOf methodDeclaration Is AccessorStatementSyntax AndAlso
+            Dim byRefAllowed = TypeOf methodDeclaration IsNot AccessorStatementSyntax AndAlso
                                methodDeclaration.Kind <> SyntaxKind.PropertyStatement AndAlso
                                methodDeclaration.Kind <> SyntaxKind.OperatorStatement
 
-            Dim optionalAndParamArrayAllowed = Not TypeOf methodDeclaration Is DelegateStatementSyntax AndAlso
-                                               Not TypeOf methodDeclaration Is LambdaHeaderSyntax AndAlso
-                                               Not TypeOf methodDeclaration Is AccessorStatementSyntax AndAlso
+            Dim optionalAndParamArrayAllowed = TypeOf methodDeclaration IsNot DelegateStatementSyntax AndAlso
+                                               TypeOf methodDeclaration IsNot LambdaHeaderSyntax AndAlso
+                                               TypeOf methodDeclaration IsNot AccessorStatementSyntax AndAlso
                                                methodDeclaration.Kind <> SyntaxKind.EventStatement AndAlso
                                                methodDeclaration.Kind <> SyntaxKind.OperatorStatement
 

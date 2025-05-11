@@ -2,69 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+/// <summary>
+/// helper type to track whether <see cref="IEventListener"/> has been initialized.
+/// 
+/// currently, this helper only supports services whose lifetime is same as Host (ex, VS)
+/// </summary>
+internal sealed class EventListenerTracker(
+    IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
 {
-    /// <summary>
-    /// helper type to track whether <see cref="IEventListener"/> has been initialized.
-    /// 
-    /// currently, this helper only supports services whose lifetime is same as Host (ex, VS)
-    /// </summary>
-    /// <typeparam name="TService">TService for <see cref="IEventListener{TService}"/></typeparam>
-    internal class EventListenerTracker<TService>(
-        IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
+    private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners = [.. eventListeners.Where(el => el.Metadata.Service == kind)];
+
+    public static IEnumerable<IEventListener> GetListeners(
+        string? workspaceKind, IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
     {
-        /// <summary>
-        /// Workspace kind this event listener is initialized for
-        /// </summary>
-        private readonly HashSet<string> _eventListenerInitialized = new();
-        private readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> _eventListeners = eventListeners.Where(el => el.Metadata.Service == kind).ToImmutableArray();
+        return (workspaceKind == null) ? [] : eventListeners
+            .Where(l => l.Metadata.WorkspaceKinds.Contains(workspaceKind))
+            .Select(l => l.Value);
+    }
 
-        public void EnsureEventListener(Workspace workspace, TService serviceOpt)
-        {
-            lock (_eventListenerInitialized)
-            {
-                if (!_eventListenerInitialized.Add(workspace.Kind))
-                {
-                    // already initialized
-                    return;
-                }
-            }
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
 
-            foreach (var listener in GetListeners(workspace, _eventListeners))
-            {
-                listener.StartListening(workspace, serviceOpt);
-            }
-        }
+    internal readonly struct TestAccessor
+    {
+        private readonly EventListenerTracker _eventListenerTracker;
 
-        public static IEnumerable<IEventListener<TService>> GetListeners(
-            Workspace workspace, IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
-        {
-            return eventListeners.Where(l => l.Metadata.WorkspaceKinds.Contains(workspace.Kind))
-                                 .Select(l => l.Value)
-                                 .OfType<IEventListener<TService>>();
-        }
+        internal TestAccessor(EventListenerTracker eventListenerTracker)
+            => _eventListenerTracker = eventListenerTracker;
 
-        internal TestAccessor GetTestAccessor()
-        {
-            return new TestAccessor(this);
-        }
-
-        internal readonly struct TestAccessor
-        {
-            private readonly EventListenerTracker<TService> _eventListenerTracker;
-
-            internal TestAccessor(EventListenerTracker<TService> eventListenerTracker)
-                => _eventListenerTracker = eventListenerTracker;
-
-            internal ref readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> EventListeners
-                => ref _eventListenerTracker._eventListeners;
-        }
+        internal ref readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> EventListeners
+            => ref _eventListenerTracker._eventListeners;
     }
 }

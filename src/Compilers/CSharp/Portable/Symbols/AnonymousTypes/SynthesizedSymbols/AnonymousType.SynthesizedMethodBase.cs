@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Represents a base implementation for anonymous type synthesized methods.
         /// </summary>
-        private abstract class SynthesizedMethodBase : SynthesizedInstanceMethodSymbol
+        private abstract class SynthesizedMethodBase : SynthesizedMethodSymbol
         {
             private readonly NamedTypeSymbol _containingType;
             private readonly string _name;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
                 base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

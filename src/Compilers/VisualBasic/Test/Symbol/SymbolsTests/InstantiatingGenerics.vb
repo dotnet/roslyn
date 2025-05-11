@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 
@@ -613,7 +612,7 @@ End Class
 <errors>
 BC32044: Type argument 'C3T2' does not inherit from or implement the constraint type 'Integer'.
             Dim x As C1(Of Integer, Integer).C2(Of C2T1, C2T2).C3(Of C3T1, C3T2)
-                                                                           ~~~~
+                ~
 </errors>)
 
             Assert.Throws(Of InvalidOperationException)(Sub() c5.Construct(c1))

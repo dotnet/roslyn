@@ -54,15 +54,10 @@ internal static class SharedPools
     /// other I/O requests
     /// </summary>
     public static readonly ObjectPool<byte[]> ByteArray = new(() => new byte[ByteBufferSize], ByteBufferCount);
-    public static readonly ObjectPool<char[]> CharArray = new(() => new char[CharBufferSize], CharBufferCount);
 
     // byte pooled memory : 4K * 512 = 2MB
     public const int ByteBufferSize = 4 * 1024;
     private const int ByteBufferCount = 512;
-
-    // char pooled memory : 8K * 256 = 2MB
-    public const int CharBufferSize = 4 * 1024;
-    private const int CharBufferCount = 256;
 
     private static class DefaultBigPool<T> where T : class, new()
     {

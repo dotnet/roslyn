@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+public sealed class AnalyzerConfigDocument : TextDocument
 {
-    public sealed class AnalyzerConfigDocument : TextDocument
+    internal AnalyzerConfigDocument(Project project, AnalyzerConfigDocumentState state)
+        : base(project, state, TextDocumentKind.AnalyzerConfigDocument)
     {
-        internal AnalyzerConfigDocument(Project project, AnalyzerConfigDocumentState state)
-            : base(project, state, TextDocumentKind.AnalyzerConfigDocument)
-        {
-        }
     }
 }

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
@@ -120,18 +121,9 @@ Imports System.Collections.Generic
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: https://github.com/dotnet/roslyn/issues/51374
-            ' Should be following:
-            'edits.VerifyEdits(
-            '    "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
-            '    "Update [Imports <xmlns=""http://roslyn/default1"">]@28 -> [Imports <xmlns=""http://roslyn/default2"">]@28")
-            '
-            'edits.VerifySemanticDiagnostics(
-            '    Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.import),
-            '    Diagnostic(RudeEditKind.Update, "Imports <xmlns=""http://roslyn/default2"">", VBFeaturesResources.import))
-
             edits.VerifyEdits(
-                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30")
+                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
+                "Update [Imports <xmlns=""http://roslyn/default1"">]@63 -> [Imports <xmlns=""http://roslyn/default2"">]@63")
 
             edits.VerifySemanticDiagnostics()
         End Sub
@@ -687,7 +679,7 @@ Public Class A3 : Inherits System.Attribute : End Class
 
             edits.VerifySemantics(
                 semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))},
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -1094,7 +1086,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "Sub F()", "CreateNewOnMetadataUpdateAttribute")})
         End Sub
 
@@ -1136,7 +1128,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class D", FeaturesResources.class_)})
         End Sub
 
@@ -2539,7 +2531,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.BeginInvoke"))
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -3304,7 +3296,7 @@ End Structure
                         }),
                     DocumentResults()
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -4789,6 +4781,10 @@ End Structure
                 "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "Async Function F()")},
                 capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
@@ -4811,7 +4807,7 @@ End Structure
         Public Sub MethodUpdate1()
             Dim src1 As String =
                 "Class C" & vbLf &
-                  "Shared Sub Main()" & vbLf &
+                  "Shared Sub F()" & vbLf &
                      "Dim a As Integer = 1 : " &
                      "Dim b As Integer = 2 : " &
                      "Console.ReadLine(a + b) : " &
@@ -4820,7 +4816,7 @@ End Structure
 
             Dim src2 As String =
                 "Class C" & vbLf &
-                  "Shared Sub Main()" & vbLf &
+                  "Shared Sub F()" & vbLf &
                      "Dim a As Integer = 2 : " &
                      "Dim b As Integer = 1 : " &
                      "Console.ReadLine(a + b) : " &
@@ -4829,13 +4825,13 @@ End Structure
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Shared Sub Main()" & vbLf & "Dim a As Integer = 1 : Dim b As Integer = 2 : Console.ReadLine(a + b) : End Sub]@8 -> " &
-                       "[Shared Sub Main()" & vbLf & "Dim a As Integer = 2 : Dim b As Integer = 1 : Console.ReadLine(a + b) : End Sub]@8")
+                "Update [Shared Sub F()" & vbLf & "Dim a As Integer = 1 : Dim b As Integer = 2 : Console.ReadLine(a + b) : End Sub]@8 -> " &
+                       "[Shared Sub F()" & vbLf & "Dim a As Integer = 2 : Dim b As Integer = 1 : Console.ReadLine(a + b) : End Sub]@8")
 
             edits.VerifySemanticDiagnostics()
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"), preserveLocalVariables:=False)})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=False)})
         End Sub
 
         <Fact>
@@ -5086,28 +5082,114 @@ Imports System.Runtime.InteropServices
         End Sub
 
         <Fact>
-        Public Sub Method_Reorder1()
-            Dim src1 = "Class C : " & vbLf & "Sub f(a As Integer, b As Integer)" & vbLf & "a = b : End Sub : " & vbLf & "Sub g() : End Sub : End Class"
-            Dim src2 = "Class C : " & vbLf & "Sub g() : End Sub : " & vbLf & "Sub f(a As Integer, b As Integer)" & vbLf & "a = b : End Sub : End Class"
+        Public Sub Method_Reorder()
+            Dim src1 = "
+Class C
+
+
+    Sub F()
+    End Sub
+    Sub G()
+    End Sub
+    Sub H()
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+class C
+    Sub H()
+    End Sub
+    Sub F()
+    End Sub
+    Sub G()
+    End Sub
+
+
+End Class
+"
+
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifyEdits(
-                "Reorder [Sub g() : End Sub]@64 -> @11")
+            edits.VerifyEdits(EditKind.Reorder)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, Array.Empty(Of SemanticEditDescription)())
+            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.H"))})
         End Sub
 
         <Fact>
-        Public Sub InterfaceMethod_Reorder1()
-            Dim src1 = "Interface I : " & vbLf & "Sub f(a As Integer, b As Integer)" & vbLf & "Sub g() : End Interface"
-            Dim src2 = "Interface I : " & vbLf & "Sub g() : " & vbLf & "Sub f(a As Integer, b As Integer) : End Interface"
+        Public Sub Method_Reorder_Interface()
+            Dim src1 = "
+Interface I
+    Sub F()
+    Sub G()
+    Sub H()
+End Interface
+"
+            Dim src2 = "
+Interface I
+    Sub H()
+    Sub F()
+    Sub G()
+End Interface
+"
             Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("I.H"))})
+        End Sub
 
-            edits.VerifyEdits(
-                "Reorder [Sub g()]@49 -> @15")
+        <Fact>
+        Public Sub Method_Reorder_Interface_ComImport()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
 
+<ComImport>
+<Guid(""DBE8A85B-7883-4657-83FD-1FA27A9561EB"")>
+Interface I
+    Sub F()
+    Sub G()
+    Sub H()
+End Interface
+"
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+
+<ComImport>
+<Guid(""DBE8A85B-7883-4657-83FD-1FA27A9561EB"")>
+Interface I
+    Sub H()
+    Sub F()
+    Sub G()
+End Interface
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Sub g()", FeaturesResources.method))
+                Diagnostic(RudeEditKind.InsertOrMoveComInterfaceMember, "Sub H()", GetResource("method")))
+        End Sub
+
+        <Fact>
+        Public Sub Method_Insert_Interface_ComImport()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
+
+<ComImport>
+<Guid(""DBE8A85B-7883-4657-83FD-1FA27A9561EB"")>
+Interface I
+End Interface
+"
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+
+<ComImport>
+<Guid(""DBE8A85B-7883-4657-83FD-1FA27A9561EB"")>
+Interface I
+    Sub F()
+End Interface
+"
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertVirtual, "Sub F()", GetResource("method")),
+                Diagnostic(RudeEditKind.InsertOrMoveComInterfaceMember, "Sub F()", GetResource("method")))
         End Sub
 
         <Fact>
@@ -5268,7 +5350,7 @@ End Class"
                 "Update [Function F() As Task(Of String)]@11 -> [Iterator Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5590,99 +5672,99 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_LocalWithCollectionInitializer()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub]@12 -> [Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub]@12 -> [Sub F()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_CatchVariableType()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As IOException : End Try : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As IOException : End Try : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Try : Catch a As IOException : End Try : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Try : Catch a As IOException : End Try : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_CatchVariableName()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch b As Exception : End Try : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch b As Exception : End Try : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Try : Catch b As Exception : End Try : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Try : Catch b As Exception : End Try : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableType1()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As IOException : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As IOException : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a As IOException : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a As IOException : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableType2()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As New Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As New IOException : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As New Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As New IOException : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As New Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a As New IOException : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As New Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a As New IOException : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableName1()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim b As Exception : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim b As Exception : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim b As Exception : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim b As Exception : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableName2()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a,b As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a,c As Exception : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a,b As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a,c As Exception : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a,b As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a,c As Exception : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a,b As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a,c As Exception : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
@@ -5824,8 +5906,8 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
@@ -5834,8 +5916,8 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal_Insert()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
@@ -5844,12 +5926,12 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal_Delete()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", GetResource("method")))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub F()", GetResource("method")))
         End Sub
 
         <Fact>
@@ -5947,11 +6029,7 @@ End Interface
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(
-                        semanticEdits:=
-                        {
-                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of MethodSymbol)("C.F").PartialImplementationPart, deletedSymbolContainerProvider:=Function(c) c.GetMember("C"), partialType:="C")
-                        }),
+                    DocumentResults(),
                     DocumentResults(
                         semanticEdits:=
                         {
@@ -6214,7 +6292,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", GetResource("shared constructor")))
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Public Sub New()", GetResource("shared constructor")),
+                Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Public Sub New()", GetResource("shared constructor")))
         End Sub
 
         <Fact>
@@ -6752,17 +6831,17 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
-    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
-    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
-    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+    Dim A1(F(<N:0>Function(a1) a1 + 1</N:0>))
+    Dim A2 As Integer = F(<N:1>Function(a2) a2 + 1</N:1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:2>Function(a34) a34 + 1</N:2>)
+    Dim A5(F(<N:3>Function(a51) a51 + 1</N:3>), F(<N:4>Function(a52) a52 + 1</N:4>)) As Integer
 End Class
 
 Partial Class C
-    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+    ReadOnly Property B As Integer = F(<N:5>Function(b) b + 1</N:5>)
 
     Public Sub New()
-        F(<N:0.6>Function(c) c + 1</N:0.6>)
+        F(<N:6>Function(c) c + 1</N:6>)
     End Sub
 End Class
 "
@@ -6774,27 +6853,27 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
-    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
-    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
-    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+    Dim A1(F(<N:0>Function(a1) a1 + 1</N:0>))
+    Dim A2 As Integer = F(<N:1>Function(a2) a2 + 1</N:1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:2>Function(a34) a34 + 1</N:2>)
+    Dim A5(F(<N:3>Function(a51) a51 + 1</N:3>), F(<N:4>Function(a52) a52 + 1</N:4>)) As Integer
 End Class
 
 Partial Class C
-    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+    ReadOnly Property B As Integer = F(<N:5>Function(b) b + 1</N:5>)
 
     Public Sub New()
-        F(<N:0.6>Function(c) c + 2</N:0.6>)
+        F(<N:6>Function(c) c + 2</N:6>)
     End Sub
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap)})
         End Sub
 
         <Fact>
@@ -7064,10 +7143,12 @@ Partial Class C
     End Sub
 End Class
 "
-            Dim syntaxMapB = GetSyntaxMap(srcB1, srcB2)(0)
+            Dim editsA = GetTopEdits(srcA1, srcA2)
+            Dim editsB = GetTopEdits(srcB1, srcB2)
+            Dim syntaxMapB = editsB.GetSyntaxMap()
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {editsA, editsB},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -7076,7 +7157,7 @@ End Class
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Int32"), partialType:="C", syntaxMap:=syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Boolean"), partialType:="C", syntaxMap:=syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "UInt32"), partialType:="C", syntaxMap:=syntaxMapB),
-                           SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Byte"), partialType:="C", syntaxMap:=Nothing)
+                           SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Byte"), partialType:="C")
                         })
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
@@ -7462,25 +7543,17 @@ End Class
         <Theory>
         <InlineData("Shared")>
         <InlineData("Const")>
-        Public Sub Field_Modifiers_Update(oldModifiers As String, Optional newModifiers As String = "")
-            If oldModifiers <> "" Then
-                oldModifiers &= " "
-            End If
-
-            If newModifiers <> "" Then
-                newModifiers &= " "
-            End If
-
-            Dim src1 = "Class C : " & oldModifiers & "Dim F As Integer = 0 : End Class"
-            Dim src2 = "Class C : " & newModifiers & "Dim F As Integer = 0 : End Class"
+        Public Sub Field_Modifiers_Update(oldModifiers As String)
+            Dim src1 = "Class C : " & oldModifiers & " Dim F As Integer = 0 : End Class"
+            Dim src2 = "Class C : Dim F As Integer = 0 : End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [" & oldModifiers & "Dim F As Integer = 0]@10 -> [" & newModifiers & "Dim F As Integer = 0]@10")
+                "Update [" & oldModifiers & " Dim F As Integer = 0]@10 -> [Dim F As Integer = 0]@10")
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "Dim F As Integer = 0",
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Dim F As Integer = 0",
                            GetResource(If(oldModifiers.Contains("Const"), "const field", "field"))))
         End Sub
 
@@ -7601,7 +7674,30 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Field_VariableMove6()
+        Public Sub Field_Reorder1()
+            Dim src1 = "
+Class C
+
+    Dim a = 0
+    Dim b = 1
+    Dim c
+End Class"
+            Dim src2 = "
+Class C
+    Dim c
+    Dim a = 0
+    Dim b = 1
+
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(EditKind.Reorder)
+
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Public Sub Field_Reorder2()
             Dim src1 = "Class C : Dim a As Object, b As Object : End Class"
             Dim src2 = "Class C : Dim b As Object, a As Object : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -7613,13 +7709,156 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub Field_VariableMove7()
+        Public Sub Field_Reorder3()
             Dim src1 = "Class C : Dim a As Object, b, c As Object : End Class"
             Dim src2 = "Class C : Dim b, c As Object, a As Object : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
                 "Reorder [b, c As Object]@27 -> @14")
+
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Public Sub Field_Reorder_WithInitializer()
+            Dim src1 = "
+Class C
+
+    Dim a = 0
+    Dim b = 1
+    Dim c = 2
+End Class"
+            Dim src2 = "
+Class C
+    Dim c = 2
+    Dim a = 0
+    Dim b = 1
+
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(EditKind.Reorder)
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True))
+        End Sub
+
+        <Fact>
+        Public Sub Field_Reorder_WithEvents()
+            Dim src1 = "
+Class C
+
+    Dim a As Integer = 0
+    Dim b As Integer = 1
+    Dim WithEvents WE As Object
+End Class"
+            Dim src2 = "
+Class C
+    Dim WithEvents WE As Object
+    Dim a As Integer = 0
+    Dim b As Integer = 1
+
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(EditKind.Reorder)
+
+            edits.VerifySemantics()
+        End Sub
+
+        <Fact>
+        Friend Sub Field_Reorder_WithEvents_TypeLayout1()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
+<StructLayout(LayoutKind.Sequential)>
+Class C
+    Dim a As Integer
+    Dim WithEvents WE As Object
+End Class"
+
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+<StructLayout(LayoutKind.Sequential)>
+Class C
+    Dim WithEvents WE As Object
+    Dim a As Integer
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "Dim WithEvents WE As Object", GetResource("WithEvents field"), GetResource("class")))
+        End Sub
+
+        <Fact>
+        Friend Sub Field_Reorder_WithEvents_TypeLayout2()
+            Dim src1 = "
+Imports System.Runtime.InteropServices
+<StructLayout(LayoutKind.Sequential)>
+Class C
+    Dim WithEvents WE1, WE2 As Object
+End Class"
+
+            Dim src2 = "
+Imports System.Runtime.InteropServices
+<StructLayout(LayoutKind.Sequential)>
+Class C
+    Dim WithEvents WE2, WE1 As Object
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "WE2", GetResource("WithEvents field"), GetResource("class")))
+        End Sub
+
+        <Fact>
+        Public Sub Field_Reorder_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Structure C
+
+    Dim a = 0
+    Dim b = 1
+    Dim c
+End Structure"
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Structure C
+    Dim c
+    Dim a = 0
+    Dim b = 1
+
+End Structure"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(EditKind.Reorder)
+
+            edits.VerifySemantics(
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub EventField_Reorder()
+            Dim src1 = "
+Class C
+
+    Dim a As Integer = 0
+    Dim b As Integer = 1
+    Event c As Action
+End Class"
+            Dim src2 = "
+Class C
+    Event c As Action
+    Dim a As Integer = 0
+    Dim b As Integer = 1
+
+End Class"
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifyEdits(EditKind.Reorder)
 
             edits.VerifySemantics()
         End Sub
@@ -7821,29 +8060,6 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldReorder()
-            Dim src1 = "Class C : Dim a = 0 : Dim b = 1 : Dim c = 2 : End Class"
-            Dim src2 = "Class C : Dim c = 2 : Dim a = 0 : Dim b = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Dim c = 2", FeaturesResources.field))
-        End Sub
-
-        <Fact>
-        Public Sub EventFieldReorder()
-            Dim src1 = "Class C : Dim a As Integer = 0 : Dim b As Integer = 1 : Event c As Action : End Class"
-            Dim src2 = "Class C : Event c As Action : Dim a As Integer = 0 : Dim b As Integer = 1 : End Class"
-            Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Reorder [Event c As Action]@56 -> @10")
-
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Event c", FeaturesResources.event_))
-        End Sub
-
-        <Fact>
         Public Sub EventField_Partial_InsertDelete()
             Dim srcA1 = "Partial Class C : End Class"
             Dim srcB1 = "Partial Class C" & vbCrLf & "Event E As System.Action : End Class"
@@ -7870,7 +8086,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_WithEvents1()
+        Public Sub Field_Insert_WithEvents()
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : WithEvents F As C : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -7880,7 +8096,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_WithEvents2()
+        Public Sub Field_Insert_WithEvents2()
             Dim src1 = "Class C : WithEvents F As C : End Class"
             Dim src2 = "Class C : WithEvents F, G As C : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -7890,7 +8106,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_WithEvents3()
+        Public Sub Field_Insert_WithEvents3()
             Dim src1 = "Class C : WithEvents F As C : End Class"
             Dim src2 = "Class C : WithEvents F As C, G As C : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -7900,25 +8116,23 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_IntoStruct()
+        Public Sub Field_Insert_IntoStruct()
             Dim src1 = "Structure S : Private a As Integer : End Structure"
             Dim src2 = "
 Structure S 
     Private a As Integer
     Private b As Integer
-    Private Shared c As Integer
     Private Event d As System.Action
 End Structure
 "
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Event d", GetResource("event"), GetResource("structure")),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "b As Integer", GetResource("field"), GetResource("structure")),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "c As Integer", GetResource("field"), GetResource("structure")))
+                Diagnostic(RudeEditKind.InsertOrMoveStructMember, "Private Event d", GetResource("event"), GetResource("structure")),
+                Diagnostic(RudeEditKind.InsertOrMoveStructMember, "b As Integer", GetResource("field"), GetResource("structure")))
         End Sub
 
         <Fact>
-        Public Sub FieldInsert_IntoLayoutClass_Auto()
+        Public Sub Field_Insert_IntoLayoutClass_Auto()
             Dim src1 = "
 Imports System.Runtime.InteropServices
 
@@ -7979,9 +8193,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d As Integer", GetResource("field"), GetResource("class")))
         End Sub
 
         <Fact>
@@ -8009,9 +8223,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d As Integer", GetResource("field"), GetResource("class")))
         End Sub
 
         <Fact>
@@ -8043,7 +8257,7 @@ End Class
 
             ' TODO: We don't compare the ordering currently. We could allow this edit if the ordering is preserved.
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -8073,7 +8287,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "a As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "a As Integer", FeaturesResources.field, FeaturesResources.class_))
         End Sub
 
         <Fact>
@@ -8344,36 +8558,173 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyReorder1()
-            Dim src1 = "Class C : ReadOnly Property P" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : " &
-                                 "ReadOnly Property Q" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
-            Dim src2 = "Class C : ReadOnly Property Q" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : " &
-                                 "ReadOnly Property P" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
+        Public Sub Property_Reorder1()
+            Dim src1 = "
+Class C
+    ReadOnly Property P
+        Get
+            Return 1
+        End Get
+    End Property
+    ReadOnly Property Q
+        Get
+            Return 1
+        End Get
+    End Property
+End Class"
+            Dim src2 = "
+Class C
+    ReadOnly Property Q
+        Get
+            Return 1
+        End Get
+    End Property
+    ReadOnly Property P
+        Get
+            Return 1
+        End Get
+    End Property
+End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-
-            edits.VerifyEdits(
-                "Reorder [ReadOnly Property Q" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property]@70 -> @10")
-
-            edits.VerifySemanticDiagnostics()
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
-        Public Sub PropertyReorder2()
-            Dim src1 = "Class C : Property P As Integer : Property Q As Integer : End Class"
-            Dim src2 = "Class C : Property Q As Integer : Property P As Integer : End Class"
+        Public Sub Property_Reorder_Auto()
+            Dim src1 = "
+Class C
+
+    Property P As Integer = 0
+    Property Q As Integer = 1
+    Property R As Integer
+End Class"
+            Dim src2 = "
+Class C
+    Property R As Integer
+    Property P As Integer = 0
+    Property Q As Integer = 1
+
+End Class"
 
             Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemantics()
+        End Sub
 
-            edits.VerifyEdits(
-                "Reorder [Property Q As Integer]@34 -> @10")
+        <Fact>
+        Public Sub Property_Reorder_Auto_WithInitializer()
+            Dim src1 = "
+Class C
+
+    Property P As Integer = 0
+    Property Q As Integer = 1
+    Property R As Integer = 2
+End Class"
+            Dim src2 = "
+Class C
+    Property R As Integer = 2
+    Property P As Integer = 0
+    Property Q As Integer = 1
+
+End Class"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True))
+        End Sub
+
+        <Theory>
+        <InlineData("", "Structure")>
+        <InlineData("<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class")>
+        Public Sub Property_Reorder_TypeLayout(attribute As String, keyword As String)
+            Dim src1 = attribute & keyword & " C
+    ReadOnly Property Q
+        Get
+            Return 1
+        End Get
+    End Property
+    ReadOnly Property P
+        Get
+            Return 1
+        End Get
+    End Property
+End " & keyword
+
+            Dim src2 = attribute & keyword & " C
+    ReadOnly Property P
+        Get
+            Return 1
+        End Get
+    End Property
+    ReadOnly Property Q
+        Get
+            Return 1
+        End Get
+    End Property
+End " & keyword
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+            edits.VerifySemantics()
+        End Sub
+
+        <Theory>
+        <InlineData("", "Structure", RudeEditKind.InsertOrMoveStructMember)>
+        <InlineData("<System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)>
+        Friend Sub Property_Reorder_Auto_TypeLayout(attribute As String, keyword As String, rudeEditKind As RudeEditKind)
+            Dim src1 = attribute & keyword & " C
+
+    Property P As Integer = 0
+    Property Q As Integer = 1
+    Property R As Integer = 2
+End " & keyword
+
+            Dim src2 = attribute & keyword & " C
+    Property R As Integer = 2
+    Property P As Integer = 0
+    Property Q As Integer = 1
+
+End " & keyword
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Move, "Property Q", FeaturesResources.auto_property))
+               Diagnostic(rudeEditKind, "Property R", GetResource("auto-property"), GetResource(keyword)))
         End Sub
 
         <Fact>
-        Public Sub PropertyAccessorReorder()
+        Friend Sub Property_Reorder_Auto_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Structure C
+    Property P As Integer = 0
+    Property Q As Integer = 1
+    Property R As Integer
+End Structure"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Structure C
+    Property R As Integer
+    Property P As Integer = 0
+    Property Q As Integer = 1
+
+End Structure"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyEdits(EditKind.Reorder)
+
+            edits.VerifySemantics(
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember(Of NamedTypeSymbol)("C"))},
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+        End Sub
+
+        <Fact>
+        Public Sub PropertyAccessor_Reorder()
             Dim src1 = "Class C : Property P As Integer" & vbLf & "Get" & vbLf & "Return 1 : End Get" & vbLf & "Set : End Set : End Property : End Class"
             Dim src2 = "Class C : Property P As Integer" & vbLf & "Set : End Set" & vbLf & "Get" & vbLf & "Return 1 : End Get : End Property : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -8385,7 +8736,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyTypeUpdate()
+        Public Sub Property_Update_Type()
             Dim src1 = "Class C : Property P As Integer : End Class"
             Dim src2 = "Class C : Property P As Char : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -8407,7 +8758,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub PropertyInsert()
+        Public Sub Property_Insert()
             Dim src1 = "Class C : End Class"
             Dim src2 = "
 Class C 
@@ -8568,7 +8919,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub PropertyRename1()
+        Public Sub Property_Rename1()
             Dim src1 = "Class C : ReadOnly Property P As Integer" & vbLf & "Get : End Get : End Property : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer" & vbLf & "Get : End Get : End Property : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -8588,7 +8939,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub PropertyRename2()
+        Public Sub Property_Rename2()
             Dim src1 = "Class C : ReadOnly Property P As Integer : End Class"
             Dim src2 = "Class C : ReadOnly Property Q As Integer : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -8607,25 +8958,17 @@ End Class"
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddInstanceFieldToExistingType)
         End Sub
 
-        <Fact>
-        Public Sub PropertyInsert_IntoStruct()
-            Dim src1 = "Structure S : Private a As Integer : End Structure"
-            Dim src2 = "
-Structure S
-    Private a As Integer
+        <Theory>
+        <InlineData("", "Structure", RudeEditKind.InsertOrMoveStructMember)>
+        <InlineData("<System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)>
+        Friend Sub Property_Insert_TypeLayout(attribute As String, type As String, rudeEditKind As RudeEditKind)
+            Dim src1 = attribute & type & " S
+End " & type
+
+            Dim src2 = attribute & type & " S
     Private Property b As Integer
-    Private Shared Property c As Integer
 
     Private Property d As Integer
-        Get
-            Return 0
-        End Get
-
-        Set
-        End Set
-    End Property
-
-    Private Shared Property e As Integer
         Get
             Return 0
         End Get
@@ -8644,6 +8987,31 @@ Structure S
         Set
         End Set
     End Property
+End " & type
+            Dim edits = GetTopEdits(src1, src2)
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(rudeEditKind, "Private Property b", GetResource("auto-property"), GetResource(type)))
+        End Sub
+
+        <Theory>
+        <InlineData("", "Structure", RudeEditKind.InsertOrMoveStructMember)>
+        <InlineData("<System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)>
+        Friend Sub Property_Insert_TypeLayout_Shared(attribute As String, type As String, rudeEditKind As RudeEditKind)
+            Dim src1 = attribute & type & " S
+End " & type
+
+            Dim src2 = attribute & type & " S
+    Private Shared Property c As Integer
+
+    Private Shared Property e As Integer
+        Get
+            Return 0
+        End Get
+
+        Set
+        End Set
+    End Property
 
     Private Shared ReadOnly Property h As Integer
         Get
@@ -8655,57 +9023,12 @@ Structure S
         Set
         End Set
     End Property
-End Structure"
+End " & type
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Property b", GetResource("auto-property"), GetResource("structure")),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "Private Shared Property c", GetResource("auto-property"), GetResource("structure")))
-        End Sub
-
-        <Fact>
-        Public Sub PropertyInsert_IntoLayoutClass_Sequential()
-            Dim src1 = "
-Imports System.Runtime.InteropServices
-
-<StructLayoutAttribute(LayoutKind.Sequential)>
-Class C
-    Private a As Integer
-End Class
-"
-
-            Dim src2 = "
-Imports System.Runtime.InteropServices
-
-<StructLayoutAttribute(LayoutKind.Sequential)>
-Class C
-    Private a As Integer
-    Private Property b As Integer
-    Private Shared Property c As Integer
-
-    Private Property d As Integer
-        Get
-            Return 0
-        End Get
-
-        Set
-        End Set
-    End Property
-
-    Private Shared Property e As Integer
-        Get
-            Return 0
-        End Get
-
-        Set
-        End Set
-    End Property
-End Class
-"
-            Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Property b", GetResource("auto-property"), GetResource("class")),
-                Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "Private Shared Property c", GetResource("auto-property"), GetResource("class")))
+                {Diagnostic(rudeEditKind, "Private Shared Property c", GetResource("auto-property"), GetResource(type))},
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddStaticFieldToExistingType)
         End Sub
 
         <Fact>
@@ -9060,7 +9383,12 @@ End Class
                 "Delete [()]@47")
 
             edits.VerifySemantics(
-                semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Class C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9075,8 +9403,13 @@ End Class
                 "Delete [Shared Sub New()]@37",
                 "Delete [()]@51")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Structure C", GetResource("Shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9091,8 +9424,13 @@ End Class
                 "Delete [Sub New()]@31",
                 "Delete [()]@38")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Module C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9107,8 +9445,13 @@ End Class
                 "Delete [Shared Sub New()]@42",
                 "Delete [()]@56")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Class C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9123,8 +9466,13 @@ End Class
                 "Delete [Sub New()]@36",
                 "Delete [()]@43")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property")),
+                    Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Module C", GetResource("shared constructor", "New()"))
+                })
         End Sub
 
         <Fact>
@@ -9176,8 +9524,10 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@17 -> [a As Integer = 0]@17")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9189,8 +9539,10 @@ End Class
             edits.VerifyEdits(
                 "Update [a As Integer]@15 -> [a As Integer = 0]@15")
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9199,8 +9551,10 @@ End Class
             Dim src2 = "Class C : Shared Property a As Integer = 0 : " & vbLf & "Shared Sub New() : End Sub : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9209,8 +9563,10 @@ End Class
             Dim src2 = "Module C : Property a As Integer = 0 : " & vbLf & "Sub New() : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single(), preserveLocalVariables:=True)},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9363,8 +9719,10 @@ End Class
             Dim src2 = "Class C : Shared a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9373,8 +9731,10 @@ End Class
             Dim src2 = "Module C : Dim a As Integer = 0 : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))})
         End Sub
 
         <Fact>
@@ -9383,8 +9743,10 @@ End Class
             Dim src2 = "Class C : Shared Property a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9393,8 +9755,10 @@ End Class
             Dim src2 = "Module C : Property a As Integer = 0 : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())})
+            edits.VerifySemantics(
+                ActiveStatementsDescription.Empty,
+                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))})
         End Sub
 
         <Fact>
@@ -9406,6 +9770,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9418,6 +9783,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "a", GetResource("field"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9430,6 +9796,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Shared Property a", GetResource("auto-property"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9442,6 +9809,7 @@ End Class
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").SharedConstructors.Single())},
+                {Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Property a", GetResource("auto-property"))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
@@ -9633,7 +10001,7 @@ End Class
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
         <InlineData("Private ReadOnly")>
-        Public Sub Field_Insert(modifiers As String)
+        Public Sub Field_Insert_Accessibility(modifiers As String)
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : " & modifiers & " a As Integer = 1 : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -9654,7 +10022,7 @@ End Class
         <InlineData("Friend")>
         <InlineData("Protected")>
         <InlineData("Protected Friend")>
-        Public Sub Property_Insert(accessibility As String)
+        Public Sub Property_Insert_Accessibility(accessibility As String)
             Dim src1 = "Class C : End Class"
             Dim src2 = "Class C : " & accessibility & " Property a As Integer = 1 : End Class"
             Dim edits = GetTopEdits(src1, src2)
@@ -10800,7 +11168,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RemoveMethod),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RaiseMethod)
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>

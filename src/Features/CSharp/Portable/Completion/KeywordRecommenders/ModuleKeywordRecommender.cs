@@ -8,26 +8,20 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class ModuleKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.ModuleKeyword)
 {
-    internal class ModuleKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public ModuleKeywordRecommender()
-            : base(SyntaxKind.ModuleKeyword)
+        if (context.IsTypeAttributeContext(cancellationToken))
         {
+            var token = context.LeftToken;
+            var type = token.GetAncestor<MemberDeclarationSyntax>();
+
+            return type == null || type.IsParentKind(SyntaxKind.CompilationUnit);
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            if (context.IsTypeAttributeContext(cancellationToken))
-            {
-                var token = context.LeftToken;
-                var type = token.GetAncestor<MemberDeclarationSyntax>();
-
-                return type == null || type.IsParentKind(SyntaxKind.CompilationUnit);
-            }
-
-            return false;
-        }
+        return false;
     }
 }

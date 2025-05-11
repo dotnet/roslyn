@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Collections.Generic;
@@ -25,7 +24,7 @@ namespace Roslyn.Test.PdbUtilities
         public DummyMetadataImport(MetadataReader metadataReaderOpt, IDisposable metadataOwnerOpt)
         {
             _metadataReaderOpt = metadataReaderOpt;
-            _pinnedBuffers = new List<GCHandle>();
+            _pinnedBuffers = [];
             _metadataOwnerOpt = metadataOwnerOpt;
         }
 

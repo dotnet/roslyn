@@ -120,32 +120,11 @@
   <data name="Microsoft_Visual_Basic" xml:space="preserve">
     <value>Microsoft Visual Basic</value>
   </data>
-  <data name="Insert_Snippet" xml:space="preserve">
-    <value>Insert Snippet</value>
-  </data>
-  <data name="IntelliSense" xml:space="preserve">
-    <value>IntelliSense</value>
-  </data>
   <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic _insertion of Interface and MustOverride members</value>
   </data>
-  <data name="Show_procedure_line_separators" xml:space="preserve">
-    <value>_Show procedure line separators</value>
-  </data>
-  <data name="Don_t_put_ByRef_on_custom_structure" xml:space="preserve">
-    <value>_Don't put ByRef on custom structure</value>
-  </data>
-  <data name="Editor_Help" xml:space="preserve">
-    <value>Editor Help</value>
-  </data>
   <data name="A_utomatic_insertion_of_end_constructs" xml:space="preserve">
     <value>A_utomatic insertion of end constructs</value>
-  </data>
-  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
-  </data>
-  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
   </data>
   <data name="Pretty_listing_reformatting_of_code" xml:space="preserve">
     <value>_Pretty listing (reformatting) of code</value>
@@ -153,39 +132,12 @@
   <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>_Enter outlining mode when files open</value>
   </data>
-  <data name="Extract_Method" xml:space="preserve">
-    <value>Extract Method</value>
-  </data>
   <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>_Generate XML documentation comments for '''</value>
     <comment>{Locked="'''"} "'''" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Highlighting" xml:space="preserve">
-    <value>Highlighting</value>
-  </data>
-  <data name="Optimize_for_solution_size" xml:space="preserve">
-    <value>Optimize for solution size</value>
-  </data>
-  <data name="Large" xml:space="preserve">
-    <value>Large</value>
-  </data>
-  <data name="Regular" xml:space="preserve">
-    <value>Regular</value>
-  </data>
-  <data name="Small" xml:space="preserve">
-    <value>Small</value>
-  </data>
-  <data name="Performance" xml:space="preserve">
-    <value>Performance</value>
-  </data>
-  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
-    <value>Show preview for rename _tracking</value>
-  </data>
   <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata" xml:space="preserve">
     <value>_Navigate to Object Browser for symbols defined in metadata</value>
-  </data>
-  <data name="Go_to_Definition" xml:space="preserve">
-    <value>Go to Definition</value>
   </data>
   <data name="Import_Directives" xml:space="preserve">
     <value>Import Directives</value>
@@ -223,44 +175,8 @@
   <data name="Predefined_type_preferences_colon" xml:space="preserve">
     <value>Predefined type preferences:</value>
   </data>
-  <data name="Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
-    <value>_Highlight matching portions of completion list items</value>
-  </data>
-  <data name="Show_completion_item_filters" xml:space="preserve">
-    <value>Show completion item _filters</value>
-  </data>
   <data name="Completion_Lists" xml:space="preserve">
     <value>Completion Lists</value>
-  </data>
-  <data name="Enter_key_behavior_colon" xml:space="preserve">
-    <value>Enter key behavior:</value>
-  </data>
-  <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
-    <value>_Only add new line on enter after end of fully typed word</value>
-  </data>
-  <data name="Always_add_new_line_on_enter" xml:space="preserve">
-    <value>_Always add new line on enter</value>
-  </data>
-  <data name="Never_add_new_line_on_enter" xml:space="preserve">
-    <value>_Never add new line on enter</value>
-  </data>
-  <data name="Always_include_snippets" xml:space="preserve">
-    <value>Always include snippets</value>
-  </data>
-  <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
-    <value>Include snippets when ?-Tab is typed after an identifier</value>
-  </data>
-  <data name="Never_include_snippets" xml:space="preserve">
-    <value>Never include snippets</value>
-  </data>
-  <data name="Snippets_behavior" xml:space="preserve">
-    <value>Snippets behavior</value>
-  </data>
-  <data name="Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
-    <value>Show completion list after a character is _deleted</value>
-  </data>
-  <data name="Show_completion_list_after_a_character_is_typed" xml:space="preserve">
-    <value>_Show completion list after a character is typed</value>
   </data>
   <data name="nothing_checking_colon" xml:space="preserve">
     <value>'nothing' checking:</value>
@@ -286,18 +202,6 @@
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</value>
   </data>
-  <data name="Never" xml:space="preserve">
-    <value>Never</value>
-  </data>
-  <data name="Unused_local" xml:space="preserve">
-    <value>Unused local</value>
-  </data>
-  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
-    <value>Show items from unimported namespaces</value>
-  </data>
-  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
-    <value>Show remarks in Quick Info</value>
-  </data>
   <data name="Prefer_IsNot_expression" xml:space="preserve">
     <value>Prefer 'IsNot' expression</value>
   </data>
@@ -310,14 +214,6 @@
   <data name="Add_missing_imports_on_paste" xml:space="preserve">
     <value>Add missing imports on paste</value>
     <comment>'import' is a Visual Basic keyword and should not be localized</comment>
-  </data>
-  <data name="Remove_unnecessary_imports" xml:space="preserve">
-    <value>Remove unnecessary imports</value>
-    <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
-  </data>
-  <data name="Sort_imports" xml:space="preserve">
-    <value>Sort imports</value>
-    <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
   <data name="Prefer_simplified_object_creation" xml:space="preserve">
     <value>Prefer simplified object creation</value>

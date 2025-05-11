@@ -1148,7 +1148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Build and add synthesized return type attributes for this method symbol.
         /// </summary>
-        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal virtual void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             if (this.ReturnsByRefReadonly)
             {
@@ -1185,6 +1185,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool AreLocalsZeroed { get; }
 
         internal abstract bool IsNullableAnalysisEnabled();
+
+        /// <summary>
+        /// Gets the resolution priority of this method, 0 if not set.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this method from early attribute binding, cycles will occur.
+        /// </remarks>
+        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? TryGetOverloadResolutionPriority() : 0;
+
+        internal abstract int TryGetOverloadResolutionPriority();
+
+        internal bool CanHaveOverloadResolutionPriority =>
+            MethodKind is MethodKind.Ordinary
+                       or MethodKind.Constructor
+                       or MethodKind.UserDefinedOperator
+                       or MethodKind.ReducedExtension
+            && !IsOverride;
 
         #region IMethodSymbolInternal
 
@@ -1249,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes, MethodSymbol methodToAttribute)
+        protected static void AddRequiredMembersMarkerAttributes(ref ArrayBuilder<CSharpAttributeData> attributes, MethodSymbol methodToAttribute)
         {
             if (methodToAttribute.ShouldCheckRequiredMembers() && methodToAttribute.ContainingType.HasAnyRequiredMembers)
             {
@@ -1270,6 +1287,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
                     ));
             }
+        }
+
+        public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
+        {
+            Debug.Assert(this.IsDefinition);
+            Debug.Assert(this.GetIsNewExtensionMember());
+            return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }
 }

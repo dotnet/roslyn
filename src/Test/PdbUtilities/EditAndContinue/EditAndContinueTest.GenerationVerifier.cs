@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
                 });
 
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EntityHandle>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
                 });
 
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
                 });
 
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EntityHandle>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
                 });
 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<CustomAttributeRow>(),
+                        expected ?? [],
                         MetadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
                 });
 
@@ -128,14 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => VerifySynthesizedMembers(displayTypeKind: false, expected);
 
             public void VerifySynthesizedMembers(bool displayTypeKind, params string[] expected)
-                => Verify(() =>
-                {
-                    var actual = GetSynthesizedMembers().Select(e =>
-                        $"{(displayTypeKind && e.Key is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{e.Key}: " +
-                        $"{{{string.Join(", ", e.Value.Select(v => v.Name))}}}");
-
-                    AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-                });
+                => Verify(() => CompilationDifference.VerifySynthesizedMembers(GetSynthesizedMembers(), displayTypeKind, expected));
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
                 => Verify(() =>
@@ -162,7 +154,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
-                => Verify(() => generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints));
+                 => Verify(() =>
+                 {
+                     if (generationInfo.CompilationVerifier != null)
+                     {
+                         generationInfo.CompilationVerifier.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+                     }
+                     else
+                     {
+                         Debug.Assert(generationInfo.CompilationDifference != null);
+                         var updatedMethods = generationInfo.CompilationDifference.EmitResult.UpdatedMethods;
+
+                         Debug.Assert(updatedMethods.Length == 1, "Only supported for a single method update");
+                         var updatedMethodToken = updatedMethods.Single();
+
+                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedILWithSequencePoints, methodToken: updatedMethodToken);
+                     }
+                 });
 
             internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
                 => Verify(() => generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
@@ -173,11 +181,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
                 => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);
 
-            internal void VerifyIL(string expectedIL)
+            internal void VerifyEncFieldRvaData(string expected)
                 => Verify(() =>
                 {
                     Debug.Assert(generationInfo.CompilationDifference != null);
-                    generationInfo.CompilationDifference.VerifyIL(expectedIL);
+
+                    var actual = ILValidation.DumpEncDeltaFieldData(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
+                });
+
+            internal void VerifyIL(string expected)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+
+                    var actual = ILValidation.DumpEncDeltaMethodBodies(generationInfo.CompilationDifference.ILDelta, readers);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expected, actual, escapeQuotes: false);
                 });
 
             internal void VerifyIL(string qualifiedMemberName, string expectedIL)
@@ -192,6 +211,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                         Debug.Assert(generationInfo.CompilationDifference != null);
                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedIL);
                     }
+                });
+
+            public void VerifyLocalSignature(string qualifiedMethodName, string expectedSignature)
+                => Verify(() =>
+                {
+                    var testData = generationInfo.CompilationVerifier?.TestData ?? generationInfo.CompilationDifference!.TestData;
+                    var ilBuilder = testData.GetMethodData(qualifiedMethodName).ILBuilder;
+                    var actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true);
                 });
         }
     }

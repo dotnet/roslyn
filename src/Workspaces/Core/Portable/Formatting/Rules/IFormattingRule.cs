@@ -4,10 +4,9 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+[Obsolete("This interface is no longer used")]
+internal interface IFormattingRule
 {
-    [Obsolete("This interface is no longer used")]
-    internal interface IFormattingRule
-    {
-    }
 }

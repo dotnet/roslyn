@@ -5,12 +5,9 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
-using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -324,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
                 builder.Append(options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers) ? "0x" + ((int)c).ToString("x4") : ((int)c).ToString());
-                builder.Append(" ");
+                builder.Append(' ');
             }
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);

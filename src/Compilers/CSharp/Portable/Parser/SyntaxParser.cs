@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int _resetCount;
         private int _resetStart;
 
-        private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32], 2);
-        private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[CachedTokenArraySize], 2);
+        private static readonly ObjectPool<BlendedNode[]> s_blendedNodesPool = new ObjectPool<BlendedNode[]>(() => new BlendedNode[32]);
+        private static readonly ObjectPool<ArrayElement<SyntaxToken>[]> s_lexedTokensPool = new ObjectPool<ArrayElement<SyntaxToken>[]>(() => new ArrayElement<SyntaxToken>[CachedTokenArraySize]);
 
         // Array size held in token pool. This should be large enough to prevent most allocations, but
         //  not so large as to be wasteful when not in use.
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return _currentToken ?? (_currentToken = this.FetchCurrentToken());
+                return _currentToken ??= this.FetchCurrentToken();
             }
         }
 
@@ -890,12 +890,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+#nullable enable
+
+        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode? skippedSyntax) where TNode : CSharpSyntaxNode
         {
+            if (skippedSyntax is null)
+                return node;
+
             var oldToken = node as SyntaxToken ?? node.GetFirstToken();
             var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
+
+#nullable disable
 
         protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
         {

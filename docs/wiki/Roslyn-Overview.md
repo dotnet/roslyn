@@ -49,7 +49,7 @@ Each phase of this pipeline is now a separate component. First the parse phase, 
 
 ![compiler pipeline api](images/compiler-pipeline-api.png)
  
-Corresponding to each of those phases, an object model is surfaced that allows access to the information at that phase. The parsing phase is exposed as a syntax tree, the declaration phase as a hierarchical symbol table, the binding phase as a model that exposes the result of the compiler’s semantic analysis and the emit phase as an API that produces IL byte codes.
+Corresponding to each of those phases, an object model that allows access to the information at that phase is surfaced. The parsing phase is exposed as a syntax tree, the declaration phase as a hierarchical symbol table, the binding phase as a model that exposes the result of the compiler’s semantic analysis and the emit phase as an API that produces IL byte codes.
 
 ![compiler api lang service](images/compiler-pipeline-lang-svc.png)
 
@@ -69,7 +69,7 @@ The compiler layer contains the object models that correspond with information e
 
 #### Diagnostic APIs
 
-As part of their analysis the compiler may produce a set of diagnostics covering everything from syntax, semantic, and definite assignment errors to various warnings and informational diagnostics. The Compiler API layer exposes diagnostics through an extensible API allowing for user-defined analyzers to be plugged into a Compilation and user-defined diagnostics, such as those produced by tools like StyleCop or FxCop, to be produced alongside compiler-defined diagnostics. Producing diagnostics in this way has the benefit of integrating naturally with tools such as MSBuild and Visual Studio which depend on diagnostics for experiences such as halting a build based on policy and showing live squiggles in the editor and suggesting code fixes.
+As part of their analysis the compiler may produce a set of diagnostics covering everything from syntax, semantic, and definite assignment errors to various warnings and informational diagnostics. The Compiler API layer exposes diagnostics through an extensible API allowing for user-defined analyzers to be plugged into a Compilation and user-defined diagnostics, such as those produced by tools like StyleCop or FxCop, to be produced alongside compiler-defined diagnostics. Producing diagnostics in this way has the benefit of integrating naturally with tools such as MSBuild and Visual Studio which depend on diagnostics for experiences such as halting a build based on policy, showing live squiggles in the editor and suggesting code fixes.
 
 #### Scripting APIs
 

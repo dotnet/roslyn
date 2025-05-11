@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis
             switch (algorithmId)
             {
                 case SourceHashAlgorithm.Sha1:
+                    // CodeQL [SM02196] This is not enabled by default but exists as a compat option for existing builds.
                     return SHA1.Create();
 
                 case SourceHashAlgorithm.Sha256:
@@ -97,6 +98,7 @@ namespace Microsoft.CodeAnalysis
             switch (algorithmId)
             {
                 case SourceHashAlgorithm.Sha1:
+                    // CodeQL [SM02196] This is not enabled by default but exists as a compat option for existing builds.
                     return HashAlgorithmName.SHA1;
 
                 case SourceHashAlgorithm.Sha256:
@@ -113,6 +115,7 @@ namespace Microsoft.CodeAnalysis
             {
                 case AssemblyHashAlgorithm.None:
                 case AssemblyHashAlgorithm.Sha1:
+                    // CodeQL [SM02196] ECMA-335 requires us to support SHA-1
                     return SHA1.Create();
 
                 case AssemblyHashAlgorithm.Sha256:
@@ -125,6 +128,7 @@ namespace Microsoft.CodeAnalysis
                     return SHA512.Create();
 
                 case AssemblyHashAlgorithm.MD5:
+                    // CodeQL [SM02196] This is supported by the underlying ECMA-335 APIs (System.Reflection.Metadata) and as consumers we must also support it.
                     return MD5.Create();
 
                 default:
@@ -166,6 +170,8 @@ namespace Microsoft.CodeAnalysis
             if (stream != null)
             {
                 stream.Seek(0, SeekOrigin.Begin);
+
+                // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
                 using (var hashProvider = SHA1.Create())
                 {
                     return ImmutableArray.Create(hashProvider.ComputeHash(stream));
@@ -182,6 +188,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeSha1(byte[] bytes)
         {
+            // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
             using (var hashProvider = SHA1.Create())
             {
                 return ImmutableArray.Create(hashProvider.ComputeHash(bytes));

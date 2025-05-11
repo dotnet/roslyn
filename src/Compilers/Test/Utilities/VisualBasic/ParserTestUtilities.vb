@@ -110,7 +110,7 @@ Friend Module ParserTestUtilities
             encoding = Encoding.UTF8
         End If
 
-        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding), options:=If(options, VisualBasicParseOptions.Default), path:=fileName)
+        Dim tree = VisualBasicSyntaxTree.ParseText(SourceText.From(source, encoding), options:=If(options, TestOptions.RegularLatest), path:=fileName)
         Dim root = tree.GetRoot()
         ' Verify FullText
         Assert.Equal(source, root.ToFullString)

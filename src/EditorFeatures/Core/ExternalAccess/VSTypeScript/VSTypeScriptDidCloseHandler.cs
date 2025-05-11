@@ -6,17 +6,11 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportStatelessLspService(typeof(DidCloseHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptDidCloseHandler : DidCloseHandler
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptDidCloseHandler()
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptDidCloseHandler() : DidCloseHandler;

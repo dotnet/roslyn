@@ -69,6 +69,11 @@ function Publish-Nuget($publishData, [string]$packageDir) {
         throw "$nupkg does not exist"
       }
 
+      if ($nupkg.EndsWith(".symbols.nupkg")) {
+        Write-Host "Skipping symbol package $nupkg"
+        continue
+      }
+
       $nupkgWithoutVersion = $nupkg -replace '(\.\d+){3}-.*.nupkg', ''
       if ($nupkgWithoutVersion.EndsWith(".Symbols")) {
         Write-Host "Skipping symbol package $nupkg"
@@ -102,7 +107,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
 
       if (-not $test) {
         Write-Host "Publishing $nupkg"
-        Exec-Console $dotnet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
+        Exec-DotNet "nuget push $nupkg --source $uploadUrl --api-key $apiKey"
       }
     }
   }

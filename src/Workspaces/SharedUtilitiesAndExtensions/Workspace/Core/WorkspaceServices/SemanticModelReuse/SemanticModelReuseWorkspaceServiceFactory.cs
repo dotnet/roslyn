@@ -4,22 +4,20 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.SemanticModelReuse
-{
-    [ExportWorkspaceServiceFactory(typeof(ISemanticModelReuseWorkspaceService), ServiceLayer.Default), Shared]
-    internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticModelReuseWorkspaceServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new SemanticModelReuseWorkspaceService(workspaceServices.Workspace);
+[ExportWorkspaceServiceFactory(typeof(ISemanticModelReuseWorkspaceService), ServiceLayer.Default), Shared]
+internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SemanticModelReuseWorkspaceServiceFactory()
+    {
     }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new SemanticModelReuseWorkspaceService(workspaceServices.Workspace);
 }

@@ -4,34 +4,33 @@
 
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
-{
-    internal static class INamedTypeSymbolExtensions
-    {
-        public static CodeGenerationAbstractNamedTypeSymbol ToCodeGenerationSymbol(this INamedTypeSymbol namedType)
-        {
-            if (namedType is CodeGenerationAbstractNamedTypeSymbol typeSymbol)
-            {
-                return typeSymbol;
-            }
+namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-            return new CodeGenerationNamedTypeSymbol(
-                namedType.ContainingAssembly,
-                namedType.ContainingType,
-                namedType.GetAttributes(),
-                namedType.DeclaredAccessibility,
-                namedType.GetSymbolModifiers(),
-                namedType.IsRecord,
-                namedType.TypeKind,
-                namedType.Name,
-                namedType.TypeParameters,
-                namedType.BaseType,
-                namedType.Interfaces,
-                namedType.SpecialType,
-                namedType.NullableAnnotation,
-                namedType.GetMembers().WhereAsArray(s => s is not INamedTypeSymbol),
-                namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
-                namedType.EnumUnderlyingType);
+internal static class INamedTypeSymbolExtensions
+{
+    public static CodeGenerationAbstractNamedTypeSymbol ToCodeGenerationSymbol(this INamedTypeSymbol namedType)
+    {
+        if (namedType is CodeGenerationAbstractNamedTypeSymbol typeSymbol)
+        {
+            return typeSymbol;
         }
+
+        return new CodeGenerationNamedTypeSymbol(
+            namedType.ContainingAssembly,
+            namedType.ContainingType,
+            namedType.GetAttributes(),
+            namedType.DeclaredAccessibility,
+            namedType.GetSymbolModifiers(),
+            namedType.IsRecord,
+            namedType.TypeKind,
+            namedType.Name,
+            namedType.TypeParameters,
+            namedType.BaseType,
+            namedType.Interfaces,
+            namedType.SpecialType,
+            namedType.NullableAnnotation,
+            namedType.GetMembers().WhereAsArray(s => s is not INamedTypeSymbol),
+            namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
+            namedType.EnumUnderlyingType);
     }
 }

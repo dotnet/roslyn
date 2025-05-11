@@ -5,12 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -10481,7 +10480,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10498,7 +10497,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10539,7 +10538,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10566,7 +10565,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -13655,7 +13654,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[

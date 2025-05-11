@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.Shared.Collections;
+
+internal interface IIntervalIntrospector<T>
 {
-    internal interface IIntervalIntrospector<T>
-    {
-        int GetStart(T value);
-        int GetLength(T value);
-    }
+    TextSpan GetSpan(T value);
 }

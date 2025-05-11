@@ -537,6 +537,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 _initializer = initializer;
                 _initializerBinder = initializerBinder;
+                if (this.IsConst)
+                {
+                    _initializerBinder = _initializerBinder.GetBinder(initializer) ?? new LocalInProgressBinder(_initializer, initializerBinder); // for error scenarios
+                    recordConstInBinderChain();
+                }
+
+                void recordConstInBinderChain()
+                {
+                    for (var binder = _initializerBinder; binder != null; binder = binder.Next)
+                    {
+                        if (binder is LocalInProgressBinder localInProgressBinder && localInProgressBinder.InitializerSyntax == _initializer)
+                        {
+                            localInProgressBinder.SetLocalSymbol(this);
+                            return;
+                        }
+                    }
+
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
 
             protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
@@ -563,8 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var type = this.Type;
                     if (boundInitValue == null)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
+                        boundInitValue = this._initializerBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, _initializer.Value, diagnostics);

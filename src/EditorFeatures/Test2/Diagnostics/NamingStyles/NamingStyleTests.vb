@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+Imports Microsoft.CodeAnalysis.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
     Partial Public Class NamingStyleTests
@@ -11,31 +12,31 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Optional prefix As String = "",
             Optional suffix As String = "",
             Optional wordSeparator As String = "",
-            Optional capitalizationScheme As Capitalization = Capitalization.PascalCase) As MutableNamingStyle
+            Optional capitalizationScheme As Capitalization = Capitalization.PascalCase) As NamingStyle
 
-            Return New MutableNamingStyle With
+            Return New NamingStyle With
                 {
-                    .Prefix = prefix,
-                    .Suffix = suffix,
-                    .WordSeparator = wordSeparator,
-                    .CapitalizationScheme = capitalizationScheme
+                    .prefix = prefix,
+                    .suffix = suffix,
+                    .wordSeparator = wordSeparator,
+                    .capitalizationScheme = capitalizationScheme
                 }
         End Function
 
-        Private Shared Sub TestNameCreation(namingStyle As MutableNamingStyle, expectedName As String, ParamArray words As String())
-            Assert.Equal(expectedName, namingStyle.NamingStyle.CreateName(words.ToImmutableArray()))
+        Private Shared Sub TestNameCreation(namingStyle As NamingStyle, expectedName As String, ParamArray words As String())
+            Assert.Equal(expectedName, namingStyle.CreateName(words.ToImmutableArray()))
         End Sub
 
-        Private Shared Sub TestNameCompliance(namingStyle As MutableNamingStyle, candidateName As String)
+        Private Shared Sub TestNameCompliance(namingStyle As NamingStyle, candidateName As String)
             Dim reason As String = Nothing
-            Assert.True(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
+            Assert.True(namingStyle.IsNameCompliant(candidateName, reason))
         End Sub
 
-        Private Shared Sub TestNameNoncomplianceAndFixedNames(namingStyle As MutableNamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
+        Private Shared Sub TestNameNoncomplianceAndFixedNames(namingStyle As NamingStyle, candidateName As String, ParamArray expectedFixedNames As String())
             Dim reason As String = Nothing
-            Assert.False(namingStyle.NamingStyle.IsNameCompliant(candidateName, reason))
+            Assert.False(namingStyle.IsNameCompliant(candidateName, reason))
 
-            Dim actualFixedNames = namingStyle.NamingStyle.MakeCompliant(candidateName).ToList()
+            Dim actualFixedNames = namingStyle.MakeCompliant(candidateName).ToList()
 
             Assert.Equal(expectedFixedNames.Length, actualFixedNames.Count)
             For i = 0 To expectedFixedNames.Length - 1

@@ -12,7 +12,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -47,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ValueTypeFromConstraintTypes = 0x400, // Not set if any flag from AllValueTypeKinds is set
         ReferenceTypeFromConstraintTypes = 0x800,
 
+        AllowByRefLike = 0x1000,
+
         /// <summary>
         /// All bits involved into describing various aspects of 'class' constraint.
         /// </summary>
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// All bits except those that are involved into describing various nullability aspects.
         /// </summary>
-        AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged,
+        AllNonNullableKinds = ReferenceType | ValueType | Constructor | Unmanaged | AllowByRefLike,
     }
 
     /// <summary>
@@ -115,8 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
-                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor | TypeParameterConstraintKind.Default |
-                                          TypeParameterConstraintKind.PartialMismatch | TypeParameterConstraintKind.ValueTypeFromConstraintTypes | TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes)) == 0);
+                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor |
+                                          TypeParameterConstraintKind.Default | TypeParameterConstraintKind.PartialMismatch |
+                                          TypeParameterConstraintKind.ValueTypeFromConstraintTypes | TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes |
+                                          TypeParameterConstraintKind.AllowByRefLike)) == 0);
 #endif
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;

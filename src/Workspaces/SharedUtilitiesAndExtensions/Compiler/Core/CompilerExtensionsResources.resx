@@ -120,9 +120,6 @@
   <data name="Absolute_path_expected" xml:space="preserve">
     <value>Absolute path expected.</value>
   </data>
-  <data name="An_element_with_the_same_key_but_a_different_value_already_exists" xml:space="preserve">
-    <value>An element with the same key but a different value already exists.</value>
-  </data>
   <data name="Organize_usings" xml:space="preserve">
     <value>Organize usings</value>
   </data>
@@ -273,10 +270,25 @@
   <data name="Specified_sequence_has_duplicate_items" xml:space="preserve">
     <value>Specified sequence has duplicate items</value>
   </data>
-  <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
-    <value>Segment size must be power of 2 greater than 1</value>
-  </data>
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>
+  </data>
+  <data name="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose" xml:space="preserve">
+    <value>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</value>
+  </data>
+  <data name="Indentation_and_spacing" xml:space="preserve">
+    <value>Indentation and spacing</value>
+  </data>
+  <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
+    <value>Value too large to be represented as a 30 bit unsigned integer.</value>
+  </data>
+  <data name="A_language_name_cannot_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name cannot be specified for this option.</value>
+  </data>
+  <data name="A_language_name_must_be_specified_for_this_option" xml:space="preserve">
+    <value>A language name must be specified for this option.</value>
+  </data>
+  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
+    <value>Stream must support read and seek operations.</value>
   </data>
 </root>

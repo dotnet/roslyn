@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal readonly struct RunRequest
     {
-        public Guid RequestId { get; }
+        public string RequestId { get; }
         public string Language { get; }
         public string? WorkingDirectory { get; }
         public string? TempDirectory { get; }
         public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(Guid requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
+        public RunRequest(string requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
             RequestId = requestId;
             Language = language;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
             Logger = logger;
-            AnalyzerAssemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+            AnalyzerAssemblyLoader = Microsoft.CodeAnalysis.AnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
@@ -146,6 +146,7 @@ Run Compilation for {request.RequestId}
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
+                CodeAnalysisEventSource.Log.StartServerCompilation(request.RequestId);
                 bool utf8output = compiler.Arguments.Utf8Output;
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
@@ -160,6 +161,10 @@ Output:
             {
                 Logger.LogException(ex, $"Running compilation for {request.RequestId}");
                 throw;
+            }
+            finally
+            {
+                CodeAnalysisEventSource.Log.StopServerCompilation(request.RequestId);
             }
         }
     }

@@ -10,22 +10,21 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportCompletionProvider(nameof(LoadDirectiveCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(CSharpSnippetCompletionProvider))]
+[Shared]
+internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
 {
-    [ExportCompletionProvider(nameof(LoadDirectiveCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(CSharpSnippetCompletionProvider))]
-    [Shared]
-    internal sealed class LoadDirectiveCompletionProvider : AbstractLoadDirectiveCompletionProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LoadDirectiveCompletionProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LoadDirectiveCompletionProvider()
-        {
-        }
-
-        protected override string DirectiveName => "load";
-
-        protected override bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
-            => DirectiveCompletionProviderUtilities.TryGetStringLiteralToken(tree, position, SyntaxKind.LoadDirectiveTrivia, out stringLiteral, cancellationToken);
     }
+
+    protected override string DirectiveName => "load";
+
+    protected override bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
+        => DirectiveCompletionProviderUtilities.TryGetStringLiteralToken(tree, position, SyntaxKind.LoadDirectiveTrivia, out stringLiteral, cancellationToken);
 }

@@ -338,16 +338,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnosticInfo = diagnostics.Add(ErrorCode.ERR_BadSKknown, syntax.Location, syntax, symbol.Symbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize());
-            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
+            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
         }
 
         /// <summary>
         /// The immediately containing namespace or named type, or the global
         /// namespace if containing symbol is neither a namespace or named type.
+        /// We don't want to use an extension declaration as the containing type
+        /// for error type symbols, as that causes cycles during symbol display.
         /// </summary>
-        private NamespaceOrTypeSymbol GetContainingNamespaceOrType(Symbol symbol)
+        private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
-            return symbol.ContainingNamespaceOrType() ?? this.Compilation.Assembly.GlobalNamespace;
+            if (symbol.ContainingNamespaceOrType() is { } containing
+                && containing is not TypeSymbol { IsExtension: true })
+            {
+                return containing;
+            }
+
+            return this.Compilation.Assembly.GlobalNamespace;
         }
 
         internal Symbol BindNamespaceAliasSymbol(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
@@ -915,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (type.ContainsPointer())
+                        if (type.ContainsPointerOrFunctionPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }
@@ -1305,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for us.
                 Debug.Assert(lookupResult.Error != null);
                 type = new ExtendedErrorTypeSymbol(
-                    GetContainingNamespaceOrType(lookupResultSymbol),
+                    GetContainingNamespaceOrNonExtensionType(lookupResultSymbol),
                     ImmutableArray.Create<Symbol>(lookupResultSymbol),
                     lookupResult.Kind,
                     lookupResult.Error,
@@ -1373,14 +1381,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
-                // Note: lookup won't have reported this, since the arity was correct.
-                // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
-                Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                if (this.IsInsideNameof)
+                {
+                    // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
+                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
 
-                // If the syntax looks like an unbound generic type, then they probably wanted the definition.
-                // Give an error indicating that the syntax is incorrect and then use the definition.
-                // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
-                // outside a typeof.
+                    // From the spec:
+                    //
+                    // Member lookup on an unbound type expression will be performed the same way as for a `this`
+                    // expression within that type declaration.
+                    //
+                    // So we want to just return the originating type symbol as is (e.g. List<T> in nameof(List<>)).
+                    // This is distinctly different than how typeof(List<>) works, where it returns an unbound generic
+                    // type.
+                }
+                else
+                {
+                    // Note: lookup won't have reported this, since the arity was correct.
+                    // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
+
+                    // If the syntax looks like an unbound generic type, then they probably wanted the definition.
+                    // Give an error indicating that the syntax is incorrect and then use the definition.
+                    // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
+                    // outside a typeof.
+                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                }
+
                 return type;
             }
             else
@@ -1418,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
 
-            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensionMethods) != 0);
+            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensions) != 0);
 
             if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out ParameterSymbol parameter))
             {
@@ -1516,10 +1542,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
             {
                 // See if there could be extension methods in scope
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
-                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
+                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : account for new extension members
 
                     if (lookupResult.IsMultiViable)
                     {
@@ -1655,8 +1681,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
+            return GetSpecialTypeMember(this.Compilation, member, diagnostics, syntax);
+        }
+
+        internal static Symbol GetSpecialTypeMember(CSharpCompilation compilation, SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
+        {
             Symbol memberSymbol;
-            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
+            return TryGetSpecialTypeMember(compilation, member, syntax, diagnostics, out memberSymbol)
                 ? memberSymbol
                 : null;
         }
@@ -2211,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new ExtendedErrorTypeSymbol(
-                            GetContainingNamespaceOrType(originalSymbols[0]),
+                            GetContainingNamespaceOrNonExtensionType(originalSymbols[0]),
                             originalSymbols,
                             LookupResultKind.Ambiguous,
                             info,
@@ -2229,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             wasError = true;
                             var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_SystemVoid);
                             diagnostics.Add(errorInfo, where.Location);
-                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
+                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
                         }
                         // Check for bad symbol.
                         else
@@ -2262,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         wasError = true;
                                         diagnostics.Add(errorInfo, where.Location);
-                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
+                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
                                     }
                                 }
                             }
@@ -2318,7 +2349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
                     // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
                     // be of different kinds.
-                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
+                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
                 }
                 else
                 {
@@ -2607,9 +2638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next?.GetForwardedToAssemblyInUsingNamespaces(metadataName, ref qualifierOpt, diagnostics, location);
         }
 
-        protected AssemblySymbol GetForwardedToAssembly(string fullName, BindingDiagnosticBag diagnostics, Location location)
+        protected AssemblySymbol GetForwardedToAssembly(MetadataTypeName metadataName, BindingDiagnosticBag diagnostics, Location location)
         {
-            var metadataName = MetadataTypeName.FromFullName(fullName);
             foreach (var referencedAssembly in
                 Compilation.Assembly.Modules[0].GetReferencedAssemblySymbols())
             {
@@ -2624,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (diagInfo.Code == (int)ErrorCode.ERR_CycleInTypeForwarder)
                         {
                             Debug.Assert((object)forwardedType.ContainingAssembly != null, "How did we find a cycle if there was no forwarding?");
-                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, fullName, forwardedType.ContainingAssembly.Name);
+                            diagnostics.Add(ErrorCode.ERR_CycleInTypeForwarder, location, metadataName.FullName, forwardedType.ContainingAssembly.Name);
                         }
                         else if (diagInfo.Code == (int)ErrorCode.ERR_TypeForwardedToMultipleAssemblies)
                         {
@@ -2694,7 +2724,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // File types can't be forwarded, so we won't attempt to determine a file identifier to attach to the metadata name.
             var metadataName = MetadataHelpers.ComposeAritySuffixedMetadataName(name, arity, associatedFileIdentifier: null);
             var fullMetadataName = MetadataHelpers.BuildQualifiedName(qualifierOpt?.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat), metadataName);
-            var result = GetForwardedToAssembly(fullMetadataName, diagnostics, location);
+            var result = GetForwardedToAssembly(
+                MetadataTypeName.FromFullName(fullMetadataName),
+                diagnostics,
+                location);
             if ((object)result != null)
             {
                 return result;

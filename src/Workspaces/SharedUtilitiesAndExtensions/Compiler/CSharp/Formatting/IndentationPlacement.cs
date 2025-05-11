@@ -4,15 +4,14 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+[Flags]
+internal enum IndentationPlacement
 {
-    [Flags]
-    internal enum IndentationPlacement
-    {
-        Braces = 1,
-        BlockContents = 1 << 1,
-        SwitchCaseContents = 1 << 2,
-        SwitchCaseContentsWhenBlock = 1 << 3,
-        SwitchSection = 1 << 4
-    }
+    Braces = 1,
+    BlockContents = 1 << 1,
+    SwitchCaseContents = 1 << 2,
+    SwitchCaseContentsWhenBlock = 1 << 3,
+    SwitchSection = 1 << 4
 }

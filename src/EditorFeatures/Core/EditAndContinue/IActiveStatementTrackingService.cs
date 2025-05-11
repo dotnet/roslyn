@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal interface IActiveStatementTrackingService : IWorkspaceService
+internal interface IActiveStatementTrackingService : IWorkspaceService, IActiveStatementSpanLocator
 {
-    void StartTracking(Solution solution, IActiveStatementSpanProvider spanProvider);
+    void StartTracking(Solution solution, IActiveStatementSpanFactory spanProvider);
 
     void EndTracking();
 
@@ -21,12 +21,6 @@ internal interface IActiveStatementTrackingService : IWorkspaceService
     /// Triggered when tracking spans have changed.
     /// </summary>
     event Action TrackingChanged;
-
-    /// <summary>
-    /// Returns location of the tracking spans in the specified document snapshot (#line target document).
-    /// </summary>
-    /// <returns>Empty array if tracking spans are not available for the document.</returns>
-    ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(Solution solution, DocumentId? documentId, string filePath, CancellationToken cancellationToken);
 
     /// <summary>
     /// Updates tracking spans with the latest positions of all active statements in the specified document snapshot (#line target document) and returns them.

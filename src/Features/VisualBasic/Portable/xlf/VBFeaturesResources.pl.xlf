@@ -67,11 +67,6 @@
         <target state="translated">Wstaw brakujący element „{0}”.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Wykryto konflikty.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">Wprowadź instrukcję „Using”</target>
@@ -222,30 +217,10 @@
         <target state="translated">Napraw nieprawidłowy typ zwracany funkcji</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Uprość nazwę „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Uprość dostęp do składowej „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Usuń kwalifikację „Me”</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">nie można określić prawidłowego zakresu instrukcji do wyodrębnienia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Nie wszystkie ścieżki w kodzie zwracają wartość</target>
-        <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
@@ -300,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">Zaznaczenie nie zawiera prawidłowych węzłów</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">brak prawidłowego zakresu instrukcji do wyodrębnienia</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -1462,16 +1432,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">Funkcja NameOf</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Generuj konwersję zawężającą w elemencie „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Generuj konwersję rozszerzającą w elemencie „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Blok Try</target>
@@ -1657,16 +1617,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
         <target state="translated">Dodaj odwołanie do metadanych do określonego zestawu i wszystkich jego zależności, np. #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Właściwości</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;nazwa przestrzeni nazw&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">Wpisz tutaj nazwę, aby utworzyć deklarację przestrzeni nazw.</target>
@@ -1675,16 +1625,6 @@ Sub(&lt;listaParametrów&gt;) &lt;instrukcja&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Wpisz tutaj nazwę, aby zadeklarować klasę częściową.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;nazwa klasy&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;nazwa interfejsu&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

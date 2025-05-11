@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
@@ -12,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal static class SyntaxEquivalence
     {
+        private static readonly ObjectPool<Stack<(GreenNode? before, GreenNode? after)>> s_equivalenceCheckStack =
+            new ObjectPool<Stack<(GreenNode?, GreenNode?)>>(() => new Stack<(GreenNode?, GreenNode?)>());
+
         internal static bool AreEquivalent(SyntaxTree? before, SyntaxTree? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
@@ -100,130 +104,149 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool AreEquivalentRecursive(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
-            if (before == after)
+            // Use an explicit stack so we can walk down deep trees without blowing the real stack.
+            var stack = s_equivalenceCheckStack.Allocate();
+            stack.Push((before, after));
+
+            try
             {
+                while (stack.Count > 0)
+                {
+                    var current = stack.Pop();
+                    if (!areEquivalentSingleLevel(current.before, current.after))
+                        return false;
+                }
+
                 return true;
             }
-
-            if (before == null || after == null)
+            finally
             {
-                return false;
+                stack.Clear();
+                s_equivalenceCheckStack.Free(stack);
             }
 
-            if (before.RawKind != after.RawKind)
+            bool areEquivalentSingleLevel(GreenNode? before, GreenNode? after)
             {
-                return false;
-            }
-
-            if (before.IsToken)
-            {
-                Debug.Assert(after.IsToken);
-                return AreTokensEquivalent(before, after, ignoreChildNode);
-            }
-
-            if (topLevel)
-            {
-                // Once we get down to the body level we don't need to go any further and we can
-                // consider these trees equivalent.
-                switch ((SyntaxKind)before.RawKind)
+                if (before == after)
                 {
-                    case SyntaxKind.Block:
-                    case SyntaxKind.ArrowExpressionClause:
-                        return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
+                    return true;
                 }
 
-                // If we're only checking top level equivalence, then we don't have to go down into
-                // the initializer for a field. However, we can't put that optimization for all
-                // fields. For example, fields that are 'const' do need their initializers checked as
-                // changing them can affect binding results.
-                if ((SyntaxKind)before.RawKind == SyntaxKind.FieldDeclaration)
-                {
-                    var fieldBefore = (Green.FieldDeclarationSyntax)before;
-                    var fieldAfter = (Green.FieldDeclarationSyntax)after;
-
-                    var isConstBefore = fieldBefore.Modifiers.Any((int)SyntaxKind.ConstKeyword);
-                    var isConstAfter = fieldAfter.Modifiers.Any((int)SyntaxKind.ConstKeyword);
-
-                    if (!isConstBefore && !isConstAfter)
-                    {
-                        ignoreChildNode = childKind => childKind == SyntaxKind.EqualsValueClause;
-                    }
-                }
-
-                // NOTE(cyrusn): Do we want to avoid going down into attribute expressions?  I don't
-                // think we can avoid it as there are likely places in the compiler that use these
-                // expressions.  For example, if the user changes [InternalsVisibleTo("goo")] to
-                // [InternalsVisibleTo("bar")] then that must count as a top level change as it
-                // affects symbol visibility.  Perhaps we could enumerate the places in the compiler
-                // that use the values inside source attributes and we can check if we're in an
-                // attribute with that name.  It wouldn't be 100% correct (because of annoying things
-                // like using aliases), but would likely be good enough for the incremental cases in
-                // the IDE.
-            }
-
-            if (ignoreChildNode != null)
-            {
-                var e1 = before.ChildNodesAndTokens().GetEnumerator();
-                var e2 = after.ChildNodesAndTokens().GetEnumerator();
-                while (true)
-                {
-                    GreenNode? child1 = null;
-                    GreenNode? child2 = null;
-
-                    // skip ignored children:
-                    while (e1.MoveNext())
-                    {
-                        var c = e1.Current;
-                        if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
-                        {
-                            child1 = c;
-                            break;
-                        }
-                    }
-
-                    while (e2.MoveNext())
-                    {
-                        var c = e2.Current;
-                        if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
-                        {
-                            child2 = c;
-                            break;
-                        }
-                    }
-
-                    if (child1 == null || child2 == null)
-                    {
-                        // false if some children remained
-                        return child1 == child2;
-                    }
-
-                    if (!AreEquivalentRecursive(child1, child2, ignoreChildNode, topLevel))
-                    {
-                        return false;
-                    }
-                }
-            }
-            else
-            {
-                // simple comparison - not ignoring children
-
-                int slotCount = before.SlotCount;
-                if (slotCount != after.SlotCount)
+                if (before == null || after == null)
                 {
                     return false;
                 }
 
-                for (int i = 0; i < slotCount; i++)
+                if (before.RawKind != after.RawKind)
                 {
-                    var child1 = before.GetSlot(i);
-                    var child2 = after.GetSlot(i);
+                    return false;
+                }
 
-                    if (!AreEquivalentRecursive(child1, child2, ignoreChildNode, topLevel))
+                if (before.IsToken)
+                {
+                    Debug.Assert(after.IsToken);
+                    return AreTokensEquivalent(before, after, ignoreChildNode);
+                }
+
+                if (topLevel)
+                {
+                    // Once we get down to the body level we don't need to go any further and we can
+                    // consider these trees equivalent.
+                    switch ((SyntaxKind)before.RawKind)
+                    {
+                        case SyntaxKind.Block:
+                        case SyntaxKind.ArrowExpressionClause:
+                            return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
+                    }
+
+                    // If we're only checking top level equivalence, then we don't have to go down into
+                    // the initializer for a field. However, we can't put that optimization for all
+                    // fields. For example, fields that are 'const' do need their initializers checked as
+                    // changing them can affect binding results.
+                    if ((SyntaxKind)before.RawKind == SyntaxKind.FieldDeclaration)
+                    {
+                        var fieldBefore = (Green.FieldDeclarationSyntax)before;
+                        var fieldAfter = (Green.FieldDeclarationSyntax)after;
+
+                        var isConstBefore = fieldBefore.Modifiers.Any((int)SyntaxKind.ConstKeyword);
+                        var isConstAfter = fieldAfter.Modifiers.Any((int)SyntaxKind.ConstKeyword);
+
+                        if (!isConstBefore && !isConstAfter)
+                        {
+                            ignoreChildNode = static childKind => childKind == SyntaxKind.EqualsValueClause;
+                        }
+                    }
+
+                    // NOTE(cyrusn): Do we want to avoid going down into attribute expressions?  I don't
+                    // think we can avoid it as there are likely places in the compiler that use these
+                    // expressions.  For example, if the user changes [InternalsVisibleTo("goo")] to
+                    // [InternalsVisibleTo("bar")] then that must count as a top level change as it
+                    // affects symbol visibility.  Perhaps we could enumerate the places in the compiler
+                    // that use the values inside source attributes and we can check if we're in an
+                    // attribute with that name.  It wouldn't be 100% correct (because of annoying things
+                    // like using aliases), but would likely be good enough for the incremental cases in
+                    // the IDE.
+                }
+
+                if (ignoreChildNode != null)
+                {
+                    var e1 = before.ChildNodesAndTokens().GetEnumerator();
+                    var e2 = after.ChildNodesAndTokens().GetEnumerator();
+                    while (true)
+                    {
+                        GreenNode? child1 = null;
+                        GreenNode? child2 = null;
+
+                        // skip ignored children:
+                        while (e1.MoveNext())
+                        {
+                            var c = e1.Current;
+                            if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
+                            {
+                                child1 = c;
+                                break;
+                            }
+                        }
+
+                        while (e2.MoveNext())
+                        {
+                            var c = e2.Current;
+                            if (c != null && (c.IsToken || !ignoreChildNode((SyntaxKind)c.RawKind)))
+                            {
+                                child2 = c;
+                                break;
+                            }
+                        }
+
+                        if (child1 == null || child2 == null)
+                        {
+                            // false if some children remained
+                            return child1 == child2;
+                        }
+
+                        stack.Push((child1, child2));
+                    }
+                }
+                else
+                {
+                    // simple comparison - not ignoring children
+
+                    int slotCount = before.SlotCount;
+                    if (slotCount != after.SlotCount)
                     {
                         return false;
                     }
+
+                    // Walk the children backwards so that we can push them onto the stack and continue walking in DFS order.
+                    for (var i = slotCount - 1; i >= 0; i--)
+                    {
+                        var child1 = before.GetSlot(i);
+                        var child2 = after.GetSlot(i);
+                        stack.Push((child1, child2));
+                    }
                 }
 
+                // So far these are equivalent.  Continue checking the children.
                 return true;
             }
         }

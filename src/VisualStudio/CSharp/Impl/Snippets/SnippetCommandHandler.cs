@@ -5,16 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -24,147 +19,118 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(Microsoft.CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
+[Name("CSharp Snippets")]
+[Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
+[Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
+[Order(Before = nameof(CompleteStatementCommandHandler))]
+[Order(Before = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.AutomaticLineEnder)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SnippetCommandHandler(
+    IThreadingContext threadingContext,
+    IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+    IVsService<SVsTextManager, IVsTextManager2> textManager,
+    EditorOptionsService editorOptionsService) :
+    AbstractSnippetCommandHandler(threadingContext, editorOptionsService, textManager),
+    ICommandHandler<SurroundWithCommandArgs>,
+    IChainedCommandHandler<TypeCharCommandArgs>
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(Microsoft.CodeAnalysis.Editor.ContentTypeNames.CSharpContentType)]
-    [Name("CSharp Snippets")]
-    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
-    [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
-    [Order(Before = nameof(CompleteStatementCommandHandler))]
-    [Order(Before = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.AutomaticLineEnder)]
-    internal sealed class SnippetCommandHandler :
-        AbstractSnippetCommandHandler,
-        ICommandHandler<SurroundWithCommandArgs>,
-        IChainedCommandHandler<TypeCharCommandArgs>
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
+
+    public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
     {
-        private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _argumentProviders;
+        this.ThreadingContext.ThrowIfNotOnUIThread();
 
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SnippetCommandHandler(
-            IThreadingContext threadingContext,
-            SignatureHelpControllerProvider signatureHelpControllerProvider,
-            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            SVsServiceProvider serviceProvider,
-            [ImportMany] IEnumerable<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
-            EditorOptionsService editorOptionsService)
-            : base(threadingContext, signatureHelpControllerProvider, editorCommandHandlerServiceFactory, editorAdaptersFactoryService, editorOptionsService, serviceProvider)
+        if (!AreSnippetsEnabled(args))
         {
-            _argumentProviders = argumentProviders.ToImmutableArray();
+            return false;
         }
 
-        public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
+        return TryInvokeInsertionUI(args.TextView, args.SubjectBuffer, surroundWith: true);
+    }
+
+    public CommandState GetCommandState(SurroundWithCommandArgs args)
+    {
+        this.ThreadingContext.ThrowIfNotOnUIThread();
+
+        if (!AreSnippetsEnabled(args))
         {
-            AssertIsForeground();
-
-            if (!AreSnippetsEnabled(args))
-            {
-                return false;
-            }
-
-            return TryInvokeInsertionUI(args.TextView, args.SubjectBuffer, surroundWith: true);
+            return CommandState.Unspecified;
         }
 
-        public CommandState GetCommandState(SurroundWithCommandArgs args)
+        if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+            !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
         {
-            AssertIsForeground();
-
-            if (!AreSnippetsEnabled(args))
-            {
-                return CommandState.Unspecified;
-            }
-
-            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return CommandState.Unspecified;
-            }
-
-            return CommandState.Available;
+            return CommandState.Unspecified;
         }
 
-        public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
+        return CommandState.Available;
+    }
+
+    public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)
+    {
+        return nextCommandHandler();
+    }
+
+    public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+    {
+        this.ThreadingContext.ThrowIfNotOnUIThread();
+        if (args.TypedChar == ';'
+            && AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
+            && snippetExpansionClient.IsFullMethodCallSnippet)
         {
-            return nextCommandHandler();
+            // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
+            // chain will handle the remaining Complete Statement (';' insertion) operations only if there is no
+            // active selection.
+            snippetExpansionClient.CommitSnippet(leaveCaret: true);
+            args.TextView.Selection.Clear();
         }
 
-        public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
-        {
-            AssertIsForeground();
-            if (args.TypedChar == ';'
-                && AreSnippetsEnabled(args)
-                && args.TextView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient snippetExpansionClient)
-                && snippetExpansionClient.IsFullMethodCallSnippet)
-            {
-                // Commit the snippet. Leave the caret in place, but clear the selection. Subsequent handlers in the
-                // chain will handle the remaining Complete Statement (';' insertion) operations only if there is no
-                // active selection.
-                snippetExpansionClient.CommitSnippet(leaveCaret: true);
-                args.TextView.Selection.Clear();
-            }
+        nextCommandHandler();
+    }
 
-            nextCommandHandler();
+    protected override bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false)
+    {
+        if (!TryGetExpansionManager(out var expansionManager))
+        {
+            return false;
         }
 
-        protected override AbstractSnippetExpansionClient GetSnippetExpansionClient(ITextView textView, ITextBuffer subjectBuffer)
-        {
-            if (!textView.Properties.TryGetProperty(typeof(AbstractSnippetExpansionClient), out AbstractSnippetExpansionClient expansionClient))
-            {
-                expansionClient = new SnippetExpansionClient(
-                    ThreadingContext,
-                    Guids.CSharpLanguageServiceId,
-                    textView,
-                    subjectBuffer,
-                    SignatureHelpControllerProvider,
-                    EditorCommandHandlerServiceFactory,
-                    EditorAdaptersFactoryService,
-                    _argumentProviders,
-                    EditorOptionsService);
+        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+            return false;
 
-                textView.Properties.AddProperty(typeof(AbstractSnippetExpansionClient), expansionClient);
-            }
+        expansionManager.InvokeInsertionUI(
+            _editorAdaptersFactoryService.GetViewAdapter(textView),
+            GetSnippetExpansionClientFactory(document).GetOrCreateSnippetExpansionClient(document, textView, subjectBuffer),
+            Guids.CSharpLanguageServiceId,
+            bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
+            iCountTypes: surroundWith ? 1 : 2,
+            fIncludeNULLType: 1,
+            bstrKinds: null,
+            iCountKinds: 0,
+            fIncludeNULLKind: 0,
+            bstrPrefixText: surroundWith ? CSharpVSResources.Surround_With : ServicesVSResources.Insert_Snippet,
+            bstrCompletionChar: null);
 
-            return expansionClient;
-        }
+        return true;
+    }
 
-        protected override bool TryInvokeInsertionUI(ITextView textView, ITextBuffer subjectBuffer, bool surroundWith = false)
-        {
-            if (!TryGetExpansionManager(out var expansionManager))
-            {
-                return false;
-            }
+    protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)
+    {
+        var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
 
-            expansionManager.InvokeInsertionUI(
-                EditorAdaptersFactoryService.GetViewAdapter(textView),
-                GetSnippetExpansionClient(textView, subjectBuffer),
-                Guids.CSharpLanguageServiceId,
-                bstrTypes: surroundWith ? ["SurroundsWith"] : ["Expansion", "SurroundsWith"],
-                iCountTypes: surroundWith ? 1 : 2,
-                fIncludeNULLType: 1,
-                bstrKinds: null,
-                iCountKinds: 0,
-                fIncludeNULLKind: 0,
-                bstrPrefixText: surroundWith ? CSharpVSResources.Surround_With : CSharpVSResources.Insert_Snippet,
-                bstrCompletionChar: null);
-
-            return true;
-        }
-
-        protected override bool IsSnippetExpansionContext(Document document, int startPosition, CancellationToken cancellationToken)
-        {
-            var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
-
-            return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
-                !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);
-        }
+        return !syntaxTree.IsEntirelyWithinStringOrCharLiteral(startPosition, cancellationToken) &&
+            !syntaxTree.IsEntirelyWithinComment(startPosition, cancellationToken);
     }
 }

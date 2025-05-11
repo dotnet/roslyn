@@ -3321,6 +3321,8 @@ class UsePia5 : ITest30
                     var m1 = (PEMethodSymbol)itest30.GetMembers("M1").Single();
 
                     Assert.True(m1.Parameters[0].IsParams);
+                    Assert.True(m1.Parameters[0].IsParamsArray);
+                    Assert.False(m1.Parameters[0].IsParamsCollection);
                     Assert.Equal(0, m1.Parameters[0].GetAttributes().Length);
                 };
 

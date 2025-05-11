@@ -508,13 +508,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                    nextToken.IsKindOrHasMatchingText(SyntaxKind.CloseBraceToken) OrElse
                    node.CloseParenToken.IsLastTokenOfStatement() Then
 
+                    Dim nextTokenTextKind = SyntaxFacts.GetContextualKeywordKind(nextToken.Text)
+                    Select Case nextTokenTextKind
+                        Case SyntaxKind.AscendingKeyword,
+                             SyntaxKind.DescendingKeyword,
+                             SyntaxKind.DistinctKeyword,
+                             SyntaxKind.GroupKeyword,
+                             SyntaxKind.IntoKeyword,
+                             SyntaxKind.OrderKeyword,
+                             SyntaxKind.SkipKeyword,
+                             SyntaxKind.TakeKeyword,
+                             SyntaxKind.WhereKeyword,
+                             SyntaxKind.JoinKeyword,
+                             SyntaxKind.InKeyword,
+                             SyntaxKind.LetKeyword,
+                             SyntaxKind.OnKeyword,
+                             SyntaxKind.SelectKeyword,
+                             SyntaxKind.AggregateKeyword,
+                             SyntaxKind.FromKeyword
+                            Return False
+                    End Select
+
                     If Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.DotToken) AndAlso
                             nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression)) AndAlso
                        Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.SelectKeyword) AndAlso
                             nextToken.Parent.IsKind(SyntaxKind.SelectStatement)) AndAlso
-                        Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.ExclamationToken) AndAlso
-                             lastToken.IsKeyword AndAlso
-                             nextToken.Parent.IsKind(SyntaxKind.DictionaryAccessExpression)) Then
+                       Not (nextToken.IsKindOrHasMatchingText(SyntaxKind.ExclamationToken) AndAlso
+                            lastToken.IsKeyword AndAlso
+                            nextToken.Parent.IsKind(SyntaxKind.DictionaryAccessExpression)) Then
 
                         Return True
                     End If

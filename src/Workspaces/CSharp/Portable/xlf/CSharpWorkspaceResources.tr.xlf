@@ -12,21 +12,6 @@
         <target state="translated">C# biçimlendirme kuralları</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indentation_preferences">
-        <source>Indentation preferences</source>
-        <target state="translated">Girinti tercihleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Düğüm kökten azalmaz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Düğüm üst öğenin alt öğe listesinde değil</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">&amp;Kaldır ve Sıralama Usings</target>
@@ -37,21 +22,6 @@
         <target state="translated">&amp;Using’leri Sırala</target>
         <note />
       </trans-unit>
-      <trans-unit id="Space_preferences">
-        <source>Space preferences</source>
-        <target state="translated">Boşluk tercihleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Meraklısına Notlar belirteç ile ilgili değil</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
-        <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">Boş söz dizimi başvurusunun Yayılımı alınamıyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, constructor initializers, expressions or statements can be made explicit</source>
         <target state="translated">Yalnızca öznitelikler, oluşturucu başlatıcıları, ifadeler veya deyimler açık hale getirilebilir</target>
@@ -60,11 +30,6 @@
       <trans-unit id="Implement_Interface">
         <source>Implement Interface</source>
         <target state="translated">Arabirimi uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Wrapping_preferences">
-        <source>Wrapping preferences</source>
-        <target state="translated">Kaydırma tercihleri</target>
         <note />
       </trans-unit>
     </body>

@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-#if TODO // Uncomment once https://github.com/microsoft/vs-streamjsonrpc/issues/789 is fixed
 internal interface IRemoteOptionsCallback<TOptions>
 {
     ValueTask<TOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
 }
-#endif

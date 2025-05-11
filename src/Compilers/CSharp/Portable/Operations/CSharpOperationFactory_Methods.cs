@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
         internal IArgumentOperation CreateArgumentOperation(ArgumentKind kind, IParameterSymbol? parameter, BoundExpression expression)
         {
             // put argument syntax to argument operation
-            IOperation value = Create(expression);
+            IOperation value = Create(expression is BoundConversion { IsParamsArrayOrCollection: true } conversion ? conversion.Operand : expression);
             (SyntaxNode syntax, bool isImplicit) = expression.Syntax is { Parent: ArgumentSyntax or AttributeArgumentSyntax } ? (expression.Syntax.Parent, expression.WasCompilerGenerated) : (value.Syntax, true);
             return new ArgumentOperation(
                 kind,
@@ -343,9 +343,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 argumentKind = ArgumentKind.DefaultValue;
             }
-            else if (argument.IsParamsArray)
+            else if (argument.IsParamsArrayOrCollection)
             {
-                argumentKind = ArgumentKind.ParamArray;
+                argumentKind = argument.Type?.IsSZArray() == true ? ArgumentKind.ParamArray : ArgumentKind.ParamCollection;
             }
             else
             {

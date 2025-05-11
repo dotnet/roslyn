@@ -9,16 +9,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Remote
-{
-    internal sealed class DefaultRemoteHostClientProvider : IRemoteHostClientProvider
-    {
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public DefaultRemoteHostClientProvider()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.Remote;
 
-        public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => SpecializedTasks.Null<RemoteHostClient>();
-    }
+[method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+internal sealed class DefaultRemoteHostClientProvider() : IRemoteHostClientProvider
+{
+    public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+        => SpecializedTasks.Null<RemoteHostClient>();
+
+    public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+        => Task.CompletedTask;
 }

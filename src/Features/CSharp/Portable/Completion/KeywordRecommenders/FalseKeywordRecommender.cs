@@ -3,26 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class FalseKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public FalseKeywordRecommender()
-            : base(SyntaxKind.FalseKeyword, isValidInPreprocessorContext: true)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return
-                context.IsAnyExpressionContext ||
-                context.IsPreProcessorExpressionContext ||
-                context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.TargetToken.IsUnaryOperatorContext();
-        }
+internal sealed class FalseKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.FalseKeyword, isValidInPreprocessorContext: true)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return
+            context.IsAnyExpressionContext ||
+            context.IsPreProcessorExpressionContext ||
+            context.IsStatementContext ||
+            context.IsGlobalStatementContext ||
+            context.TargetToken.IsUnaryOperatorContext();
     }
 }

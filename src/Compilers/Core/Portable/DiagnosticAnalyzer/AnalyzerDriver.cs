@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -844,7 +843,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerDriver analyzerDriver = compilation.CreateAnalyzerDriver(analyzers, analyzerManager, severityFilter);
             newCompilation = compilation
-                .WithSemanticModelProvider(new CachingSemanticModelProvider())
+                .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
                 .WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             var categorizeDiagnostics = false;
@@ -1151,24 +1150,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
             {
-                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ArrayBuilder<Suppression>>.GetInstance();
+
                 foreach (var programmaticSuppression in programmaticSuppressions)
                 {
-                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
+                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var array))
                     {
-                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
-                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
+                        array = ArrayBuilder<Suppression>.GetInstance();
+                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, array);
                     }
 
-                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                    if (!array.Contains(programmaticSuppression))
+                        array.Add(programmaticSuppression);
                 }
 
                 var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
                 foreach (var (diagnostic, set) in programmaticSuppressionsBuilder)
                 {
-                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutable()));
+                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutableAndFree()));
                 }
 
+                programmaticSuppressionsBuilder.Free();
                 return mapBuilder.ToImmutable();
             }
         }
@@ -2310,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //     generated_code = true | false
                 // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
                     _isGeneratedCode(tree, cancellationToken);
             }
         }
@@ -2608,10 +2610,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
+                if (groupedActions.GroupedActionsByAnalyzer.Length == 0)
+                {
+                    return;
+                }
+
+                var analyzersForNodes = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
+                foreach (var node in nodesToAnalyze)
+                {
+                    if (groupedActions.AnalyzersByKind.TryGetValue(_getKind(node), out var analyzersForKind))
+                    {
+                        foreach (var analyzer in analyzersForKind)
+                        {
+                            analyzersForNodes.Add(analyzer);
+                        }
+                    }
+                }
+
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
-                    var nodeActionsByKind = groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind;
-                    if (nodeActionsByKind.IsEmpty || !analysisScope.Contains(analyzer))
+                    if (!analyzersForNodes.Contains(analyzer) || !analysisScope.Contains(analyzer))
                     {
                         continue;
                     }
@@ -2638,6 +2656,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         executeSyntaxNodeActions(analyzer, groupedActionsForAnalyzer, nodesToAnalyze);
                     }
                 }
+
+                analyzersForNodes.Free();
 
                 void executeSyntaxNodeActions(
                     DiagnosticAnalyzer analyzer,
@@ -2761,7 +2781,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            void executeOperationsBlockActions(ImmutableArray<IOperation> operationBlocksToAnalyze, ImmutableArray<IOperation> operationsToAnalyze, IEnumerable<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
+            void executeOperationsBlockActions(ImmutableArray<IOperation> operationBlocksToAnalyze, ImmutableArray<IOperation> operationsToAnalyze, ArrayBuilder<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
             {
                 if (!shouldExecuteOperationBlockActions)
                 {
@@ -2789,7 +2809,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            void executeCodeBlockActions(ImmutableArray<SyntaxNode> executableCodeBlocks, IEnumerable<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
+            void executeCodeBlockActions(ImmutableArray<SyntaxNode> executableCodeBlocks, ArrayBuilder<ExecutableCodeBlockAnalyzerActions> codeBlockActions)
             {
                 if (executableCodeBlocks.IsEmpty || !shouldExecuteCodeBlockActions)
                 {
@@ -2956,8 +2976,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
 
                             case OperationKind.ExpressionStatement:
-                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
-                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                // For constructor initializer, we generate an IInvocationOperation (or invalid
+                                // operation in the case of an error) with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind is OperationKind.Invocation or OperationKind.Invalid);
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);

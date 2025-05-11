@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
-    <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
+    <UseAppHost Condition="'$(DotNetBuildSourceOnly)' == 'true'">false</UseAppHost>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -16,7 +16,7 @@
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

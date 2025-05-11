@@ -7,15 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal readonly record struct VSTypeScriptIndentationOptions(
-        bool UseSpaces,
-        int TabSize,
-        int IndentSize);
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-    internal interface IVSTypeScriptFormattingServiceImplementation
-    {
-        Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, VSTypeScriptIndentationOptions options, CancellationToken cancellationToken);
-    }
+internal readonly record struct VSTypeScriptIndentationOptions(
+    bool UseSpaces,
+    int TabSize,
+    int IndentSize);
+
+internal interface IVSTypeScriptFormattingServiceImplementation
+{
+    Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, VSTypeScriptIndentationOptions options, CancellationToken cancellationToken);
 }

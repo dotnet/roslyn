@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -16,14 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact()>
         Public Sub Test1()
 
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestMetadata.ResourcesNet40.mscorlib)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(Net40.Resources.mscorlib)
 
             TestBaseTypeResolutionHelper1(assembly)
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                     {TestResources.General.MDTestLib1,
                                      TestResources.General.MDTestLib2,
-                                     TestMetadata.ResourcesNet40.mscorlib})
+                                     Net40.Resources.mscorlib})
 
             TestBaseTypeResolutionHelper2(assemblies)
 
@@ -288,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact()>
         Public Sub Test3()
 
-            Dim mscorlibRef = TestMetadata.Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
 
             Dim c1 = VisualBasicCompilation.Create("Test", references:={mscorlibRef})
 

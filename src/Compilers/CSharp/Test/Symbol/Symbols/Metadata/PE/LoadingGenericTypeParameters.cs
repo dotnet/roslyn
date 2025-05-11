@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestMetadata.Net40.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.References.mscorlib);
             var module0 = assembly.Modules[0];
 
             var objectType = module0.GlobalNamespace.GetMembers("System").

@@ -27,6 +27,11 @@
         <target state="translated">將元組轉換為結構重構</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_CopilotChangeAnalysis">
+        <source>Copilot change analysis</source>
+        <target state="new">Copilot change analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">相依類型尋找工具</target>
@@ -57,6 +62,11 @@
         <target state="translated">封裝欄位重構</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="new">Extension message handler</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
         <target state="translated">擴充方法匯入完成</target>
@@ -80,6 +90,11 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">繼承邊界</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_Initialization">
+        <source>Initialization</source>
+        <target state="new">Initialization</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">
@@ -117,6 +132,11 @@
         <target state="translated">專案遙測集合</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">相關文件</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">重新命名</target>
@@ -125,6 +145,11 @@
       <trans-unit id="FeatureName_SemanticClassification">
         <source>Semantic classification</source>
         <target state="translated">語意分類</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">語意搜尋</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">

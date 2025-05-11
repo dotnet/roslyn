@@ -14,128 +14,194 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+public sealed class UseExpressionBodyForOperatorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-    public class UseExpressionBodyForOperatorsRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new UseExpressionBodyCodeRefactoringProvider();
+
+    private OptionsCollection UseExpressionBody
+        => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
+
+    private OptionsCollection UseExpressionBodyDisabledDiagnostic
+        => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
+
+    private OptionsCollection UseBlockBody
+        => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+
+    private OptionsCollection UseBlockBodyDisabledDiagnostic
+        => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
+
+    [Fact]
+    public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-            => new UseExpressionBodyCodeRefactoringProvider();
-
-        private OptionsCollection UseExpressionBody
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement);
-
-        private OptionsCollection UseExpressionBodyDisabledDiagnostic
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.None));
-
-        private OptionsCollection UseBlockBody
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-
-        private OptionsCollection UseBlockBodyDisabledDiagnostic
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption2.None));
-
-        [Fact]
-        public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        [||]Bar();
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
-        }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
+    [Fact]
+    public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
     {
-        [||]Bar();
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
     }
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2) => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
-        }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
+    [Fact]
+    public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
     {
-        [||]Bar();
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2) => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-        }
 
-        [Fact]
-        public async Task TestNotOfferedInLambda()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
+    [Fact]
+    public async Task TestNotOfferedInLambda()
     {
-        return () => { [||] };
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return () => { [||] };
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
-}", parameters: new TestParameters(options: UseBlockBody));
-        }
 
-        [Fact]
-        public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
-        }
-
-        [Fact]
-        public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2)
+    [Fact]
+    public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
     {
-        return Bar();
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
-        }
 
-        [Fact]
-        public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
-        {
-            await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2)
+    [Fact]
+    public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
     {
-        return Bar();
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
-        }
+
+    [Fact]
+    public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
+    }
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 }

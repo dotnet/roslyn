@@ -23,14 +23,14 @@ internal static class VSEditorLSPExtensions
     public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this VisualStudio.Text.Adornments.ContainerElement element)
         => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
-    private static object? ToLSPElement(object? value)
+    private static object ToLSPElement(object value)
         => value switch
         {
-            VisualStudio.Core.Imaging.ImageId imageId => ToLSPImageId(imageId),
-            VisualStudio.Text.Adornments.ImageElement element => ToLSPImageElement(element),
-            VisualStudio.Text.Adornments.ContainerElement element => ToLSPElement(element),
-            VisualStudio.Text.Adornments.ClassifiedTextElement element => ToLSPElement(element),
-            VisualStudio.Text.Adornments.ClassifiedTextRun run => ToLSPRun(run),
+            VisualStudio.Core.Imaging.ImageId imageId => imageId.ToLSPImageId(),
+            VisualStudio.Text.Adornments.ImageElement element => element.ToLSPImageElement(),
+            VisualStudio.Text.Adornments.ContainerElement element => element.ToLSPElement(),
+            VisualStudio.Text.Adornments.ClassifiedTextElement element => element.ToLSPElement(),
+            VisualStudio.Text.Adornments.ClassifiedTextRun run => run.ToLSPRun(),
             _ => value,
         };
 }

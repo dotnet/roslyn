@@ -12,30 +12,28 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview;
+
+[ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Test), Shared, PartNotDiscoverable]
+internal sealed class MockPreviewPaneService : IPreviewPaneService
 {
-    [ExportWorkspaceService(typeof(IPreviewPaneService), ServiceLayer.Test), Shared, PartNotDiscoverable]
-    internal class MockPreviewPaneService : IPreviewPaneService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public MockPreviewPaneService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MockPreviewPaneService()
+    }
+
+    public object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContents)
+    {
+        var contents = previewContents ?? [];
+
+        foreach (var content in contents.OfType<IDisposable>())
         {
+            content.Dispose();
         }
 
-        public object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContents)
-        {
-            var contents = previewContents ?? SpecializedCollections.EmptyEnumerable<object>();
-
-            foreach (var content in contents.OfType<IDisposable>())
-            {
-                content.Dispose();
-            }
-
-            // test only mock object
-            return new Grid();
-        }
+        // test only mock object
+        return new Grid();
     }
 }

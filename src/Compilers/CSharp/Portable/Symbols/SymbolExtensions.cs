@@ -201,26 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
                     return ((NamedTypeSymbol)symbol).ConstructedFrom;
 
                 case SymbolKind.Method:
                     return ((MethodSymbol)symbol).ConstructedFrom;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
-            }
-        }
-
-        public static bool IsSourceParameterWithEnumeratorCancellationAttribute(this ParameterSymbol parameter)
-        {
-            switch (parameter)
-            {
-                case SourceComplexParameterSymbolBase source:
-                    return source.HasEnumeratorCancellationAttribute;
-                case SynthesizedComplexParameterSymbol synthesized:
-                    return synthesized.HasEnumeratorCancellationAttribute;
-                default:
-                    return false;
+                    return symbol;
             }
         }
 
@@ -825,5 +813,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
             => method is { MethodKind: MethodKind.Constructor, HasSetsRequiredMembers: false };
+
+        internal static int GetOverloadResolutionPriority(this Symbol symbol)
+        {
+            Debug.Assert(symbol is MethodSymbol or PropertySymbol);
+            return symbol is MethodSymbol method ? method.OverloadResolutionPriority : ((PropertySymbol)symbol).OverloadResolutionPriority;
+        }
+
+        internal static bool IsExtensionParameter(this ParameterSymbol parameter)
+        {
+            return parameter.ContainingSymbol is TypeSymbol { IsExtension: true };
+        }
+
+        internal static bool IsExtensionParameterImplementation(this ParameterSymbol parameter)
+        {
+            Debug.Assert(parameter.IsDefinition);
+            return parameter.ContainingSymbol is SourceExtensionImplementationMethodSymbol implementationMethod
+                && !implementationMethod.UnderlyingMethod.IsStatic
+                && parameter.Ordinal == 0;
+        }
     }
 }

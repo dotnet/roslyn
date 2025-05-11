@@ -2,79 +2,59 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal abstract class AbstractEntryPointFinder(Compilation compilation) : SymbolVisitor
 {
-    internal abstract class AbstractEntryPointFinder : SymbolVisitor
+    protected readonly HashSet<INamedTypeSymbol> EntryPoints = [];
+
+    private readonly KnownTaskTypes _knownTaskTypes = new(compilation);
+
+    protected abstract bool MatchesMainMethodName(string name);
+
+    public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        protected readonly HashSet<INamedTypeSymbol> EntryPoints = new();
+        foreach (var member in symbol.GetMembers())
+            member.Accept(this);
+    }
 
-        public override void VisitNamespace(INamespaceSymbol symbol)
+    public override void VisitNamedType(INamedTypeSymbol symbol)
+    {
+        foreach (var member in symbol.GetMembers())
+            member.Accept(this);
+    }
+
+    public override void VisitMethod(IMethodSymbol symbol)
+    {
+        // Similar to the form `static void Main(string[] args)` (and varying permutations).
+        if (symbol.IsStatic &&
+            MatchesMainMethodName(symbol.Name) &&
+            HasValidReturnType(symbol) &&
+            symbol.Parameters is [{ Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_String } }] or [])
         {
-            foreach (var member in symbol.GetMembers())
-            {
-                member.Accept(this);
-            }
+            EntryPoints.Add(symbol.ContainingType);
         }
+    }
 
-        public override void VisitNamedType(INamedTypeSymbol symbol)
-        {
-            foreach (var member in symbol.GetMembers())
-            {
-                member.Accept(this);
-            }
-        }
+    private bool HasValidReturnType(IMethodSymbol symbol)
+    {
+        // void
+        if (symbol.ReturnsVoid)
+            return true;
 
-        public override void VisitMethod(IMethodSymbol symbol)
-        {
-            // named Main
-            if (!MatchesMainMethodName(symbol.Name))
-            {
-                return;
-            }
+        var returnType = symbol.ReturnType;
 
-            // static
-            if (!symbol.IsStatic)
-            {
-                return;
-            }
+        // int
+        if (returnType.SpecialType == SpecialType.System_Int32)
+            return true;
 
-            // returns void or int
-            if (!symbol.ReturnsVoid && symbol.ReturnType.SpecialType != SpecialType.System_Int32)
-            {
-                return;
-            }
-
-            // parameterless or takes a string[]
-            if (symbol.Parameters.Length == 1)
-            {
-                var parameter = symbol.Parameters.Single();
-                if (parameter.Type is IArrayTypeSymbol)
-                {
-                    var elementType = ((IArrayTypeSymbol)parameter.Type).ElementType;
-                    var specialType = elementType.SpecialType;
-
-                    if (specialType == SpecialType.System_String)
-                    {
-                        EntryPoints.Add(symbol.ContainingType);
-                    }
-                }
-            }
-
-            if (!symbol.Parameters.Any())
-            {
-                EntryPoints.Add(symbol.ContainingType);
-            }
-        }
-
-        protected abstract bool MatchesMainMethodName(string name);
+        // Task or ValueTask
+        // Task<int> or ValueTask<int>
+        return _knownTaskTypes.IsTaskLike(returnType) &&
+            returnType.GetTypeArguments() is [] or [{ SpecialType: SpecialType.System_Int32 }];
     }
 }

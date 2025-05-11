@@ -13,6 +13,14 @@ In a typical project, this setting is controlled by the `AnalysisLevel` property
 which determines the `WarningLevel` property (passed to the `Csc` task).
 For more information on `AnalysisLevel`, see https://devblogs.microsoft.com/dotnet/automatically-find-latent-bugs-in-your-code-with-net-5/
 
+## Warning level 10
+
+The compiler shipped with .NET 10 (the C# 14 compiler) contains the following warnings which are reported only under `/warn:10` or higher.
+
+| Warning ID | Description |
+|------------|-------------|
+| CS9265 | [Field is never ref-assigned to, and will always have its default value (null reference)](https://github.com/dotnet/roslyn/issues/75315) |
+
 ## Warning level 8
 
 The compiler shipped with .NET 8 (the C# 12 compiler) contains the following warnings which are reported only under `/warn:8` or higher.

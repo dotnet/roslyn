@@ -261,6 +261,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ' <summary>
+        ' Indicates whether a type is managed or not in C# terms (i.e. you can take a pointer to it).
+        ' </summary>
+        Friend MustOverride Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+
         ' Only the compiler can create TypeSymbols.
         Friend Sub New()
         End Sub
@@ -273,9 +278,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+        Public Overridable ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
-                Return SpecialType.None
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+            Get
+                Return CType(ExtendedSpecialType, SpecialType)
             End Get
         End Property
 
@@ -582,8 +593,7 @@ Done:
 
         Private ReadOnly Property ITypeSymbol_IsUnmanagedType As Boolean Implements ITypeSymbol.IsUnmanagedType
             Get
-                ' VB has no concept of unmanaged types
-                Return False
+                Return GetManagedKind(CompoundUseSiteInfo(Of AssemblySymbol).Discarded) <> ManagedKind.Managed
             End Get
         End Property
 
@@ -773,5 +783,16 @@ Done:
             Return Me
         End Function
 
+        Public ReadOnly Property IsExtension As Boolean Implements ITypeSymbol.IsExtension
+            Get
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property ExtensionParameter As IParameterSymbol Implements ITypeSymbol.ExtensionParameter
+            Get
+                Return Nothing
+            End Get
+        End Property
     End Class
 End Namespace

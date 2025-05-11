@@ -5,23 +5,22 @@
 using System.Windows.Controls;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View;
+
+/// <summary>
+/// Interaction logic for NamingStylesStyleControl.xaml
+/// </summary>
+internal partial class NamingStylesStyleControl : UserControl
 {
-    /// <summary>
-    /// Interaction logic for NamingStylesStyleControl.xaml
-    /// </summary>
-    internal partial class NamingStylesStyleControl : UserControl
+    private readonly NamingStylesStyleViewModel _viewModel;
+
+    public NamingStylesStyleControl(NamingStylesStyleViewModel viewModel)
     {
-        private readonly NamingStylesStyleViewModel _viewModel;
-
-        public NamingStylesStyleControl(NamingStylesStyleViewModel viewModel)
-        {
-            InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = viewModel;
-        }
-
-        private void StyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => _viewModel.SelectionChanged(StyleComboBox.SelectedIndex);
+        InitializeComponent();
+        _viewModel = viewModel;
+        DataContext = viewModel;
     }
+
+    private void StyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _viewModel.SelectionChanged(StyleComboBox.SelectedIndex);
 }

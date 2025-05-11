@@ -7,16 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.FindSymbols
+namespace Microsoft.CodeAnalysis.FindSymbols;
+
+internal interface IRemoteDependentTypeFinderService
 {
-    internal interface IRemoteDependentTypeFinderService
-    {
-        ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
-            Checksum solutionChecksum,
-            SerializableSymbolAndProjectId type,
-            ImmutableArray<ProjectId> projectsOpt,
-            bool transitive,
-            DependentTypesKind kind,
-            CancellationToken cancellationToken);
-    }
+    ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
+        Checksum solutionChecksum,
+        SerializableSymbolAndProjectId type,
+        ImmutableArray<ProjectId> projectsOpt,
+        bool transitive,
+        DependentTypesKind kind,
+        CancellationToken cancellationToken);
 }

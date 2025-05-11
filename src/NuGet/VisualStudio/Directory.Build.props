@@ -1,6 +1,0 @@
-<Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
-  <PropertyGroup>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
-  </PropertyGroup>
-</Project>

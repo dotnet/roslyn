@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    internal partial class SymbolSearchUpdateEngine
+    private sealed class PatchService : IPatchService
     {
-        private class PatchService : IPatchService
-        {
-            public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
-                => NativePatching.ApplyPatch(databaseBytes, patchBytes);
-        }
+        public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
+            => NativePatching.ApplyPatch(databaseBytes, patchBytes);
     }
 }

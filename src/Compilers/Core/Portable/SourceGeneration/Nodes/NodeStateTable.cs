@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
         public Builder ToBuilder(string? stepName, bool stepTrackingEnabled, IEqualityComparer<T>? equalityComparer = null, int? tableCapacity = null)
             => new(this, stepName, stepTrackingEnabled, equalityComparer, tableCapacity);
 
-        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T> equalityComparer)
+        public NodeStateTable<T> CreateCachedTableWithUpdatedSteps<TInput>(NodeStateTable<TInput> inputTable, string? stepName, IEqualityComparer<T>? equalityComparer)
         {
             Debug.Assert(inputTable.HasTrackedSteps && inputTable.IsCached);
             NodeStateTable<T>.Builder builder = ToBuilder(stepName, stepTrackingEnabled: true, equalityComparer);
@@ -204,7 +204,16 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < state.Count; i++)
                 {
-                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
+                    var packedChar = state.GetState(i) switch
+                    {
+                        EntryState.Added => 'A',
+                        EntryState.Removed => 'R',
+                        EntryState.Modified => 'M',
+                        EntryState.Cached => 'C',
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
+                    pooled.Builder.Append(packedChar);
                 }
                 pooled.Builder.Append(',');
             }
@@ -247,7 +256,7 @@ namespace Microsoft.CodeAnalysis
                 _states = ArrayBuilder<TableEntry>.GetInstance(tableCapacity ?? previous.GetTotalEntryItemCount());
                 _previous = previous;
                 _name = name;
-                _equalityComparer = equalityComparer ?? EqualityComparer<T>.Default;
+                _equalityComparer = equalityComparer ?? WrappedUserComparer<T>.Default;
                 if (stepTrackingEnabled)
                 {
                     _steps = ArrayBuilder<IncrementalGeneratorRunStep>.GetInstance();
@@ -311,7 +320,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryModifyEntry(T value, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            public bool TryModifyEntry(T value, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 if (!TryGetPreviousEntry(out var previousEntry))
                 {
@@ -326,13 +335,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(previousEntry.Count == 1);
-                var (chosen, state, _) = GetModifiedItemAndState(previousEntry.GetItem(0), value, comparer);
+                var (chosen, state, _) = GetModifiedItemAndState(previousEntry.GetItem(0), value);
                 _states.Add(new TableEntry(OneOrMany.Create(chosen), state));
                 RecordStepInfoForLastEntry(elapsedTime, stepInputs, overallInputState);
                 return true;
             }
 
-            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
+            public bool TryModifyEntries(ImmutableArray<T> outputs, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState)
             {
                 // Semantics:
                 // For each item in the row, we compare with the new matching new value.
@@ -375,7 +384,7 @@ namespace Microsoft.CodeAnalysis
                     var previousState = previousEntry.GetState(i);
                     var replacementItem = outputs[i];
 
-                    var (chosenItem, state, chosePrevious) = GetModifiedItemAndState(previousItem, replacementItem, comparer);
+                    var (chosenItem, state, chosePrevious) = GetModifiedItemAndState(previousItem, replacementItem);
 
                     if (builder != null)
                     {
@@ -424,9 +433,9 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool TryModifyEntries(ImmutableArray<T> outputs, IEqualityComparer<T> comparer, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState, out TableEntry entry)
+            public bool TryModifyEntries(ImmutableArray<T> outputs, TimeSpan elapsedTime, ImmutableArray<(IncrementalGeneratorRunStep InputStep, int OutputIndex)> stepInputs, EntryState overallInputState, out TableEntry entry)
             {
-                if (!TryModifyEntries(outputs, comparer, elapsedTime, stepInputs, overallInputState))
+                if (!TryModifyEntries(outputs, elapsedTime, stepInputs, overallInputState))
                 {
                     entry = default;
                     return false;
@@ -545,11 +554,11 @@ namespace Microsoft.CodeAnalysis
                     isCached: finalStates.All(static s => s.IsCached) && _previous.GetTotalEntryItemCount() == finalStates.Sum(static s => s.Count));
             }
 
-            private static (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement, IEqualityComparer<T> comparer)
+            private (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 
                 // considered to be equal. This ensures that subsequent comparisons are stable across future generation passes.
-                return comparer.Equals(previous, replacement)
+                return _equalityComparer.Equals(previous, replacement)
                     ? (previous, EntryState.Cached, chosePrevious: true)
                     : (replacement, EntryState.Modified, chosePrevious: false);
             }

@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal StructuredTriviaSyntax(SyntaxKind kind, DiagnosticInfo[] diagnostics = null, SyntaxAnnotation[] annotations = null)
             : base(kind, diagnostics, annotations)
         {
-            this.flags |= NodeFlags.ContainsStructuredTrivia;
+            SetFlags(NodeFlags.ContainsStructuredTrivia);
 
             if (this.Kind == SyntaxKind.SkippedTokensTrivia)
             {
-                this.flags |= NodeFlags.ContainsSkippedText;
+                SetFlags(NodeFlags.ContainsSkippedText);
             }
         }
 

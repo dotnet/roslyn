@@ -22,18 +22,28 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// <summary>
     /// Produce the set of tags with the requested <paramref name="spans"/>, adding those tags to <paramref name="tags"/>.
     /// </summary>
-    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags);
+    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<TTag>> tags);
 
     public abstract void Dispose();
 
+    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
     /// <summary>
-    /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
+    /// Default impl of the core <see cref="ITagger{T}"/> interface.
     /// </summary>
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        => SegmentedListPool.ComputeList(
-            static (args, tags) => args.@this.AddTags(args.spans, tags),
-            (@this: this, spans),
-            _: (ITagSpan<TTag>?)null);
+    public IEnumerable<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    {
+        using var _ = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var list);
+
+        AddTags(spans, list);
+
+        // Use yield return mechanism to allow the segmented list to get returned back to the
+        // pool after usage. This does cause an allocation for the yield state machinery, but
+        // that is better than not freeing a potentially large segmented list back to the pool.
+        foreach (var item in list)
+            yield return item;
+    }
 
     public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 

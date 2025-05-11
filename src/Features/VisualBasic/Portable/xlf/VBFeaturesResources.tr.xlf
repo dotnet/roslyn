@@ -67,11 +67,6 @@
         <target state="translated">Eksik '{0}' öğesini ekleyin.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Çakışmalar algılandı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">'Using' deyimi ekle</target>
@@ -222,30 +217,10 @@
         <target state="translated">Hatalı İşlev Dönüş Türünü Düzelt</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">'{0}' adını basitleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">'{0}' üye erişimini basitleştir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Me' nitelemesini kaldır</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">Dışarıya ayıklanacak deyimlerin geçerli aralığı belirlenemiyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Kod yollarından bazıları dönmüyor</target>
-        <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
@@ -300,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">Seçim geçerli düğüm içermiyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">Dışarıya ayıklanacak geçerli deyim aralığı yok</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -1462,16 +1432,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">İşlev adı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">'{0}' öğesinde daraltma dönüştürmesi oluştur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">'{0}' öğesinde genişletme dönüşümü oluştur</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try bloğu</target>
@@ -1657,16 +1617,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
         <target state="translated">Belirtilen bütünleştirilmiş koda ve tüm bağımlılıklarına bir meta veri başvurusu ekleyin örn. #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Özellikler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;ad alanı adı&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">Bir ad alanı bildirmek için buraya bir ad girin.</target>
@@ -1675,16 +1625,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Kısmi bir sınıf tanımlamak için buraya bir ad girin.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;sınıf adı&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;arabirim adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

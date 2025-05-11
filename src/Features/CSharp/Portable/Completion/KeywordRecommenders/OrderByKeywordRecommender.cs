@@ -6,28 +6,22 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class OrderByKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OrderByKeyword)
 {
-    internal class OrderByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public OrderByKeywordRecommender()
-            : base(SyntaxKind.OrderByKeyword)
+        var token = context.TargetToken;
+
+        // var q = from x in y
+        //         |
+        if (!token.IntersectsWith(position) &&
+            token.IsLastTokenOfQueryClause())
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var token = context.TargetToken;
-
-            // var q = from x in y
-            //         |
-            if (!token.IntersectsWith(position) &&
-                token.IsLastTokenOfQueryClause())
-            {
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

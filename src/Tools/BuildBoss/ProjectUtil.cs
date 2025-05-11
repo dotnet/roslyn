@@ -141,35 +141,6 @@ namespace BuildBoss
             return list;
         }
 
-        internal List<PackageReference> GetPackageReferences()
-        {
-            var list = new List<PackageReference>();
-            foreach (var packageRef in Document.XPathSelectElements("//mb:ItemGroup/mb:PackageReference", Manager))
-            {
-                list.Add(GetPackageReference(packageRef));
-            }
-
-            return list;
-        }
-
-        internal PackageReference GetPackageReference(XElement element)
-        {
-            var name = element.Attribute("Include")?.Value ?? element.Attribute("Update")?.Value ?? "";
-            var version = element.Attribute("Version");
-            if (version != null)
-            {
-                return new PackageReference(name, version.Value);
-            }
-
-            var elem = element.Element(Namespace.GetName("Version"));
-            if (element == null)
-            {
-                throw new Exception($"Could not find a Version for package reference {name}");
-            }
-
-            return new PackageReference(name, elem.Value.Trim());
-        }
-
         internal List<InternalsVisibleTo> GetInternalsVisibleTo()
         {
             var list = new List<InternalsVisibleTo>();

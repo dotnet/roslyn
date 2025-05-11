@@ -4,2511 +4,2765 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicitType;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-    public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
+
+    private readonly CodeStyleOption2<bool> s_offWithInfo = new(false, NotificationOption2.Suggestion);
+
+    // specify all options explicitly to override defaults.
+    private OptionsCollection ExplicitTypeEverywhere()
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, s_offWithInfo },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, s_offWithInfo },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, s_offWithInfo },
+        };
+
+    [Fact]
+    public async Task InlineVariable1()
     {
-        public CSharpInlineDeclarationTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
-
-        [Fact]
-        public async Task InlineVariable1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
                     {
-                        [|int|] i;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (int.TryParse(v, out int i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineInNestedCall()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (Goo(int.TryParse(v, out i)))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (Goo(int.TryParse(v, out int i)))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineVariableWithConstructor1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C1
+            {
+                public C1(int v, out int i) {}
+
+                void M(int v)
+                {
+                    [|int|] i;
+                    if (new C1(v, out i))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C1
+            {
+                public C1(int v, out int i) {}
+
+                void M(int v)
+                {
+                    if (new C1(v, out int i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineVariableMissingWithIndexer1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (this[out i])
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineVariableIntoFirstOut1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i, out i))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (int.TryParse(v, out int i, out i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineVariableIntoFirstOut2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (int.TryParse(v, out int i))
+                    {
+                    }
+
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingInCSharp6()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
+    }
+
+    [Fact]
+    public async Task InlineVariablePreferVar1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(string v)
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(string v)
+                {
+                    if (int.TryParse(v, out var i))
+                    {
+                    }
+                }
+            }
+            """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
+    }
+
+    [Fact]
+    public async Task InlineVariablePreferVarExceptForPredefinedTypes1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(string v)
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(string v)
+                {
+                    if (int.TryParse(v, out int i))
+                    {
+                    }
+                }
+            }
+            """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics()));
+    }
+
+    [Fact]
+    public async Task TestAvailableWhenWrittenAfter1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+
+                    i = 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (int.TryParse(v, out int i))
+                    {
+                    }
+
+                    i = 0;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingWhenWrittenBetween1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    i = 0;
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingWhenReadBetween1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i = 0;
+                    M1(i);
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+
+                void M1(int i)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingWithComplexInitializer()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i = M1();
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+
+                int M1()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAvailableInOuterScopeIfNotWrittenOutside()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i = 0;
+                    {
                         if (int.TryParse(v, out i))
                         {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        if (int.TryParse(v, out int i))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task InlineInNestedCall()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (Goo(int.TryParse(v, out i)))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        if (Goo(int.TryParse(v, out int i)))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task InlineVariableWithConstructor1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C1
-                {
-                    public C1(int v, out int i) {}
-
-                    void M(int v)
-                    {
-                        [|int|] i;
-                        if (new C1(v, out i))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C1
-                {
-                    public C1(int v, out int i) {}
-
-                    void M(int v)
-                    {
-                        if (new C1(v, out int i))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task InlineVariableMissingWithIndexer1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (this[out i])
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task InlineVariableIntoFirstOut1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i, out i))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        if (int.TryParse(v, out int i, out i))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task InlineVariableIntoFirstOut2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        if (int.TryParse(v, out int i))
-                        {
-                        }
-
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingInCSharp6()
-        {
-            await TestMissingAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """, new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
-        }
-
-        [Fact]
-        public async Task InlineVariablePreferVar1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M(string v)
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(string v)
-                    {
-                        if (int.TryParse(v, out var i))
-                        {
-                        }
-                    }
-                }
-                """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
-        }
-
-        [Fact]
-        public async Task InlineVariablePreferVarExceptForPredefinedTypes1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M(string v)
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M(string v)
-                    {
-                        if (int.TryParse(v, out int i))
-                        {
-                        }
-                    }
-                }
-                """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeButKeepIntrinsics()));
-        }
-
-        [Fact]
-        public async Task TestAvailableWhenWrittenAfter1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-
-                        i = 0;
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        if (int.TryParse(v, out int i))
-                        {
-                        }
-
-                        i = 0;
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingWhenWrittenBetween1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        i = 0;
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingWhenReadBetween1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i = 0;
-                        M1(i);
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-
-                    void M1(int i)
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingWithComplexInitializer()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i = M1();
-                        if (int.TryParse(v, out i))
-                        {
-                        }
-                    }
-
-                    int M1()
-                    {
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestAvailableInOuterScopeIfNotWrittenOutside()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i = 0;
-                        {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
-
-                            i = 1;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingIfWrittenAfterInOuterScope()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i = 0;
-                        {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
 
                         i = 1;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestMissingIfWrittenBetweenInOuterScope()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestMissingIfWrittenAfterInOuterScope()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|int|] i = 0;
                     {
-                        [|int|] i = 0;
-                        {
-                            i = 1;
-                            if (int.TryParse(v, out i))
-                            {
-                            }
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingInNonOut()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        if (int.TryParse(v, i))
+                        if (int.TryParse(v, out i))
                         {
                         }
                     }
-                }
-                """);
-        }
 
-        [Fact]
-        public async Task TestMissingInField()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+                    i = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingIfWrittenBetweenInOuterScope()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i = 0;
+                    {
+                        i = 1;
+                        if (int.TryParse(v, out i))
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingInNonOut()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
                     [|int|] i;
-
-                    void M()
+                    if (int.TryParse(v, i))
                     {
-                        if (int.TryParse(v, out this.i))
-                        {
-                        }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestMissingInField2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestMissingInField()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|int|] i;
+
+                void M()
                 {
-                    [|int|] i;
+                    if (int.TryParse(v, out this.i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
 
-                    void M()
+    [Fact]
+    public async Task TestMissingInField2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|int|] i;
+
+                void M()
+                {
+                    if (int.TryParse(v, out i))
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingInNonLocalStatement()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach ([|int|] i in e)
                     {
                         if (int.TryParse(v, out i))
                         {
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestMissingInNonLocalStatement()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestMissingInEmbeddedStatementWithWriteAfterwards()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        foreach ([|int|] i in e)
+                    [|int|] i;
+                    while (true)
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
-                    }
-                }
-                """);
-        }
 
-        [Fact]
-        public async Task TestMissingInEmbeddedStatementWithWriteAfterwards()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        while (true)
-                            if (int.TryParse(v, out i))
-                            {
-                            }
-
-                        i = 1;
-                    }
+                    i = 1;
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestInEmbeddedStatement()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestInEmbeddedStatement()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        [|int|] i;
-                        while (true)
-                            if (int.TryParse(v, out i))
-                            {
-                                i = 1;
-                            }
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        while (true)
-                            if (int.TryParse(v, out int i))
-                            {
-                                i = 1;
-                            }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestAvailableInNestedBlock()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] i;
-                        while (true)
+                    [|int|] i;
+                    while (true)
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
+                            i = 1;
                         }
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
-                    {
-                        while (true)
+                    while (true)
+                        if (int.TryParse(v, out int i))
                         {
-                            if (int.TryParse(v, out int i))
-                            {
-                            }
+                            i = 1;
                         }
-                    }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestOverloadResolutionDoNotUseVar1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestAvailableInNestedBlock()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|int|] i;
+                    while (true)
                     {
-                        [|int|] i;
-                        if (M2(out i))
+                        if (int.TryParse(v, out i))
                         {
                         }
                     }
-
-                    void M2(out int i)
-                    {
-                    }
-
-                    void M2(out string s)
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    while (true)
                     {
-                        if (M2(out int i))
+                        if (int.TryParse(v, out int i))
                         {
                         }
                     }
+                }
+            }
+            """);
+    }
 
-                    void M2(out int i)
-                    {
-                    }
-
-                    void M2(out string s)
+    [Fact]
+    public async Task TestOverloadResolutionDoNotUseVar1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (M2(out i))
                     {
                     }
                 }
-                """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
-        }
 
-        [Fact]
-        public async Task TestOverloadResolutionDoNotUseVar2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+                void M2(out int i)
                 {
-                    void M()
+                }
+
+                void M2(out string s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (M2(out int i))
                     {
-                        [|var|] i = 0;
-                        if (M2(out i))
+                    }
+                }
+
+                void M2(out int i)
+                {
+                }
+
+                void M2(out string s)
+                {
+                }
+            }
+            """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
+    }
+
+    [Fact]
+    public async Task TestOverloadResolutionDoNotUseVar2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|var|] i = 0;
+                    if (M2(out i))
+                    {
+                    }
+                }
+
+                void M2(out int i)
+                {
+                }
+
+                void M2(out string s)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (M2(out int i))
+                    {
+                    }
+                }
+
+                void M2(out int i)
+                {
+                }
+
+                void M2(out string s)
+                {
+                }
+            }
+            """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
+    }
+
+    [Fact]
+    public async Task TestGenericInferenceDoNotUseVar3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    [|int|] i;
+                    if (M2(out i))
+                    {
+                    }
+                }
+
+                void M2<T>(out T i)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (M2(out int i))
+                    {
+                    }
+                }
+
+                void M2<T>(out T i)
+                {
+                }
+            }
+            """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
+    }
+
+    [Fact]
+    public async Task TestComments1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    // prefix comment
+                    [|int|] i;
+                    {
+                        if (int.TryParse(v, out i))
                         {
                         }
                     }
-
-                    void M2(out int i)
-                    {
-                    }
-
-                    void M2(out string s)
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // prefix comment
                     {
-                        if (M2(out int i))
+                        if (int.TryParse(v, out int i))
                         {
                         }
                     }
-
-                    void M2(out int i)
-                    {
-                    }
-
-                    void M2(out string s)
-                    {
-                    }
                 }
-                """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestGenericInferenceDoNotUseVar3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    [|int|] i; // suffix comment
                     {
-                        [|int|] i;
-                        if (M2(out i))
+                        if (int.TryParse(v, out i))
                         {
                         }
                     }
-
-                    void M2<T>(out T i)
-                    {
-                    }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // suffix comment
                     {
-                        if (M2(out int i))
+                        if (int.TryParse(v, out int i))
                         {
                         }
                     }
-
-                    void M2<T>(out T i)
-                    {
-                    }
                 }
-                """, new TestParameters(options: new UseImplicitTypeTests().ImplicitTypeEverywhere()));
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // prefix comment
+                    [|int|] i; // suffix comment
                     {
-                        // prefix comment
-                        [|int|] i;
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // prefix comment
+                    // suffix comment
                     {
-                        // prefix comment
+                        if (int.TryParse(v, out int i))
                         {
-                            if (int.TryParse(v, out int i))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments4()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int [|i|] /*suffix*/, j;
                     {
-                        [|int|] i; // suffix comment
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int j;
                     {
-                        // suffix comment
+                        if (int.TryParse(v, out int i /*suffix*/))
                         {
-                            if (int.TryParse(v, out int i))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments5()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int /*prefix*/ [|i|], j;
                     {
-                        // prefix comment
-                        [|int|] i; // suffix comment
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int j;
                     {
-                        // prefix comment
-                        // suffix comment
+                        if (int.TryParse(v, out int /*prefix*/ i))
                         {
-                            if (int.TryParse(v, out int i))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments4()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments6()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int /*prefix*/ [|i|] /*suffix*/, j;
                     {
-                        int [|i|] /*suffix*/, j;
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int j;
                     {
-                        int j;
+                        if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
                         {
-                            if (int.TryParse(v, out int i /*suffix*/))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments5()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments7()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int j, /*prefix*/ [|i|] /*suffix*/;
                     {
-                        int /*prefix*/ [|i|], j;
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int j;
                     {
-                        int j;
+                        if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
                         {
-                            if (int.TryParse(v, out int /*prefix*/ i))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments6()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments8()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // prefix
+                    int j, [|i|]; // suffix
                     {
-                        int /*prefix*/ [|i|] /*suffix*/, j;
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    // prefix
+                    int j; // suffix
                     {
-                        int j;
+                        if (int.TryParse(v, out int i))
                         {
-                            if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments7()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact]
+    public async Task TestComments9()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int /*int comment*/
+                        /*prefix*/ [|i|] /*suffix*/,
+                        j;
                     {
-                        int j, /*prefix*/ [|i|] /*suffix*/;
+                        if (int.TryParse(v, out i))
                         {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
                         }
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    int /*int comment*/
+                        j;
                     {
-                        int j;
+                        if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
                         {
-                            if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
-                            {
-                            }
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments8()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
+    public async Task TestCommentsTrivia1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    void M()
+                    Console.WriteLine("Goo");
+
+                    int [|result|];
+                    if (int.TryParse("12", out result))
                     {
-                        // prefix
-                        int j, [|i|]; // suffix
-                        {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
-                        }
+
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    void M()
+                    Console.WriteLine("Goo");
+
+                    if (int.TryParse("12", out int result))
                     {
-                        // prefix
-                        int j; // suffix
-                        {
-                            if (int.TryParse(v, out int i))
-                            {
-                            }
-                        }
+
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestComments9()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
+    public async Task TestCommentsTrivia2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    void M()
+                    Console.WriteLine("Goo");
+
+
+
+
+
+                    // Goo
+
+
+
+                    int [|result|];
+                    if (int.TryParse("12", out result))
                     {
-                        int /*int comment*/
-                            /*prefix*/ [|i|] /*suffix*/,
-                            j;
-                        {
-                            if (int.TryParse(v, out i))
-                            {
-                            }
-                        }
+
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    void M()
+                    Console.WriteLine("Goo");
+
+
+
+
+
+                    // Goo
+
+
+
+                    if (int.TryParse("12", out int result))
                     {
-                        int /*int comment*/
-                            j;
-                        {
-                            if (int.TryParse(v, out int /*prefix*/ i /*suffix*/))
-                            {
-                            }
-                        }
+
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
-        public async Task TestCommentsTrivia1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15336")]
+    public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
 
-                class Program
+            class C
+            {
+                void M()
                 {
-                    static void Main(string[] args)
+                    string [|s|];  
+                    Bar(() => Baz(out s));
+                }
+
+                void Baz(out string s) { }
+
+                void Bar(Action a) { }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Bar(() => Baz(out string s));
+                }
+
+                void Baz(out string s) { }
+
+                void Bar(Action a) { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15336")]
+    public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    string [|s|];  
+                    Bar(() => Baz(out s));
+                    Console.WriteLine(s);
+                }
+
+                void Baz(out string s) { }
+
+                void Bar(Action a) { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
+    public async Task TestDataFlow1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Goo(string x)
+                {
+                    object [|s|] = null; 
+                    if (x != null || TryBaz(out s))
                     {
-                        Console.WriteLine("Goo");
-
-                        int [|result|];
-                        if (int.TryParse("12", out result))
-                        {
-
-                        }
+                        Console.WriteLine(s); 
                     }
                 }
-                """,
-                """
-                using System;
 
-                class Program
+                private bool TryBaz(out object s)
                 {
-                    static void Main(string[] args)
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
+    public async Task TestDataFlow2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void Goo(string x)
+                {
+                    object [|s|] = null; 
+                    if (x != null && TryBaz(out s))
                     {
-                        Console.WriteLine("Goo");
-
-                        if (int.TryParse("12", out int result))
-                        {
-
-                        }
+                        Console.WriteLine(s); 
                     }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15994")]
-        public async Task TestCommentsTrivia2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class Program
+                private bool TryBaz(out object s)
                 {
-                    static void Main(string[] args)
-                    {
-                        Console.WriteLine("Goo");
-
-
-
-
-
-                        // Goo
-
-
-
-                        int [|result|];
-                        if (int.TryParse("12", out result))
-                        {
-
-                        }
-                    }
+                    throw new NotImplementedException();
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class Program
+            class C
+            {
+                void Goo(string x)
                 {
-                    static void Main(string[] args)
+                    if (x != null && TryBaz(out object s))
                     {
-                        Console.WriteLine("Goo");
-
-
-
-
-
-                        // Goo
-
-
-
-                        if (int.TryParse("12", out int result))
-                        {
-
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15336")]
-        public async Task TestNotMissingIfCapturedInLambdaAndNotUsedAfterwards()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        string [|s|];  
-                        Bar(() => Baz(out s));
-                    }
-
-                    void Baz(out string s) { }
-
-                    void Bar(Action a) { }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        Bar(() => Baz(out string s));
-                    }
-
-                    void Baz(out string s) { }
-
-                    void Bar(Action a) { }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15336")]
-        public async Task TestMissingIfCapturedInLambdaAndUsedAfterwards()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        string [|s|];  
-                        Bar(() => Baz(out s));
                         Console.WriteLine(s);
                     }
-
-                    void Baz(out string s) { }
-
-                    void Bar(Action a) { }
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
-        public async Task TestDataFlow1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
+                private bool TryBaz(out object s)
                 {
-                    void Goo(string x)
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16028")]
+    public async Task TestExpressionTree1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Linq.Expressions;
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int [|result|];
+                    Method(() => GetValue(out result));
+                }
+
+                public static void GetValue(out int result)
+                {
+                    result = 0;
+                }
+
+                public static void Method(Expression<Action> expression)
+                {
+
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16198")]
+    public async Task TestIndentation1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                private int Bar()
+                {
+                    IProjectRuleSnapshot [|unresolvedReferenceSnapshot|] = null;
+                    var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                                  updatedUnresolvedSnapshots,
+                                                                  catalogs,
+                                                                  out unresolvedReferenceSnapshot);
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                private int Bar()
+                {
+                    var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
+                                                                  updatedUnresolvedSnapshots,
+                                                                  catalogs,
+                                                                  out IProjectRuleSnapshot unresolvedReferenceSnapshot);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestNotInLoops1()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    do
                     {
-                        object [|s|] = null; 
-                        if (x != null || TryBaz(out s))
+                    }
+                    while (!TryExtractTokenFromEmail(out token));
+
+                    Console.WriteLine(token == "Test");
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestNotInLoops2()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    while (!TryExtractTokenFromEmail(out token))
+                    {
+                    }
+
+                    Console.WriteLine(token == "Test");
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestNotInLoops3()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    foreach (var v in TryExtractTokenFromEmail(out token))
+                    {
+                    }
+
+                    Console.WriteLine(token == "Test");
+                }
+
+                private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestNotInLoops4()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    for ( ; TryExtractTokenFromEmail(out token); )
+                    {
+                    }
+
+                    Console.WriteLine(token == "Test");
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestNotInUsing()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    using (GetDisposableAndValue(out token))
+                    {
+                    }
+
+                    Console.WriteLine(token);
+                }
+
+                private static IDisposable GetDisposableAndValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestNotInExceptionFilter()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    try
+                    {
+                    }
+                    catch when (GetValue(out token))
+                    {
+                    }
+
+                    Console.WriteLine(token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestNotInShortCircuitExpression1()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|] = null;
+                    bool condition = false && GetValue(out token);
+                    Console.WriteLine(token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestNotInShortCircuitExpression2()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    bool condition = false && GetValue(out token);
+                    Console.WriteLine(token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestNotInFixed()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                static unsafe void Main(string[] args)
+                {
+                    string [|token|];
+                    fixed (int* p = GetValue(out token))
+                    {
+                    }
+
+                    Console.WriteLine(token);
+                }
+
+                private static int[] GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestInLoops1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    do
+                    {
+                    }
+                    while (!TryExtractTokenFromEmail(out token));
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    do
+                    {
+                    }
+                    while (!TryExtractTokenFromEmail(out string token));
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestInLoops2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    while (!TryExtractTokenFromEmail(out token))
+                    {
+                    }
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    while (!TryExtractTokenFromEmail(out string token))
+                    {
+                    }
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestInLoops3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    foreach (var v in TryExtractTokenFromEmail(out token))
+                    {
+                    }
+                }
+
+                private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    foreach (var v in TryExtractTokenFromEmail(out string token))
+                    {
+                    }
+                }
+
+                private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
+    public async Task TestInLoops4()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    for ( ; TryExtractTokenFromEmail(out token); )
+                    {
+                    }
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    for (; TryExtractTokenFromEmail(out string token);)
+                    {
+                    }
+                }
+
+                private static bool TryExtractTokenFromEmail(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestInUsing()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    using (GetDisposableAndValue(out token))
+                    {
+                    }
+                }
+
+                private static IDisposable GetDisposableAndValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    using (GetDisposableAndValue(out string token))
+                    {
+                    }
+                }
+
+                private static IDisposable GetDisposableAndValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestInExceptionFilter()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    try
+                    {
+                    }
+                    catch when (GetValue(out token))
+                    {
+                    }
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    try
+                    {
+                    }
+                    catch when (GetValue(out string token))
+                    {
+                    }
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestInShortCircuitExpression1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|] = null;
+                    bool condition = false && GetValue(out token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    bool condition = false && GetValue(out string token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestInShortCircuitExpression2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    bool condition = false && GetValue(out token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    bool condition = false && GetValue(out string token);
+                }
+
+                private static bool GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
+    public async Task TestInFixed()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    string [|token|];
+                    fixed (int* p = GetValue(out token))
+                    {
+                    }
+                }
+
+                private static int[] GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    fixed (int* p = GetValue(out string token))
+                    {
+                    }
+                }
+
+                private static int[] GetValue(out string token)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17743")]
+    public async Task TestInLocalFunction1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+            using System.Collections.Generic;
+
+            class Demo
+            {
+                static void Main()
+                {
+                    F();
+                    void F()
+                    {
+                        Action f = () =>
                         {
-                            Console.WriteLine(s); 
-                        }
-                    }
-
-                    private bool TryBaz(out object s)
-                    {
-                        throw new NotImplementedException();
+                            Dictionary<int, int> dict = null;
+                            int [|x|] = 0;
+                            dict?.TryGetValue(0, out x);
+                            Console.WriteLine(x);
+                        };
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
-        public async Task TestDataFlow2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+    [Fact]
+    public async Task TestInLocalFunction2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class C
+            class Demo
+            {
+                static void Main()
                 {
-                    void Goo(string x)
+                    F();
+                    void F()
                     {
-                        object [|s|] = null; 
-                        if (x != null && TryBaz(out s))
+                        Action f = () =>
                         {
-                            Console.WriteLine(s); 
-                        }
-                    }
-
-                    private bool TryBaz(out object s)
-                    {
-                        throw new NotImplementedException();
+                            Dictionary<int, int> dict = null;
+                            int [|x|] = 0;
+                            dict.TryGetValue(0, out x);
+                            Console.WriteLine(x);
+                        };
                     }
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
+            using System.Collections.Generic;
 
-                class C
+            class Demo
+            {
+                static void Main()
                 {
-                    void Goo(string x)
+                    F();
+                    void F()
                     {
-                        if (x != null && TryBaz(out object s))
+                        Action f = () =>
                         {
-                            Console.WriteLine(s);
-                        }
-                    }
-
-                    private bool TryBaz(out object s)
-                    {
-                        throw new NotImplementedException();
+                            Dictionary<int, int> dict = null;
+                            dict.TryGetValue(0, out int x);
+                            Console.WriteLine(x);
+                        };
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16028")]
-        public async Task TestExpressionTree1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Linq.Expressions;
-
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
+    public async Task TestMultipleDeclarationStatementsOnSameLine1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
                 {
-                    static void Main(string[] args)
-                    {
-                        int [|result|];
-                        Method(() => GetValue(out result));
-                    }
+                    string a; string [|b|];
+                    Method(out a, out b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    string a; 
+                    Method(out a, out string b);
+                }
+            }
+            """);
+    }
 
-                    public static void GetValue(out int result)
-                    {
-                        result = 0;
-                    }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
+    public async Task TestMultipleDeclarationStatementsOnSameLine2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    string a; /*leading*/ string [|b|]; // trailing
+                    Method(out a, out b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    string a; /*leading*/  // trailing
+                    Method(out a, out string b);
+                }
+            }
+            """);
+    }
 
-                    public static void Method(Expression<Action> expression)
-                    {
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
+    public async Task TestMultipleDeclarationStatementsOnSameLine3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void Goo()
+                {
+                    string a;
+                    /*leading*/ string [|b|]; // trailing
+                    Method(out a, out b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void Goo()
+                {
+                    string a;
+                    /*leading*/ // trailing
+                    Method(out a, out string b);
+                }
+            }
+            """);
+    }
 
+    [Fact]
+    public async Task TestMissingOnUnderscore()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|int|] _;
+                    if (N(out _)
+                    {
+                        Console.WriteLine(_);
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16198")]
-        public async Task TestIndentation1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18668")]
+    public async Task TestDefiniteAssignmentIssueWithVar()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                static void M(bool condition)
                 {
-                    private int Bar()
-                    {
-                        IProjectRuleSnapshot [|unresolvedReferenceSnapshot|] = null;
-                        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
-                                                                      updatedUnresolvedSnapshots,
-                                                                      catalogs,
-                                                                      out unresolvedReferenceSnapshot);
-                    }
+                    [|var|] x = 1;
+                    var result = condition && int.TryParse("2", out x);
+                    Console.WriteLine(x);
                 }
-                """,
-                """
-                using System;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18668")]
+    public async Task TestDefiniteAssignmentIssueWithNonVar()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                static void M(bool condition)
                 {
-                    private int Bar()
-                    {
-                        var itemType = GetUnresolvedReferenceItemType(originalItemSpec,
-                                                                      updatedUnresolvedSnapshots,
-                                                                      catalogs,
-                                                                      out IProjectRuleSnapshot unresolvedReferenceSnapshot);
-                    }
+                    [|int|] x = 1;
+                    var result = condition && int.TryParse("2", out x);
+                    Console.WriteLine(x);
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestNotInLoops1()
-        {
-            await TestMissingAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
+    public async Task TestMissingOnCrossFunction1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
 
-                class C
+            class Program
+            {
+              static void Main(string[] args)
+              {
+                Method<string>();
+              }
+
+              public static void Method<T>()
+              { 
+                [|T t|];
+                void Local<T>()
                 {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        do
-                        {
-                        }
-                        while (!TryExtractTokenFromEmail(out token));
-
-                        Console.WriteLine(token == "Test");
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
+                  Out(out t);
+                  Console.WriteLine(t);
                 }
-                """);
-        }
+                Local<int>();
+              }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestNotInLoops2()
-        {
-            await TestMissingAsync(
-                """
-                using System;
+              public static void Out<T>(out T t) => t = default;
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
+    public async Task TestMissingOnCrossFunction2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+              static void Main(string[] args)
+              {
+                Method<string>();
+              }
+
+              public static void Method<T>()
+              { 
+                void Local<T>()
                 {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        while (!TryExtractTokenFromEmail(out token))
-                        {
-                        }
-
-                        Console.WriteLine(token == "Test");
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestNotInLoops3()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        foreach (var v in TryExtractTokenFromEmail(out token))
-                        {
-                        }
-
-                        Console.WriteLine(token == "Test");
-                    }
-
-                    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestNotInLoops4()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        for ( ; TryExtractTokenFromEmail(out token); )
-                        {
-                        }
-
-                        Console.WriteLine(token == "Test");
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestNotInUsing()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        using (GetDisposableAndValue(out token))
-                        {
-                        }
-
-                        Console.WriteLine(token);
-                    }
-
-                    private static IDisposable GetDisposableAndValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestNotInExceptionFilter()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        try
-                        {
-                        }
-                        catch when (GetValue(out token))
-                        {
-                        }
-
-                        Console.WriteLine(token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestNotInShortCircuitExpression1()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|] = null;
-                        bool condition = false && GetValue(out token);
-                        Console.WriteLine(token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestNotInShortCircuitExpression2()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        bool condition = false && GetValue(out token);
-                        Console.WriteLine(token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestNotInFixed()
-        {
-            await TestMissingAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static unsafe void Main(string[] args)
-                    {
-                        string [|token|];
-                        fixed (int* p = GetValue(out token))
-                        {
-                        }
-
-                        Console.WriteLine(token);
-                    }
-
-                    private static int[] GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestInLoops1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        do
-                        {
-                        }
-                        while (!TryExtractTokenFromEmail(out token));
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        do
-                        {
-                        }
-                        while (!TryExtractTokenFromEmail(out string token));
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestInLoops2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        while (!TryExtractTokenFromEmail(out token))
-                        {
-                        }
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        while (!TryExtractTokenFromEmail(out string token))
-                        {
-                        }
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestInLoops3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        foreach (var v in TryExtractTokenFromEmail(out token))
-                        {
-                        }
-                    }
-
-                    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        foreach (var v in TryExtractTokenFromEmail(out string token))
-                        {
-                        }
-                    }
-
-                    private static IEnumerable<bool> TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17624")]
-        public async Task TestInLoops4()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        for ( ; TryExtractTokenFromEmail(out token); )
-                        {
-                        }
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        for (; TryExtractTokenFromEmail(out string token);)
-                        {
-                        }
-                    }
-
-                    private static bool TryExtractTokenFromEmail(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestInUsing()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        using (GetDisposableAndValue(out token))
-                        {
-                        }
-                    }
-
-                    private static IDisposable GetDisposableAndValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        using (GetDisposableAndValue(out string token))
-                        {
-                        }
-                    }
-
-                    private static IDisposable GetDisposableAndValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestInExceptionFilter()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        try
-                        {
-                        }
-                        catch when (GetValue(out token))
-                        {
-                        }
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        try
-                        {
-                        }
-                        catch when (GetValue(out string token))
-                        {
-                        }
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestInShortCircuitExpression1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|] = null;
-                        bool condition = false && GetValue(out token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        bool condition = false && GetValue(out string token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestInShortCircuitExpression2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        bool condition = false && GetValue(out token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        bool condition = false && GetValue(out string token);
-                    }
-
-                    private static bool GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18076")]
-        public async Task TestInFixed()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        string [|token|];
-                        fixed (int* p = GetValue(out token))
-                        {
-                        }
-                    }
-
-                    private static int[] GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-                """
-                using System;
-
-                class C
-                {
-                    static void Main(string[] args)
-                    {
-                        fixed (int* p = GetValue(out string token))
-                        {
-                        }
-                    }
-
-                    private static int[] GetValue(out string token)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17743")]
-        public async Task TestInLocalFunction1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class Demo
-                {
-                    static void Main()
-                    {
-                        F();
-                        void F()
-                        {
-                            Action f = () =>
-                            {
-                                Dictionary<int, int> dict = null;
-                                int [|x|] = 0;
-                                dict?.TryGetValue(0, out x);
-                                Console.WriteLine(x);
-                            };
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestInLocalFunction2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class Demo
-                {
-                    static void Main()
-                    {
-                        F();
-                        void F()
-                        {
-                            Action f = () =>
-                            {
-                                Dictionary<int, int> dict = null;
-                                int [|x|] = 0;
-                                dict.TryGetValue(0, out x);
-                                Console.WriteLine(x);
-                            };
-                        }
-                    }
-                }
-                """,
-                """
-                using System;
-                using System.Collections.Generic;
-
-                class Demo
-                {
-                    static void Main()
-                    {
-                        F();
-                        void F()
-                        {
-                            Action f = () =>
-                            {
-                                Dictionary<int, int> dict = null;
-                                dict.TryGetValue(0, out int x);
-                                Console.WriteLine(x);
-                            };
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
-        public async Task TestMultipleDeclarationStatementsOnSameLine1()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a; string [|b|];
-                        Method(out a, out b);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a; 
-                        Method(out a, out string b);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
-        public async Task TestMultipleDeclarationStatementsOnSameLine2()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a; /*leading*/ string [|b|]; // trailing
-                        Method(out a, out b);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a; /*leading*/  // trailing
-                        Method(out a, out string b);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16676")]
-        public async Task TestMultipleDeclarationStatementsOnSameLine3()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a;
-                        /*leading*/ string [|b|]; // trailing
-                        Method(out a, out b);
-                    }
-                }
-                """,
-                """
-                class C
-                {
-                    void Goo()
-                    {
-                        string a;
-                        /*leading*/ // trailing
-                        Method(out a, out string b);
-                    }
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestMissingOnUnderscore()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
-                {
-                    void M()
-                    {
-                        [|int|] _;
-                        if (N(out _)
-                        {
-                            Console.WriteLine(_);
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18668")]
-        public async Task TestDefiniteAssignmentIssueWithVar()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void M(bool condition)
-                    {
-                        [|var|] x = 1;
-                        var result = condition && int.TryParse("2", out x);
-                        Console.WriteLine(x);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18668")]
-        public async Task TestDefiniteAssignmentIssueWithNonVar()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static void M(bool condition)
-                    {
-                        [|int|] x = 1;
-                        var result = condition && int.TryParse("2", out x);
-                        Console.WriteLine(x);
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-        public async Task TestMissingOnCrossFunction1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class Program
-                {
-                  static void Main(string[] args)
-                  {
-                    Method<string>();
-                  }
-
-                  public static void Method<T>()
-                  { 
                     [|T t|];
-                    void Local<T>()
+                    void InnerLocal<T>()
                     {
                       Out(out t);
                       Console.WriteLine(t);
                     }
-                    Local<int>();
-                  }
-
-                  public static void Out<T>(out T t) => t = default;
                 }
-                """);
-        }
+                Local<int>();
+              }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-        public async Task TestMissingOnCrossFunction2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+              public static void Out<T>(out T t) => t = default;
+            }
+            """);
+    }
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
+    public async Task TestMissingOnCrossFunction3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                  static void Main(string[] args)
-                  {
                     Method<string>();
-                  }
+                }
 
-                  public static void Method<T>()
-                  { 
+                public static void Method<T>()
+                { 
+                    [|T t|];
                     void Local<T>()
                     {
-                        [|T t|];
-                        void InnerLocal<T>()
-                        {
-                          Out(out t);
-                          Console.WriteLine(t);
+                        { // <-- note this set of added braces
+                            Out(out t);
+                            Console.WriteLine(t);
                         }
                     }
                     Local<int>();
-                  }
-
-                  public static void Out<T>(out T t) => t = default;
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-        public async Task TestMissingOnCrossFunction3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+                public static void Out<T>(out T t) => t = default;
+            }
+            """);
+    }
 
-                class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
+    public async Task TestMissingOnCrossFunction4()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class Program
+            {
+                static void Main(string[] args)
                 {
-                    static void Main(string[] args)
-                    {
-                        Method<string>();
-                    }
+                    Method<string>();
+                }
 
-                    public static void Method<T>()
-                    { 
+                public static void Method<T>()
+                {
+                    { // <-- note this set of added braces
                         [|T t|];
                         void Local<T>()
                         {
-                            { // <-- note this set of added braces
+                            { // <-- and my axe
                                 Out(out t);
                                 Console.WriteLine(t);
                             }
                         }
                         Local<int>();
                     }
-
-                    public static void Out<T>(out T t) => t = default;
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21907")]
-        public async Task TestMissingOnCrossFunction4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+                public static void Out<T>(out T t) => t = default;
+            }
+            """);
+    }
 
-                class Program
+    [Fact]
+    public async Task TestDefiniteAssignment1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                static bool M(out bool i) => throw null;
+
+                static void M(bool condition)
                 {
-                    static void Main(string[] args)
+                    [|bool|] x = false;
+                    if (condition || M(out x))
                     {
-                        Method<string>();
+                        Console.WriteLine(x);
                     }
+                }
+            }
+            """);
+    }
 
-                    public static void Method<T>()
+    [Fact]
+    public async Task TestDefiniteAssignment2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                static bool M(out bool i) => throw null;
+                static bool Use(bool i) => throw null;
+
+                static void M(bool condition)
+                {
+                    [|bool|] x = false;
+                    if (condition || M(out x))
                     {
-                        { // <-- note this set of added braces
-                            [|T t|];
-                            void Local<T>()
+                        x = Use(x);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("c && M(out x)", "c && M(out bool x)")]
+    [InlineData("false || M(out x)", "false || M(out bool x)")]
+    [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
+    public async Task TestDefiniteAssignment3(string input, string output)
+    {
+        await TestInRegularAndScript1Async(
+            $$"""
+            using System;
+
+            class C
+            {
+                static bool M(out bool i) => throw null;
+                static bool Use(bool i) => throw null;
+
+                static void M(bool c)
+                {
+                    [|bool|] x = false;
+                    if ({{input}})
+                    {
+                        Console.WriteLine(x);
+                    }
+                }
+            }
+            """,
+            $$"""
+            using System;
+
+            class C
+            {
+                static bool M(out bool i) => throw null;
+                static bool Use(bool i) => throw null;
+
+                static void M(bool c)
+                {
+                    if ({{output}})
+                    {
+                        Console.WriteLine(x);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InlineVariable_NullableEnable()
+    {
+        await TestInRegularAndScript1Async("""
+            #nullable enable
+            class C
+            {
+                void M(out C c2)
+                {
+                    [|C|] c;
+                    M(out c);
+                    c2 = c;
+                }
+            }
+            """, """
+            #nullable enable
+            class C
+            {
+                void M(out C c2)
+                {
+                    M(out C c);
+                    c2 = c;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74736")]
+    public async Task TopLevelStatement()
+    {
+        await TestAsync("""
+            [|int|] i;
+            if (int.TryParse(v, out i))
+            {
+            }
+            """, """
+            if (int.TryParse(v, out int i))
+            {
+            }
+            """, CSharpParseOptions.Default);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
+    public async Task CollectionInitializer()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+                {
+                    s => { int [|i|] = 0; return int.TryParse(s, out i); }
+                };
+            }
+            """,
+            """
+            class C
+            {
+                private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+                {
+                    s => { return int.TryParse(s, out int i); }
+                };
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22881")]
+    public async Task PriorRegionClose()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M()
+                {
+                    #region test
+
+                    int i = 0;
+
+                    #endregion
+
+                    int [|hello|];
+                    TestMethod(out hello);
+                }
+
+                private void TestMethod(out int hello)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    #region test
+
+                    int i = 0;
+
+                    #endregion
+
+                    TestMethod(out int hello);
+                }
+
+                private void TestMethod(out int hello)
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInSwitchSection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
+                    {
+                        case string s:
+                            [|int|] i;
+                            if (int.TryParse(v, out i))
                             {
-                                { // <-- and my axe
-                                    Out(out t);
-                                    Console.WriteLine(t);
-                                }
                             }
-                            Local<int>();
-                        }
-                    }
-
-                    public static void Out<T>(out T t) => t = default;
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestDefiniteAssignment1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
-                {
-                    static bool M(out bool i) => throw null;
-
-                    static void M(bool condition)
-                    {
-                        [|bool|] x = false;
-                        if (condition || M(out x))
-                        {
-                            Console.WriteLine(x);
-                        }
                     }
                 }
-                """);
-        }
-
-        [Fact]
-        public async Task TestDefiniteAssignment2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
-
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    static bool M(out bool i) => throw null;
-                    static bool Use(bool i) => throw null;
-
-                    static void M(bool condition)
+                    switch (o)
                     {
-                        [|bool|] x = false;
-                        if (condition || M(out x))
-                        {
-                            x = Use(x);
-                        }
+                        case string s:
+                            if (int.TryParse(v, out int i))
+                            {
+                            }
                     }
                 }
-                """);
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/35993")]
+    public async Task InlineTemporarySpacing(
+        bool preferIntrinsicPredefinedTypeKeywordInDeclaration,
+        ReportDiagnostic preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic,
+        bool varForBuiltInTypes,
+        ReportDiagnostic varForBuiltInTypesDiagnostic,
+        bool ignoreSpacing)
+    {
+        if (preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic == ReportDiagnostic.Default ||
+            varForBuiltInTypesDiagnostic == ReportDiagnostic.Default)
+        {
+            return;
         }
 
-        [Theory]
-        [InlineData("c && M(out x)", "c && M(out bool x)")]
-        [InlineData("false || M(out x)", "false || M(out bool x)")]
-        [InlineData("M(out x) || M(out x)", "M(out bool x) || M(out x)")]
-        public async Task TestDefiniteAssignment3(string input, string output)
-        {
-            await TestInRegularAndScript1Async(
-$@"
-using System;
+        var expectedType = varForBuiltInTypes ? "var" : preferIntrinsicPredefinedTypeKeywordInDeclaration ? "bool" : "Boolean";
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
 
-class C
-{{
-    static bool M(out bool i) => throw null;
-    static bool Use(bool i) => throw null;
-
-    static void M(bool c)
-    {{
-        [|bool|] x = false;
-        if ({input})
-        {{
-            Console.WriteLine(x);
-        }}
-    }}
-}}",
-$@"
-using System;
-
-class C
-{{
-    static bool M(out bool i) => throw null;
-    static bool Use(bool i) => throw null;
-
-    static void M(bool c)
-    {{
-        if ({output})
-        {{
-            Console.WriteLine(x);
-        }}
-    }}
-}}");
-        }
-
-        [Fact]
-        public async Task InlineVariable_NullableEnable()
-        {
-            await TestInRegularAndScript1Async("""
-                #nullable enable
-                class C
+            namespace ClassLibrary5
+            {
+                public class Class1
                 {
-                    void M(out C c2)
+                    void A()
                     {
-                        [|C|] c;
-                        M(out c);
-                        c2 = c;
+                        bool [||]x;
+                        var result = B(out x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
                     }
                 }
-                """, """
-                #nullable enable
-                class C
+            }
+            """,
+            $$"""
+            using System;
+
+            namespace ClassLibrary5
+            {
+                public class Class1
                 {
-                    void M(out C c2)
+                    void A()
                     {
-                        M(out C c);
-                        c2 = c;
+                        var result = B(out {{expectedType}} x);
+                    }
+
+                    object B(out bool x)
+                    {
+                        x = default;
+                        return default;
                     }
                 }
-                """);
-        }
+            }
+            """, options: new(LanguageNames.CSharp)
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption2<bool>(preferIntrinsicPredefinedTypeKeywordInDeclaration, new NotificationOption2(preferIntrinsicPredefinedTypeKeywordInDeclarationDiagnostic, false)) },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, new CodeStyleOption2<bool>(varForBuiltInTypes, new NotificationOption2(varForBuiltInTypesDiagnostic, false)) },
+                { CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, ignoreSpacing },
+            });
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
-        public async Task TopLevelStatement()
-        {
-            await TestMissingAsync("""
-                [|int|] i;
-                if (int.TryParse(v, out i))
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62805")]
+    public async Task TestDirectiveWithFixAll1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                #region outer
+                void M(out int a, out int b)
                 {
+                    #region inner
+                    {|FixAllInDocument:int|} c;
+                    int d;
+                    M(out c, out d);
+                    #endregion
                 }
-                """, new TestParameters(TestOptions.Regular));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
-        public async Task CollectionInitializer()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+                #endregion
+            }
+            """,
+            """
+            class C
+            {
+                #region outer
+                void M(out int a, out int b)
                 {
-                    private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+                    #region inner
+                    M(out int c, out int d);
+                    #endregion
+                }
+                #endregion
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/32427")]
+    public async Task TestExplicitTypeEverywhere()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            public class Class1<TFirst, TSecond>
+            {
+                void A(Dictionary<TFirst, TSecond> map, TFirst first)
+                {
+                    [|TSecond|] x;
+                    if (map.TryGetValue(first, out x))
                     {
-                        s => { int [|i|] = 0; return int.TryParse(s, out i); }
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            
+            public class Class1<TFirst, TSecond>
+            {
+                void A(Dictionary<TFirst, TSecond> map, TFirst first)
+                {
+                    if (map.TryGetValue(first, out TSecond x))
+                    {
+                    }
+                }
+            }
+            """, options: ExplicitTypeEverywhere());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
+    public async Task TestReferencedInSwitchArms1()
+    {
+        await TestMissingAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
+                {
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    [|int|] price; // IDE0018 
+                    bool found = args[0] switch
+                    {
+                        "First" => dict.TryGetValue(1, out price),
+                        "Second" => dict.TryGetValue(2, out price),
+                        _ => dict.TryGetValue(3, out price)
                     };
+
+                    return found ? -1 : price;
                 }
-                """,
-                """
-                class C
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
+    public async Task TestReferencedInSwitchArms2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
                 {
-                    private List<Func<string, bool>> _funcs2 = new List<Func<string, bool>>()
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    [|int|] price;
+                    bool found = args[0] switch
                     {
-                        s => { return int.TryParse(s, out int i); }
+                        "First" => dict.TryGetValue(1, out price) ? price == 1 : false,
+                        _ => false,
                     };
-                }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22881")]
-        public async Task PriorRegionClose()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                class C
+                    return found;
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
                 {
-                    void M()
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    bool found = args[0] switch
                     {
-                        #region test
+                        "First" => dict.TryGetValue(1, out int price) ? price == 1 : false,
+                        _ => false,
+                    };
 
-                        int i = 0;
-
-                        #endregion
-
-                        int [|hello|];
-                        TestMethod(out hello);
-                    }
-
-                    private void TestMethod(out int hello)
-                    {
-                    }
+                    return found;
                 }
-                """,
-                """
-                class C
-                {
-                    void M()
-                    {
-                        #region test
-
-                        int i = 0;
-
-                        #endregion
-
-                        TestMethod(out int hello);
-                    }
-
-                    private void TestMethod(out int hello)
-                    {
-                    }
-                }
-                """);
-        }
+            }
+            """);
     }
 }

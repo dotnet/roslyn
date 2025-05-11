@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public Exception LoadAnalyzer(string shadowPath, string analyzerPath)
         {
-            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(shadowPath);
+            var loader = AnalyzerAssemblyLoader.CreateNonLockingLoader(shadowPath, []);
             Exception analyzerLoadException = null;
             var analyzerRef = new AnalyzerFileReference(analyzerPath, loader);
             analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;
@@ -94,9 +94,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    NetStandard20.mscorlib,
-                    NetStandard20.netstandard,
-                    NetStandard20.SystemRuntime,
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },

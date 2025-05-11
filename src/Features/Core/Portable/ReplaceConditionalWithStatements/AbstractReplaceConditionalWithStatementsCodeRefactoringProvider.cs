@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplaceConditionalWithStatements;
 
@@ -250,11 +249,10 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         var newRoot = root.ReplaceNode(
             isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
-            new[]
-            {
+            [
                 WrapGlobal(updatedLocalDeclarationStatement),
                 WrapGlobal(ifStatement),
-            });
+            ]);
 
         return document.WithSyntaxRoot(newRoot);
 
@@ -290,8 +288,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         return (TStatementSyntax)generator.IfStatement(
             condition.WithoutTrivia(),
-            new[] { Rewrite((TExpressionSyntax)whenTrue) },
-            new[] { Rewrite((TExpressionSyntax)whenFalse) });
+            [Rewrite((TExpressionSyntax)whenTrue)],
+            [Rewrite((TExpressionSyntax)whenFalse)]);
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
         {

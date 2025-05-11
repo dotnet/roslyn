@@ -204,17 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Get the operators for this type by their metadata name
+        /// Adds the operators for this type by their metadata name to <paramref name="operators"/>
         /// </summary>
-        internal ImmutableArray<MethodSymbol> GetOperators(string name)
+        internal void AddOperators(string name, ArrayBuilder<MethodSymbol> operators)
         {
             ImmutableArray<Symbol> candidates = GetSimpleNonTypeMembers(name);
             if (candidates.IsEmpty)
-            {
-                return ImmutableArray<MethodSymbol>.Empty;
-            }
+                return;
 
-            var operators = ArrayBuilder<MethodSymbol>.GetInstance(candidates.Length);
             foreach (var candidate in candidates)
             {
                 if (candidate is MethodSymbol { MethodKind: MethodKind.UserDefinedOperator or MethodKind.Conversion } method)
@@ -222,8 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     operators.Add(method);
                 }
             }
-
-            return operators.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -360,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var thisParam = method.Parameters.First();
 
+                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should use similar logic when looking up new extension members
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind is RefKind.In or RefKind.RefReadOnlyParameter && thisParam.Type.TypeKind != TypeKind.Struct))
                         {
@@ -373,6 +369,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+#nullable enable
+
+        public virtual MethodSymbol? TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+
+#nullable disable
 
         // TODO: Probably should provide similar accessors for static constructor, destructor, 
         // TODO: operators, conversions.
@@ -499,6 +504,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract FileIdentifier? AssociatedFileIdentifier { get; }
 
+        /// <summary>
+        /// For extensions, returns the synthesized identifier for the type: "&lt;E>__N".
+        /// </summary>
+        internal abstract string ExtensionName { get; }
 #nullable disable
 
         /// <summary>
@@ -1153,6 +1162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
         internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
+
+        internal abstract bool HasCompilerLoweringPreserveAttribute { get; }
 
         /// <summary>
         /// Gets a value indicating whether this type has System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute or not.

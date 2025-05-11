@@ -42,19 +42,22 @@ internal sealed class SourceGeneratorTelemetryCollectorWorkspaceService : ISourc
     private readonly StatisticLogAggregator<GeneratorTelemetryKey> _elapsedTimeByGenerator = new();
     private readonly StatisticLogAggregator<GeneratorTelemetryKey> _producedFilesByGenerator = new();
 
-    private GeneratorTelemetryKey GetTelemetryKey(ISourceGenerator generator, ProjectState project)
-        => _generatorTelemetryKeys.GetValue(generator, g => new GeneratorTelemetryKey(g, project.GetAnalyzerReferenceForGenerator(g)));
+    private GeneratorTelemetryKey GetTelemetryKey(ISourceGenerator generator, Func<ISourceGenerator, AnalyzerReference> getAnalyzerReference)
+        => _generatorTelemetryKeys.GetValue(generator, g => new GeneratorTelemetryKey(g, getAnalyzerReference(g)));
 
-    public void CollectRunResult(GeneratorDriverRunResult driverRunResult, GeneratorDriverTimingInfo driverTimingInfo, ProjectState project)
+    public void CollectRunResult(
+        GeneratorDriverRunResult driverRunResult,
+        GeneratorDriverTimingInfo driverTimingInfo,
+        Func<ISourceGenerator, AnalyzerReference> getAnalyzerReference)
     {
         foreach (var generatorTime in driverTimingInfo.GeneratorTimes)
         {
-            _elapsedTimeByGenerator.AddDataPoint(GetTelemetryKey(generatorTime.Generator, project), generatorTime.ElapsedTime);
+            _elapsedTimeByGenerator.AddDataPoint(GetTelemetryKey(generatorTime.Generator, getAnalyzerReference), generatorTime.ElapsedTime);
         }
 
         foreach (var generatorResult in driverRunResult.Results)
         {
-            _producedFilesByGenerator.AddDataPoint(GetTelemetryKey(generatorResult.Generator, project), generatorResult.GeneratedSources.Length);
+            _producedFilesByGenerator.AddDataPoint(GetTelemetryKey(generatorResult.Generator, getAnalyzerReference), generatorResult.GeneratedSources.Length);
         }
     }
 

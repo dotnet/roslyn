@@ -18,13 +18,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             _exportProvider = exportProvider
         End Sub
 
-#Disable Warning BC40000 ' Type or member is obsolete
+        <Obsolete>
         Public ReadOnly Property DefaultCatalog As ComposablePartCatalog Implements IComponentModel.DefaultCatalog
             Get
                 Throw New NotImplementedException
             End Get
         End Property
-#Enable Warning BC40000 ' Type or member is obsolete
 
         Public ReadOnly Property DefaultCompositionService As ICompositionService Implements IComponentModel.DefaultCompositionService
             Get
@@ -38,6 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Get
         End Property
 
+        <Obsolete>
         Public Function GetCatalog(catalogName As String) As ComposablePartCatalog Implements IComponentModel.GetCatalog
             Throw New NotImplementedException
         End Function

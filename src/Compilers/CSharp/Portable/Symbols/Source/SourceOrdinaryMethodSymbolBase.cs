@@ -43,10 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected sealed override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
-            Debug.Assert(this.IsPartial == state.HasComplete(CompletionPart.FinishMethodChecks),
-                "Partial methods complete method checks during construction.  " +
-                "Other methods can't complete method checks before executing this method.");
-
             if (!this.IsAsync)
             {
                 CompleteAsyncMethodChecks(diagnosticsOpt: null, cancellationToken: cancellationToken);
@@ -84,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken));
 
-        public override string Name
+        public sealed override string Name
         {
             get
             {
@@ -95,20 +91,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract override SourceMemberMethodSymbol BoundAttributesSource { get; }
 
         internal abstract override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations();
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (this.IsExtensionMethod)
-            {
-                // No need to check if [Extension] attribute was explicitly set since
-                // we'll issue CS1112 error in those cases and won't generate IL.
-                var compilation = this.DeclaringCompilation;
-
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
-                    WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
-            }
-        }
     }
 }

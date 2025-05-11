@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,30 +18,25 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
-internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    private static readonly BidirectionalMap<ConvertToRawKind, string> s_kindToEquivalenceKeyMap =
-        new(new[]
-        {
-            KeyValuePairUtil.Create(ConvertToRawKind.SingleLine, nameof(ConvertToRawKind.SingleLine)),
-            KeyValuePairUtil.Create(ConvertToRawKind.MultiLineIndented, nameof(ConvertToRawKind.MultiLineIndented)),
-            KeyValuePairUtil.Create(ConvertToRawKind.MultiLineWithoutLeadingWhitespace, nameof(ConvertToRawKind.MultiLineWithoutLeadingWhitespace)),
-        });
+    private static readonly string[] s_kindToEquivalenceKeyMap;
 
-    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = ImmutableArray.Create<IConvertStringProvider>(
-        ConvertRegularStringToRawStringProvider.Instance,
-        ConvertInterpolatedStringToRawStringProvider.Instance);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public ConvertStringToRawStringCodeRefactoringProvider()
+    static ConvertStringToRawStringCodeRefactoringProvider()
     {
+        var count = (int)ConvertToRawKind.ContainsEscapedEndOfLineCharacter * 2;
+        s_kindToEquivalenceKeyMap = new string[count];
+        for (var i = 0; i < count; i++)
+            s_kindToEquivalenceKeyMap[i] = i.ToString(CultureInfo.InvariantCulture);
     }
+
+    private static readonly ImmutableArray<IConvertStringProvider> s_convertStringProviders = [ConvertRegularStringToRawStringProvider.Instance, ConvertInterpolatedStringToRawStringProvider.Instance];
 
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => AllFixAllScopes;
 
@@ -78,8 +74,7 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         if (token.Parent is not ExpressionSyntax parentExpression)
             return;
 
-        var options = context.Options;
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(options, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         if (!CanConvert(parsedDocument, parentExpression, formattingOptions, out var convertParams, out var provider, cancellationToken))
@@ -87,13 +82,17 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
 
         var priority = convertParams.Priority;
 
+        var kind = convertParams.ContainsEscapedEndOfLineCharacter
+            ? ConvertToRawKind.ContainsEscapedEndOfLineCharacter
+            : 0;
+
         if (convertParams.CanBeSingleLine)
         {
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_raw_string,
-                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.SingleLine, options, provider, cancellationToken),
-                    s_kindToEquivalenceKeyMap[ConvertToRawKind.SingleLine],
+                    cancellationToken => UpdateDocumentAsync(document, parentExpression, kind | ConvertToRawKind.SingleLine, provider, cancellationToken),
+                    s_kindToEquivalenceKeyMap[(int)(kind | ConvertToRawKind.SingleLine)],
                     priority),
                 token.Span);
         }
@@ -102,8 +101,8 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
             context.RegisterRefactoring(
                 CodeAction.Create(
                     CSharpFeaturesResources.Convert_to_raw_string,
-                    cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineIndented, options, provider, cancellationToken),
-                    s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineIndented],
+                    cancellationToken => UpdateDocumentAsync(document, parentExpression, kind | ConvertToRawKind.MultiLineIndented, provider, cancellationToken),
+                    s_kindToEquivalenceKeyMap[(int)(kind | ConvertToRawKind.MultiLineIndented)],
                     priority),
                 token.Span);
 
@@ -112,8 +111,8 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
                 context.RegisterRefactoring(
                     CodeAction.Create(
                         CSharpFeaturesResources.without_leading_whitespace_may_change_semantics,
-                        cancellationToken => UpdateDocumentAsync(document, parentExpression, ConvertToRawKind.MultiLineWithoutLeadingWhitespace, options, provider, cancellationToken),
-                        s_kindToEquivalenceKeyMap[ConvertToRawKind.MultiLineWithoutLeadingWhitespace],
+                        cancellationToken => UpdateDocumentAsync(document, parentExpression, kind | ConvertToRawKind.MultiLineWithoutLeadingWhitespace, provider, cancellationToken),
+                        s_kindToEquivalenceKeyMap[(int)(kind | ConvertToRawKind.MultiLineWithoutLeadingWhitespace)],
                         priority),
                     token.Span);
             }
@@ -124,11 +123,10 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ExpressionSyntax expression,
         ConvertToRawKind kind,
-        CodeActionOptionsProvider optionsProvider,
         IConvertStringProvider provider,
         CancellationToken cancellationToken)
     {
-        var options = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -140,15 +138,14 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
         // Get the kind to be fixed from the equivalenceKey for the FixAll operation
         Debug.Assert(equivalenceKey != null);
-        var kind = s_kindToEquivalenceKeyMap[equivalenceKey];
+        var kind = (ConvertToRawKind)int.Parse(equivalenceKey, CultureInfo.InvariantCulture);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         foreach (var fixSpan in fixAllSpans)
@@ -160,8 +157,15 @@ internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxE
                 if (!CanConvert(parsedDocument, expression, formattingOptions, out var canConvertParams, out var provider, cancellationToken))
                     continue;
 
-                // Ensure we have a matching kind to fix for this literal
-                var hasMatchingKind = kind switch
+                // If the user started on a string that didn't have an explicit \n in it, then don't update other string
+                // literals that do.  Note: if they did start on a string with an explicit \n, then we should update all
+                // other literals, regardless of whether they had an explicit \n or not.
+                if ((kind & ConvertToRawKind.ContainsEscapedEndOfLineCharacter) == 0 && canConvertParams.ContainsEscapedEndOfLineCharacter)
+                    continue;
+
+                // Ensure we have a matching kind to fix for this literal.
+                // Remove the end of line flag so we can trivially switch on the rest below.
+                var hasMatchingKind = (kind & ~ConvertToRawKind.ContainsEscapedEndOfLineCharacter) switch
                 {
                     ConvertToRawKind.SingleLine => canConvertParams.CanBeSingleLine,
                     ConvertToRawKind.MultiLineIndented => !canConvertParams.CanBeSingleLine,

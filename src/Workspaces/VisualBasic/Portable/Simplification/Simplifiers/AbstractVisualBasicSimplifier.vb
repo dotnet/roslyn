@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
                     Dim aliasTypeInfo = semanticModel.GetSpeculativeAliasInfo(node.SpanStart, aliasIdentifier, SpeculativeBindingOption.BindAsTypeOrNamespace)
 
-                    If Not aliasTypeInfo Is Nothing Then
+                    If aliasTypeInfo IsNot Nothing Then
                         aliasReplacement = aliasTypeInfo
                         Return ValidateAliasForTarget(aliasReplacement, semanticModel, node, symbol)
                     End If
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 Return False
             End If
 
-            If symbol Is Nothing OrElse Not TypeOf (symbol) Is INamespaceOrTypeSymbol Then
+            If symbol Is Nothing OrElse TypeOf (symbol) IsNot INamespaceOrTypeSymbol Then
                 Return False
             End If
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 Dim qualifiedName = DirectCast(node, QualifiedNameSyntax)
                 If Not qualifiedName.Right.HasAnnotation(Simplifier.SpecialTypeAnnotation) Then
                     Dim type = semanticModel.GetTypeInfo(node).Type
-                    If Not type Is Nothing Then
+                    If type IsNot Nothing Then
                         Dim keywordKind = GetPredefinedKeywordKind(type.SpecialType)
                         If keywordKind <> SyntaxKind.None Then
                             preferAliasToQualifiedName = False

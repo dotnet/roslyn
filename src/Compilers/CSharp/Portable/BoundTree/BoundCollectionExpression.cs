@@ -30,5 +30,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return numberIncludingLastSpread > 0;
         }
+
+        public new bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
+        }
     }
 }

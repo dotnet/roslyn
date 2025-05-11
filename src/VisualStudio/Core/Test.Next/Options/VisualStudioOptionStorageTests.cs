@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class VisualStudioOptionStorageTests
+public sealed class VisualStudioOptionStorageTests
 {
     public static IEnumerable<object[]> ConfigNames
     {
@@ -107,9 +107,18 @@ public class VisualStudioOptionStorageTests
             return;
         }
 
-        if (!info.Option.Definition.IsEditorConfigOption)
+        // TODO: https://github.com/dotnet/roslyn/issues/65787
+        if (info.Option.Name is
+            "csharp_format_on_return" or
+            "csharp_format_on_typing" or
+            "csharp_format_on_semicolon" or
+            "csharp_format_on_close_brace" or
+            "csharp_enable_inlay_hints_for_types" or
+            "csharp_enable_inlay_hints_for_implicit_variable_types" or
+            "csharp_enable_inlay_hints_for_lambda_parameter_types" or
+            "csharp_enable_inlay_hints_for_implicit_object_creation" or
+            "csharp_enable_inlay_hints_for_collection_expressions")
         {
-            // TODO: remove condition once all options have config name https://github.com/dotnet/roslyn/issues/65787
             return;
         }
 
@@ -230,15 +239,15 @@ public class VisualStudioOptionStorageTests
             "dotnet_lsp_using_devkit",                                                      // VSCode internal only option.  Does not need any UI.
             "dotnet_enable_references_code_lens",                                           // VSCode only option.  Does not apply to VS.
             "dotnet_enable_tests_code_lens",                                                // VSCode only option.  Does not apply to VS.
+            "dotnet_enable_auto_insert",                                                    // VSCode only option.  Does not apply to VS.
+            "dotnet_organize_imports_on_format",                                            // VSCode only option.  Does not apply to VS.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
-            "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
+            "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
-            "FormattingOptions_WrappingColumn",                                             // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_unsupported_wrapping_column",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "InternalDiagnosticsOptions_LiveShareDiagnosticMode",                           // TODO: remove once switched to LSP diagnostics
-            "InternalDiagnosticsOptions_RazorDiagnosticMode",                               // TODO: remove once switched to LSP diagnostics
             "RazorDesignTimeDocumentFormattingOptions_TabSize",                             // TODO: remove once Razor removes design-time documents
             "RazorDesignTimeDocumentFormattingOptions_UseTabs",                             // TODO: remove once Razor removes design-time documents
             "RecommendationOptions_FilterOutOfScopeLocals",                                 // public option not stored in VS storage
@@ -260,7 +269,6 @@ public class VisualStudioOptionStorageTests
             "SimplificationOptions_QualifyMemberAccessWithThisOrMe",                        // public option, deprecated
             "SimplificationOptions_QualifyMethodAccess",                                    // public option, deprecated
             "SimplificationOptions_QualifyPropertyAccess",                                  // public option, deprecated
-            "SolutionCrawlerOptionsStorage_SolutionBackgroundAnalysisScopeOption",          // handled by PackageSettingsPersister
         };
 
         Assert.Contains(configName, optionsWithoutStorage);

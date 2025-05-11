@@ -383,12 +383,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         loc As Location,
                                         diagnostics As BindingDiagnosticBag,
                                         template As CompoundUseSiteInfo(Of AssemblySymbol))
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            type.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            type.CheckAllConstraints(languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -409,6 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Sub CheckAllConstraints(
                                         type As TypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         template As CompoundUseSiteInfo(Of AssemblySymbol))
@@ -416,6 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             diagnostics.diagnosticsBuilder = diagnosticsBuilder
             diagnostics.useSiteDiagnosticsBuilder = useSiteDiagnosticsBuilder
             diagnostics.template = template
+            diagnostics.languageVersion = languageVersion
 
             type.VisitType(s_checkConstraintsSingleTypeFunc, diagnostics)
 
@@ -426,13 +429,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
             Public useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo)
             Public template As CompoundUseSiteInfo(Of AssemblySymbol)
+            Public languageVersion As LanguageVersion
         End Class
 
         Private ReadOnly s_checkConstraintsSingleTypeFunc As Func(Of TypeSymbol, CheckConstraintsDiagnosticsBuilders, Boolean) = AddressOf CheckConstraintsSingleType
 
         Private Function CheckConstraintsSingleType(type As TypeSymbol, diagnostics As CheckConstraintsDiagnosticsBuilders) As Boolean
             If type.Kind = SymbolKind.NamedType Then
-                DirectCast(type, NamedTypeSymbol).CheckConstraints(diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, diagnostics.template)
+                DirectCast(type, NamedTypeSymbol).CheckConstraints(
+                    diagnostics.languageVersion, diagnostics.diagnosticsBuilder, diagnostics.useSiteDiagnosticsBuilder, diagnostics.template)
             End If
             Return False ' continue walking types
         End Function
@@ -460,7 +465,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim offset As Integer = 0
             For Each underlyingTuple In underlyingTupleTypeChain
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                CheckTypeConstraints(underlyingTuple, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+                CheckTypeConstraints(underlyingTuple,
+                                     DirectCast(syntaxNode.SyntaxTree.Options, VisualBasicParseOptions).LanguageVersion,
+                                     diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -487,6 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraintsForNonTuple(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         typeArgumentsSyntax As SeparatedSyntaxList(Of TypeSyntax),
                                         diagnostics As BindingDiagnosticBag,
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
@@ -498,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Dim result = CheckTypeConstraints(type, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -517,6 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
@@ -529,12 +538,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not RequiresChecking(type) Then
                 Return True
             End If
-            Return CheckTypeConstraints(type, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Return CheckTypeConstraints(type, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticLocation As Location,
                                         diagnostics As BindingDiagnosticBag,
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
@@ -544,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
             Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-            Dim result = CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Dim result = CheckMethodConstraints(method, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
 
             If useSiteDiagnosticsBuilder IsNot Nothing Then
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -561,31 +571,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             If Not RequiresChecking(method) Then
                 Return True
             End If
-            Return CheckMethodConstraints(method, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Return CheckMethodConstraints(method, languageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckTypeConstraints(
                                         type As NamedTypeSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = type.TypeSubstitution
-            Return CheckConstraints(type, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Return CheckConstraints(type, languageVersion, substitution, type.OriginalDefinition.TypeParameters, type.TypeArgumentsNoUseSiteDiagnostics, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         Private Function CheckMethodConstraints(
                                         method As MethodSymbol,
+                                        languageVersion As LanguageVersion,
                                         diagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         <[In], Out> ByRef useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo),
                                         template As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Dim substitution = DirectCast(method, SubstitutedMethodSymbol).TypeSubstitution
-            Return CheckConstraints(method, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
+            Return CheckConstraints(method, languageVersion, substitution, method.OriginalDefinition.TypeParameters, method.TypeArguments, diagnosticsBuilder, useSiteDiagnosticsBuilder, template)
         End Function
 
         ''' <summary>
@@ -599,6 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function CheckConstraints(
                                          constructedSymbol As Symbol,
+                                         languageVersion As LanguageVersion,
                                          substitution As TypeSubstitution,
                                          typeParameters As ImmutableArray(Of TypeParameterSymbol),
                                          typeArguments As ImmutableArray(Of TypeSymbol),
@@ -614,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim typeArgument = typeArguments(i)
                 Dim typeParameter = typeParameters(i)
                 Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(template)
-                If Not CheckConstraints(constructedSymbol, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then
+                If Not CheckConstraints(constructedSymbol, languageVersion, substitution, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then
                     succeeded = False
                 End If
 
@@ -628,6 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Function CheckConstraints(
                                  constructedSymbol As Symbol,
+                                 languageVersion As LanguageVersion,
                                  substitution As TypeSubstitution,
                                  typeParameter As TypeParameterSymbol,
                                  typeArgument As TypeSymbol,
@@ -657,6 +672,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If typeParameter.HasReferenceTypeConstraint AndAlso Not SatisfiesReferenceTypeConstraint(typeParameter, typeArgument, diagnosticsBuilder) Then
                 succeeded = False
+            End If
+
+            If typeParameter.HasUnmanagedTypeConstraint Then
+
+                If Not InternalSyntax.Parser.CheckFeatureAvailability(languageVersion, InternalSyntax.Feature.UnmanagedConstraint) Then
+                    useSiteInfo.AddDiagnosticInfo(InternalSyntax.Parser.GetFeatureAvailabilityError(InternalSyntax.Feature.UnmanagedConstraint, languageVersion))
+                    succeeded = False
+                End If
+
+                Dim managedKind = typeArgument.GetManagedKind(useSiteInfo)
+
+                If managedKind = ManagedKind.Managed Then
+                    If diagnosticsBuilder IsNot Nothing Then
+                        diagnosticsBuilder.Add(New TypeParameterDiagnosticInfo(typeParameter, ErrorFactory.ErrorInfo(ERRID.ERR_UnmanagedConstraintNotSatisfied, typeArgument, typeParameter)))
+                    End If
+
+                    succeeded = False
+                End If
             End If
 
             If typeParameter.HasValueTypeConstraint AndAlso Not SatisfiesValueTypeConstraint(constructedSymbol, typeParameter, typeArgument, diagnosticsBuilder, useSiteInfo) Then

@@ -7,10 +7,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ''' Tests that want to exercise as much of the real command handling stack as possible.
     ''' </summary>
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Formatting)>
     Public Class FormattingCommandHandlerTests
-
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/912965")>
         Public Sub TypingUsingStatementsProperlyAligns1()
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -55,6 +54,28 @@ class TestClass
                 ' typing close brace should align with open brace.
                 state.SendTypeChars("}")
                 Assert.Equal("        }", state.GetLineTextFromCaretPosition())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/35702")>
+        Public Sub TypingElseKeywordIndentsInAmbiguousScenario()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+using System;
+class TestClass
+{
+    void TestMethod(string[] args)
+    {
+        foreach (var v in args)
+            if (v != null)
+                Console.WriteLine("v is not null");
+        els$$
+    }
+}
+                              </Document>, includeFormatCommandHandler:=True)
+                state.SendTypeChars("e")
+
+                Assert.Equal("            else", state.GetLineTextFromCaretPosition())
             End Using
         End Sub
 

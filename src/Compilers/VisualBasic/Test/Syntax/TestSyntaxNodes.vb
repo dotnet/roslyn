@@ -2726,7 +2726,35 @@ End Class
             Dim result = cu2.ToFullString()
 
             Assert.Equal(expected, result)
+        End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19613")>
+        Public Sub TestRemove_KeepUnbalancedDirectives_Indented()
+            Dim text = <![CDATA[
+Class C
+    #Region "A Region"
+    Sub Goo()
+    End Sub
+    #End Region
+End Class
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Dim expected = <![CDATA[
+Class C
+
+    #Region "A Region"
+    #End Region
+End Class
+]]>.Value.Replace(vbLf, vbCrLf)
+
+            Dim cu = SyntaxFactory.ParseCompilationUnit(text)
+            Dim n = cu.DescendantTokens().Where(Function(t) t.ToString() = "Goo").Select(Function(t) t.Parent.FirstAncestorOrSelf(Of MethodBlockSyntax)()).FirstOrDefault()
+
+            Dim cu2 = cu.RemoveNode(n, SyntaxRemoveOptions.KeepUnbalancedDirectives)
+
+            Dim result = cu2.ToFullString()
+
+            Assert.Equal(expected, result)
         End Sub
 
         <Fact, WorkItem(530316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530316")>

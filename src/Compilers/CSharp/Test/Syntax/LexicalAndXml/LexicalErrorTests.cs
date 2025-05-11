@@ -266,9 +266,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,21): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,21): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         string a = "\e";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 21));
         }
 
         [Fact]
@@ -285,9 +285,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,22): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,22): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         string a = "e\ee";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 22));
         }
 
         [Fact]
@@ -304,9 +304,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,19): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,19): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         char a = '\e';
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 19));
         }
 
         [Fact]
@@ -322,7 +322,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]
@@ -338,7 +338,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]
@@ -354,7 +354,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]
@@ -514,6 +514,107 @@ public class MainClass
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OpenEndedComment, ""));
+        }
+
+        [Fact]
+        public void CS1035ERR_OpenEndedComment_Razor()
+        {
+            var test = @"
+public class MainClass
+    {
+    public static int Main ()
+        {
+        return 1;
+        }
+    }
+//Comment lacks closing */
+@*    
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (10,1): error CS1056: Unexpected character '@'
+                // @*    
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(10, 1),
+                // (10,1): error CS1035: End-of-file found, '*/' expected
+                // @*    
+                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(10, 1));
+        }
+
+        [Fact]
+        public void CS1035ERR_OpenEndedComment_Razor_InterpolatedString()
+        {
+            var test = """
+                public class MainClass
+                    {
+                    public static int Main ()
+                        {
+                        return $"{1@*   
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (5,17): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(5, 17),
+                // (5,20): error CS1056: Unexpected character '@'
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(5, 20),
+                // (5,20): error CS1035: End-of-file found, '*/' expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 20),
+                // (5,25): error CS1002: ; expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 25),
+                // (5,25): error CS1513: } expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25),
+                // (5,25): error CS1513: } expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_01()
+        {
+            var test = """
+                var x = @:;
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,9): error CS1525: Invalid expression term ''
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@:;").WithArguments("").WithLocation(1, 9),
+                // (1,10): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 10),
+                // (1,12): error CS1002: ; expected
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_02()
+        {
+            var test = """
+                @:<div>test</div>
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @:<div>test</div>
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_03()
+        {
+            var test = """
+                @: M() {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @: M() {}
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
         }
 
         [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
@@ -767,6 +868,39 @@ class A
             });
 
             ParsingTests.ParseAndValidate(test, descriptions.ToArray());
+        }
+
+        [Fact]
+        public void CS1056ERR_RazorComment()
+        {
+            var test = """
+                @* comment *@
+                class C {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,1): error CS1056: Unexpected character '@'
+                // @* comment *@
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CS1056ERR_RazorComment_InterpolatedString()
+        {
+            var test = """
+                $"{@* comment *@}"
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,4): error CS1056: Unexpected character '@'
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 4),
+                // (1,17): error CS1733: Expected expression
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
+                // (1,19): error CS1002: ; expected
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 19));
         }
 
         [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]

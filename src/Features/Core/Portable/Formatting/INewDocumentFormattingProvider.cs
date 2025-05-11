@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal interface INewDocumentFormattingProvider
 {
-    internal interface INewDocumentFormattingProvider
-    {
-        /// <inheritdoc cref="INewDocumentFormattingService.FormatNewDocumentAsync(Document, Document, CodeCleanupOptions, CancellationToken)"/>
-        Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
-    }
+    /// <inheritdoc cref="INewDocumentFormattingService.FormatNewDocumentAsync(Document, Document, CodeCleanupOptions, CancellationToken)"/>
+    Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
 }

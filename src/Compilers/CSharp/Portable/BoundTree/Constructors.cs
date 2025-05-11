@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fieldSymbol.IsStatic ||
                 !fieldSymbol.ContainingType.IsValueType ||
+                fieldSymbol.RefKind != RefKind.None ||
                 receiver == null) // receiver may be null in error cases
             {
                 return false;
@@ -279,9 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedArguments,
                 refKinds,
                 expanded: false,
+                accessorKind: AccessorKind.Unknown,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
-                originalIndexers,
+                originalIndexersOpt: originalIndexers,
                 type: indexer.Type,
                 hasErrors: true);
         }
@@ -294,11 +296,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
+            AccessorKind accessorKind,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
@@ -308,10 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                          ImmutableArray<string?> argumentNamesOpt,
                                          ImmutableArray<RefKind> argumentRefKindsOpt,
                                          bool expanded,
+                                         AccessorKind accessorKind,
                                          ImmutableArray<int> argsToParamsOpt,
                                          BitVector defaultArguments,
                                          TypeSymbol type)
-            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
+            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
     }
 
     internal sealed partial class BoundConversion
@@ -332,7 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: false,
                 conversionGroupOpt: null,
                 constantValueOpt: constantValueOpt,
-                originalUserDefinedConversionsOpt: default,
                 type: type)
             { WasCompilerGenerated = true };
         }
@@ -387,35 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 explicitCastInCode: explicitCastInCode,
                 constantValueOpt: constantValueOpt,
                 conversionGroupOpt,
-                conversion.OriginalUserDefinedConversions,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         { }
-
-        public BoundConversion(
-            SyntaxNode syntax,
-            BoundExpression operand,
-            Conversion conversion,
-            bool isBaseConversion,
-            bool @checked,
-            bool explicitCastInCode,
-            ConstantValue? constantValueOpt,
-            ConversionGroup? conversionGroupOpt,
-            TypeSymbol type,
-            bool hasErrors = false) :
-            this(syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, originalUserDefinedConversionsOpt: default, type, hasErrors)
-        {
-        }
-
-        public BoundConversion Update(BoundExpression operand,
-                                      Conversion conversion,
-                                      bool isBaseConversion,
-                                      bool @checked,
-                                      bool explicitCastInCode,
-                                      ConstantValue? constantValueOpt,
-                                      ConversionGroup? conversionGroupOpt,
-                                      TypeSymbol type)
-            => Update(operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, this.OriginalUserDefinedConversionsOpt, type);
     }
 
     internal sealed partial class BoundBinaryOperator
@@ -508,17 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operatorKind.IsUserDefined() && operatorKind.IsLogical());
         }
-
-        public BoundUserDefinedConditionalLogicalOperator Update(BinaryOperatorKind operatorKind,
-                                                                 MethodSymbol logicalOperator,
-                                                                 MethodSymbol trueOperator,
-                                                                 MethodSymbol falseOperator,
-                                                                 TypeSymbol? constrainedToTypeOpt,
-                                                                 LookupResultKind resultKind,
-                                                                 BoundExpression left,
-                                                                 BoundExpression right,
-                                                                 TypeSymbol type)
-            => Update(operatorKind, logicalOperator, trueOperator, falseOperator, constrainedToTypeOpt, resultKind, this.OriginalUserDefinedOperatorsOpt, left, right, type);
     }
 
     internal sealed partial class BoundParameter
@@ -649,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBlock
     {
         public BoundBlock(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
-            : this(syntax, locals, ImmutableArray<LocalFunctionSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
+            : this(syntax, locals, ImmutableArray<MethodSymbol>.Empty, hasUnsafeModifier: false, instrumentation: null, statements, hasErrors)
         {
         }
 

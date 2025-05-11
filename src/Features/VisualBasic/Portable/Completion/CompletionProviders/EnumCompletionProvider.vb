@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 builder.Add(New SymbolAndSelectionInfo(enumType, Preselect:=False))
 
                 For Each member In enumType.GetMembers()
-                    If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
+                    If member.Kind = SymbolKind.Field AndAlso DirectCast(member, IFieldSymbol).IsConst AndAlso member.IsEditorBrowsable(options.MemberDisplayOptions.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
                         builder.Add(New SymbolAndSelectionInfo(member, Preselect:=True))
                     End If
                 Next

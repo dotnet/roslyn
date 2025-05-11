@@ -286,6 +286,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
 
+        Friend MustOverride ReadOnly Property HasCompilerLoweringPreserveAttribute As Boolean
+
         ''' <summary>
         ''' A Named type is an extensible interface if both the following are true:
         ''' (a) It is an interface type and
@@ -936,7 +938,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' True if and only if this type or some containing type has type parameters.
         ''' </summary>
-        Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType
+        Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType, INamedTypeSymbolInternal.IsGenericType
             Get
                 Dim p As NamedTypeSymbol = Me
                 Do While p IsNot Nothing
@@ -1193,6 +1195,121 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             Return True
+        End Function
+
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return GetManagedKind(Me, useSiteInfo)
+        End Function
+
+        ''' <summary>
+        ''' <see cref="ManagedKind"/> is simple for most named types:
+        '''     enums are not managed;
+        '''     non-enum, non-struct named types are managed;
+        '''     type parameters are managed unless an 'unmanaged' constraint is present;
+        '''     all special types have spec'd values (basically, (non-string) primitives) are not managed;
+        ''' 
+        ''' Only structs are complicated, because the definition is recursive.  A struct type is managed
+        ''' if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
+        ''' If the closure is finite, and we don't find anything definitely managed, then we return true.
+        ''' If the closure is infinite, we disregard all but a representative of any expanding cycle.
+        ''' 
+        ''' Intuitively, this will only return true if there's a specific type we can point to that is would
+        ''' be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
+        ''' is because we can point to object.
+        ''' </summary>
+        Private Overloads Shared Function GetManagedKind(type As NamedTypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+
+            ' The code below is a clone of BaseTypeAnalysis.GetManagedKind from C#. It should be kept in sync going forward
+            Dim managedInfo = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(type)
+            Dim definitelyManaged = (managedInfo.isManaged = ThreeState.True)
+
+            If managedInfo.isManaged = ThreeState.Unknown Then
+                ' Otherwise, we have to build and inspect the closure of depended-upon types.
+                Dim hs = PooledHashSet(Of Symbol).GetInstance()
+                Dim result = DependsOnDefinitelyManagedType(type, hs, useSiteInfo)
+                definitelyManaged = result.definitelyManaged
+                managedInfo.hasGenerics = managedInfo.hasGenerics OrElse result.hasGenerics
+                hs.Free()
+            End If
+
+            If definitelyManaged Then
+                Return ManagedKind.Managed
+            ElseIf managedInfo.hasGenerics Then
+                Return ManagedKind.UnmanagedWithGenerics
+            Else
+                Return ManagedKind.Unmanaged
+            End If
+        End Function
+
+        Private Shared Function DependsOnDefinitelyManagedType(
+            type As NamedTypeSymbol,
+            partialClosure As HashSet(Of Symbol),
+            ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
+        ) As (definitelyManaged As Boolean, hasGenerics As Boolean)
+
+            Debug.Assert(type IsNot Nothing)
+
+            Dim hasGenerics = False
+
+            If partialClosure.Add(type) Then
+
+                For Each member In type.GetMembersUnordered()
+
+                    Dim field = TryCast(member, FieldSymbol)
+
+                    ' Only instance fields (including field-like events) affect the outcome.
+                    If field Is Nothing OrElse field.IsShared Then
+                        Continue For
+                    End If
+
+                    useSiteInfo.Add(field.GetUseSiteInfo())
+                    Dim fieldType As TypeSymbol = field.Type.GetTupleUnderlyingTypeOrSelf()
+
+                    ' A ref struct which has a ref field is never considered unmanaged
+                    ' but we cannot represent ref fields in VB
+                    ' The previous line should collect an error about the fact
+
+                    Select Case fieldType.TypeKind
+                        Case TypeKind.Pointer, TypeKind.FunctionPointer
+                            ' pointers are unmanaged
+                            ExceptionUtilities.UnexpectedValue(fieldType.TypeKind)
+                            Continue For
+                    End Select
+
+                    Dim fieldNamedType = TryCast(fieldType, NamedTypeSymbol)
+                    If fieldNamedType Is Nothing Then
+                        If fieldType.GetManagedKind(useSiteInfo) = ManagedKind.Managed Then
+                            Return (True, hasGenerics)
+                        End If
+                    Else
+                        Dim result = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(fieldNamedType)
+                        hasGenerics = hasGenerics OrElse result.hasGenerics
+                        ' NOTE: don't use GetManagedKind on a NamedTypeSymbol - that could lead
+                        ' to infinite recursion.
+                        Select Case result.isManaged
+                            Case ThreeState.True
+                                Return (True, hasGenerics)
+
+                            Case ThreeState.False
+                                Continue For
+
+                            Case ThreeState.Unknown
+                                If Not fieldNamedType.OriginalDefinition.KnownCircularStruct Then
+                                    Dim dependsInfo = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, useSiteInfo)
+                                    hasGenerics = hasGenerics OrElse dependsInfo.hasGenerics
+                                    If dependsInfo.definitelyManaged Then
+                                        Return (True, hasGenerics)
+                                    End If
+                                End If
+
+                                Continue For
+                        End Select
+                    End If
+                Next
+            End If
+
+            Return (False, hasGenerics)
         End Function
 
 #Region "INamedTypeSymbol"

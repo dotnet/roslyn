@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Friend Class CommitTestData
@@ -111,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Function CommitAsync(previewChanges As Boolean, cancellationToken As CancellationToken) As Task Implements IInlineRenameSession.CommitAsync
+                Public Function CommitAsync(previewChanges As Boolean, Optional editorOperationContext As IUIThreadOperationContext = Nothing) As Task Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
                 End Function
             End Class

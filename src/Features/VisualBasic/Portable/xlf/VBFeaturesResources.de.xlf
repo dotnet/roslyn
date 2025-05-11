@@ -67,11 +67,6 @@
         <target state="translated">Fügen Sie das fehlende "{0}" ein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Conflict_s_detected">
-        <source>Conflict(s) detected.</source>
-        <target state="translated">Konflikt(e) erkannt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_Using_statement">
         <source>Introduce 'Using' statement</source>
         <target state="translated">Using-Anweisung einführen</target>
@@ -222,30 +217,10 @@
         <target state="translated">Rückgabetyp für unzulässige Funktion beheben</target>
         <note />
       </trans-unit>
-      <trans-unit id="Simplify_name_0">
-        <source>Simplify name '{0}'</source>
-        <target state="translated">Namen "{0}" vereinfachen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Simplify_member_access_0">
-        <source>Simplify member access '{0}'</source>
-        <target state="translated">Memberzugriff "{0}" vereinfachen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Qualifikation "Me" entfernen</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
-        <source>can't determine valid range of statements to extract out</source>
-        <target state="translated">gültiger Bereich der zu extrahierenden Anweisungen kann nicht bestimmt werden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_all_code_paths_return">
-        <source>Not all code paths return</source>
-        <target state="translated">Nicht alle Codepfadrückgaben</target>
-        <note />
       </trans-unit>
       <trans-unit id="contains_invalid_selection">
         <source>contains invalid selection</source>
@@ -300,11 +275,6 @@
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
         <source>Selection doesn't contain any valid node</source>
         <target state="translated">Auswahl enthält keinen gültigen Knoten</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="no_valid_statement_range_to_extract_out">
-        <source>no valid statement range to extract out</source>
-        <target state="translated">kein gültiger Anweisungsbereich für die Extraktion</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -1462,16 +1432,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">NameOf-Funktion</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Einschränkende Konvertierung in "{0}" generieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Erweiternde Konvertierung in "{0}" generieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">Try-Block</target>
@@ -1657,16 +1617,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Fügt der angegebenen Assembly und allen ihren Abhängigkeiten einen Metadatenverweis hinzu. Beispiel: #r "myLib.dll".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Properties">
-        <source>Properties</source>
-        <target state="translated">Eigenschaften</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="namespace_name">
-        <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;Namespacename&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
         <source>Type a name here to declare a namespace.</source>
         <target state="translated">Geben Sie hier einen Namen ein, um einen Namespace zu deklarieren.</target>
@@ -1675,16 +1625,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       <trans-unit id="Type_a_name_here_to_declare_a_partial_class">
         <source>Type a name here to declare a partial class.</source>
         <target state="translated">Geben Sie hier einen Namen ein, um eine partielle Klasse zu deklarieren.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="class_name">
-        <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;Klassenname&gt;</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="interface_name">
-        <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt;Schnittstellenname&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="module_name">

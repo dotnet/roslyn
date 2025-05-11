@@ -4,23 +4,21 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+[Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+public class BasicExtractMethod : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-    public class BasicExtractMethod : AbstractEditorTest
-    {
-        private const string TestSource = @"
+    private const string TestSource = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -40,23 +38,23 @@ Module Program
     End Function
 End Module";
 
-        protected override string LanguageName => LanguageNames.VisualBasic;
+    protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExtractMethod()
-            : base(nameof(BasicExtractMethod))
-        {
-        }
+    public BasicExtractMethod()
+        : base(nameof(BasicExtractMethod))
+    {
+    }
 
-        [IdeFact]
-        public async Task SimpleExtractMethod()
-        {
-            await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("Console", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("Hello VB!", charsOffset: 3, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task SimpleExtractMethod()
+    {
+        await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("Console", charsOffset: -1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("Hello VB!", charsOffset: 3, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Refactor.ExtractMethod, HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.ExtractMethod, HangMitigatingCancellationToken);
 
-            var expectedMarkup = @"
+        var expectedMarkup = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -80,26 +78,26 @@ Module Program
     End Function
 End Module";
 
-            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
-            await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
-            var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
-            AssertEx.SetEqual(spans, tags);
+        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+        await TestServices.EditorVerifier.TextContainsAsync(expectedText, cancellationToken: HangMitigatingCancellationToken);
+        var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
+        AssertEx.SetEqual(spans, tags);
 
-            await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(@"    Private Sub SayHello()
+        await TestServices.Input.SendAsync(["SayHello", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync(@"    Private Sub SayHello()
         Console.WriteLine(""Hello VB!"")
     End Sub", cancellationToken: HangMitigatingCancellationToken);
-        }
+    }
 
-        [IdeFact]
-        public async Task ExtractViaCodeAction()
-        {
-            await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task ExtractViaCodeAction()
+    {
+        await TestServices.Editor.SetTextAsync(TestSource, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("a = 5", charsOffset: -1, HangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("a * b", charsOffset: 1, occurrence: 0, extendSelection: true, selectBlock: false, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Extract method", applyFix: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
 
-            var expectedMarkup = @"
+        var expectedMarkup = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -124,10 +122,9 @@ Module Program
     End Sub
 End Module";
 
-            MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
-            Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
-            var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
-            AssertEx.SetEqual(spans, tags);
-        }
+        MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out var spans);
+        Assert.Equal(expectedText, await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken));
+        var tags = (await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken)).SelectAsArray(tag => tag.Span.Span.ToTextSpan());
+        AssertEx.SetEqual(spans, tags);
     }
 }

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     <Trait(Traits.Feature, Traits.Features.Outlining)>
-    Public Class CommentTests
+    Public Class CommentStructureTests
         Inherits AbstractSyntaxStructureProviderTests
 
         Protected Overrides ReadOnly Property LanguageName As String
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             ElseIf token.TrailingTrivia.Contains(trivia) Then
                 Return CreateCommentsRegions(token.TrailingTrivia)
             Else
-                Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+                Throw ExceptionUtilities.Unreachable
             End If
         End Function
 

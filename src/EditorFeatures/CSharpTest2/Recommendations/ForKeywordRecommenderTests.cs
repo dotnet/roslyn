@@ -6,168 +6,167 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class ForKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ForKeywordRecommenderTests : KeywordRecommenderTests
+    [Fact]
+    public async Task TestAtRoot_Interactive()
     {
-        [Fact]
-        public async Task TestAtRoot_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
+        await VerifyKeywordAsync(SourceCodeKind.Script,
 @"$$");
-        }
+    }
 
-        [Fact]
-        public async Task TestAfterClass_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestAfterClass_Interactive()
+    {
+        await VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestAfterGlobalStatement_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestAfterGlobalStatement()
+    {
+        await VerifyKeywordAsync(
+            """
+            System.Console.WriteLine();
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyKeywordAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestAfterGlobalVariableDeclaration_Interactive()
+    {
+        await VerifyKeywordAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInGlobalUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestEmptyStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestEmptyStatement()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestBeforeStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                $$
-                return true;
-                """));
-        }
+    [Fact]
+    public async Task TestBeforeStatement()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            $$
+            return true;
+            """));
+    }
 
-        [Fact]
-        public async Task TestAfterStatement()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                return true;
-                $$
-                """));
-        }
+    [Fact]
+    public async Task TestAfterStatement()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            return true;
+            $$
+            """));
+    }
 
-        [Fact]
-        public async Task TestAfterBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                if (true) {
-                }
-                $$
-                """));
-        }
+    [Fact]
+    public async Task TestAfterBlock()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            if (true) {
+            }
+            $$
+            """));
+    }
 
-        [Fact]
-        public async Task TestInsideFor()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                for (;;)
-                     $$
-                """));
-        }
+    [Fact]
+    public async Task TestInsideFor()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            for (;;)
+                 $$
+            """));
+    }
 
-        [Fact]
-        public async Task TestInsideForInsideFor()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                for (;;)
-                     for (;;)
-                        $$
-                """));
-        }
+    [Fact]
+    public async Task TestInsideForInsideFor()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            for (;;)
+                 for (;;)
+                    $$
+            """));
+    }
 
-        [Fact]
-        public async Task TestInsideForBlock()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(
-                """
-                for (;;) {
-                     $$
-                """));
-        }
+    [Fact]
+    public async Task TestInsideForBlock()
+    {
+        await VerifyKeywordAsync(AddInsideMethod(
+            """
+            for (;;) {
+                 $$
+            """));
+    }
 
-        [Fact]
-        public async Task TestNotAfterFor1()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotAfterFor1()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"for $$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterFor2()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotAfterFor2()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"for ($$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterFor3()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotAfterFor3()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"for (;$$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterFor4()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotAfterFor4()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"for (;;$$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInClass()
-        {
-            await VerifyAbsenceAsync("""
-                class C
-                {
-                  $$
-                }
-                """);
-        }
+    [Fact]
+    public async Task TestNotInClass()
+    {
+        await VerifyAbsenceAsync("""
+            class C
+            {
+              $$
+            }
+            """);
     }
 }

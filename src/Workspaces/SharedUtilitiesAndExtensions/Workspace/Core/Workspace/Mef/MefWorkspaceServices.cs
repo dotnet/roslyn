@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -16,202 +15,204 @@ using Roslyn.Utilities;
 
 [assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+internal sealed class MefWorkspaceServices : HostWorkspaceServices
 {
-    internal sealed class MefWorkspaceServices : HostWorkspaceServices
+    private readonly Workspace _workspace;
+
+    private readonly ImmutableArray<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _services;
+
+    // map of type name to workspace service
+    private ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, bool usesFactory)> _serviceMap
+        = ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, bool usesFactory)>.Empty;
+
+    private readonly object _gate = new();
+    private readonly HashSet<IDisposable> _ownedDisposableServices = new(ReferenceEqualityComparer.Instance);
+
+    // accumulated cache for language services
+    private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
+        = ImmutableDictionary<string, MefLanguageServices>.Empty;
+
+    private ImmutableArray<string> _languages;
+
+    public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
     {
-        private readonly IMefHostExportProvider _exportProvider;
-        private readonly Workspace _workspace;
+        HostExportProvider = host;
+        _workspace = workspace;
 
-        private readonly ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _services;
+        var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
+            .Select(lz => (lz, usesFactory: false));
+        var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
+            .Select(lz => (new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata), usesFactory: true));
 
-        // map of type name to workspace service
-        private ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<IWorkspaceService, WorkspaceServiceMetadata>>.Empty;
+        _services = [.. services, .. factories];
+    }
 
-        // accumulated cache for language services
-        private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
-            = ImmutableDictionary<string, MefLanguageServices>.Empty;
+    public override HostServices HostServices
+    {
+        get { return (HostServices)HostExportProvider; }
+    }
 
-        public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
+    internal IMefHostExportProvider HostExportProvider { get; }
+
+    internal string? WorkspaceKind => _workspace.Kind;
+
+    public override Workspace Workspace
+    {
+        get
         {
-            _exportProvider = host;
-            _workspace = workspace;
+            //#if !CODE_STYLE
+            //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
+            //#endif
+            return _workspace;
+        }
+    }
 
-            var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>();
-            var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-                .Select(lz => new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata));
+    public override void Dispose()
+    {
+        var allLanguageServices = Interlocked.Exchange(ref _languageServicesMap, _languageServicesMap.Clear());
 
-            _services = services.Concat(factories).ToImmutableArray();
+        ImmutableArray<IDisposable> disposableServices;
+        lock (_gate)
+        {
+            disposableServices = [.. _ownedDisposableServices];
+            _ownedDisposableServices.Clear();
         }
 
-        public override HostServices HostServices
+        // Take care to give all disposal parts a chance to dispose even if some parts throw exceptions.
+        List<Exception>? exceptions = null;
+
+        foreach (var (_, languageServices) in allLanguageServices)
         {
-            get { return (HostServices)_exportProvider; }
+            MefUtilities.DisposeWithExceptionTracking(languageServices, ref exceptions);
         }
 
-        internal IMefHostExportProvider HostExportProvider => _exportProvider;
-
-        internal string WorkspaceKind => _workspace.Kind;
-
-        public override Workspace Workspace
+        foreach (var service in disposableServices)
         {
-            get
-            {
-                //#if !CODE_STYLE
-                //                Contract.ThrowIfTrue(_workspace.Kind == CodeAnalysis.WorkspaceKind.RemoteWorkspace, "Access .Workspace off of a RemoteWorkspace MefWorkspaceServices is not supported.");
-                //#endif
-                return _workspace;
-            }
+            MefUtilities.DisposeWithExceptionTracking(service, ref exceptions);
         }
 
-        public override TWorkspaceService GetService<TWorkspaceService>()
+        if (exceptions is not null)
         {
-            if (TryGetService(typeof(TWorkspaceService), out var service))
-            {
-                return (TWorkspaceService)service.Value;
-            }
-            else
-            {
-                return default;
-            }
+            throw new AggregateException(CompilerExtensionsResources.Instantiated_parts_threw_exceptions_from_IDisposable_Dispose, exceptions);
         }
 
-        private bool TryGetService(Type serviceType, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
+        base.Dispose();
+    }
+
+    public override TWorkspaceService GetService<TWorkspaceService>()
+    {
+        if (TryGetService(typeof(TWorkspaceService), out var lazyService, out var usesFactory))
         {
-            if (!_serviceMap.TryGetValue(serviceType, out service))
+            // MEF workspace service instances created by a factory are not owned by the MEF catalog or disposed
+            // when the MEF catalog is disposed. Whenever we are potentially going to create an instance of a
+            // service provided by a factory, we need to check if the resulting service implements IDisposable. The
+            // specific conditions here are:
+            //
+            // * usesFactory: This is true when the workspace service is provided by a factory. Services provided
+            //   directly are owned by the MEF catalog so they do not need to be tracked by the workspace.
+            // * IsValueCreated: This will be false at least once prior to accessing the lazy value. Once the value
+            //   is known to be created, we no longer need to try adding it to _ownedDisposableServices, so we use a
+            //   lock-free fast path.
+            var checkAddDisposable = usesFactory && !lazyService.IsValueCreated;
+
+            var serviceInstance = (TWorkspaceService)lazyService.Value;
+            if (checkAddDisposable && serviceInstance is IDisposable disposable)
             {
-                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
+                lock (_gate)
                 {
-                    // Pick from list of exported factories and instances
-                    // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
-                    var assemblyQualifiedName = svctype.AssemblyQualifiedName;
-                    return PickWorkspaceService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
-                });
-            }
-
-            return service != null;
-        }
-
-        private Lazy<IWorkspaceService, WorkspaceServiceMetadata> PickWorkspaceService(IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
-        {
-            Lazy<IWorkspaceService, WorkspaceServiceMetadata> service;
-#if !CODE_STYLE
-            // test layer overrides all other layers and workspace kind:
-            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
-            {
-                return service;
-            }
-#endif
-            // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspace.Kind, services, out service))
-            {
-                return service;
-            }
-
-            // host layer overrides editor, desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
-            {
-                return service;
-            }
-
-            // editor layer overrides desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
-            {
-                return service;
-            }
-
-            // desktop layer overrides default
-            if (TryGetServiceByLayer(ServiceLayer.Desktop, services, out service))
-            {
-                return service;
-            }
-
-            // that just leaves default
-            if (TryGetServiceByLayer(ServiceLayer.Default, services, out service))
-            {
-                return service;
-            }
-
-            // no service.
-            return null;
-        }
-
-        private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)
-        {
-            service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != null;
-        }
-
-        private IEnumerable<string> _languages;
-
-        private IEnumerable<string> GetSupportedLanguages()
-        {
-            if (_languages == null)
-            {
-                var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
-                           _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
-                           .Distinct();
-
-                Interlocked.CompareExchange(ref _languages, list, null);
-            }
-
-            return _languages;
-        }
-
-        public override IEnumerable<string> SupportedLanguages
-        {
-            get { return this.GetSupportedLanguages(); }
-        }
-
-        public override bool IsSupported(string languageName)
-            => this.GetSupportedLanguages().Contains(languageName);
-
-        public override HostLanguageServices GetLanguageServices(string languageName)
-        {
-            var currentServicesMap = _languageServicesMap;
-            if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
-            {
-                languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
-            }
-
-            if (languageServices.HasServices)
-            {
-                return languageServices;
-            }
-            else
-            {
-                // throws exception
-#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
-                return base.GetLanguageServices(languageName);
-#pragma warning restore RS0030 // Do not used banned APIs
-            }
-        }
-
-        public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
-        {
-            foreach (var language in this.SupportedLanguages)
-            {
-#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
-                var services = (MefLanguageServices)this.GetLanguageServices(language);
-#pragma warning restore RS0030 // Do not used banned APIs
-                if (services.TryGetService(typeof(TLanguageService), out var service))
-                {
-                    if (filter(service.Metadata.Data))
-                    {
-                        yield return (TLanguageService)service.Value;
-                    }
+                    _ownedDisposableServices.Add(disposable);
                 }
             }
+
+            return serviceInstance;
         }
-
-        internal bool TryGetLanguageServices(string languageName, out MefLanguageServices languageServices)
-            => _languageServicesMap.TryGetValue(languageName, out languageServices);
-
-        internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+        else
         {
-            public (string type, string layer)[] Metadata
-                => services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer)).ToArray();
+            return default!;
         }
+    }
+
+    private bool TryGetService(Type serviceType, [NotNullWhen(true)] out Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, out bool usesFactory)
+    {
+        if (!_serviceMap.TryGetValue(serviceType, out var service))
+        {
+            service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, serviceType => LayeredServiceUtilities.PickService(serviceType, _workspace.Kind, _services));
+        }
+
+        (lazyService, usesFactory) = (service.lazyService, service.usesFactory);
+        return lazyService != null;
+    }
+
+    private ImmutableArray<string> ComputeSupportedLanguages()
+    {
+        var localLanguages = _languages;
+        if (localLanguages.IsDefault)
+        {
+            var list = HostExportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
+                       HostExportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
+                       .Distinct()
+                       .ToImmutableArray();
+
+            ImmutableInterlocked.InterlockedCompareExchange(ref _languages, list, localLanguages);
+        }
+
+        return _languages;
+    }
+
+    public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
+
+#if CODE_STYLE
+    internal ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#else
+    internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#endif
+
+    public override bool IsSupported(string languageName)
+        => this.SupportedLanguagesArray.Contains(languageName);
+
+    public override HostLanguageServices GetLanguageServices(string languageName)
+    {
+        var currentServicesMap = _languageServicesMap;
+        if (!currentServicesMap.TryGetValue(languageName, out var languageServices))
+        {
+            languageServices = ImmutableInterlocked.GetOrAdd(ref _languageServicesMap, languageName, static (languageName, self) => new MefLanguageServices(self, languageName), this);
+        }
+
+        if (languageServices.HasServices)
+        {
+            return languageServices;
+        }
+        else
+        {
+            // throws exception
+#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
+            return base.GetLanguageServices(languageName);
+#pragma warning restore RS0030 // Do not used banned APIs
+        }
+    }
+
+    public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
+    {
+        foreach (var language in SupportedLanguagesArray)
+        {
+#pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
+            var services = (MefLanguageServices)this.GetLanguageServices(language);
+#pragma warning restore RS0030 // Do not used banned APIs
+            if (services.TryGetService<TLanguageService>(filter, out var service))
+            {
+                yield return service;
+            }
+        }
+    }
+
+    internal bool TryGetLanguageServices(string languageName, [NotNullWhen(true)] out MefLanguageServices? languageServices)
+        => _languageServicesMap.TryGetValue(languageName, out languageServices);
+
+    internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+    {
+        public (string type, string layer)[] Metadata
+            => [.. services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer))];
     }
 }

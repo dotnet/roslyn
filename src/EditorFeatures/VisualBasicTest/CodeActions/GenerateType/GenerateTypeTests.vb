@@ -21,9 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Genera
 
         ' TODO Requires Wpf due to IInlineRenameService dependency (https: //github.com/dotnet/roslyn/issues/46153)
         Protected Overrides Function GetComposition() As TestComposition
-            Return EditorTestCompositions.EditorFeaturesWpf _
-                .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-                .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+            Return EditorTestCompositions.EditorFeaturesWpf
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -508,8 +506,7 @@ expectedContainers:=ImmutableArray.Create("Goo"),
 expectedDocumentName:="Bar.vb")
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
         Public Async Function TestPreserveBanner1() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "' I am a banner!
@@ -530,8 +527,7 @@ expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Bar.vb")
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
         Public Async Function TestPreserveBanner2() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "''' I am a doc comment!
@@ -552,8 +548,7 @@ expectedContainers:=ImmutableArray(Of String).Empty,
 expectedDocumentName:="Bar.vb")
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/17361")>
         Public Async Function TestPreserveBanner3() As Task
             Await TestAddDocumentInRegularAndScriptAsync(
 "' I am a banner!

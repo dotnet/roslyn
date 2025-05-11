@@ -35,9 +35,10 @@ namespace IOperationGenerator
             _typeMap.Add("IOperation", null);
         }
 
-        public static void Write(Tree tree, string location)
+        /// <summary>Returns true for success</summary>
+        public static bool Write(Tree tree, string location)
         {
-            new IOperationClassWriter(tree, location).WriteFiles();
+            return new IOperationClassWriter(tree, location).WriteFiles();
         }
 
         #region Writing helpers
@@ -90,12 +91,13 @@ namespace IOperationGenerator
         }
         #endregion
 
-        private void WriteFiles()
+        /// <summary>Returns true for success</summary>
+        private bool WriteFiles()
         {
             if (ModelHasErrors(_tree))
             {
                 Console.WriteLine("Encountered xml errors, not generating");
-                return;
+                return false;
             }
 
             foreach (var grouping in _tree.Types.OfType<AbstractNode>().GroupBy(n => n.Namespace))
@@ -170,6 +172,8 @@ namespace IOperationGenerator
 
                 WriteEndNamespace();
             }
+
+            return true;
 
             void writeHeader()
             {

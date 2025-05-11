@@ -2,27 +2,26 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BinderFactory
 
-        Private NotInheritable Class BinderFactoryVisitor
+        Friend NotInheritable Class BinderFactoryVisitor
             Inherits VisualBasicSyntaxVisitor(Of Binder)
 
             Private _position As Integer
-            Private ReadOnly _factory As BinderFactory
+            Private _factory As BinderFactory
 
-            Public Sub New(factory As BinderFactory)
+            Public Sub Initialize(factory As BinderFactory, position As Integer)
                 Me._factory = factory
+                Me._position = position
             End Sub
 
-            Friend WriteOnly Property Position As Integer
-                Set(value As Integer)
-                    Me._position = value
-                End Set
-            End Property
+            Public Sub Clear()
+                _factory = Nothing
+                _position = 0
+            End Sub
 
             Public Overrides Function VisitXmlCrefAttribute(node As XmlCrefAttributeSyntax) As Binder
                 Dim trivia As StructuredTriviaSyntax = node.EnclosingStructuredTrivia

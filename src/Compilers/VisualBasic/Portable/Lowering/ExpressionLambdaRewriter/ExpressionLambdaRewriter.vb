@@ -194,6 +194,11 @@ lSelect:
             _factory.Syntax = node.Syntax
             Dim result = VisitInternal(node)
             _factory.Syntax = old
+
+            If result.Type Is _expressionType Then
+                Return result
+            End If
+
             Return _factory.Convert(_expressionType, result)
         End Function
 
@@ -265,7 +270,7 @@ lSelect:
 #If DEBUG Then
                     If node.Kind = BoundKind.GetType Then
                         Dim gt = DirectCast(node, BoundGetType)
-                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.Type)
+                        node = gt.Update(gt.SourceType.MemberwiseClone(Of BoundTypeExpression)(), gt.GetTypeFromHandle, gt.Type)
                     Else
                         node = node.MemberwiseClone(Of BoundExpression)()
                     End If
@@ -333,7 +338,11 @@ lSelect:
                 parameters.Add(parameterReference)
                 _parameterMap(p) = parameterReference
 
-                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap).Type), _factory.Literal(p.Name))
+                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Parameter,
+                                                                                        _factory.[Typeof](
+                                                                                            p.Type.InternalSubstituteTypeParameters(_typeMap).Type,
+                                                                                            _factory.WellKnownType(WellKnownType.System_Type)),
+                                                                                        _factory.Literal(p.Name))
                 If Not parameter.HasErrors Then
                     initializers.Add(_factory.AssignmentExpression(parameterReferenceLValue, parameter))
                 End If
@@ -348,7 +357,7 @@ lSelect:
             Dim result = _factory.Sequence(locals.ToImmutableAndFree(),
                                            initializers.ToImmutableAndFree(),
                                            ConvertRuntimeHelperToExpressionTree(
-                                               "Lambda",
+                                               WellKnownMember.System_Linq_Expressions_Expression__Lambda_OfTDelegate,
                                                ImmutableArray.Create(Of TypeSymbol)(delegateType),
                                                translatedBody,
                                                _factory.Array(parameterExpressionType, parameters.ToImmutableAndFree())))
@@ -380,13 +389,13 @@ lSelect:
             End If
 
             If method.MethodKind = MethodKind.DelegateInvoke Then
-                Return ConvertRuntimeHelperToExpressionTree("Invoke",
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Invoke,
                                                             receiverOpt,
                                                             ConvertArgumentsIntoArray(node.Arguments))
             Else
-                Return ConvertRuntimeHelperToExpressionTree("Call",
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Call,
                                                             If(method.IsShared, _factory.Null(_expressionType), receiverOpt),
-                                                            _factory.MethodInfo(method), ConvertArgumentsIntoArray(node.Arguments))
+                                                            _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)), ConvertArgumentsIntoArray(node.Arguments))
             End If
         End Function
 
@@ -398,7 +407,7 @@ lSelect:
 
             Dim rewrittenReceiver As BoundExpression = Nothing
             If fieldIsShared Then
-                rewrittenReceiver = _factory.Null()
+                rewrittenReceiver = _factory.Null(_expressionType)
             Else
                 Debug.Assert(origReceiverOpt IsNot Nothing)
                 If origReceiverOpt.Kind = BoundKind.MyBaseReference Then
@@ -411,7 +420,10 @@ lSelect:
                 End If
             End If
 
-            Return ConvertRuntimeHelperToExpressionTree("Field", rewrittenReceiver, _factory.FieldInfo(field))
+            Return ConvertRuntimeHelperToExpressionTree(
+                WellKnownMember.System_Linq_Expressions_Expression__Field,
+                rewrittenReceiver,
+                _factory.FieldInfo(field))
         End Function
 
         Private Function VisitPropertyAccess(node As BoundPropertyAccess) As BoundExpression
@@ -422,7 +434,7 @@ lSelect:
 
             Dim rewrittenReceiver As BoundExpression = Nothing
             If propertyIsShared Then
-                rewrittenReceiver = _factory.Null()
+                rewrittenReceiver = _factory.Null(_expressionType)
             Else
                 Debug.Assert(origReceiverOpt IsNot Nothing)
                 Debug.Assert(origReceiverOpt.Kind <> BoundKind.MyBaseReference AndAlso origReceiverOpt.Kind <> BoundKind.MyClassReference)
@@ -430,7 +442,10 @@ lSelect:
             End If
 
             Dim getMethod As MethodSymbol = [property].GetMostDerivedGetMethod()
-            Return ConvertRuntimeHelperToExpressionTree("Property", rewrittenReceiver, _factory.MethodInfo(getMethod))
+            Return ConvertRuntimeHelperToExpressionTree(
+                WellKnownMember.System_Linq_Expressions_Expression__Property,
+                rewrittenReceiver,
+                _factory.MethodInfo(getMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
         End Function
 
         Private Function VisitLambda(node As BoundLambda) As BoundExpression
@@ -469,30 +484,33 @@ lSelect:
 
             Dim result As BoundExpression
 
-            Dim methodInfo As BoundExpression = Me._factory.MethodInfo(If(method.CallsiteReducedFromMethod, method))
+            Dim targetMethod As MethodSymbol = If(method.CallsiteReducedFromMethod, method)
 
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
-            Dim createDelegate = Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteInfo)
+            Dim createDelegate = DirectCast(Binder.GetWellKnownTypeMember(Me._factory.Compilation, WellKnownMember.System_Reflection_MethodInfo__CreateDelegate, useSiteInfo), MethodSymbol)
+
             If createDelegate IsNot Nothing And useSiteInfo.DiagnosticInfo Is Nothing Then
 
                 Diagnostics.AddDependencies(useSiteInfo)
 
+                Dim methodInfo As BoundExpression = Me._factory.MethodInfo(targetMethod, createDelegate.ContainingType)
+
                 ' beginning in 4.5, we do it this way
                 result = Me._factory.Call(methodInfo,
-                                          DirectCast(createDelegate, MethodSymbol),
-                                          Me._factory.[Typeof](delegateType),
+                                          createDelegate,
+                                          Me._factory.[Typeof](delegateType, createDelegate.Parameters(0).Type),
                                           receiverOpt)
 
             Else
                 ' 4.0 and earlier we do it this way
-                createDelegate = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_Delegate__CreateDelegate4)
+                createDelegate = DirectCast(Me._factory.SpecialMember(SpecialMember.System_Delegate__CreateDelegate4), MethodSymbol)
 
                 If createDelegate IsNot Nothing Then
                     result = Me._factory.Call(Me._factory.Null(Me.ObjectType),
-                                              DirectCast(createDelegate, MethodSymbol),
-                                              Me._factory.[Typeof](delegateType),
+                                              createDelegate,
+                                              Me._factory.[Typeof](delegateType, createDelegate.Parameters(0).Type),
                                               receiverOpt,
-                                              methodInfo,
+                                              Me._factory.MethodInfo(targetMethod, createDelegate.Parameters(2).Type),
                                               Me._factory.Literal(False))
 
                 Else
@@ -512,9 +530,9 @@ lSelect:
                 Dim arg = node.Indices(0)
                 Dim index = Visit(arg)
                 Debug.Assert(arg.Type Is Me.Int32Type)
-                Return ConvertRuntimeHelperToExpressionTree("ArrayIndex", array, index)
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__ArrayIndex_Expression_Expression, array, index)
             Else
-                Return ConvertRuntimeHelperToExpressionTree("ArrayIndex", array, BuildIndices(node.Indices))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__ArrayIndex_Expression_Expressions, array, BuildIndices(node.Indices))
             End If
         End Function
 
@@ -538,7 +556,10 @@ lSelect:
         End Function
 
         Private Function VisitNewT(node As BoundNewT) As BoundExpression
-            Return VisitObjectCreationContinued(ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type)), node.InitializerOpt)
+            Return VisitObjectCreationContinued(
+                ConvertRuntimeHelperToExpressionTree(
+                    WellKnownMember.System_Linq_Expressions_Expression__New_Type,
+                    _factory.[Typeof](node.Type, _factory.WellKnownType(WellKnownType.System_Type))), node.InitializerOpt)
         End Function
 
         Private Function VisitObjectCreationContinued(creation As BoundExpression, initializerOpt As BoundExpression) As BoundExpression
@@ -548,11 +569,11 @@ lSelect:
 
             Select Case initializerOpt.Kind
                 Case BoundKind.ObjectInitializerExpression
-                    Return ConvertRuntimeHelperToExpressionTree("MemberInit", creation,
+                    Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__MemberInit, creation,
                                 VisitObjectInitializer(DirectCast(initializerOpt, BoundObjectInitializerExpression)))
 
                 Case BoundKind.CollectionInitializerExpression
-                    Return ConvertRuntimeHelperToExpressionTree("ListInit", creation,
+                    Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__ListInit, creation,
                                 VisitCollectionInitializer(DirectCast(initializerOpt, BoundCollectionInitializerExpression)))
 
                 Case Else
@@ -596,10 +617,17 @@ lSelect:
                 Debug.Assert(leftSymbol.Kind = SymbolKind.Field OrElse leftSymbol.Kind = SymbolKind.Property)
 
                 Dim memberRef As BoundExpression = If(leftSymbol.Kind = SymbolKind.Field,
-                                                      Me._factory.FieldInfo(DirectCast(leftSymbol, FieldSymbol)),
-                                                      Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod))
+                                                      _factory.Convert(MemberInfoType, Me._factory.FieldInfo(DirectCast(leftSymbol, FieldSymbol))),
+                                                      Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
 
-                newInitializers(i) = _factory.Convert(MemberBindingType, ConvertRuntimeHelperToExpressionTree("Bind", memberRef, Visit(right)))
+                newInitializers(i) = _factory.Convert(
+                    MemberBindingType,
+                    ConvertRuntimeHelperToExpressionTree(
+                        If(leftSymbol.Kind = SymbolKind.Field,
+                           WellKnownMember.System_Linq_Expressions_Expression__Bind_MemberInfo,
+                           WellKnownMember.System_Linq_Expressions_Expression__Bind_MethodInfo),
+                        memberRef,
+                        Visit(right)))
             Next
 
             Return _factory.Array(MemberBindingType, newInitializers.AsImmutableOrNull())
@@ -623,8 +651,8 @@ lSelect:
                 newInitializers(i) = _factory.Convert(
                                             ElementInitType,
                                             ConvertRuntimeHelperToExpressionTree(
-                                                    "ElementInit",
-                                                    _factory.MethodInfo([call].Method),
+                                                    WellKnownMember.System_Linq_Expressions_Expression__ElementInit,
+                                                    _factory.MethodInfo([call].Method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)),
                                                     ConvertArgumentsIntoArray(If([call].Method.IsShared AndAlso [call].Method.IsExtensionMethod,
                                                                                  [call].Arguments.RemoveAt(0),
                                                                                  [call].Arguments))))
@@ -642,7 +670,8 @@ lSelect:
                 (node.Arguments.Length = 0 AndAlso Not node.Type.IsStructureType() OrElse
                 node.ConstructorOpt.IsDefaultValueTypeConstructor()) Then
 
-                Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](node.Type))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_Type,
+                                                            _factory.[Typeof](node.Type, _factory.WellKnownType(WellKnownType.System_Type)))
             End If
 
             Dim ctor = _factory.ConstructorInfo(node.ConstructorOpt)
@@ -655,12 +684,16 @@ lSelect:
 
                 Dim methodInfos(properties.Length - 1) As BoundExpression
                 For i = 0 To properties.Length - 1
-                    methodInfos(i) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(i).GetMethod))
+                    methodInfos(i) = Me._factory.Convert(Me.MemberInfoType, Me._factory.MethodInfo(properties(i).GetMethod, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)))
                 Next
 
-                Return ConvertRuntimeHelperToExpressionTree("New", ctor, args, Me._factory.Array(Me.MemberInfoType, methodInfos.AsImmutableOrNull()))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos,
+                                                            ctor,
+                                                            _factory.Convert(_factory.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_expressionType),
+                                                                             args),
+                                                            Me._factory.Array(Me.MemberInfoType, methodInfos.AsImmutableOrNull()))
             Else
-                Return ConvertRuntimeHelperToExpressionTree("New", ctor, args)
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions, ctor, args)
             End If
         End Function
 
@@ -694,19 +727,19 @@ lSelect:
                                 suppressObjectClone:=True,
                                 type:=resultType))
             Else
-                Return ConvertRuntimeHelperToExpressionTree("ArrayLength", Visit(node.Expression))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__ArrayLength, Visit(node.Expression))
             End If
         End Function
 
         Private Function VisitArrayCreation(node As BoundArrayCreation) As BoundExpression
             Dim arrayType = DirectCast(node.Type, ArrayTypeSymbol)
-            Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType)
+            Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType, _factory.WellKnownType(WellKnownType.System_Type))
             Dim initializer As BoundArrayInitialization = node.InitializerOpt
             If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
                 Debug.Assert(arrayType.IsSZArray, "Not SZArray should be addressed in DiagnosticsPass")
-                Return ConvertRuntimeHelperToExpressionTree("NewArrayInit", boundType, ConvertArgumentsIntoArray(node.InitializerOpt.Initializers))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__NewArrayInit, boundType, ConvertArgumentsIntoArray(node.InitializerOpt.Initializers))
             Else
-                Return ConvertRuntimeHelperToExpressionTree("NewArrayBounds", boundType, ConvertArgumentsIntoArray(node.Bounds))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__NewArrayBounds, boundType, ConvertArgumentsIntoArray(node.Bounds))
             End If
         End Function
 
@@ -719,7 +752,7 @@ lSelect:
         End Function
 
         Private Function VisitTypeOf(node As BoundTypeOf) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("TypeIs", Visit(node.Operand), _factory.[Typeof](node.TargetType))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__TypeIs, Visit(node.Operand), _factory.[Typeof](node.TargetType, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
 #End Region
@@ -728,32 +761,34 @@ lSelect:
 
         ' Emit a call node
         Private Function [Call](receiver As BoundExpression, method As MethodSymbol, ParamArray params As BoundExpression()) As BoundExpression
-            Dim factoryArgs(0 To params.Length + 1) As BoundExpression
-            factoryArgs(0) = receiver
-            factoryArgs(1) = _factory.MethodInfo(method)
-            Array.Copy(params, 0, factoryArgs, 2, params.Length)
-            Return ConvertRuntimeHelperToExpressionTree("Call", factoryArgs)
+            Return ConvertRuntimeHelperToExpressionTree(
+                    WellKnownMember.System_Linq_Expressions_Expression__Call,
+                    receiver,
+                    _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)),
+                    _factory.Array(_expressionType, params))
         End Function
 
         ' Emit a Default node for a specific type
         Private Function [Default](type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("Default", _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Default, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         ' Emit a New node to a specific type with a helper constructor and one argument
         Private Function [New](helper As SpecialMember, argument As BoundExpression) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("New", _factory.ConstructorInfo(helper), argument)
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
+                                                        _factory.ConstructorInfo(helper),
+                                                        _factory.Array(_expressionType, argument))
         End Function
 
         ' Emit a negate node
         Private Function Negate(expr As BoundExpression) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("Negate", expr)
+            Return _factory.Convert(_expressionType, ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Negate_Expression, expr))
         End Function
 
         Private Function InitWithParameterlessValueTypeConstructor(type As TypeSymbol) As BoundExpression
             ' The "New" overload without a methodInfo automatically generates the parameterless constructor for us.
             Debug.Assert(type.IsValueType)
-            Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_Type, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         Private Function IsIntegralType(type As TypeSymbol) As Boolean
@@ -769,91 +804,41 @@ lSelect:
         End Function
 
         Private Function CreateLiteralExpression(node As BoundExpression, type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("Constant", _factory.Convert(Me.ObjectType, node), _factory.[Typeof](type))
+            Return _factory.Convert(
+                _expressionType,
+                ConvertRuntimeHelperToExpressionTree(
+                    WellKnownMember.System_Linq_Expressions_Expression__Constant,
+                    _factory.Convert(Me.ObjectType, node), _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type))))
         End Function
 
         ''' <summary>
         ''' Create an Expression Tree Node with the given name and arguments
         ''' </summary>
-        Private Function ConvertRuntimeHelperToExpressionTree(helperMethodName As String,
+        Private Function ConvertRuntimeHelperToExpressionTree(helperMethod As WellKnownMember,
                                                               ParamArray arguments As BoundExpression()) As BoundExpression
-
-            Return ConvertRuntimeHelperToExpressionTree(helperMethodName, ImmutableArray(Of TypeSymbol).Empty, arguments)
+            Return ConvertRuntimeHelperToExpressionTree(helperMethod, ImmutableArray(Of TypeSymbol).Empty, arguments)
         End Function
 
         ''' <summary>
         ''' Create an Expression node with the given name, type arguments, and arguments.
         ''' </summary>
-        Private Function ConvertRuntimeHelperToExpressionTree(helperMethodName As String,
+        Private Function ConvertRuntimeHelperToExpressionTree(helperMethod As WellKnownMember,
                                                               typeArgs As ImmutableArray(Of TypeSymbol),
                                                               ParamArray arguments As BoundExpression()) As BoundExpression
-            Dim anyArgumentsWithErrors = False
+            Dim helper As MethodSymbol = _factory.WellKnownMember(Of MethodSymbol)(helperMethod)
 
-            ' Check if we have any bad arguments.
-            For Each a In arguments
-                If a.HasErrors Then
-                    anyArgumentsWithErrors = True
+            If helper IsNot Nothing Then
+                If Not typeArgs.IsEmpty Then
+                    helper = helper.Construct(typeArgs)
                 End If
-            Next
 
-            ' Get the method group
-            Dim methodGroup = GetExprFactoryMethodGroup(helperMethodName, typeArgs)
-
-            If methodGroup Is Nothing OrElse anyArgumentsWithErrors Then
-                Return _factory.BadExpression(arguments)
+                Return New BoundCall(_factory.Syntax, helper, methodGroupOpt:=Nothing, receiverOpt:=Nothing,
+                                     arguments:=ImmutableArray.Create(Of BoundExpression)(arguments),
+                                     constantValueOpt:=Nothing, isLValue:=False, suppressObjectClone:=True,
+                                     helper.ReturnType)
             End If
 
-            ' Do overload resolution and bind an invocation of the method.
-            Dim result = _binder.BindInvocationExpression(_factory.Syntax,
-                                                          _factory.Syntax,
-                                                          TypeCharacter.None,
-                                                          methodGroup,
-                                                          ImmutableArray.Create(Of BoundExpression)(arguments),
-                                                          argumentNames:=Nothing,
-                                                          diagnostics:=Diagnostics,
-                                                          callerInfoOpt:=Nothing)
-
-            Return result
-        End Function
-
-        ''' <summary>
-        ''' Gets the method group for a given method name. Returns Nothing if no methods found.
-        ''' </summary>
-        Private Function GetExprFactoryMethodGroup(methodName As String, typeArgs As ImmutableArray(Of TypeSymbol)) As BoundMethodGroup
-            Dim group As BoundMethodGroup = Nothing
-            Dim result = LookupResult.GetInstance()
-
-            Dim useSiteInfo = _binder.GetNewCompoundUseSiteInfo(Me.Diagnostics)
-            _binder.LookupMember(result,
-                                 Me._expressionType,
-                                 methodName,
-                                 arity:=0,
-                                 options:=LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods,
-                                 useSiteInfo:=useSiteInfo)
-            Me.Diagnostics.Add(Me._factory.Syntax, useSiteInfo)
-
-            If result.IsGood Then
-                Debug.Assert(result.Symbols.Count > 0)
-                Dim symbol0 = result.Symbols(0)
-                If result.Symbols(0).Kind = SymbolKind.Method Then
-                    group = New BoundMethodGroup(Me._factory.Syntax,
-                                                 Me._factory.TypeArguments(typeArgs),
-                                                 result.Symbols.ToDowncastedImmutable(Of MethodSymbol),
-                                                 result.Kind,
-                                                 Nothing,
-                                                 QualificationKind.QualifiedViaTypeName)
-                End If
-            End If
-
-            If group Is Nothing Then
-                Diagnostics.Add(If(result.HasDiagnostic,
-                                   result.Diagnostic,
-                                   ErrorFactory.ErrorInfo(ERRID.ERR_NameNotMember2, methodName, Me._expressionType)),
-                                Me._factory.Syntax.GetLocation())
-            End If
-
-            result.Free()
-            Return group
+            Return _factory.BadExpression(arguments)
         End Function
 
 #End Region

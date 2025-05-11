@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckDefinitionInvariant();
 
             ImmutableArray<CSharpAttributeData> userDefined = this.GetAttributes();
-            ArrayBuilder<SynthesizedAttributeData> synthesized = null;
+            ArrayBuilder<CSharpAttributeData> synthesized = null;
             this.AddSynthesizedAttributes(moduleBuilder, ref synthesized);
 
             if (emittingRefAssembly && !HasReferenceAssemblyAttribute)

@@ -4,7 +4,8 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFramework>net472</TargetFramework>
+    <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -13,5 +14,8 @@
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" />
   </ItemGroup>
 </Project>

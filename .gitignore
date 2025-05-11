@@ -22,6 +22,7 @@
 .packages/
 .nuget/
 .complog/
+/MSBuild_Logs/
 
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
@@ -48,7 +49,7 @@ UnitTestResults.html
 *.nuget.props
 *.nuget.targets
 project.lock.json
-msbuild.binlog
+*.binlog
 *.project.lock.json
 
 *_i.c

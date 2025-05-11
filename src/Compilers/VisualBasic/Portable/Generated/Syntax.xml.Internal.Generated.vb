@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, empty As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(empty)
             Me._empty = empty
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, empty As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(empty)
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), empty As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(empty)
             Me._empty = empty
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, endKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, endKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(endKeyword)
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), endKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, options As GreenNode, [imports] As GreenNode, attributes As GreenNode, members As GreenNode, endOfFileToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If options IsNot Nothing Then
                 AdjustFlagsAndWidth(options)
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, options As GreenNode, [imports] As GreenNode, attributes As GreenNode, members As GreenNode, endOfFileToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             If options IsNot Nothing Then
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), options As GreenNode, [imports] As GreenNode, attributes As GreenNode, members As GreenNode, endOfFileToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If options IsNot Nothing Then
                 AdjustFlagsAndWidth(options)
@@ -459,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, optionKeyword As InternalSyntax.KeywordSyntax, nameKeyword As InternalSyntax.KeywordSyntax, valueKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(optionKeyword)
             Me._optionKeyword = optionKeyword
@@ -474,7 +474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, optionKeyword As InternalSyntax.KeywordSyntax, nameKeyword As InternalSyntax.KeywordSyntax, valueKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(optionKeyword)
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), optionKeyword As InternalSyntax.KeywordSyntax, nameKeyword As InternalSyntax.KeywordSyntax, valueKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(optionKeyword)
             Me._optionKeyword = optionKeyword
@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, importsKeyword As InternalSyntax.KeywordSyntax, importsClauses As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(importsKeyword)
             Me._importsKeyword = importsKeyword
@@ -592,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, importsKeyword As InternalSyntax.KeywordSyntax, importsClauses As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(importsKeyword)
@@ -606,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), importsKeyword As InternalSyntax.KeywordSyntax, importsClauses As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(importsKeyword)
             Me._importsKeyword = importsKeyword
@@ -704,7 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, [alias] As ImportAliasClauseSyntax, name As NameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If [alias] IsNot Nothing Then
                 AdjustFlagsAndWidth([alias])
@@ -717,7 +717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, [alias] As ImportAliasClauseSyntax, name As NameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If [alias] IsNot Nothing Then
@@ -731,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), [alias] As ImportAliasClauseSyntax, name As NameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If [alias] IsNot Nothing Then
                 AdjustFlagsAndWidth([alias])
@@ -805,7 +805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -816,7 +816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -828,7 +828,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, xmlNamespace As XmlAttributeSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -911,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, xmlNamespace As XmlAttributeSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanToken)
@@ -925,7 +925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanToken As InternalSyntax.PunctuationSyntax, xmlNamespace As XmlAttributeSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -1002,7 +1002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, namespaceStatement As NamespaceStatementSyntax, members As GreenNode, endNamespaceStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(namespaceStatement)
             Me._namespaceStatement = namespaceStatement
@@ -1017,7 +1017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, namespaceStatement As NamespaceStatementSyntax, members As GreenNode, endNamespaceStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(namespaceStatement)
@@ -1033,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), namespaceStatement As NamespaceStatementSyntax, members As GreenNode, endNamespaceStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(namespaceStatement)
             Me._namespaceStatement = namespaceStatement
@@ -1121,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, namespaceKeyword As InternalSyntax.KeywordSyntax, name As NameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(namespaceKeyword)
             Me._namespaceKeyword = namespaceKeyword
@@ -1132,7 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, namespaceKeyword As InternalSyntax.KeywordSyntax, name As NameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(namespaceKeyword)
@@ -1144,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), namespaceKeyword As InternalSyntax.KeywordSyntax, name As NameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(namespaceKeyword)
             Me._namespaceKeyword = namespaceKeyword
@@ -1318,7 +1318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, moduleStatement As ModuleStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endModuleStatement As EndBlockStatementSyntax)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(moduleStatement)
             Me._moduleStatement = moduleStatement
@@ -1329,7 +1329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, moduleStatement As ModuleStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endModuleStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(moduleStatement)
@@ -1341,7 +1341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), moduleStatement As ModuleStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endModuleStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(moduleStatement)
             Me._moduleStatement = moduleStatement
@@ -1417,7 +1417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, structureStatement As StructureStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endStructureStatement As EndBlockStatementSyntax)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(structureStatement)
             Me._structureStatement = structureStatement
@@ -1428,7 +1428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, structureStatement As StructureStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endStructureStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(structureStatement)
@@ -1440,7 +1440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), structureStatement As StructureStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endStructureStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(structureStatement)
             Me._structureStatement = structureStatement
@@ -1516,7 +1516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, interfaceStatement As InterfaceStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endInterfaceStatement As EndBlockStatementSyntax)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(interfaceStatement)
             Me._interfaceStatement = interfaceStatement
@@ -1527,7 +1527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, interfaceStatement As InterfaceStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endInterfaceStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(interfaceStatement)
@@ -1539,7 +1539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), interfaceStatement As InterfaceStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endInterfaceStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(interfaceStatement)
             Me._interfaceStatement = interfaceStatement
@@ -1615,7 +1615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, classStatement As ClassStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endClassStatement As EndBlockStatementSyntax)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(classStatement)
             Me._classStatement = classStatement
@@ -1626,7 +1626,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, classStatement As ClassStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endClassStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(classStatement)
@@ -1638,7 +1638,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), classStatement As ClassStatementSyntax, [inherits] As GreenNode, [implements] As GreenNode, members As GreenNode, endClassStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, [inherits], [implements], members)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(classStatement)
             Me._classStatement = classStatement
@@ -1715,7 +1715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, enumStatement As EnumStatementSyntax, members As GreenNode, endEnumStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(enumStatement)
             Me._enumStatement = enumStatement
@@ -1730,7 +1730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, enumStatement As EnumStatementSyntax, members As GreenNode, endEnumStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(enumStatement)
@@ -1746,7 +1746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), enumStatement As EnumStatementSyntax, members As GreenNode, endEnumStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(enumStatement)
             Me._enumStatement = enumStatement
@@ -1856,7 +1856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, inheritsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(inheritsKeyword)
             Me._inheritsKeyword = inheritsKeyword
@@ -1869,7 +1869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, inheritsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(inheritsKeyword)
@@ -1883,7 +1883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), inheritsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(inheritsKeyword)
             Me._inheritsKeyword = inheritsKeyword
@@ -1954,7 +1954,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, implementsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(implementsKeyword)
             Me._implementsKeyword = implementsKeyword
@@ -1967,7 +1967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, implementsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(implementsKeyword)
@@ -1981,7 +1981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), implementsKeyword As InternalSyntax.KeywordSyntax, types As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(implementsKeyword)
             Me._implementsKeyword = implementsKeyword
@@ -2177,7 +2177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, moduleKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(moduleKeyword)
             Me._moduleKeyword = moduleKeyword
@@ -2186,7 +2186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, moduleKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(moduleKeyword)
@@ -2196,7 +2196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, moduleKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(moduleKeyword)
             Me._moduleKeyword = moduleKeyword
@@ -2260,7 +2260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, structureKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(structureKeyword)
             Me._structureKeyword = structureKeyword
@@ -2269,7 +2269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, structureKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(structureKeyword)
@@ -2279,7 +2279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, structureKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(structureKeyword)
             Me._structureKeyword = structureKeyword
@@ -2343,7 +2343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, interfaceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(interfaceKeyword)
             Me._interfaceKeyword = interfaceKeyword
@@ -2352,7 +2352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, interfaceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(interfaceKeyword)
@@ -2362,7 +2362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, interfaceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(interfaceKeyword)
             Me._interfaceKeyword = interfaceKeyword
@@ -2426,7 +2426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, classKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(classKeyword)
             Me._classKeyword = classKeyword
@@ -2435,7 +2435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, classKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(classKeyword)
@@ -2445,7 +2445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, classKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, identifier, typeParameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(classKeyword)
             Me._classKeyword = classKeyword
@@ -2513,7 +2513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, enumKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, underlyingType As AsClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -2536,7 +2536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, enumKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, underlyingType As AsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -2560,7 +2560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, enumKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, underlyingType As AsClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -2688,7 +2688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -2705,7 +2705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -2723,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -2822,7 +2822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, varianceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterConstraintClause As TypeParameterConstraintClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If varianceKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(varianceKeyword)
@@ -2839,7 +2839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, varianceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterConstraintClause As TypeParameterConstraintClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If varianceKeyword IsNot Nothing Then
@@ -2857,7 +2857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), varianceKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterConstraintClause As TypeParameterConstraintClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If varianceKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(varianceKeyword)
@@ -2975,7 +2975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, constraint As ConstraintSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(asKeyword)
             Me._asKeyword = asKeyword
@@ -2986,7 +2986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, constraint As ConstraintSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(asKeyword)
@@ -2998,7 +2998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), asKeyword As InternalSyntax.KeywordSyntax, constraint As ConstraintSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(asKeyword)
             Me._asKeyword = asKeyword
@@ -3072,7 +3072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, constraints As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(asKeyword)
             Me._asKeyword = asKeyword
@@ -3089,7 +3089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, constraints As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(asKeyword)
@@ -3107,7 +3107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), asKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, constraints As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(asKeyword)
             Me._asKeyword = asKeyword
@@ -3229,7 +3229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, constraintKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(constraintKeyword)
             Me._constraintKeyword = constraintKeyword
@@ -3238,7 +3238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, constraintKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(constraintKeyword)
@@ -3248,7 +3248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), constraintKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(constraintKeyword)
             Me._constraintKeyword = constraintKeyword
@@ -3303,7 +3303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, type As TypeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -3312,7 +3312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, type As TypeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(type)
@@ -3322,7 +3322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), type As TypeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -3378,7 +3378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, identifier As InternalSyntax.IdentifierTokenSyntax, initializer As EqualsValueSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -3395,7 +3395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, identifier As InternalSyntax.IdentifierTokenSyntax, initializer As EqualsValueSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -3413,7 +3413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, identifier As InternalSyntax.IdentifierTokenSyntax, initializer As EqualsValueSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -3556,7 +3556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionStatement As MethodStatementSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(subOrFunctionStatement)
             Me._subOrFunctionStatement = subOrFunctionStatement
@@ -3567,7 +3567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionStatement As MethodStatementSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(subOrFunctionStatement)
@@ -3579,7 +3579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), subOrFunctionStatement As MethodStatementSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(subOrFunctionStatement)
             Me._subOrFunctionStatement = subOrFunctionStatement
@@ -3651,7 +3651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subNewStatement As SubNewStatementSyntax, statements As GreenNode, endSubStatement As EndBlockStatementSyntax)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(subNewStatement)
             Me._subNewStatement = subNewStatement
@@ -3662,7 +3662,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subNewStatement As SubNewStatementSyntax, statements As GreenNode, endSubStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(subNewStatement)
@@ -3674,7 +3674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), subNewStatement As SubNewStatementSyntax, statements As GreenNode, endSubStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(subNewStatement)
             Me._subNewStatement = subNewStatement
@@ -3746,7 +3746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorStatement As OperatorStatementSyntax, statements As GreenNode, endOperatorStatement As EndBlockStatementSyntax)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(operatorStatement)
             Me._operatorStatement = operatorStatement
@@ -3757,7 +3757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorStatement As OperatorStatementSyntax, statements As GreenNode, endOperatorStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(operatorStatement)
@@ -3769,7 +3769,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), operatorStatement As OperatorStatementSyntax, statements As GreenNode, endOperatorStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(operatorStatement)
             Me._operatorStatement = operatorStatement
@@ -3842,7 +3842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, accessorStatement As AccessorStatementSyntax, statements As GreenNode, endAccessorStatement As EndBlockStatementSyntax)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(accessorStatement)
             Me._accessorStatement = accessorStatement
@@ -3853,7 +3853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, accessorStatement As AccessorStatementSyntax, statements As GreenNode, endAccessorStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(accessorStatement)
@@ -3865,7 +3865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), accessorStatement As AccessorStatementSyntax, statements As GreenNode, endAccessorStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, statements)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(accessorStatement)
             Me._accessorStatement = accessorStatement
@@ -3940,7 +3940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, propertyStatement As PropertyStatementSyntax, accessors As GreenNode, endPropertyStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(propertyStatement)
             Me._propertyStatement = propertyStatement
@@ -3955,7 +3955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, propertyStatement As PropertyStatementSyntax, accessors As GreenNode, endPropertyStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(propertyStatement)
@@ -3971,7 +3971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), propertyStatement As PropertyStatementSyntax, accessors As GreenNode, endPropertyStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(propertyStatement)
             Me._propertyStatement = propertyStatement
@@ -4058,7 +4058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eventStatement As EventStatementSyntax, accessors As GreenNode, endEventStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(eventStatement)
             Me._eventStatement = eventStatement
@@ -4073,7 +4073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eventStatement As EventStatementSyntax, accessors As GreenNode, endEventStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(eventStatement)
@@ -4089,7 +4089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), eventStatement As EventStatementSyntax, accessors As GreenNode, endEventStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(eventStatement)
             Me._eventStatement = eventStatement
@@ -4286,7 +4286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -4301,7 +4301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -4317,7 +4317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, parameters As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -4413,7 +4413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
             Me._subOrFunctionKeyword = subOrFunctionKeyword
@@ -4440,7 +4440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
@@ -4468,7 +4468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, handlesClause As HandlesClauseSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
             Me._subOrFunctionKeyword = subOrFunctionKeyword
@@ -4620,7 +4620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subKeyword As InternalSyntax.KeywordSyntax, newKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(subKeyword)
             Me._subKeyword = subKeyword
@@ -4631,7 +4631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subKeyword As InternalSyntax.KeywordSyntax, newKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(subKeyword)
@@ -4643,7 +4643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, subKeyword As InternalSyntax.KeywordSyntax, newKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(subKeyword)
             Me._subKeyword = subKeyword
@@ -4725,7 +4725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, declareKeyword As InternalSyntax.KeywordSyntax, charsetKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, libKeyword As InternalSyntax.KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As InternalSyntax.KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 12
+            Me.SlotCount = 12
 
             AdjustFlagsAndWidth(declareKeyword)
             Me._declareKeyword = declareKeyword
@@ -4758,7 +4758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, declareKeyword As InternalSyntax.KeywordSyntax, charsetKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, libKeyword As InternalSyntax.KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As InternalSyntax.KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 12
+            Me.SlotCount = 12
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(declareKeyword)
@@ -4792,7 +4792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, declareKeyword As InternalSyntax.KeywordSyntax, charsetKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, libKeyword As InternalSyntax.KeywordSyntax, libraryName As LiteralExpressionSyntax, aliasKeyword As InternalSyntax.KeywordSyntax, aliasName As LiteralExpressionSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 12
+            Me.SlotCount = 12
 
             AdjustFlagsAndWidth(declareKeyword)
             Me._declareKeyword = declareKeyword
@@ -4983,7 +4983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, delegateKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(delegateKeyword)
             Me._delegateKeyword = delegateKeyword
@@ -5004,7 +5004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, delegateKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(delegateKeyword)
@@ -5026,7 +5026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, delegateKeyword As InternalSyntax.KeywordSyntax, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, typeParameterList As TypeParameterListSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(delegateKeyword)
             Me._delegateKeyword = delegateKeyword
@@ -5157,7 +5157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, customKeyword As InternalSyntax.KeywordSyntax, eventKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             If customKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(customKeyword)
@@ -5180,7 +5180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, customKeyword As InternalSyntax.KeywordSyntax, eventKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, implementsClause As ImplementsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
             Me.SetFactoryContext(context)
 
             If customKeyword IsNot Nothing Then
@@ -5204,7 +5204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, customKeyword As InternalSyntax.KeywordSyntax, eventKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             If customKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(customKeyword)
@@ -5339,7 +5339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(operatorKeyword)
             Me._operatorKeyword = operatorKeyword
@@ -5354,7 +5354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(operatorKeyword)
@@ -5370,7 +5370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(operatorKeyword)
             Me._operatorKeyword = operatorKeyword
@@ -5470,7 +5470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, propertyKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(propertyKeyword)
             Me._propertyKeyword = propertyKeyword
@@ -5493,7 +5493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, propertyKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, implementsClause As ImplementsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(propertyKeyword)
@@ -5517,7 +5517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, propertyKeyword As InternalSyntax.KeywordSyntax, identifier As InternalSyntax.IdentifierTokenSyntax, parameterList As ParameterListSyntax, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, implementsClause As ImplementsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(propertyKeyword)
             Me._propertyKeyword = propertyKeyword
@@ -5651,7 +5651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, accessorKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(accessorKeyword)
             Me._accessorKeyword = accessorKeyword
@@ -5660,7 +5660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, accessorKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(accessorKeyword)
@@ -5670,7 +5670,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, accessorKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(accessorKeyword)
             Me._accessorKeyword = accessorKeyword
@@ -5734,7 +5734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, implementsKeyword As InternalSyntax.KeywordSyntax, interfaceMembers As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(implementsKeyword)
             Me._implementsKeyword = implementsKeyword
@@ -5747,7 +5747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, implementsKeyword As InternalSyntax.KeywordSyntax, interfaceMembers As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(implementsKeyword)
@@ -5761,7 +5761,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), implementsKeyword As InternalSyntax.KeywordSyntax, interfaceMembers As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(implementsKeyword)
             Me._implementsKeyword = implementsKeyword
@@ -5833,7 +5833,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, handlesKeyword As InternalSyntax.KeywordSyntax, events As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(handlesKeyword)
             Me._handlesKeyword = handlesKeyword
@@ -5846,7 +5846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, handlesKeyword As InternalSyntax.KeywordSyntax, events As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(handlesKeyword)
@@ -5860,7 +5860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), handlesKeyword As InternalSyntax.KeywordSyntax, events As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(handlesKeyword)
             Me._handlesKeyword = handlesKeyword
@@ -5953,7 +5953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -5962,7 +5962,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(keyword)
@@ -5972,7 +5972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -6027,7 +6027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -6036,7 +6036,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -6046,7 +6046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -6103,7 +6103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withEventsContainer As WithEventsEventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, [property] As IdentifierNameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(withEventsContainer)
             Me._withEventsContainer = withEventsContainer
@@ -6116,7 +6116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withEventsContainer As WithEventsEventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, [property] As IdentifierNameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(withEventsContainer)
@@ -6130,7 +6130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), withEventsContainer As WithEventsEventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, [property] As IdentifierNameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(withEventsContainer)
             Me._withEventsContainer = withEventsContainer
@@ -6214,7 +6214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eventContainer As EventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, eventMember As IdentifierNameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(eventContainer)
             Me._eventContainer = eventContainer
@@ -6227,7 +6227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eventContainer As EventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, eventMember As IdentifierNameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(eventContainer)
@@ -6241,7 +6241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), eventContainer As EventContainerSyntax, dotToken As InternalSyntax.PunctuationSyntax, eventMember As IdentifierNameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(eventContainer)
             Me._eventContainer = eventContainer
@@ -6328,7 +6328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, missingIdentifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6347,7 +6347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, missingIdentifier As InternalSyntax.IdentifierTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -6367,7 +6367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, missingIdentifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6471,7 +6471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, declarators As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6490,7 +6490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, declarators As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -6510,7 +6510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, declarators As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6609,7 +6609,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, names As GreenNode, asClause As AsClauseSyntax, initializer As EqualsValueSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If names IsNot Nothing Then
                 AdjustFlagsAndWidth(names)
@@ -6628,7 +6628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, names As GreenNode, asClause As AsClauseSyntax, initializer As EqualsValueSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If names IsNot Nothing Then
@@ -6648,7 +6648,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), names As GreenNode, asClause As AsClauseSyntax, initializer As EqualsValueSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If names IsNot Nothing Then
                 AdjustFlagsAndWidth(names)
@@ -6794,7 +6794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax)
             MyBase.New(kind, asKeyword)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6807,7 +6807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, asKeyword)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -6821,7 +6821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), asKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax)
             MyBase.New(kind, errors, annotations, asKeyword)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -6900,7 +6900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, newExpression As NewExpressionSyntax)
             MyBase.New(kind, asKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(newExpression)
             Me._newExpression = newExpression
@@ -6909,7 +6909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, asKeyword As InternalSyntax.KeywordSyntax, newExpression As NewExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, asKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(newExpression)
@@ -6919,7 +6919,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), asKeyword As InternalSyntax.KeywordSyntax, newExpression As NewExpressionSyntax)
             MyBase.New(kind, errors, annotations, asKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(newExpression)
             Me._newExpression = newExpression
@@ -7002,7 +7002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(withKeyword)
             Me._withKeyword = withKeyword
@@ -7019,7 +7019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(withKeyword)
@@ -7037,7 +7037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), withKeyword As InternalSyntax.KeywordSyntax, openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(withKeyword)
             Me._withKeyword = withKeyword
@@ -7135,7 +7135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, fromKeyword As InternalSyntax.KeywordSyntax, initializer As CollectionInitializerSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(fromKeyword)
             Me._fromKeyword = fromKeyword
@@ -7146,7 +7146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, fromKeyword As InternalSyntax.KeywordSyntax, initializer As CollectionInitializerSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(fromKeyword)
@@ -7158,7 +7158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), fromKeyword As InternalSyntax.KeywordSyntax, initializer As CollectionInitializerSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(fromKeyword)
             Me._fromKeyword = fromKeyword
@@ -7281,7 +7281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, keyKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -7290,7 +7290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(expression)
@@ -7300,7 +7300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations, keyKeyword)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -7361,7 +7361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyKeyword As InternalSyntax.KeywordSyntax, dotToken As InternalSyntax.PunctuationSyntax, name As IdentifierNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, keyKeyword)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(dotToken)
             Me._dotToken = dotToken
@@ -7376,7 +7376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyKeyword As InternalSyntax.KeywordSyntax, dotToken As InternalSyntax.PunctuationSyntax, name As IdentifierNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyKeyword)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(dotToken)
@@ -7392,7 +7392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyKeyword As InternalSyntax.KeywordSyntax, dotToken As InternalSyntax.PunctuationSyntax, name As IdentifierNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations, keyKeyword)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(dotToken)
             Me._dotToken = dotToken
@@ -7490,7 +7490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(equalsToken)
             Me._equalsToken = equalsToken
@@ -7501,7 +7501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(equalsToken)
@@ -7513,7 +7513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(equalsToken)
             Me._equalsToken = equalsToken
@@ -7585,7 +7585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, [default] As EqualsValueSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -7610,7 +7610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, [default] As EqualsValueSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -7636,7 +7636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, [default] As EqualsValueSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -7771,7 +7771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, nullable As InternalSyntax.PunctuationSyntax, arrayBounds As ArgumentListSyntax, arrayRankSpecifiers As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -7792,7 +7792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, nullable As InternalSyntax.PunctuationSyntax, arrayBounds As ArgumentListSyntax, arrayRankSpecifiers As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -7814,7 +7814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax, nullable As InternalSyntax.PunctuationSyntax, arrayBounds As ArgumentListSyntax, arrayRankSpecifiers As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -7927,7 +7927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, commaTokens As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -7942,7 +7942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, commaTokens As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -7958,7 +7958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, commaTokens As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -8046,7 +8046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -8061,7 +8061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanToken)
@@ -8077,7 +8077,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanToken As InternalSyntax.PunctuationSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -8165,7 +8165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If target IsNot Nothing Then
                 AdjustFlagsAndWidth(target)
@@ -8178,11 +8178,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If target IsNot Nothing Then
@@ -8196,11 +8197,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If target IsNot Nothing Then
                 AdjustFlagsAndWidth(target)
@@ -8213,6 +8215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._argumentList = argumentList
             End If
 
+            SetFlags(NodeFlags.ContainsAttributes)
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -8293,7 +8296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeModifier As InternalSyntax.KeywordSyntax, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(attributeModifier)
             Me._attributeModifier = attributeModifier
@@ -8304,7 +8307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeModifier As InternalSyntax.KeywordSyntax, colonToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(attributeModifier)
@@ -8316,7 +8319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeModifier As InternalSyntax.KeywordSyntax, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(attributeModifier)
             Me._attributeModifier = attributeModifier
@@ -8387,7 +8390,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -8398,7 +8401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             If attributeLists IsNot Nothing Then
@@ -8410,7 +8413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If attributeLists IsNot Nothing Then
                 AdjustFlagsAndWidth(attributeLists)
@@ -8471,7 +8474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -8480,7 +8483,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(expression)
@@ -8490,7 +8493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -8545,7 +8548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, questionToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(questionToken)
             Me._questionToken = questionToken
@@ -8556,7 +8559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, questionToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(questionToken)
@@ -8568,7 +8571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), questionToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(questionToken)
             Me._questionToken = questionToken
@@ -8639,7 +8642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileStatement As WhileStatementSyntax, statements As GreenNode, endWhileStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(whileStatement)
             Me._whileStatement = whileStatement
@@ -8654,7 +8657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileStatement As WhileStatementSyntax, statements As GreenNode, endWhileStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(whileStatement)
@@ -8670,7 +8673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), whileStatement As WhileStatementSyntax, statements As GreenNode, endWhileStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(whileStatement)
             Me._whileStatement = whileStatement
@@ -8759,7 +8762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, usingStatement As UsingStatementSyntax, statements As GreenNode, endUsingStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(usingStatement)
             Me._usingStatement = usingStatement
@@ -8774,7 +8777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, usingStatement As UsingStatementSyntax, statements As GreenNode, endUsingStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(usingStatement)
@@ -8790,7 +8793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), usingStatement As UsingStatementSyntax, statements As GreenNode, endUsingStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(usingStatement)
             Me._usingStatement = usingStatement
@@ -8880,7 +8883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, syncLockStatement As SyncLockStatementSyntax, statements As GreenNode, endSyncLockStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(syncLockStatement)
             Me._syncLockStatement = syncLockStatement
@@ -8895,7 +8898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, syncLockStatement As SyncLockStatementSyntax, statements As GreenNode, endSyncLockStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(syncLockStatement)
@@ -8911,7 +8914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), syncLockStatement As SyncLockStatementSyntax, statements As GreenNode, endSyncLockStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(syncLockStatement)
             Me._syncLockStatement = syncLockStatement
@@ -9001,7 +9004,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withStatement As WithStatementSyntax, statements As GreenNode, endWithStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(withStatement)
             Me._withStatement = withStatement
@@ -9016,7 +9019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withStatement As WithStatementSyntax, statements As GreenNode, endWithStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(withStatement)
@@ -9032,7 +9035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), withStatement As WithStatementSyntax, statements As GreenNode, endWithStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(withStatement)
             Me._withStatement = withStatement
@@ -9120,7 +9123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, modifiers As GreenNode, declarators As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If modifiers IsNot Nothing Then
                 AdjustFlagsAndWidth(modifiers)
@@ -9135,7 +9138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, modifiers As GreenNode, declarators As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If modifiers IsNot Nothing Then
@@ -9151,7 +9154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), modifiers As GreenNode, declarators As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If modifiers IsNot Nothing Then
                 AdjustFlagsAndWidth(modifiers)
@@ -9226,7 +9229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, labelToken As InternalSyntax.SyntaxToken, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(labelToken)
             Me._labelToken = labelToken
@@ -9237,7 +9240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, labelToken As InternalSyntax.SyntaxToken, colonToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(labelToken)
@@ -9249,7 +9252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), labelToken As InternalSyntax.SyntaxToken, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(labelToken)
             Me._labelToken = labelToken
@@ -9319,7 +9322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, goToKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(goToKeyword)
             Me._goToKeyword = goToKeyword
@@ -9330,7 +9333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, goToKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(goToKeyword)
@@ -9342,7 +9345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), goToKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(goToKeyword)
             Me._goToKeyword = goToKeyword
@@ -9412,7 +9415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, labelToken As InternalSyntax.SyntaxToken)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(labelToken)
             Me._labelToken = labelToken
@@ -9421,7 +9424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, labelToken As InternalSyntax.SyntaxToken, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(labelToken)
@@ -9431,7 +9434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), labelToken As InternalSyntax.SyntaxToken)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(labelToken)
             Me._labelToken = labelToken
@@ -9487,7 +9490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, stopOrEndKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(stopOrEndKeyword)
             Me._stopOrEndKeyword = stopOrEndKeyword
@@ -9496,7 +9499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, stopOrEndKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(stopOrEndKeyword)
@@ -9506,7 +9509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), stopOrEndKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(stopOrEndKeyword)
             Me._stopOrEndKeyword = stopOrEndKeyword
@@ -9562,7 +9565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, exitKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(exitKeyword)
             Me._exitKeyword = exitKeyword
@@ -9573,7 +9576,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, exitKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(exitKeyword)
@@ -9585,7 +9588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), exitKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(exitKeyword)
             Me._exitKeyword = exitKeyword
@@ -9655,7 +9658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, continueKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(continueKeyword)
             Me._continueKeyword = continueKeyword
@@ -9666,7 +9669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, continueKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(continueKeyword)
@@ -9678,7 +9681,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), continueKeyword As InternalSyntax.KeywordSyntax, blockKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(continueKeyword)
             Me._continueKeyword = continueKeyword
@@ -9748,7 +9751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, returnKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(returnKeyword)
             Me._returnKeyword = returnKeyword
@@ -9761,7 +9764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, returnKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(returnKeyword)
@@ -9775,7 +9778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), returnKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(returnKeyword)
             Me._returnKeyword = returnKeyword
@@ -9852,7 +9855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode, elseClause As SingleLineElseClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -9873,7 +9876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode, elseClause As SingleLineElseClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(ifKeyword)
@@ -9895,7 +9898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode, elseClause As SingleLineElseClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -10014,7 +10017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -10027,7 +10030,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseKeyword)
@@ -10041,7 +10044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseKeyword As InternalSyntax.KeywordSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -10120,7 +10123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifStatement As IfStatementSyntax, statements As GreenNode, elseIfBlocks As GreenNode, elseBlock As ElseBlockSyntax, endIfStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(ifStatement)
             Me._ifStatement = ifStatement
@@ -10143,7 +10146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifStatement As IfStatementSyntax, statements As GreenNode, elseIfBlocks As GreenNode, elseBlock As ElseBlockSyntax, endIfStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(ifStatement)
@@ -10167,7 +10170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), ifStatement As IfStatementSyntax, statements As GreenNode, elseIfBlocks As GreenNode, elseBlock As ElseBlockSyntax, endIfStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(ifStatement)
             Me._ifStatement = ifStatement
@@ -10294,7 +10297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -10309,7 +10312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(ifKeyword)
@@ -10325,7 +10328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), ifKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -10412,7 +10415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseIfStatement As ElseIfStatementSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseIfStatement)
             Me._elseIfStatement = elseIfStatement
@@ -10425,7 +10428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseIfStatement As ElseIfStatementSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseIfStatement)
@@ -10439,7 +10442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseIfStatement As ElseIfStatementSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseIfStatement)
             Me._elseIfStatement = elseIfStatement
@@ -10515,7 +10518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(elseIfKeyword)
             Me._elseIfKeyword = elseIfKeyword
@@ -10530,7 +10533,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseIfKeyword)
@@ -10546,7 +10549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(elseIfKeyword)
             Me._elseIfKeyword = elseIfKeyword
@@ -10633,7 +10636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseStatement As ElseStatementSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseStatement)
             Me._elseStatement = elseStatement
@@ -10646,7 +10649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseStatement As ElseStatementSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseStatement)
@@ -10660,7 +10663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseStatement As ElseStatementSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseStatement)
             Me._elseStatement = elseStatement
@@ -10733,7 +10736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -10742,7 +10745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseKeyword)
@@ -10752,7 +10755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -10810,7 +10813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tryStatement As TryStatementSyntax, statements As GreenNode, catchBlocks As GreenNode, finallyBlock As FinallyBlockSyntax, endTryStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(tryStatement)
             Me._tryStatement = tryStatement
@@ -10833,7 +10836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tryStatement As TryStatementSyntax, statements As GreenNode, catchBlocks As GreenNode, finallyBlock As FinallyBlockSyntax, endTryStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(tryStatement)
@@ -10857,7 +10860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), tryStatement As TryStatementSyntax, statements As GreenNode, catchBlocks As GreenNode, finallyBlock As FinallyBlockSyntax, endTryStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(tryStatement)
             Me._tryStatement = tryStatement
@@ -10980,7 +10983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tryKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(tryKeyword)
             Me._tryKeyword = tryKeyword
@@ -10989,7 +10992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tryKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(tryKeyword)
@@ -10999,7 +11002,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), tryKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(tryKeyword)
             Me._tryKeyword = tryKeyword
@@ -11054,7 +11057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, catchStatement As CatchStatementSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(catchStatement)
             Me._catchStatement = catchStatement
@@ -11067,7 +11070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, catchStatement As CatchStatementSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(catchStatement)
@@ -11081,7 +11084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), catchStatement As CatchStatementSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(catchStatement)
             Me._catchStatement = catchStatement
@@ -11158,7 +11161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, catchKeyword As InternalSyntax.KeywordSyntax, identifierName As IdentifierNameSyntax, asClause As SimpleAsClauseSyntax, whenClause As CatchFilterClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(catchKeyword)
             Me._catchKeyword = catchKeyword
@@ -11179,7 +11182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, catchKeyword As InternalSyntax.KeywordSyntax, identifierName As IdentifierNameSyntax, asClause As SimpleAsClauseSyntax, whenClause As CatchFilterClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(catchKeyword)
@@ -11201,7 +11204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), catchKeyword As InternalSyntax.KeywordSyntax, identifierName As IdentifierNameSyntax, asClause As SimpleAsClauseSyntax, whenClause As CatchFilterClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(catchKeyword)
             Me._catchKeyword = catchKeyword
@@ -11312,7 +11315,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whenKeyword As InternalSyntax.KeywordSyntax, filter As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whenKeyword)
             Me._whenKeyword = whenKeyword
@@ -11323,7 +11326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whenKeyword As InternalSyntax.KeywordSyntax, filter As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(whenKeyword)
@@ -11335,7 +11338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), whenKeyword As InternalSyntax.KeywordSyntax, filter As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whenKeyword)
             Me._whenKeyword = whenKeyword
@@ -11404,7 +11407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, finallyStatement As FinallyStatementSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(finallyStatement)
             Me._finallyStatement = finallyStatement
@@ -11417,7 +11420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, finallyStatement As FinallyStatementSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(finallyStatement)
@@ -11431,7 +11434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), finallyStatement As FinallyStatementSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(finallyStatement)
             Me._finallyStatement = finallyStatement
@@ -11504,7 +11507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, finallyKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(finallyKeyword)
             Me._finallyKeyword = finallyKeyword
@@ -11513,7 +11516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, finallyKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(finallyKeyword)
@@ -11523,7 +11526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), finallyKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(finallyKeyword)
             Me._finallyKeyword = finallyKeyword
@@ -11578,7 +11581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, errorKeyword As InternalSyntax.KeywordSyntax, errorNumber As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(errorKeyword)
             Me._errorKeyword = errorKeyword
@@ -11589,7 +11592,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, errorKeyword As InternalSyntax.KeywordSyntax, errorNumber As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(errorKeyword)
@@ -11601,7 +11604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), errorKeyword As InternalSyntax.KeywordSyntax, errorNumber As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(errorKeyword)
             Me._errorKeyword = errorKeyword
@@ -11673,7 +11676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, goToKeyword As InternalSyntax.KeywordSyntax, minus As InternalSyntax.PunctuationSyntax, label As LabelSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(onKeyword)
             Me._onKeyword = onKeyword
@@ -11692,7 +11695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, goToKeyword As InternalSyntax.KeywordSyntax, minus As InternalSyntax.PunctuationSyntax, label As LabelSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(onKeyword)
@@ -11712,7 +11715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, goToKeyword As InternalSyntax.KeywordSyntax, minus As InternalSyntax.PunctuationSyntax, label As LabelSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(onKeyword)
             Me._onKeyword = onKeyword
@@ -11828,7 +11831,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, resumeKeyword As InternalSyntax.KeywordSyntax, nextKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(onKeyword)
             Me._onKeyword = onKeyword
@@ -11843,7 +11846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, resumeKeyword As InternalSyntax.KeywordSyntax, nextKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(onKeyword)
@@ -11859,7 +11862,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), onKeyword As InternalSyntax.KeywordSyntax, errorKeyword As InternalSyntax.KeywordSyntax, resumeKeyword As InternalSyntax.KeywordSyntax, nextKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(onKeyword)
             Me._onKeyword = onKeyword
@@ -11955,7 +11958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, resumeKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(resumeKeyword)
             Me._resumeKeyword = resumeKeyword
@@ -11968,7 +11971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, resumeKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(resumeKeyword)
@@ -11982,7 +11985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), resumeKeyword As InternalSyntax.KeywordSyntax, label As LabelSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(resumeKeyword)
             Me._resumeKeyword = resumeKeyword
@@ -12060,7 +12063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectStatement As SelectStatementSyntax, caseBlocks As GreenNode, endSelectStatement As EndBlockStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(selectStatement)
             Me._selectStatement = selectStatement
@@ -12075,7 +12078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectStatement As SelectStatementSyntax, caseBlocks As GreenNode, endSelectStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(selectStatement)
@@ -12091,7 +12094,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), selectStatement As SelectStatementSyntax, caseBlocks As GreenNode, endSelectStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(selectStatement)
             Me._selectStatement = selectStatement
@@ -12180,7 +12183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectKeyword As InternalSyntax.KeywordSyntax, caseKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(selectKeyword)
             Me._selectKeyword = selectKeyword
@@ -12195,7 +12198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectKeyword As InternalSyntax.KeywordSyntax, caseKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(selectKeyword)
@@ -12211,7 +12214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), selectKeyword As InternalSyntax.KeywordSyntax, caseKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(selectKeyword)
             Me._selectKeyword = selectKeyword
@@ -12298,7 +12301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, caseStatement As CaseStatementSyntax, statements As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(caseStatement)
             Me._caseStatement = caseStatement
@@ -12311,7 +12314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, caseStatement As CaseStatementSyntax, statements As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(caseStatement)
@@ -12325,7 +12328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), caseStatement As CaseStatementSyntax, statements As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(caseStatement)
             Me._caseStatement = caseStatement
@@ -12401,7 +12404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, caseKeyword As InternalSyntax.KeywordSyntax, cases As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(caseKeyword)
             Me._caseKeyword = caseKeyword
@@ -12414,7 +12417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, caseKeyword As InternalSyntax.KeywordSyntax, cases As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(caseKeyword)
@@ -12428,7 +12431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), caseKeyword As InternalSyntax.KeywordSyntax, cases As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(caseKeyword)
             Me._caseKeyword = caseKeyword
@@ -12522,7 +12525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -12531,7 +12534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elseKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseKeyword)
@@ -12541,7 +12544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -12595,7 +12598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, value As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(value)
             Me._value = value
@@ -12604,7 +12607,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, value As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(value)
@@ -12614,7 +12617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), value As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(value)
             Me._value = value
@@ -12670,7 +12673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lowerBound)
             Me._lowerBound = lowerBound
@@ -12683,7 +12686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lowerBound)
@@ -12697,7 +12700,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lowerBound)
             Me._lowerBound = lowerBound
@@ -12780,7 +12783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, isKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If isKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(isKeyword)
@@ -12795,7 +12798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, isKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If isKeyword IsNot Nothing Then
@@ -12811,7 +12814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), isKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If isKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(isKeyword)
@@ -12900,7 +12903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, syncLockKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(syncLockKeyword)
             Me._syncLockKeyword = syncLockKeyword
@@ -12911,7 +12914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, syncLockKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(syncLockKeyword)
@@ -12923,7 +12926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), syncLockKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(syncLockKeyword)
             Me._syncLockKeyword = syncLockKeyword
@@ -12994,7 +12997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, doStatement As DoStatementSyntax, statements As GreenNode, loopStatement As LoopStatementSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(doStatement)
             Me._doStatement = doStatement
@@ -13009,7 +13012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, doStatement As DoStatementSyntax, statements As GreenNode, loopStatement As LoopStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(doStatement)
@@ -13025,7 +13028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), doStatement As DoStatementSyntax, statements As GreenNode, loopStatement As LoopStatementSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(doStatement)
             Me._doStatement = doStatement
@@ -13112,7 +13115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, doKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(doKeyword)
             Me._doKeyword = doKeyword
@@ -13125,7 +13128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, doKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(doKeyword)
@@ -13139,7 +13142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), doKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(doKeyword)
             Me._doKeyword = doKeyword
@@ -13214,7 +13217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, loopKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(loopKeyword)
             Me._loopKeyword = loopKeyword
@@ -13227,7 +13230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, loopKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(loopKeyword)
@@ -13241,7 +13244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), loopKeyword As InternalSyntax.KeywordSyntax, whileOrUntilClause As WhileOrUntilClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(loopKeyword)
             Me._loopKeyword = loopKeyword
@@ -13318,7 +13321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileOrUntilKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whileOrUntilKeyword)
             Me._whileOrUntilKeyword = whileOrUntilKeyword
@@ -13329,7 +13332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileOrUntilKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(whileOrUntilKeyword)
@@ -13341,7 +13344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), whileOrUntilKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whileOrUntilKeyword)
             Me._whileOrUntilKeyword = whileOrUntilKeyword
@@ -13411,7 +13414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whileKeyword)
             Me._whileKeyword = whileKeyword
@@ -13422,7 +13425,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(whileKeyword)
@@ -13434,7 +13437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whileKeyword)
             Me._whileKeyword = whileKeyword
@@ -13584,7 +13587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forStatement As ForStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax)
             MyBase.New(kind, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(forStatement)
             Me._forStatement = forStatement
@@ -13593,7 +13596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forStatement As ForStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(forStatement)
@@ -13603,7 +13606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), forStatement As ForStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax)
             MyBase.New(kind, errors, annotations, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(forStatement)
             Me._forStatement = forStatement
@@ -13664,7 +13667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forEachStatement As ForEachStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax)
             MyBase.New(kind, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(forEachStatement)
             Me._forEachStatement = forEachStatement
@@ -13673,7 +13676,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forEachStatement As ForEachStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(forEachStatement)
@@ -13683,7 +13686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), forEachStatement As ForEachStatementSyntax, statements As GreenNode, nextStatement As NextStatementSyntax)
             MyBase.New(kind, errors, annotations, statements, nextStatement)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(forEachStatement)
             Me._forEachStatement = forEachStatement
@@ -13814,7 +13817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, equalsToken As InternalSyntax.PunctuationSyntax, fromValue As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, toValue As ExpressionSyntax, stepClause As ForStepClauseSyntax)
             MyBase.New(kind, forKeyword, controlVariable)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
 
             AdjustFlagsAndWidth(equalsToken)
             Me._equalsToken = equalsToken
@@ -13833,7 +13836,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, equalsToken As InternalSyntax.PunctuationSyntax, fromValue As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, toValue As ExpressionSyntax, stepClause As ForStepClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, forKeyword, controlVariable)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(equalsToken)
@@ -13853,7 +13856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), forKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, equalsToken As InternalSyntax.PunctuationSyntax, fromValue As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, toValue As ExpressionSyntax, stepClause As ForStepClauseSyntax)
             MyBase.New(kind, errors, annotations, forKeyword, controlVariable)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
 
             AdjustFlagsAndWidth(equalsToken)
             Me._equalsToken = equalsToken
@@ -13970,7 +13973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, stepKeyword As InternalSyntax.KeywordSyntax, stepValue As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(stepKeyword)
             Me._stepKeyword = stepKeyword
@@ -13981,7 +13984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, stepKeyword As InternalSyntax.KeywordSyntax, stepValue As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(stepKeyword)
@@ -13993,7 +13996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), stepKeyword As InternalSyntax.KeywordSyntax, stepValue As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(stepKeyword)
             Me._stepKeyword = stepKeyword
@@ -14069,7 +14072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forKeyword As InternalSyntax.KeywordSyntax, eachKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, forKeyword, controlVariable)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(eachKeyword)
             Me._eachKeyword = eachKeyword
@@ -14082,7 +14085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, forKeyword As InternalSyntax.KeywordSyntax, eachKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, forKeyword, controlVariable)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(eachKeyword)
@@ -14096,7 +14099,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), forKeyword As InternalSyntax.KeywordSyntax, eachKeyword As InternalSyntax.KeywordSyntax, controlVariable As VisualBasicSyntaxNode, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations, forKeyword, controlVariable)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(eachKeyword)
             Me._eachKeyword = eachKeyword
@@ -14185,7 +14188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nextKeyword As InternalSyntax.KeywordSyntax, controlVariables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(nextKeyword)
             Me._nextKeyword = nextKeyword
@@ -14198,7 +14201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nextKeyword As InternalSyntax.KeywordSyntax, controlVariables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(nextKeyword)
@@ -14212,7 +14215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), nextKeyword As InternalSyntax.KeywordSyntax, controlVariables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(nextKeyword)
             Me._nextKeyword = nextKeyword
@@ -14289,7 +14292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, usingKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, variables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(usingKeyword)
             Me._usingKeyword = usingKeyword
@@ -14306,7 +14309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, usingKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, variables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(usingKeyword)
@@ -14324,7 +14327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), usingKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, variables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(usingKeyword)
             Me._usingKeyword = usingKeyword
@@ -14418,7 +14421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, throwKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(throwKeyword)
             Me._throwKeyword = throwKeyword
@@ -14431,7 +14434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, throwKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(throwKeyword)
@@ -14445,7 +14448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), throwKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(throwKeyword)
             Me._throwKeyword = throwKeyword
@@ -14521,7 +14524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, right As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -14534,7 +14537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, right As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(left)
@@ -14548,7 +14551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), left As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, right As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -14631,7 +14634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, mid As InternalSyntax.IdentifierTokenSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(mid)
             Me._mid = mid
@@ -14642,7 +14645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, mid As InternalSyntax.IdentifierTokenSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(mid)
@@ -14654,7 +14657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), mid As InternalSyntax.IdentifierTokenSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(mid)
             Me._mid = mid
@@ -14723,7 +14726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, callKeyword As InternalSyntax.KeywordSyntax, invocation As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(callKeyword)
             Me._callKeyword = callKeyword
@@ -14734,7 +14737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, callKeyword As InternalSyntax.KeywordSyntax, invocation As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(callKeyword)
@@ -14746,7 +14749,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), callKeyword As InternalSyntax.KeywordSyntax, invocation As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(callKeyword)
             Me._callKeyword = callKeyword
@@ -14819,7 +14822,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, addHandlerOrRemoveHandlerKeyword As InternalSyntax.KeywordSyntax, eventExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, delegateExpression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(addHandlerOrRemoveHandlerKeyword)
             Me._addHandlerOrRemoveHandlerKeyword = addHandlerOrRemoveHandlerKeyword
@@ -14834,7 +14837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, addHandlerOrRemoveHandlerKeyword As InternalSyntax.KeywordSyntax, eventExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, delegateExpression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(addHandlerOrRemoveHandlerKeyword)
@@ -14850,7 +14853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), addHandlerOrRemoveHandlerKeyword As InternalSyntax.KeywordSyntax, eventExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, delegateExpression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(addHandlerOrRemoveHandlerKeyword)
             Me._addHandlerOrRemoveHandlerKeyword = addHandlerOrRemoveHandlerKeyword
@@ -14946,7 +14949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, raiseEventKeyword As InternalSyntax.KeywordSyntax, name As IdentifierNameSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(raiseEventKeyword)
             Me._raiseEventKeyword = raiseEventKeyword
@@ -14961,7 +14964,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, raiseEventKeyword As InternalSyntax.KeywordSyntax, name As IdentifierNameSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(raiseEventKeyword)
@@ -14977,7 +14980,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), raiseEventKeyword As InternalSyntax.KeywordSyntax, name As IdentifierNameSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(raiseEventKeyword)
             Me._raiseEventKeyword = raiseEventKeyword
@@ -15066,7 +15069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(withKeyword)
             Me._withKeyword = withKeyword
@@ -15077,7 +15080,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, withKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(withKeyword)
@@ -15089,7 +15092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), withKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(withKeyword)
             Me._withKeyword = withKeyword
@@ -15159,7 +15162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, reDimKeyword As InternalSyntax.KeywordSyntax, preserveKeyword As InternalSyntax.KeywordSyntax, clauses As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(reDimKeyword)
             Me._reDimKeyword = reDimKeyword
@@ -15176,7 +15179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, reDimKeyword As InternalSyntax.KeywordSyntax, preserveKeyword As InternalSyntax.KeywordSyntax, clauses As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(reDimKeyword)
@@ -15194,7 +15197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), reDimKeyword As InternalSyntax.KeywordSyntax, preserveKeyword As InternalSyntax.KeywordSyntax, clauses As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(reDimKeyword)
             Me._reDimKeyword = reDimKeyword
@@ -15284,7 +15287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, arrayBounds As ArgumentListSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -15295,7 +15298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, arrayBounds As ArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(expression)
@@ -15307,7 +15310,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, arrayBounds As ArgumentListSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -15376,7 +15379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eraseKeyword As InternalSyntax.KeywordSyntax, expressions As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(eraseKeyword)
             Me._eraseKeyword = eraseKeyword
@@ -15389,7 +15392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, eraseKeyword As InternalSyntax.KeywordSyntax, expressions As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(eraseKeyword)
@@ -15403,7 +15406,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), eraseKeyword As InternalSyntax.KeywordSyntax, expressions As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(eraseKeyword)
             Me._eraseKeyword = eraseKeyword
@@ -15499,7 +15502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, token As InternalSyntax.SyntaxToken)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(token)
             Me._token = token
@@ -15508,7 +15511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, token As InternalSyntax.SyntaxToken, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(token)
@@ -15518,7 +15521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), token As InternalSyntax.SyntaxToken)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(token)
             Me._token = token
@@ -15582,7 +15585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15595,7 +15598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -15609,7 +15612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15692,7 +15695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15707,7 +15710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -15723,7 +15726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15808,7 +15811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, elements As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15823,7 +15826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, elements As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -15839,7 +15842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, elements As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -15944,7 +15947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, type As TypeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -15953,7 +15956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, type As TypeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(type)
@@ -15963,7 +15966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), type As TypeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -16019,7 +16022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -16032,7 +16035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -16046,7 +16049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -16163,18 +16166,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -16214,18 +16217,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -16265,18 +16268,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, keyword)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -16320,7 +16323,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, getTypeKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(getTypeKeyword)
             Me._getTypeKeyword = getTypeKeyword
@@ -16335,7 +16338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, getTypeKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(getTypeKeyword)
@@ -16351,7 +16354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), getTypeKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(getTypeKeyword)
             Me._getTypeKeyword = getTypeKeyword
@@ -16448,7 +16451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, typeOfKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, operatorToken As InternalSyntax.KeywordSyntax, type As TypeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(typeOfKeyword)
             Me._typeOfKeyword = typeOfKeyword
@@ -16463,7 +16466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, typeOfKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, operatorToken As InternalSyntax.KeywordSyntax, type As TypeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(typeOfKeyword)
@@ -16479,7 +16482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), typeOfKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, operatorToken As InternalSyntax.KeywordSyntax, type As TypeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(typeOfKeyword)
             Me._typeOfKeyword = typeOfKeyword
@@ -16576,7 +16579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, getXmlNamespaceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, name As XmlPrefixNameSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(getXmlNamespaceKeyword)
             Me._getXmlNamespaceKeyword = getXmlNamespaceKeyword
@@ -16593,7 +16596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, getXmlNamespaceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, name As XmlPrefixNameSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(getXmlNamespaceKeyword)
@@ -16611,7 +16614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), getXmlNamespaceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, name As XmlPrefixNameSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(getXmlNamespaceKeyword)
             Me._getXmlNamespaceKeyword = getXmlNamespaceKeyword
@@ -16713,7 +16716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -16728,7 +16731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If expression IsNot Nothing Then
@@ -16744,7 +16747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, operatorToken As InternalSyntax.PunctuationSyntax, name As SimpleNameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -16836,7 +16839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, base As ExpressionSyntax, token1 As InternalSyntax.PunctuationSyntax, token2 As InternalSyntax.PunctuationSyntax, token3 As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If base IsNot Nothing Then
                 AdjustFlagsAndWidth(base)
@@ -16859,7 +16862,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, base As ExpressionSyntax, token1 As InternalSyntax.PunctuationSyntax, token2 As InternalSyntax.PunctuationSyntax, token3 As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             If base IsNot Nothing Then
@@ -16883,7 +16886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), base As ExpressionSyntax, token1 As InternalSyntax.PunctuationSyntax, token2 As InternalSyntax.PunctuationSyntax, token3 As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If base IsNot Nothing Then
                 AdjustFlagsAndWidth(base)
@@ -17008,7 +17011,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -17023,7 +17026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, argumentList As ArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If expression IsNot Nothing Then
@@ -17039,7 +17042,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, argumentList As ArgumentListSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -17190,7 +17193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, argumentList As ArgumentListSyntax, initializer As ObjectCreationInitializerSyntax)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -17207,7 +17210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, argumentList As ArgumentListSyntax, initializer As ObjectCreationInitializerSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(type)
@@ -17225,7 +17228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, argumentList As ArgumentListSyntax, initializer As ObjectCreationInitializerSyntax)
             MyBase.New(kind, errors, annotations, newKeyword, attributeLists)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -17321,7 +17324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, initializer As ObjectMemberInitializerSyntax)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(initializer)
             Me._initializer = initializer
@@ -17330,7 +17333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, initializer As ObjectMemberInitializerSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(initializer)
@@ -17340,7 +17343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, initializer As ObjectMemberInitializerSyntax)
             MyBase.New(kind, errors, annotations, newKeyword, attributeLists)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(initializer)
             Me._initializer = initializer
@@ -17402,7 +17405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, arrayBounds As ArgumentListSyntax, rankSpecifiers As GreenNode, initializer As CollectionInitializerSyntax)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -17421,7 +17424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, arrayBounds As ArgumentListSyntax, rankSpecifiers As GreenNode, initializer As CollectionInitializerSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, newKeyword, attributeLists)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(type)
@@ -17441,7 +17444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), newKeyword As InternalSyntax.KeywordSyntax, attributeLists As GreenNode, type As TypeSyntax, arrayBounds As ArgumentListSyntax, rankSpecifiers As GreenNode, initializer As CollectionInitializerSyntax)
             MyBase.New(kind, errors, annotations, newKeyword, attributeLists)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(type)
             Me._type = type
@@ -17553,7 +17556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openBraceToken)
             Me._openBraceToken = openBraceToken
@@ -17568,7 +17571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openBraceToken)
@@ -17584,7 +17587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openBraceToken As InternalSyntax.PunctuationSyntax, initializers As GreenNode, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openBraceToken)
             Me._openBraceToken = openBraceToken
@@ -17791,18 +17794,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -17850,18 +17853,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -17909,18 +17912,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, type As TypeSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, keyword, openParenToken, expression, commaToken, type, closeParenToken)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -17976,7 +17979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -17991,7 +17994,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(keyword)
@@ -18007,7 +18010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -18105,7 +18108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, operatorToken As InternalSyntax.SyntaxToken, right As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -18118,7 +18121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, operatorToken As InternalSyntax.SyntaxToken, right As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(left)
@@ -18132,7 +18135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), left As ExpressionSyntax, operatorToken As InternalSyntax.SyntaxToken, right As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -18211,7 +18214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorToken As InternalSyntax.SyntaxToken, operand As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(operatorToken)
             Me._operatorToken = operatorToken
@@ -18222,7 +18225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorToken As InternalSyntax.SyntaxToken, operand As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(operatorToken)
@@ -18234,7 +18237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), operatorToken As InternalSyntax.SyntaxToken, operand As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(operatorToken)
             Me._operatorToken = operatorToken
@@ -18308,7 +18311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, firstExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, secondExpression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -18327,7 +18330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, firstExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, secondExpression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(ifKeyword)
@@ -18347,7 +18350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, firstExpression As ExpressionSyntax, commaToken As InternalSyntax.PunctuationSyntax, secondExpression As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -18475,7 +18478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, condition As ExpressionSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, whenTrue As ExpressionSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, whenFalse As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -18498,7 +18501,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, condition As ExpressionSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, whenTrue As ExpressionSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, whenFalse As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(ifKeyword)
@@ -18522,7 +18525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), ifKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, condition As ExpressionSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, whenTrue As ExpressionSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, whenFalse As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(ifKeyword)
             Me._ifKeyword = ifKeyword
@@ -18713,7 +18716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, body As VisualBasicSyntaxNode)
             MyBase.New(kind, subOrFunctionHeader)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(body)
             Me._body = body
@@ -18722,7 +18725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, body As VisualBasicSyntaxNode, context As ISyntaxFactoryContext)
             MyBase.New(kind, subOrFunctionHeader)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(body)
@@ -18732,7 +18735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), subOrFunctionHeader As LambdaHeaderSyntax, body As VisualBasicSyntaxNode)
             MyBase.New(kind, errors, annotations, subOrFunctionHeader)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(body)
             Me._body = body
@@ -18791,7 +18794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax)
             MyBase.New(kind, subOrFunctionHeader)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If statements IsNot Nothing Then
                 AdjustFlagsAndWidth(statements)
@@ -18804,7 +18807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, subOrFunctionHeader As LambdaHeaderSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, subOrFunctionHeader)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If statements IsNot Nothing Then
@@ -18818,7 +18821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), subOrFunctionHeader As LambdaHeaderSyntax, statements As GreenNode, endSubOrFunctionStatement As EndBlockStatementSyntax)
             MyBase.New(kind, errors, annotations, subOrFunctionHeader)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If statements IsNot Nothing Then
                 AdjustFlagsAndWidth(statements)
@@ -18897,7 +18900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
             Me._subOrFunctionKeyword = subOrFunctionKeyword
@@ -18910,7 +18913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
@@ -18924,7 +18927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), attributeLists As GreenNode, modifiers As GreenNode, subOrFunctionKeyword As InternalSyntax.KeywordSyntax, parameterList As ParameterListSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations, attributeLists, modifiers, parameterList)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(subOrFunctionKeyword)
             Me._subOrFunctionKeyword = subOrFunctionKeyword
@@ -19006,7 +19009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -19021,7 +19024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -19037,7 +19040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -19148,7 +19151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, empty As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(empty)
             Me._empty = empty
@@ -19157,7 +19160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, empty As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(empty)
@@ -19167,7 +19170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), empty As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(empty)
             Me._empty = empty
@@ -19223,7 +19226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameColonEquals As NameColonEqualsSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameColonEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameColonEquals)
@@ -19236,7 +19239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameColonEquals As NameColonEqualsSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If nameColonEquals IsNot Nothing Then
@@ -19250,7 +19253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), nameColonEquals As NameColonEqualsSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameColonEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameColonEquals)
@@ -19324,7 +19327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As IdentifierNameSyntax, colonEqualsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -19335,7 +19338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As IdentifierNameSyntax, colonEqualsToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -19347,7 +19350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As IdentifierNameSyntax, colonEqualsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -19418,7 +19421,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lowerBound)
             Me._lowerBound = lowerBound
@@ -19431,7 +19434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lowerBound)
@@ -19445,7 +19448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lowerBound As ExpressionSyntax, toKeyword As InternalSyntax.KeywordSyntax, upperBound As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lowerBound)
             Me._lowerBound = lowerBound
@@ -19528,7 +19531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, clauses As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If clauses IsNot Nothing Then
                 AdjustFlagsAndWidth(clauses)
@@ -19539,7 +19542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, clauses As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             If clauses IsNot Nothing Then
@@ -19551,7 +19554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), clauses As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If clauses IsNot Nothing Then
                 AdjustFlagsAndWidth(clauses)
@@ -19634,7 +19637,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -19651,7 +19654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -19669,7 +19672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, inKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -19770,7 +19773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameEquals As VariableNameEqualsSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameEquals)
@@ -19783,7 +19786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameEquals As VariableNameEqualsSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If nameEquals IsNot Nothing Then
@@ -19797,7 +19800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), nameEquals As VariableNameEqualsSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameEquals)
@@ -19874,7 +19877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameEquals As VariableNameEqualsSyntax, aggregation As AggregationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameEquals)
@@ -19887,7 +19890,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameEquals As VariableNameEqualsSyntax, aggregation As AggregationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If nameEquals IsNot Nothing Then
@@ -19901,7 +19904,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), nameEquals As VariableNameEqualsSyntax, aggregation As AggregationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If nameEquals IsNot Nothing Then
                 AdjustFlagsAndWidth(nameEquals)
@@ -19979,7 +19982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, equalsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -19994,7 +19997,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, equalsToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(identifier)
@@ -20010,7 +20013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As ModifiedIdentifierSyntax, asClause As SimpleAsClauseSyntax, equalsToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(identifier)
             Me._identifier = identifier
@@ -20123,7 +20126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, functionName As InternalSyntax.IdentifierTokenSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(functionName)
             Me._functionName = functionName
@@ -20144,7 +20147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, functionName As InternalSyntax.IdentifierTokenSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(functionName)
@@ -20166,7 +20169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), functionName As InternalSyntax.IdentifierTokenSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(functionName)
             Me._functionName = functionName
@@ -20277,7 +20280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -20286,7 +20289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(groupKeyword)
@@ -20296,7 +20299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), groupKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -20353,7 +20356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, fromKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(fromKeyword)
             Me._fromKeyword = fromKeyword
@@ -20366,7 +20369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, fromKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(fromKeyword)
@@ -20380,7 +20383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), fromKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(fromKeyword)
             Me._fromKeyword = fromKeyword
@@ -20451,7 +20454,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, letKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(letKeyword)
             Me._letKeyword = letKeyword
@@ -20464,7 +20467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, letKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(letKeyword)
@@ -20478,7 +20481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), letKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(letKeyword)
             Me._letKeyword = letKeyword
@@ -20552,7 +20555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, aggregateKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, additionalQueryOperators As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(aggregateKeyword)
             Me._aggregateKeyword = aggregateKeyword
@@ -20575,7 +20578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, aggregateKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, additionalQueryOperators As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(aggregateKeyword)
@@ -20599,7 +20602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), aggregateKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, additionalQueryOperators As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(aggregateKeyword)
             Me._aggregateKeyword = aggregateKeyword
@@ -20715,7 +20718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, distinctKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(distinctKeyword)
             Me._distinctKeyword = distinctKeyword
@@ -20724,7 +20727,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, distinctKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(distinctKeyword)
@@ -20734,7 +20737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), distinctKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(distinctKeyword)
             Me._distinctKeyword = distinctKeyword
@@ -20789,7 +20792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whereKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whereKeyword)
             Me._whereKeyword = whereKeyword
@@ -20800,7 +20803,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, whereKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(whereKeyword)
@@ -20812,7 +20815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), whereKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(whereKeyword)
             Me._whereKeyword = whereKeyword
@@ -20883,7 +20886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, skipOrTakeKeyword As InternalSyntax.KeywordSyntax, whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
             Me._skipOrTakeKeyword = skipOrTakeKeyword
@@ -20896,7 +20899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, skipOrTakeKeyword As InternalSyntax.KeywordSyntax, whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
@@ -20910,7 +20913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), skipOrTakeKeyword As InternalSyntax.KeywordSyntax, whileKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
             Me._skipOrTakeKeyword = skipOrTakeKeyword
@@ -20992,7 +20995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, skipOrTakeKeyword As InternalSyntax.KeywordSyntax, count As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
             Me._skipOrTakeKeyword = skipOrTakeKeyword
@@ -21003,7 +21006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, skipOrTakeKeyword As InternalSyntax.KeywordSyntax, count As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
@@ -21015,7 +21018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), skipOrTakeKeyword As InternalSyntax.KeywordSyntax, count As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(skipOrTakeKeyword)
             Me._skipOrTakeKeyword = skipOrTakeKeyword
@@ -21088,7 +21091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax, items As GreenNode, byKeyword As InternalSyntax.KeywordSyntax, keys As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -21113,7 +21116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax, items As GreenNode, byKeyword As InternalSyntax.KeywordSyntax, keys As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(groupKeyword)
@@ -21139,7 +21142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), groupKeyword As InternalSyntax.KeywordSyntax, items As GreenNode, byKeyword As InternalSyntax.KeywordSyntax, keys As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -21398,7 +21401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, equalsKeyword As InternalSyntax.KeywordSyntax, right As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -21411,7 +21414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As ExpressionSyntax, equalsKeyword As InternalSyntax.KeywordSyntax, right As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(left)
@@ -21425,7 +21428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), left As ExpressionSyntax, equalsKeyword As InternalSyntax.KeywordSyntax, right As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -21505,18 +21508,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode)
             MyBase.New(kind, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode)
             MyBase.New(kind, errors, annotations, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -21568,7 +21571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax, joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -21583,7 +21586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, groupKeyword As InternalSyntax.KeywordSyntax, joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(groupKeyword)
@@ -21599,7 +21602,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), groupKeyword As InternalSyntax.KeywordSyntax, joinKeyword As InternalSyntax.KeywordSyntax, joinedVariables As GreenNode, additionalJoins As GreenNode, onKeyword As InternalSyntax.KeywordSyntax, joinConditions As GreenNode, intoKeyword As InternalSyntax.KeywordSyntax, aggregationVariables As GreenNode)
             MyBase.New(kind, errors, annotations, joinKeyword, joinedVariables, additionalJoins, onKeyword, joinConditions)
-            MyBase._slotCount = 8
+            Me.SlotCount = 8
 
             AdjustFlagsAndWidth(groupKeyword)
             Me._groupKeyword = groupKeyword
@@ -21694,7 +21697,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, orderKeyword As InternalSyntax.KeywordSyntax, byKeyword As InternalSyntax.KeywordSyntax, orderings As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(orderKeyword)
             Me._orderKeyword = orderKeyword
@@ -21709,7 +21712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, orderKeyword As InternalSyntax.KeywordSyntax, byKeyword As InternalSyntax.KeywordSyntax, orderings As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(orderKeyword)
@@ -21725,7 +21728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), orderKeyword As InternalSyntax.KeywordSyntax, byKeyword As InternalSyntax.KeywordSyntax, orderings As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(orderKeyword)
             Me._orderKeyword = orderKeyword
@@ -21810,7 +21813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, ascendingOrDescendingKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -21823,7 +21826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, ascendingOrDescendingKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(expression)
@@ -21837,7 +21840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, ascendingOrDescendingKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(expression)
             Me._expression = expression
@@ -21912,7 +21915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(selectKeyword)
             Me._selectKeyword = selectKeyword
@@ -21925,7 +21928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, selectKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(selectKeyword)
@@ -21939,7 +21942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), selectKeyword As InternalSyntax.KeywordSyntax, variables As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(selectKeyword)
             Me._selectKeyword = selectKeyword
@@ -22036,7 +22039,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, declaration As XmlDeclarationSyntax, precedingMisc As GreenNode, root As XmlNodeSyntax, followingMisc As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(declaration)
             Me._declaration = declaration
@@ -22055,7 +22058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, declaration As XmlDeclarationSyntax, precedingMisc As GreenNode, root As XmlNodeSyntax, followingMisc As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(declaration)
@@ -22075,7 +22078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), declaration As XmlDeclarationSyntax, precedingMisc As GreenNode, root As XmlNodeSyntax, followingMisc As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(declaration)
             Me._declaration = declaration
@@ -22172,7 +22175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanQuestionToken As InternalSyntax.PunctuationSyntax, xmlKeyword As InternalSyntax.KeywordSyntax, version As XmlDeclarationOptionSyntax, encoding As XmlDeclarationOptionSyntax, standalone As XmlDeclarationOptionSyntax, questionGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
             Me._lessThanQuestionToken = lessThanQuestionToken
@@ -22195,7 +22198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanQuestionToken As InternalSyntax.PunctuationSyntax, xmlKeyword As InternalSyntax.KeywordSyntax, version As XmlDeclarationOptionSyntax, encoding As XmlDeclarationOptionSyntax, standalone As XmlDeclarationOptionSyntax, questionGreaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
@@ -22219,7 +22222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanQuestionToken As InternalSyntax.PunctuationSyntax, xmlKeyword As InternalSyntax.KeywordSyntax, version As XmlDeclarationOptionSyntax, encoding As XmlDeclarationOptionSyntax, standalone As XmlDeclarationOptionSyntax, questionGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 6
+            Me.SlotCount = 6
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
             Me._lessThanQuestionToken = lessThanQuestionToken
@@ -22334,7 +22337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax, equals As InternalSyntax.PunctuationSyntax, value As XmlStringSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -22347,7 +22350,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax, equals As InternalSyntax.PunctuationSyntax, value As XmlStringSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -22361,7 +22364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As InternalSyntax.XmlNameTokenSyntax, equals As InternalSyntax.PunctuationSyntax, value As XmlStringSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -22435,7 +22438,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, startTag As XmlElementStartTagSyntax, content As GreenNode, endTag As XmlElementEndTagSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(startTag)
             Me._startTag = startTag
@@ -22450,7 +22453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, startTag As XmlElementStartTagSyntax, content As GreenNode, endTag As XmlElementEndTagSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(startTag)
@@ -22466,7 +22469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), startTag As XmlElementStartTagSyntax, content As GreenNode, endTag As XmlElementEndTagSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(startTag)
             Me._startTag = startTag
@@ -22543,7 +22546,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, textTokens As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If textTokens IsNot Nothing Then
                 AdjustFlagsAndWidth(textTokens)
@@ -22554,7 +22557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, textTokens As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             If textTokens IsNot Nothing Then
@@ -22566,7 +22569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), textTokens As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If textTokens IsNot Nothing Then
                 AdjustFlagsAndWidth(textTokens)
@@ -22626,7 +22629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -22643,7 +22646,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanToken)
@@ -22661,7 +22664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -22750,7 +22753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanSlashToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanSlashToken)
             Me._lessThanSlashToken = lessThanSlashToken
@@ -22765,7 +22768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanSlashToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanSlashToken)
@@ -22781,7 +22784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanSlashToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanSlashToken)
             Me._lessThanSlashToken = lessThanSlashToken
@@ -22861,7 +22864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, slashGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -22878,7 +22881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, slashGreaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanToken)
@@ -22896,7 +22899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNodeSyntax, attributes As GreenNode, slashGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -22985,7 +22988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNodeSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As XmlNodeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -22998,7 +23001,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNodeSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As XmlNodeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -23012,7 +23015,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As XmlNodeSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As XmlNodeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -23109,7 +23112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, startQuoteToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(startQuoteToken)
             Me._startQuoteToken = startQuoteToken
@@ -23124,7 +23127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, startQuoteToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endQuoteToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(startQuoteToken)
@@ -23140,7 +23143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), startQuoteToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(startQuoteToken)
             Me._startQuoteToken = startQuoteToken
@@ -23217,7 +23220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -23226,7 +23229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -23236,7 +23239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As InternalSyntax.XmlNameTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -23290,7 +23293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, prefix As XmlPrefixSyntax, localName As InternalSyntax.XmlNameTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If prefix IsNot Nothing Then
                 AdjustFlagsAndWidth(prefix)
@@ -23303,7 +23306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, prefix As XmlPrefixSyntax, localName As InternalSyntax.XmlNameTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If prefix IsNot Nothing Then
@@ -23317,7 +23320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), prefix As XmlPrefixSyntax, localName As InternalSyntax.XmlNameTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If prefix IsNot Nothing Then
                 AdjustFlagsAndWidth(prefix)
@@ -23388,7 +23391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -23401,7 +23404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanToken)
@@ -23415,7 +23418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanToken As InternalSyntax.PunctuationSyntax, name As XmlNameSyntax, greaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanToken)
             Me._lessThanToken = lessThanToken
@@ -23488,7 +23491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -23499,7 +23502,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As InternalSyntax.XmlNameTokenSyntax, colonToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -23511,7 +23514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As InternalSyntax.XmlNameTokenSyntax, colonToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -23576,7 +23579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanExclamationMinusMinusToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, minusMinusGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken)
             Me._lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken
@@ -23591,7 +23594,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanExclamationMinusMinusToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, minusMinusGreaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken)
@@ -23607,7 +23610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanExclamationMinusMinusToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, minusMinusGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanExclamationMinusMinusToken)
             Me._lessThanExclamationMinusMinusToken = lessThanExclamationMinusMinusToken
@@ -23685,7 +23688,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanQuestionToken As InternalSyntax.PunctuationSyntax, name As InternalSyntax.XmlNameTokenSyntax, textTokens As GreenNode, questionGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
             Me._lessThanQuestionToken = lessThanQuestionToken
@@ -23702,7 +23705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanQuestionToken As InternalSyntax.PunctuationSyntax, name As InternalSyntax.XmlNameTokenSyntax, textTokens As GreenNode, questionGreaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
@@ -23720,7 +23723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanQuestionToken As InternalSyntax.PunctuationSyntax, name As InternalSyntax.XmlNameTokenSyntax, textTokens As GreenNode, questionGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(lessThanQuestionToken)
             Me._lessThanQuestionToken = lessThanQuestionToken
@@ -23806,7 +23809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, beginCDataToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endCDataToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(beginCDataToken)
             Me._beginCDataToken = beginCDataToken
@@ -23821,7 +23824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, beginCDataToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endCDataToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(beginCDataToken)
@@ -23837,7 +23840,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), beginCDataToken As InternalSyntax.PunctuationSyntax, textTokens As GreenNode, endCDataToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(beginCDataToken)
             Me._beginCDataToken = beginCDataToken
@@ -23914,7 +23917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanPercentEqualsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, percentGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanPercentEqualsToken)
             Me._lessThanPercentEqualsToken = lessThanPercentEqualsToken
@@ -23927,7 +23930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, lessThanPercentEqualsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, percentGreaterThanToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(lessThanPercentEqualsToken)
@@ -23941,7 +23944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), lessThanPercentEqualsToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, percentGreaterThanToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(lessThanPercentEqualsToken)
             Me._lessThanPercentEqualsToken = lessThanPercentEqualsToken
@@ -24039,7 +24042,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elementType As TypeSyntax, rankSpecifiers As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elementType)
             Me._elementType = elementType
@@ -24052,7 +24055,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elementType As TypeSyntax, rankSpecifiers As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elementType)
@@ -24066,7 +24069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elementType As TypeSyntax, rankSpecifiers As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elementType)
             Me._elementType = elementType
@@ -24137,7 +24140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elementType As TypeSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elementType)
             Me._elementType = elementType
@@ -24148,7 +24151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, elementType As TypeSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elementType)
@@ -24160,7 +24163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), elementType As TypeSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elementType)
             Me._elementType = elementType
@@ -24230,7 +24233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -24239,7 +24242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, keyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(keyword)
@@ -24249,7 +24252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), keyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(keyword)
             Me._keyword = keyword
@@ -24370,18 +24373,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind, identifier)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, identifier)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax)
             MyBase.New(kind, errors, annotations, identifier)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -24423,7 +24426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, typeArgumentList As TypeArgumentListSyntax)
             MyBase.New(kind, identifier)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(typeArgumentList)
             Me._typeArgumentList = typeArgumentList
@@ -24432,7 +24435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, identifier As InternalSyntax.IdentifierTokenSyntax, typeArgumentList As TypeArgumentListSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, identifier)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(typeArgumentList)
@@ -24442,7 +24445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), identifier As InternalSyntax.IdentifierTokenSyntax, typeArgumentList As TypeArgumentListSyntax)
             MyBase.New(kind, errors, annotations, identifier)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(typeArgumentList)
             Me._typeArgumentList = typeArgumentList
@@ -24501,7 +24504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As SimpleNameSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -24514,7 +24517,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As SimpleNameSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(left)
@@ -24528,7 +24531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As SimpleNameSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -24611,7 +24614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, globalKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(globalKeyword)
             Me._globalKeyword = globalKeyword
@@ -24620,7 +24623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, globalKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(globalKeyword)
@@ -24630,7 +24633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), globalKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(globalKeyword)
             Me._globalKeyword = globalKeyword
@@ -24687,7 +24690,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -24704,7 +24707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -24722,7 +24725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, ofKeyword As InternalSyntax.KeywordSyntax, arguments As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -24821,7 +24824,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As TypeSyntax, signature As CrefSignatureSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -24838,7 +24841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As TypeSyntax, signature As CrefSignatureSyntax, asClause As SimpleAsClauseSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -24856,7 +24859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As TypeSyntax, signature As CrefSignatureSyntax, asClause As SimpleAsClauseSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -24941,7 +24944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, argumentTypes As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -24956,7 +24959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openParenToken As InternalSyntax.PunctuationSyntax, argumentTypes As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openParenToken)
@@ -24972,7 +24975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openParenToken As InternalSyntax.PunctuationSyntax, argumentTypes As GreenNode, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(openParenToken)
             Me._openParenToken = openParenToken
@@ -25044,7 +25047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, modifier As InternalSyntax.KeywordSyntax, type As TypeSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If modifier IsNot Nothing Then
                 AdjustFlagsAndWidth(modifier)
@@ -25059,7 +25062,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, modifier As InternalSyntax.KeywordSyntax, type As TypeSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             If modifier IsNot Nothing Then
@@ -25075,7 +25078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), modifier As InternalSyntax.KeywordSyntax, type As TypeSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             If modifier IsNot Nothing Then
                 AdjustFlagsAndWidth(modifier)
@@ -25145,7 +25148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(operatorKeyword)
             Me._operatorKeyword = operatorKeyword
@@ -25156,7 +25159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(operatorKeyword)
@@ -25168,7 +25171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), operatorKeyword As InternalSyntax.KeywordSyntax, operatorToken As InternalSyntax.SyntaxToken)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(operatorKeyword)
             Me._operatorKeyword = operatorKeyword
@@ -25229,7 +25232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As CrefOperatorReferenceSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -25242,7 +25245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As CrefOperatorReferenceSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(left)
@@ -25256,7 +25259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), left As NameSyntax, dotToken As InternalSyntax.PunctuationSyntax, right As CrefOperatorReferenceSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(left)
             Me._left = left
@@ -25329,7 +25332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, yieldKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(yieldKeyword)
             Me._yieldKeyword = yieldKeyword
@@ -25340,7 +25343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, yieldKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(yieldKeyword)
@@ -25352,7 +25355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), yieldKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(yieldKeyword)
             Me._yieldKeyword = yieldKeyword
@@ -25421,7 +25424,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, awaitKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(awaitKeyword)
             Me._awaitKeyword = awaitKeyword
@@ -25432,7 +25435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, awaitKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(awaitKeyword)
@@ -25444,7 +25447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), awaitKeyword As InternalSyntax.KeywordSyntax, expression As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(awaitKeyword)
             Me._awaitKeyword = awaitKeyword
@@ -25982,7 +25985,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tokens As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If tokens IsNot Nothing Then
                 AdjustFlagsAndWidth(tokens)
@@ -25993,7 +25996,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, tokens As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             If tokens IsNot Nothing Then
@@ -26005,7 +26008,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), tokens As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If tokens IsNot Nothing Then
                 AdjustFlagsAndWidth(tokens)
@@ -26065,7 +26068,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, content As GreenNode)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If content IsNot Nothing Then
                 AdjustFlagsAndWidth(content)
@@ -26076,7 +26079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, content As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             If content IsNot Nothing Then
@@ -26088,7 +26091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), content As GreenNode)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             If content IsNot Nothing Then
                 AdjustFlagsAndWidth(content)
@@ -26150,7 +26153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As CrefReferenceSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -26167,7 +26170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As CrefReferenceSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -26185,7 +26188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As CrefReferenceSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -26283,7 +26286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As IdentifierNameSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -26300,7 +26303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As IdentifierNameSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(name)
@@ -26318,7 +26321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), name As XmlNameSyntax, equalsToken As InternalSyntax.PunctuationSyntax, startQuoteToken As InternalSyntax.PunctuationSyntax, reference As IdentifierNameSyntax, endQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(name)
             Me._name = name
@@ -26412,7 +26415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax, whenNotNull As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -26427,7 +26430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, expression As ExpressionSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax, whenNotNull As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             If expression IsNot Nothing Then
@@ -26443,7 +26446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), expression As ExpressionSyntax, questionMarkToken As InternalSyntax.PunctuationSyntax, whenNotNull As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             If expression IsNot Nothing Then
                 AdjustFlagsAndWidth(expression)
@@ -26533,7 +26536,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameOfKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(nameOfKeyword)
             Me._nameOfKeyword = nameOfKeyword
@@ -26548,7 +26551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, nameOfKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(nameOfKeyword)
@@ -26564,7 +26567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), nameOfKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, argument As ExpressionSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(nameOfKeyword)
             Me._nameOfKeyword = nameOfKeyword
@@ -26660,7 +26663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, dollarSignDoubleQuoteToken As InternalSyntax.PunctuationSyntax, contents As GreenNode, doubleQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(dollarSignDoubleQuoteToken)
             Me._dollarSignDoubleQuoteToken = dollarSignDoubleQuoteToken
@@ -26675,7 +26678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, dollarSignDoubleQuoteToken As InternalSyntax.PunctuationSyntax, contents As GreenNode, doubleQuoteToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(dollarSignDoubleQuoteToken)
@@ -26691,7 +26694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), dollarSignDoubleQuoteToken As InternalSyntax.PunctuationSyntax, contents As GreenNode, doubleQuoteToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(dollarSignDoubleQuoteToken)
             Me._dollarSignDoubleQuoteToken = dollarSignDoubleQuoteToken
@@ -26796,7 +26799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, textToken As InternalSyntax.InterpolatedStringTextTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(textToken)
             Me._textToken = textToken
@@ -26805,7 +26808,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, textToken As InternalSyntax.InterpolatedStringTextTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(textToken)
@@ -26815,7 +26818,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), textToken As InternalSyntax.InterpolatedStringTextTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
 
             AdjustFlagsAndWidth(textToken)
             Me._textToken = textToken
@@ -26874,7 +26877,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openBraceToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, alignmentClause As InterpolationAlignmentClauseSyntax, formatClause As InterpolationFormatClauseSyntax, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(openBraceToken)
             Me._openBraceToken = openBraceToken
@@ -26895,7 +26898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, openBraceToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, alignmentClause As InterpolationAlignmentClauseSyntax, formatClause As InterpolationFormatClauseSyntax, closeBraceToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(openBraceToken)
@@ -26917,7 +26920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), openBraceToken As InternalSyntax.PunctuationSyntax, expression As ExpressionSyntax, alignmentClause As InterpolationAlignmentClauseSyntax, formatClause As InterpolationFormatClauseSyntax, closeBraceToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(openBraceToken)
             Me._openBraceToken = openBraceToken
@@ -27037,7 +27040,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, commaToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(commaToken)
             Me._commaToken = commaToken
@@ -27048,7 +27051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, commaToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(commaToken)
@@ -27060,7 +27063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), commaToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(commaToken)
             Me._commaToken = commaToken
@@ -27130,7 +27133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, colonToken As InternalSyntax.PunctuationSyntax, formatStringToken As InternalSyntax.InterpolatedStringTextTokenSyntax)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(colonToken)
             Me._colonToken = colonToken
@@ -27141,7 +27144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, colonToken As InternalSyntax.PunctuationSyntax, formatStringToken As InternalSyntax.InterpolatedStringTextTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(colonToken)
@@ -27153,7 +27156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), colonToken As InternalSyntax.PunctuationSyntax, formatStringToken As InternalSyntax.InterpolatedStringTextTokenSyntax)
             MyBase.New(kind, errors, annotations)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(colonToken)
             Me._colonToken = colonToken
@@ -27291,7 +27294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, constKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(constKeyword)
             Me._constKeyword = constKeyword
@@ -27306,7 +27309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, constKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(constKeyword)
@@ -27322,7 +27325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, constKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.IdentifierTokenSyntax, equalsToken As InternalSyntax.PunctuationSyntax, value As ExpressionSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             AdjustFlagsAndWidth(constKeyword)
             Me._constKeyword = constKeyword
@@ -27423,7 +27426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax, ifOrElseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If elseKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(elseKeyword)
@@ -27442,7 +27445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax, ifOrElseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
             Me.SetFactoryContext(context)
 
             If elseKeyword IsNot Nothing Then
@@ -27462,7 +27465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax, ifOrElseIfKeyword As InternalSyntax.KeywordSyntax, condition As ExpressionSyntax, thenKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 5
+            Me.SlotCount = 5
 
             If elseKeyword IsNot Nothing Then
                 AdjustFlagsAndWidth(elseKeyword)
@@ -27556,7 +27559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -27565,7 +27568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(elseKeyword)
@@ -27575,7 +27578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, elseKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 2
+            Me.SlotCount = 2
 
             AdjustFlagsAndWidth(elseKeyword)
             Me._elseKeyword = elseKeyword
@@ -27630,7 +27633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, ifKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -27641,7 +27644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, ifKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(endKeyword)
@@ -27653,7 +27656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, ifKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -27718,7 +27721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, regionKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.StringLiteralTokenSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(regionKeyword)
             Me._regionKeyword = regionKeyword
@@ -27729,7 +27732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, regionKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.StringLiteralTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(regionKeyword)
@@ -27741,7 +27744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, regionKeyword As InternalSyntax.KeywordSyntax, name As InternalSyntax.StringLiteralTokenSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(regionKeyword)
             Me._regionKeyword = regionKeyword
@@ -27812,7 +27815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, regionKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -27823,7 +27826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, regionKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(endKeyword)
@@ -27835,7 +27838,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, regionKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -27911,7 +27914,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, commaToken As InternalSyntax.PunctuationSyntax, lineStart As InternalSyntax.IntegerLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
 
             AdjustFlagsAndWidth(externalSourceKeyword)
             Me._externalSourceKeyword = externalSourceKeyword
@@ -27930,7 +27933,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, commaToken As InternalSyntax.PunctuationSyntax, lineStart As InternalSyntax.IntegerLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(externalSourceKeyword)
@@ -27950,7 +27953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, commaToken As InternalSyntax.PunctuationSyntax, lineStart As InternalSyntax.IntegerLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 7
+            Me.SlotCount = 7
 
             AdjustFlagsAndWidth(externalSourceKeyword)
             Me._externalSourceKeyword = externalSourceKeyword
@@ -28055,7 +28058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -28066,7 +28069,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(endKeyword)
@@ -28078,7 +28081,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, endKeyword As InternalSyntax.KeywordSyntax, externalSourceKeyword As InternalSyntax.KeywordSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(endKeyword)
             Me._endKeyword = endKeyword
@@ -28149,7 +28152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, externalChecksumKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, guid As InternalSyntax.StringLiteralTokenSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, checksum As InternalSyntax.StringLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
 
             AdjustFlagsAndWidth(externalChecksumKeyword)
             Me._externalChecksumKeyword = externalChecksumKeyword
@@ -28172,7 +28175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, externalChecksumKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, guid As InternalSyntax.StringLiteralTokenSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, checksum As InternalSyntax.StringLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(externalChecksumKeyword)
@@ -28196,7 +28199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, externalChecksumKeyword As InternalSyntax.KeywordSyntax, openParenToken As InternalSyntax.PunctuationSyntax, externalSource As InternalSyntax.StringLiteralTokenSyntax, firstCommaToken As InternalSyntax.PunctuationSyntax, guid As InternalSyntax.StringLiteralTokenSyntax, secondCommaToken As InternalSyntax.PunctuationSyntax, checksum As InternalSyntax.StringLiteralTokenSyntax, closeParenToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 9
+            Me.SlotCount = 9
 
             AdjustFlagsAndWidth(externalChecksumKeyword)
             Me._externalChecksumKeyword = externalChecksumKeyword
@@ -28322,7 +28325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, enableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(enableKeyword)
             Me._enableKeyword = enableKeyword
@@ -28337,7 +28340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, enableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(enableKeyword)
@@ -28353,7 +28356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, enableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(enableKeyword)
             Me._enableKeyword = enableKeyword
@@ -28431,7 +28434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, disableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(disableKeyword)
             Me._disableKeyword = disableKeyword
@@ -28446,7 +28449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, disableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(disableKeyword)
@@ -28462,7 +28465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, disableKeyword As InternalSyntax.KeywordSyntax, warningKeyword As InternalSyntax.KeywordSyntax, errorCodes As GreenNode)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 4
+            Me.SlotCount = 4
 
             AdjustFlagsAndWidth(disableKeyword)
             Me._disableKeyword = disableKeyword
@@ -28539,7 +28542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, referenceKeyword As InternalSyntax.KeywordSyntax, file As InternalSyntax.StringLiteralTokenSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(referenceKeyword)
             Me._referenceKeyword = referenceKeyword
@@ -28550,7 +28553,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, referenceKeyword As InternalSyntax.KeywordSyntax, file As InternalSyntax.StringLiteralTokenSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
             Me.SetFactoryContext(context)
 
             AdjustFlagsAndWidth(referenceKeyword)
@@ -28562,7 +28565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax, referenceKeyword As InternalSyntax.KeywordSyntax, file As InternalSyntax.StringLiteralTokenSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 3
+            Me.SlotCount = 3
 
             AdjustFlagsAndWidth(referenceKeyword)
             Me._referenceKeyword = referenceKeyword
@@ -28628,18 +28631,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, hashToken As InternalSyntax.PunctuationSyntax, context As ISyntaxFactoryContext)
             MyBase.New(kind, hashToken)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
             Me.SetFactoryContext(context)
         End Sub
 
         Friend Sub New(ByVal kind As SyntaxKind, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation(), hashToken As InternalSyntax.PunctuationSyntax)
             MyBase.New(kind, errors, annotations, hashToken)
-            MyBase._slotCount = 1
+            Me.SlotCount = 1
         End Sub
 
         Friend Overrides Function CreateRed(ByVal parent As SyntaxNode, ByVal startLocation As Integer) As SyntaxNode
@@ -37511,19 +37514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Shared Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-
-            Dim hash As Integer
-            Dim cached = SyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, hash)
-            If cached IsNot Nothing Then
-                Return DirectCast(cached, AttributeSyntax)
-            End If
-
-            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
-            If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
-            End If
-
-            Return result
+            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList)
         End Function
 
 
@@ -49589,19 +49580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </param>
         Friend Function Attribute(target As AttributeTargetSyntax, name As TypeSyntax, argumentList As ArgumentListSyntax) As AttributeSyntax
             Debug.Assert(name IsNot Nothing)
-
-            Dim hash As Integer
-            Dim cached = VisualBasicSyntaxNodeCache.TryGetNode(SyntaxKind.Attribute, target, name, argumentList, _factoryContext, hash)
-            If cached IsNot Nothing Then
-                Return DirectCast(cached, AttributeSyntax)
-            End If
-
-            Dim result = New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
-            If hash >= 0 Then
-                SyntaxNodeCache.AddNode(result, hash)
-            End If
-
-            Return result
+            Return New AttributeSyntax(SyntaxKind.Attribute, target, name, argumentList, _factoryContext)
         End Function
 
 

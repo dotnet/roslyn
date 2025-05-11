@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -41,14 +40,17 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
     private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
 
     private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparer;
+
+    private readonly bool _distinguishRefFromOut;
     private readonly bool _tupleNamesMustMatch;
     private readonly bool _ignoreNullableAnnotations;
     private readonly bool _objectAndDynamicCompareEqually;
+    private readonly bool _arrayAndReadOnlySpanCompareEqually;
 
     public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
     public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -58,35 +60,36 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool distinguishRefFromOut,
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
-        bool objectAndDynamicCompareEqually)
+        bool objectAndDynamicCompareEqually,
+        bool arrayAndReadOnlySpanCompareEqually)
     {
         _assemblyComparer = assemblyComparer;
+        _distinguishRefFromOut = distinguishRefFromOut;
         _tupleNamesMustMatch = tupleNamesMustMatch;
         _ignoreNullableAnnotations = ignoreNullableAnnotations;
         _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
+        _arrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually;
 
         this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
         this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
 
         // There are only so many EquivalenceVisitors and GetHashCodeVisitors we can have.
         // Create them all up front.
-        using var _1 = ArrayBuilder<EquivalenceVisitor>.GetInstance(capacity: 4, out var equivalenceVisitors);
-        using var _2 = ArrayBuilder<GetHashCodeVisitor>.GetInstance(capacity: 4, out var getHashCodeVisitors);
+        using var equivalenceVisitors = TemporaryArray<EquivalenceVisitor>.Empty;
+        using var getHashCodeVisitors = TemporaryArray<GetHashCodeVisitor>.Empty;
 
-        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true);
-        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false);
-        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true);
-        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false);
+        AddVisitors(compareMethodTypeParametersByIndex: true);
+        AddVisitors(compareMethodTypeParametersByIndex: false);
 
         _equivalenceVisitors = equivalenceVisitors.ToImmutableAndClear();
         _getHashCodeVisitors = getHashCodeVisitors.ToImmutableAndClear();
 
         return;
 
-        void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+        void AddVisitors(bool compareMethodTypeParametersByIndex)
         {
-            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
-            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex));
+            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex));
         }
     }
 
@@ -94,9 +97,26 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool distinguishRefFromOut,
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
-        bool objectAndDynamicCompareEqually)
+        bool objectAndDynamicCompareEqually,
+        bool arrayAndReadOnlySpanCompareEqually)
     {
-        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually);
+        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+    }
+
+    public SymbolEquivalenceComparer With(
+        Optional<bool> distinguishRefFromOut = default,
+        Optional<bool> tupleNamesMustMatch = default,
+        Optional<bool> ignoreNullableAnnotations = default,
+        Optional<bool> objectAndDynamicCompareEqually = default,
+        Optional<bool> arrayAndReadOnlySpanCompareEqually = default)
+    {
+        var newDistinguishRefFromOut = distinguishRefFromOut.HasValue ? distinguishRefFromOut.Value : _distinguishRefFromOut;
+        var newTupleNamesMustMatch = tupleNamesMustMatch.HasValue ? tupleNamesMustMatch.Value : _tupleNamesMustMatch;
+        var newIgnoreNullableAnnotations = ignoreNullableAnnotations.HasValue ? ignoreNullableAnnotations.Value : _ignoreNullableAnnotations;
+        var newObjectAndDynamicCompareEqually = objectAndDynamicCompareEqually.HasValue ? objectAndDynamicCompareEqually.Value : _objectAndDynamicCompareEqually;
+        var newArrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually.HasValue ? arrayAndReadOnlySpanCompareEqually.Value : _arrayAndReadOnlySpanCompareEqually;
+
+        return new(_assemblyComparer, newDistinguishRefFromOut, newTupleNamesMustMatch, newIgnoreNullableAnnotations, newObjectAndDynamicCompareEqually, newArrayAndReadOnlySpanCompareEqually);
     }
 
     // Very subtle logic here.  When checking if two parameters are the same, we can end up with
@@ -107,27 +127,21 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
     // that method type parameters are just compared by index and nothing else.
     private EquivalenceVisitor GetEquivalenceVisitor(
-        bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
+        bool compareMethodTypeParametersByIndex = false)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex);
         return _equivalenceVisitors[visitorIndex];
     }
 
     private GetHashCodeVisitor GetGetHashCodeVisitor(
-        bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+        bool compareMethodTypeParametersByIndex)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex);
         return _getHashCodeVisitors[visitorIndex];
     }
 
-    private static int GetVisitorIndex(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
-        => (compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually) switch
-        {
-            (true, true) => 0,
-            (true, false) => 1,
-            (false, true) => 2,
-            (false, false) => 3,
-        };
+    private static int GetVisitorIndex(bool compareMethodTypeParametersByIndex)
+        => compareMethodTypeParametersByIndex ? 0 : 1;
 
     public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies = null)
         => GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
@@ -154,7 +168,7 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
     public int GetHashCode(ISymbol? x)
-        => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
+        => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false).GetHashCode(x, currentHash: 0);
 
     private static ISymbol UnwrapAlias(ISymbol symbol)
         => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol? alias) ? alias.Target : symbol;
@@ -215,6 +229,18 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => symbol.PartialImplementationPart != null;
 
     private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
+        => symbol.PartialDefinitionPart != null;
+
+    private static bool IsPartialPropertyDefinitionPart(IPropertySymbol symbol)
+        => symbol.PartialImplementationPart != null;
+
+    private static bool IsPartialPropertyImplementationPart(IPropertySymbol symbol)
+        => symbol.PartialDefinitionPart != null;
+
+    private static bool IsPartialEventDefinitionPart(IEventSymbol symbol)
+        => symbol.PartialImplementationPart != null;
+
+    private static bool IsPartialEventImplementationPart(IEventSymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)

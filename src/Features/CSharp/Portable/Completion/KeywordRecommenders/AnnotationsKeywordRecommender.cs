@@ -5,27 +5,22 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal sealed class AnnotationsKeywordRecommender()
+    : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AnnotationsKeyword, isValidInPreprocessorContext: true)
 {
-    internal class AnnotationsKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
-        public AnnotationsKeywordRecommender()
-            : base(SyntaxKind.AnnotationsKeyword, isValidInPreprocessorContext: true)
-        {
-        }
+        var previousToken1 = context.TargetToken;
+        var previousToken2 = previousToken1.GetPreviousToken(includeSkipped: true);
+        var previousToken3 = previousToken2.GetPreviousToken(includeSkipped: true);
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var previousToken1 = context.TargetToken;
-            var previousToken2 = previousToken1.GetPreviousToken(includeSkipped: true);
-            var previousToken3 = previousToken2.GetPreviousToken(includeSkipped: true);
-
-            // # nullable enable |
-            // # nullable enable a|
-            return
-                (previousToken1.Kind() == SyntaxKind.EnableKeyword || previousToken1.Kind() == SyntaxKind.DisableKeyword || previousToken1.Kind() == SyntaxKind.RestoreKeyword) &&
-                previousToken2.Kind() == SyntaxKind.NullableKeyword &&
-                previousToken3.Kind() == SyntaxKind.HashToken;
-        }
+        // # nullable enable |
+        // # nullable enable a|
+        return
+            (previousToken1.Kind() == SyntaxKind.EnableKeyword || previousToken1.Kind() == SyntaxKind.DisableKeyword || previousToken1.Kind() == SyntaxKind.RestoreKeyword) &&
+            previousToken2.Kind() == SyntaxKind.NullableKeyword &&
+            previousToken3.Kind() == SyntaxKind.HashToken;
     }
 }

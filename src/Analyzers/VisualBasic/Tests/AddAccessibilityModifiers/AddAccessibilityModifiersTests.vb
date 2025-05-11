@@ -5,13 +5,13 @@
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-    Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers.VisualBasicAddAccessibilityModifiersCodeFixProvider)
+    Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers.VisualBasicAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.AddOrRemoveAccessibilityModifiers.VisualBasicAddOrRemoveAccessibilityModifiersCodeFixProvider)
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddAccessibilityModifiers
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddOrRemoveAccessibilityModifiers
 
-    <Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)>
-    Public Class AddAccessibilityModifiersTests
+    <Trait(Traits.Feature, Traits.Features.CodeActionsAddOrRemoveAccessibilityModifiers)>
+    Public Class AddOrRemoveAccessibilityModifiersTests
         <Theory, CombinatorialData>
         Public Sub TestStandardProperty([property] As AnalyzerProperty)
             VerifyVB.VerifyStandardProperty([property])

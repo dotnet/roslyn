@@ -109,7 +109,7 @@ class Program {
         Console.WriteLine($""Jenny don\'t change your number { /*trash*/ }."");
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,73): error CS1733: Expected expression
                 //         Console.WriteLine("Jenny don\'t change your number \{ /*trash*/ }.");
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 73)
@@ -128,7 +128,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
@@ -158,7 +158,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,5): error CS1039: Unterminated string literal
                 //     }
                 Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
@@ -185,7 +185,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
@@ -358,7 +358,7 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
@@ -386,7 +386,7 @@ class Program
     {
         var x = $"";";
             // The precise error messages are not important, but this must be an error.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,19): error CS1039: Unterminated string literal
                 //         var x = $";
                 Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ";").WithLocation(5, 19),
@@ -413,7 +413,7 @@ class Program
         Console.WriteLine( $""{3:}"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS8089: Empty format specifier.
                 //         Console.WriteLine( $"{3:}" );
                 Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 32)
@@ -432,7 +432,7 @@ class Program
         Console.WriteLine( $""{3:{}"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,33): error CS1056: Unerwartetes Zeichen "{".
                 //         Console.WriteLine( $"{3:{}" );
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "{").WithArguments("{").WithLocation(6, 33)
@@ -451,7 +451,7 @@ class Program
         Console.WriteLine( $""{3:d }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS8088: A format specifier may not contain trailing whitespace.
                 //         Console.WriteLine( $"{3:d }" );
                 Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, ":d ").WithLocation(6, 32)
@@ -471,7 +471,7 @@ class Program
 }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     // (6,33): error CS8088: A format specifier may not contain trailing whitespace.
     //         Console.WriteLine( $@"{3:d
     Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, @":d
@@ -491,7 +491,7 @@ class Program
         Console.WriteLine( $""{ }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS1733: Expected expression
                 //         Console.WriteLine( $"{ }" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 32)
@@ -510,7 +510,7 @@ class Program
         Console.WriteLine( $@""{ }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,33): error CS1733: Expected expression
                 //         Console.WriteLine( $@"{ }" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 33)
@@ -607,7 +607,7 @@ class Program
         var s2 = $"" \u007D"";
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,21): error CS8087: A '{' character may only be escaped by doubling '{{' in an interpolated string.
                 //         var s1 = $" \u007B ";
                 Diagnostic(ErrorCode.ERR_EscapedCurly, @"\u007B").WithArguments("{").WithLocation(5, 21),
@@ -645,7 +645,7 @@ class Program
         var t = $""{1,(int)1E10}"";
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var s = $"{1,1E10}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1E10").WithArguments("double", "int").WithLocation(5, 22),
@@ -1131,7 +1131,7 @@ class Program {
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1238,7 +1238,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1341,7 +1341,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1397,7 +1397,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1618,6 +1618,35 @@ static class C
                 // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
                 //         System.IFormattable i = $"{""}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
+                );
+        }
+
+        [Fact]
+        public void VoidReturningFactory()
+        {
+            var text =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static void Create(string format, params object[] arguments)
+        {
+        }
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,33): error CS0029: Cannot implicitly convert type 'void' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("void", "System.IFormattable").WithLocation(16, 33)
                 );
         }
 
@@ -3630,12 +3659,12 @@ ref struct S
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (6,11): error CS0306: The type 'int*' may not be used as a type argument
+                // 0.cs(6,11): error CS0306: The type 'int*' may not be used as a type argument
                 //     _ = $"{i}{s}";
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "{i}").WithArguments("int*").WithLocation(6, 11),
-                // (6,14): error CS0306: The type 'S' may not be used as a type argument
+                // 0.cs(6,14): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)'
                 //     _ = $"{i}{s}";
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(6, 5 + expression.Length)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T, int, string)", "T", "S").WithLocation(6, 5 + expression.Length)
             );
         }
 
@@ -4076,9 +4105,9 @@ ref struct S
 
             var comp = CreateCompilation(new[] { source, interpolatedStringBuilder }, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (5,21): error CS0306: The type 'S' may not be used as a type argument
+                // 0.cs(5,21): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'DefaultInterpolatedStringHandler.AppendFormatted<T>(T)'
                 // Console.WriteLine($"{s}");
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "{s}").WithArguments("S").WithLocation(5, 21)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "{s}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<T>(T)", "T", "S").WithLocation(5, 21)
             );
         }
 
@@ -4844,6 +4873,7 @@ literal:Literal");
             var code = @"
 CultureInfoNormalizer.Normalize();
 C.M(" + expression + @");
+CultureInfoNormalizer.Reset();
 class C
 {
     public static void M(CustomHandler b)
@@ -4867,7 +4897,7 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", @"
 {
-  // Code size       55 (0x37)
+  // Code size       60 (0x3c)
   .maxstack  4
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -4890,7 +4920,8 @@ literal:Literal");
   IL_002f:  pop
   IL_0030:  ldloc.0
   IL_0031:  call       ""void C.M(CustomHandler)""
-  IL_0036:  ret
+  IL_0036:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003b:  ret
 }
 ");
 
@@ -4899,7 +4930,7 @@ literal:Literal");
 
             verifier.VerifyIL(@"<top-level-statements-entry-point>", expression.Contains('+') ? @"
 {
-  // Code size       37 (0x25)
+  // Code size       42 (0x2a)
   .maxstack  2
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldstr      ""{0,2:f}""
@@ -4909,12 +4940,13 @@ literal:Literal");
   IL_0015:  ldstr      ""Literal""
   IL_001a:  call       ""string string.Concat(string, string)""
   IL_001f:  call       ""void C.M(string)""
-  IL_0024:  ret
+  IL_0024:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0029:  ret
 }
 "
 : @"
 {
-  // Code size       27 (0x1b)
+  // Code size       32 (0x20)
   .maxstack  2
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
   IL_0005:  ldstr      ""{0,2:f}Literal""
@@ -4922,7 +4954,8 @@ literal:Literal");
   IL_000b:  box        ""int""
   IL_0010:  call       ""string string.Format(string, object)""
   IL_0015:  call       ""void C.M(string)""
-  IL_001a:  ret
+  IL_001a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_001f:  ret
 }
 ");
         }
@@ -5393,6 +5426,7 @@ literal:Literal");
 using System;
 CultureInfoNormalizer.Normalize();
 C.M(() => " + expression + @");
+CultureInfoNormalizer.Reset();
 
 class C
 {
@@ -5640,6 +5674,7 @@ C.M(b =>
         if (b) return default(CustomHandler);
         else return " + expression + @";
     });
+CultureInfoNormalizer.Reset();
 
 static class C
 {
@@ -5893,6 +5928,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false ? default(CustomHandler) : " + expression + @";
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -5905,7 +5941,7 @@ public partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       56 (0x38)
+  // Code size       61 (0x3d)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -5923,12 +5959,13 @@ public partial struct CustomHandler
   IL_002c:  ldloc.0
   IL_002d:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_0032:  call       ""void System.Console.WriteLine(string)""
-  IL_0037:  ret
+  IL_0037:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003c:  ret
 }
 "
 : @"
 {
-  // Code size       66 (0x42)
+  // Code size       71 (0x47)
   .maxstack  2
   .locals init (CustomHandler V_0)
   IL_0000:  call       ""void CultureInfoNormalizer.Normalize()""
@@ -5948,7 +5985,8 @@ public partial struct CustomHandler
   IL_0036:  ldloc.0
   IL_0037:  call       ""string CustomHandler.op_Implicit(CustomHandler)""
   IL_003c:  call       ""void System.Console.WriteLine(string)""
-  IL_0041:  ret
+  IL_0041:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0046:  ret
 }
 ");
         }
@@ -6161,6 +6199,7 @@ using System;
 CultureInfoNormalizer.Normalize();
 var x = (bool)(object)false switch { true => default(CustomHandler), false => " + expression + @" };
 Console.WriteLine(x);
+CultureInfoNormalizer.Reset();
 
 public partial struct CustomHandler
 {
@@ -6173,7 +6212,7 @@ public partial struct CustomHandler
 
             verifier.VerifyIL("<top-level-statements-entry-point>", !expression.Contains('+') ? @"
 {
-  // Code size       59 (0x3b)
+  // Code size       64 (0x40)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -6195,12 +6234,13 @@ public partial struct CustomHandler
   IL_0033:  stloc.0
   IL_0034:  ldloc.0
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
+  IL_003a:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_003f:  ret
 }
 "
 : @"
 {
-  // Code size       69 (0x45)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (string V_0,
                 CustomHandler V_1)
@@ -6224,7 +6264,8 @@ public partial struct CustomHandler
   IL_003d:  stloc.0
   IL_003e:  ldloc.0
   IL_003f:  call       ""void System.Console.WriteLine(string)""
-  IL_0044:  ret
+  IL_0044:  call       ""void CultureInfoNormalizer.Reset()""
+  IL_0049:  ret
 }
 ");
         }
@@ -8543,7 +8584,7 @@ o in M
             verifier.VerifyDiagnostics(modifier == "ref readonly"
                 ? new[]
                 {
-                    // 0.cs(8,5): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // 0.cs(8,5): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                     // C.M(i, ref s, out o, $"literal");
                     Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "i").WithArguments("1").WithLocation(8, 5)
                 }
@@ -9716,61 +9757,60 @@ public partial struct CustomHandler
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
             verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
-  // Code size       46 (0x2e)
+  // Code size       47 (0x2f)
   .maxstack  4
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldc.i4.7
   IL_0012:  ldc.i4.0
-  IL_0013:  ldloc.1
-  IL_0014:  newobj     ""CustomHandler..ctor(int, int, in C)""
-  IL_0019:  stloc.2
-  IL_001a:  ldloca.s   V_2
-  IL_001c:  ldstr      ""literal""
-  IL_0021:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0026:  pop
-  IL_0027:  ldloc.2
-  IL_0028:  callvirt   ""void C.M(CustomHandler)""
-  IL_002d:  ret
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  newobj     ""CustomHandler..ctor(int, int, in C)""
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 "
 : @"
 {
-  // Code size       48 (0x30)
+  // Code size       47 (0x2f)
   .maxstack  5
   .locals init (C V_0, //c
-                C& V_1,
+                C V_1,
                 CustomHandler V_2)
   IL_0000:  ldc.i4.1
   IL_0001:  newobj     ""C..ctor(int)""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
   IL_0009:  call       ""ref C Program.<<Main>$>g__GetC|0_0(ref C)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldind.ref
+  IL_000e:  ldind.ref
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldloca.s   V_2
   IL_0013:  ldc.i4.7
   IL_0014:  ldc.i4.0
   IL_0015:  ldloc.1
-  IL_0016:  ldind.ref
-  IL_0017:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  ldstr      ""literal""
-  IL_0023:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0028:  pop
-  IL_0029:  ldloc.2
-  IL_002a:  callvirt   ""void C.M(CustomHandler)""
-  IL_002f:  ret
+  IL_0016:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_001b:  ldloca.s   V_2
+  IL_001d:  ldstr      ""literal""
+  IL_0022:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0027:  pop
+  IL_0028:  ldloc.2
+  IL_0029:  callvirt   ""void C.M(CustomHandler)""
+  IL_002e:  ret
 }
 ");
 
@@ -9822,31 +9862,30 @@ public partial struct CustomHandler
             verifier.VerifyDiagnostics();
             verifier.VerifyIL($"Program.<<Main>$>g__localFunc|0_0({parameterRefness} C)", @"
 {
-  // Code size       43 (0x2b)
+  // Code size       42 (0x2a)
   .maxstack  5
-  .locals init (C& V_0,
+  .locals init (C V_0,
                 CustomHandler V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  newobj     ""C..ctor(int)""
   IL_0007:  stind.ref
   IL_0008:  ldarg.0
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  ldind.ref
+  IL_0009:  ldind.ref
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
   IL_000c:  ldloca.s   V_1
   IL_000e:  ldc.i4.7
   IL_000f:  ldc.i4.0
   IL_0010:  ldloc.0
-  IL_0011:  ldind.ref
-  IL_0012:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_0017:  ldloca.s   V_1
-  IL_0019:  ldstr      ""literal""
-  IL_001e:  call       ""bool CustomHandler.AppendLiteral(string)""
-  IL_0023:  pop
-  IL_0024:  ldloc.1
-  IL_0025:  callvirt   ""void C.M(CustomHandler)""
-  IL_002a:  ret
+  IL_0011:  call       ""CustomHandler..ctor(int, int, C)""
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  ldstr      ""literal""
+  IL_001d:  call       ""bool CustomHandler.AppendLiteral(string)""
+  IL_0022:  pop
+  IL_0023:  ldloc.1
+  IL_0024:  callvirt   ""void C.M(CustomHandler)""
+  IL_0029:  ret
 }
 ");
 
@@ -13825,7 +13864,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -13853,7 +13893,8 @@ void M(dynamic d, [InterpolatedStringHandlerArgument(""d"")]CustomHandler c) {}
 
 public partial struct CustomHandler
 {
-    public CustomHandler(int literalLength, int formattedCount, dynamic d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, int d) : this() {}
+    public CustomHandler(int literalLength, int formattedCount, long d) : this() {}
 }
 ";
 
@@ -13891,7 +13932,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeOneTimeHelpers: false);
 
-            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "d:1");
             verifier.VerifyDiagnostics();
 
@@ -13936,7 +13977,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -13981,7 +14022,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -14024,7 +14065,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendLiteral");
             verifier.VerifyDiagnostics();
 
@@ -14073,7 +14114,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendFormatted");
             verifier.VerifyDiagnostics();
 
@@ -14100,7 +14141,7 @@ public struct CustomHandler
         [Theory]
         [InlineData(@"$""literal{d}""")]
         [InlineData(@"$""literal"" + $""{d}""")]
-        public void DynamicConstruction_08(string expression)
+        public void DynamicConstruction_08_01(string expression)
         {
             var code = @"
 using System;
@@ -14129,7 +14170,103 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+AppendLiteral
+AppendFormatted");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      128 (0x80)
+  .maxstack  9
+  .locals init (object V_0, //d
+                CustomHandler V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  ldc.i4.7
+  IL_000a:  ldc.i4.1
+  IL_000b:  call       ""CustomHandler..ctor(int, int)""
+  IL_0010:  ldloca.s   V_1
+  IL_0012:  ldstr      ""literal""
+  IL_0017:  call       ""void CustomHandler.AppendLiteral(dynamic)""
+  IL_001c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0021:  brtrue.s   IL_0062
+  IL_0023:  ldc.i4     0x100
+  IL_0028:  ldstr      ""AppendFormatted""
+  IL_002d:  ldnull
+  IL_002e:  ldtoken    ""Program""
+  IL_0033:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0038:  ldc.i4.2
+  IL_0039:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_003e:  dup
+  IL_003f:  ldc.i4.0
+  IL_0040:  ldc.i4.s   9
+  IL_0042:  ldnull
+  IL_0043:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0048:  stelem.ref
+  IL_0049:  dup
+  IL_004a:  ldc.i4.1
+  IL_004b:  ldc.i4.0
+  IL_004c:  ldnull
+  IL_004d:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0052:  stelem.ref
+  IL_0053:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0058:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_005d:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0062:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0067:  ldfld      ""<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic> System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>>.Target""
+  IL_006c:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>> Program.<>o__0.<>p__0""
+  IL_0071:  ldloca.s   V_1
+  IL_0073:  ldloc.0
+  IL_0074:  callvirt   ""void <>A{00000008}<System.Runtime.CompilerServices.CallSite, CustomHandler, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, ref CustomHandler, dynamic)""
+  IL_0079:  ldloc.1
+  IL_007a:  call       ""void Program.<<Main>$>g__M|0_0(CustomHandler)""
+  IL_007f:  ret
+}
+");
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{d}""")]
+        [InlineData(@"$""literal"" + $""{d}""")]
+        public void DynamicConstruction_08_02(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+dynamic d = 1;
+M(" + expression + @");
+
+void M(CustomHandler c) {}
+
+[InterpolatedStringHandler]
+public struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount)
+    {
+    }
+
+    public void AppendLiteral(dynamic d)
+    {
+        Console.WriteLine(""AppendLiteral"");
+    }
+
+    public void AppendFormatted(dynamic d)
+    {
+        Console.WriteLine(""---"");
+    }
+
+    public void AppendFormatted(int d)
+    {
+        Console.WriteLine(""AppendFormatted"");
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -14216,13 +14353,19 @@ public struct CustomHandler
 
     public bool AppendFormatted(dynamic d)
     {
+        Console.WriteLine(""---"");
+        return true;
+    }
+
+    public bool AppendFormatted(long d)
+    {
         Console.WriteLine(""AppendFormatted"");
         return true;
     }
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -14297,6 +14440,168 @@ AppendFormatted");
   IL_00c3:  ret
 }
 ");
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        public void DynamicConstruction10(
+            [CombinatorialValues(@"$""literal{d}""", @"$""literal"" + $""{d}""")] string expression,
+            [CombinatorialValues("object", "dynamic", "string")] string type)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Text;
+
+                dynamic d = "Hello world!";
+
+                Console.WriteLine(Interpolate({{expression}}));
+
+                static string Interpolate(CustomInterpolationHandler text)
+                {
+                    return text.ToString();
+                }
+
+                [InterpolatedStringHandler]
+                public ref struct CustomInterpolationHandler
+                {
+                    private StringBuilder StringBuilder;
+            
+                    public CustomInterpolationHandler(int literalLength, int formattedCount)
+                    {
+                        StringBuilder = new StringBuilder();
+                    }
+            
+                    public void AppendLiteral(string text)
+                    {
+                        StringBuilder.Append(text);
+                    }
+            
+                    public void AppendFormatted({{type}} item)
+                    {
+                        StringBuilder.Append(item);
+                    }
+
+                    public override string ToString()
+                    {
+                        return StringBuilder.ToString();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, InterpolatedStringHandlerAttribute], targetFramework: TargetFramework.StandardAndCSharp);
+            comp.VerifyDiagnostics(
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
+                // Console.WriteLine(Interpolate($"literal" + $"{d}"));
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+                );
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        public void DynamicConstruction11([CombinatorialValues(@"$""literal{d}""", @"$""literal"" + $""{d}""")] string expression)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Text;
+
+                dynamic d = "Hello world!";
+
+                Console.WriteLine(Interpolate({{expression}}));
+
+                static string Interpolate(CustomInterpolationHandler text)
+                {
+                    return text.ToString();
+                }
+
+                [InterpolatedStringHandler]
+                public ref struct CustomInterpolationHandler
+                {
+                    private StringBuilder StringBuilder;
+            
+                    public CustomInterpolationHandler(int literalLength, int formattedCount)
+                    {
+                        StringBuilder = new StringBuilder();
+                    }
+            
+                    public void AppendLiteral(string text)
+                    {
+                        StringBuilder.Append(text);
+                    }
+            
+                    public void AppendFormatted<T>(T item)
+                    {
+                        StringBuilder.Append(item);
+                    }
+
+                    public override string ToString()
+                    {
+                        return StringBuilder.ToString();
+                    }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
+                // Console.WriteLine(Interpolate($"literal" + $"{d}"));
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+
+            );
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72606")]
+        public void DynamicConstruction12([CombinatorialValues(@"$""literal{d}""", @"$""literal"" + $""{d}""")] string expression)
+        {
+            var source = $$"""
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Text;
+
+                dynamic d = "Hello world!";
+
+                Console.WriteLine(Interpolate({{expression}}));
+
+                static string Interpolate(CustomInterpolationHandler text)
+                {
+                    return text.ToString();
+                }
+
+                [InterpolatedStringHandler]
+                public ref struct CustomInterpolationHandler
+                {
+                    private StringBuilder StringBuilder;
+            
+                    public CustomInterpolationHandler(int literalLength, int formattedCount)
+                    {
+                        StringBuilder = new StringBuilder();
+                    }
+            
+                    public void AppendLiteral(string text)
+                    {
+                        StringBuilder.Append(text);
+                    }
+            
+                    public void AppendFormatted(object item)
+                    {
+                        StringBuilder.Append(item);
+                    }
+            
+                    public void AppendFormatted(string item)
+                    {
+                        StringBuilder.Append(item);
+                    }
+
+                    public override string ToString()
+                    {
+                        return StringBuilder.ToString();
+                    }
+                }
+                """;
+
+            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+                // (7,31): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomInterpolationHandler'.
+                // Console.WriteLine(Interpolate($"literal" + $"{d}"));
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomInterpolationHandler").WithLocation(7, 31)
+            );
         }
 
         [Theory]
@@ -16924,15 +17229,20 @@ CustomHandler c = " + expression + ";";
 
             var comp = CreateCompilationWithCSharp(new[] { code, handler });
 
-            // Note: We don't give any errors when mixing dynamic and ref structs today. If that ever changes, we should get an
-            // error here. This will crash at runtime because of this.
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyDiagnostics(
+                // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+                // CustomHandler c = $"{h1}" + $"{h2}";
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19),
+                // 0.cs(4,19): error CS9230: Cannot perform a dynamic invocation on an expression with type 'CustomHandler'.
+                // CustomHandler c = $"{h1}" + $"{h2}";
+                Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, expression).WithArguments("CustomHandler").WithLocation(4, 19)
+                );
         }
 
         [Theory]
         [InlineData(@"$""Literal{1}""")]
         [InlineData(@"$""Literal"" + $""{1}""")]
-        public void ConversionInParamsArguments(string expression)
+        public void ConversionInParamsArguments_01(string expression)
         {
             var code = @"
 using System;
@@ -17004,6 +17314,31 @@ format:
   IL_0063:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71488")]
+        public void ConversionInParamsArguments_02()
+        {
+            var code = @"
+using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+M("""", $""test"");
+
+void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+{
+    Console.WriteLine(string.Join(Environment.NewLine, handlers.Select(h => h.ToString())));
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "struct", useBoolReturns: false) });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(8,19): error CS8946: 'CustomHandler[]' is not an interpolated string handler type.
+                // void M(string s, [InterpolatedStringHandlerArgument(nameof(s))] params CustomHandler[] handlers)
+                Diagnostic(ErrorCode.ERR_TypeIsNotAnInterpolatedStringHandlerType, "InterpolatedStringHandlerArgument(nameof(s))").WithArguments("CustomHandler[]").WithLocation(8, 19)
+                );
         }
 
         [Theory]
@@ -18242,6 +18577,650 @@ class C
                 // (8,29): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //     public A(int x, A a = M($"{1}")) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, @"$""{1}""").WithArguments("1", "ref").WithLocation(8, 29));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73667")]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReferenceReceiver(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+C c = new C(5);
+ref C c2 = ref c;
+c2.M({{expression}}, c2 = null);
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M([InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c, C cNull)
+    {
+        Console.WriteLine(cNull is null ? "cNull" : null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+cNull
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       52 (0x34)
+  .maxstack  5
+  .locals init (C V_0, //c
+                C& V_1, //c2
+                C V_2,
+                CustomHandler V_3,
+                C V_4)
+  IL_0000:  ldc.i4.5
+  IL_0001:  newobj     "C..ctor(int)"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldind.ref
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  ldloca.s   V_3
+  IL_0010:  ldc.i4.7
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.2
+  IL_0013:  call       "CustomHandler..ctor(int, int, C)"
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  ldstr      "literal"
+  IL_001f:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0024:  pop
+  IL_0025:  ldloc.3
+  IL_0026:  ldloc.1
+  IL_0027:  ldnull
+  IL_0028:  dup
+  IL_0029:  stloc.s    V_4
+  IL_002b:  stind.ref
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  callvirt   "void C.M(CustomHandler, C)"
+  IL_0033:  ret
+}
+""");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73667")]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_ReferenceTypeReferenceReceiver_ReverseOrder(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+C c = new C(5);
+ref C c2 = ref c;
+c2.M(c2 = null, {{expression}});
+
+public class C
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M(C cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
+    {
+        Console.WriteLine(cNull is null ? "cNull" : null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+cNull
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       51 (0x33)
+  .maxstack  6
+  .locals init (C V_0, //c
+                C& V_1, //c2
+                C V_2,
+                C V_3,
+                CustomHandler V_4)
+  IL_0000:  ldc.i4.5
+  IL_0001:  newobj     "C..ctor(int)"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  ldind.ref
+  IL_000c:  stloc.2
+  IL_000d:  ldloc.2
+  IL_000e:  ldloc.1
+  IL_000f:  ldnull
+  IL_0010:  dup
+  IL_0011:  stloc.3
+  IL_0012:  stind.ref
+  IL_0013:  ldloc.3
+  IL_0014:  ldloca.s   V_4
+  IL_0016:  ldc.i4.7
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldloc.2
+  IL_0019:  call       "CustomHandler..ctor(int, int, C)"
+  IL_001e:  ldloca.s   V_4
+  IL_0020:  ldstr      "literal"
+  IL_0025:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_002a:  pop
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  callvirt   "void C.M(C, CustomHandler)"
+  IL_0032:  ret
+}
+""");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73667")]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceConstrainedRefReceiver(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+        C c = new C(5);
+        Test(ref c);
+    }
+
+    static void Test<T>(ref T c2) where T : I1
+    {
+        c2.M(c2 = default, {{expression}});
+    }
+}
+
+public interface I1
+{
+    int Prop { get; }
+    void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c);
+}
+
+public class C : I1
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
+    {
+        Console.WriteLine(cNull is null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, I1 c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+True
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>(ref T)", """
+{
+  // Code size      104 (0x68)
+  .maxstack  6
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                CustomHandler V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.2
+  IL_0003:  ldloca.s   V_3
+  IL_0005:  initobj    "T"
+  IL_000b:  ldloc.3
+  IL_000c:  box        "T"
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      "T"
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  initobj    "T"
+  IL_002a:  ldloc.3
+  IL_002b:  dup
+  IL_002c:  stloc.3
+  IL_002d:  stobj      "T"
+  IL_0032:  ldloc.3
+  IL_0033:  box        "T"
+  IL_0038:  ldloca.s   V_4
+  IL_003a:  ldc.i4.7
+  IL_003b:  ldc.i4.0
+  IL_003c:  ldloc.0
+  IL_003d:  ldobj      "T"
+  IL_0042:  box        "T"
+  IL_0047:  call       "CustomHandler..ctor(int, int, I1)"
+  IL_004c:  ldloca.s   V_4
+  IL_004e:  ldstr      "literal"
+  IL_0053:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0058:  pop
+  IL_0059:  ldloc.s    V_4
+  IL_005b:  constrained. "T"
+  IL_0061:  callvirt   "void I1.M(I1, CustomHandler)"
+  IL_0066:  nop
+  IL_0067:  ret
+}
+""");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/73667")]
+        [CombinatorialData]
+        public void InterpolatedStringHandlerArgumentAttribute_ThisParameter_InterfaceAndClassConstrainedRefReceiver(
+            [CombinatorialValues(@"$""literal""", @"$""literal"" + $""""")] string expression)
+        {
+            var code = $$"""
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    static void Main()
+    {
+        C c = new C(5);
+        Test(ref c);
+    }
+
+    static void Test<T>(ref T c2) where T : class, I1
+    {
+        c2.M(c2 = default, {{expression}});
+    }
+}
+
+public interface I1
+{
+    int Prop { get; }
+    void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c);
+}
+
+public class C : I1
+{
+    public int Prop { get; }
+    public C(int i) => Prop = i;
+    public void M(I1 cNull, [InterpolatedStringHandlerArgumentAttribute("")] CustomHandler c)
+    {
+        Console.WriteLine(cNull is null);
+        Console.WriteLine(c.ToString());
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, I1 c) : this(literalLength, formattedCount)
+    {
+        _builder.AppendLine("c.Prop:" + c.Prop.ToString());
+    }
+}
+""";
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler }, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+True
+c.Prop:5
+literal:literal
+""");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>(ref T)", """
+{
+  // Code size       73 (0x49)
+  .maxstack  6
+  .locals init (T V_0,
+                T V_1,
+                CustomHandler V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  box        "T"
+  IL_000e:  ldarg.0
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    "T"
+  IL_0017:  ldloc.1
+  IL_0018:  dup
+  IL_0019:  stloc.1
+  IL_001a:  stobj      "T"
+  IL_001f:  ldloc.1
+  IL_0020:  box        "T"
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  ldc.i4.7
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  box        "T"
+  IL_002f:  call       "CustomHandler..ctor(int, int, I1)"
+  IL_0034:  ldloca.s   V_2
+  IL_0036:  ldstr      "literal"
+  IL_003b:  call       "bool CustomHandler.AppendLiteral(string)"
+  IL_0040:  pop
+  IL_0041:  ldloc.2
+  IL_0042:  callvirt   "void I1.M(I1, CustomHandler)"
+  IL_0047:  nop
+  IL_0048:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
+        public void InterpolatedStringAsInputToUserDefinedConversion_01()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        var y = (C1)$"dog"; // works
+                        System.Console.WriteLine(y);
+                    }
+                }
+
+                class C1
+                {
+                    System.FormattableString x;
+                    public C1(System.FormattableString x)
+                    {
+                        this.x = x;
+                    }
+
+                    public static implicit operator C1(System.FormattableString x) => new C1(x);
+
+                    public override string ToString()
+                    {
+                        return ("C1:") + x.ToString();
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "C1:dog");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
+        public void InterpolatedStringAsInputToUserDefinedConversion_02()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        var y = (C1)$"dog";
+                        System.Console.WriteLine(y);
+                    }
+                }
+
+                class C1
+                {
+                    System.IFormattable x;
+                    public C1(System.IFormattable x)
+                    {
+                        this.x = x;
+                    }
+
+                    public static implicit operator C1(System.IFormattable x) => new C1(x);
+
+                    public override string ToString()
+                    {
+                        return ("C1:") + x.ToString();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,37): error CS0552: 'C1.implicit operator C1(IFormattable)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator C1(System.IFormattable x) => new C1(x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C1").WithArguments("C1.implicit operator C1(System.IFormattable)").WithLocation(18, 37)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74677")]
+        public void StackOverflow()
+        {
+            var source = """
+                using System;
+
+                [Obsolete($"{Test2}")]
+                class Test2
+                {
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,14): error CS0119: 'Test2' is a type, which is not valid in the given context
+                // [Obsolete($"{Test2}")]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test2").WithArguments("Test2", "type").WithLocation(3, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_01()
+        {
+            var source = """
+                int a = 1;
+
+                var b = true ? $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1001: Identifier expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 21),
+                // (3,27): error CS1003: Syntax error, ':' expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 27),
+                // (3,27): error CS1733: Expected expression
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 27),
+                // (3,27): error CS1002: ; expected
+                // var b = true ? $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 27)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteDeclaration = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ElementAt(1);
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteDeclaration), """
+                IVariableDeclaratorOperation (Symbol: ? b) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'b = true ? $"{a.}"='a'')
+                  Initializer:
+                      IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= true ? $"{a.}"='a'')
+                      IConditionalOperation (OperationKind.Conditional, Type: ?, IsInvalid) (Syntax: 'true ? $"{a.}"='a'')
+                          Condition:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                          WhenTrue:
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                              Left:
+                              IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                  Parts(1):
+                                      IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                      Expression:
+                                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                          Children(1):
+                                              ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                                      Alignment:
+                                          null
+                                      FormatString:
+                                          null
+                              Right:
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  Operand:
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                          WhenFalse:
+                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                              Children(0)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_02()
+        {
+            var source = """
+                int a = 1;
+
+                $"{a.}"='a'
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (3,6): error CS1001: Identifier expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(3, 6),
+                // (3,12): error CS1002: ; expected
+                // $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 12)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                  Left:
+                      IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                      Parts(1):
+                          IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                              Expression:
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                  Children(1):
+                                      ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'a')
+                              Alignment:
+                              null
+                              FormatString:
+                              null
+                  Right:
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Operand:
+                          ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76444")]
+        public void UnconvertedNestedTargetTypedScenario_03()
+        {
+            var source = """
+                int a = 1;
+
+                _ = new C()
+                {
+                    $"{a.}"='a'
+                }
+
+                a switch { 1 => null } = 1;
+
+                class C
+                {
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0747: Invalid initializer member declarator
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"$""{a.}""='a'").WithLocation(5, 5),
+                // (5,10): error CS1001: Identifier expected
+                //     $"{a.}"='a'
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(5, 10),
+                // (6,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 2),
+                // (8,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "a switch { 1 => null }").WithLocation(8, 1),
+                // (8,3): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '0' is not covered.
+                // a switch { 1 => null } = 1;
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("0").WithLocation(8, 3)
+            );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var incompleteAssignment = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+
+            VerifyOperationTree(comp, model.GetOperation(incompleteAssignment), """
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C() ... }')
+                    Arguments(0)
+                    Initializer:
+                    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C, IsInvalid) (Syntax: '{ ... }')
+                        Initializers(1):
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '$"{a.}"='a'')
+                            Children(1):
+                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid) (Syntax: '$"{a.}"='a'')
+                                    Left:
+                                    IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, IsInvalid) (Syntax: '$"{a.}"')
+                                        Parts(1):
+                                            IInterpolationOperation (OperationKind.Interpolation, Type: null, IsInvalid) (Syntax: '{a.}')
+                                            Expression:
+                                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'a.')
+                                                Children(1):
+                                                    ILocalReferenceOperation: a (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'a')
+                                            Alignment:
+                                                null
+                                            FormatString:
+                                                null
+                                    Right:
+                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.String, IsInvalid, IsImplicit) (Syntax: ''a'')
+                                        Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                        Operand:
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: a, IsInvalid) (Syntax: ''a'')
+                """);
         }
     }
 }

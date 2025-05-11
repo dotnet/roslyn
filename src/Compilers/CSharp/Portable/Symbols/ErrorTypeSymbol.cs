@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class ErrorTypeSymbol : NamedTypeSymbol
     {
         internal static readonly ErrorTypeSymbol UnknownResultType = new UnsupportedMetadataTypeSymbol();
+        internal static readonly ErrorTypeSymbol EmptyParamsCollectionElementTypeSentinel = new UnsupportedMetadataTypeSymbol();
 
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
@@ -104,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
+
         public sealed override bool IsRefLikeType
         {
             get
@@ -111,6 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
         }
+
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
 
         public sealed override bool IsReadOnly
         {
@@ -439,6 +445,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool HasCompilerLoweringPreserveAttribute => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
 

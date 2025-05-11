@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -17,7 +18,7 @@ using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
-    public class InteractiveSessionReferencesTests : TestBase
+    public class InteractiveSessionReferencesTests : CSharpScriptTestBase
     {
         /// <summary>
         /// Test adding a reference to NetStandard 2.0 library.
@@ -40,7 +41,7 @@ public class C
             var s0 = CSharpScript.Create($@"
 #r ""{libFile.Path}""
 int F(C c) => c.X;
-");
+", ScriptOptions);
             var s1 = s0.ContinueWith($@"
 F(new C())
 ");
@@ -99,7 +100,7 @@ public class D
 #r ""{r1}""
 #r ""{r2}""
 new A().X + new B().X
-");
+", ScriptOptions);
             var diagnostics0 = s0.Compile();
             Assert.Empty(diagnostics0);
 
@@ -137,7 +138,7 @@ public class D
             var s0 = CSharpScript.Create($@"
 #r ""{libAFile.Path}""
 int F(C c) => c.X;
-");
+", ScriptOptions);
             var diagnostics0 = s0.Compile();
             Assert.Empty(diagnostics0);
 

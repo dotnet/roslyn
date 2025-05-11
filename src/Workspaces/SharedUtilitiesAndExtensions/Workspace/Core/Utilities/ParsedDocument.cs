@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -73,9 +70,7 @@ internal readonly record struct ParsedDocument(DocumentId Id, SourceText Text, S
         Contract.ThrowIfFalse(Id == oldDocument.Id);
 
         if (Text == oldDocument.Text || SyntaxTree == oldDocument.SyntaxTree)
-        {
-            return SpecializedCollections.EmptyEnumerable<TextChange>();
-        }
+            return [];
 
         var textChanges = Text.GetTextChanges(oldDocument.Text);
 

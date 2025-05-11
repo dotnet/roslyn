@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
+internal sealed class NamespaceItem
 {
-    internal class NamespaceItem
+    public string Namespace { get; }
+    public bool IsFromHistory { get; }
+
+    public NamespaceItem(bool isFromHistory, string @namespace)
     {
-        public string Namespace { get; }
-        public bool IsFromHistory { get; }
-
-        public NamespaceItem(bool isFromHistory, string @namespace)
-        {
-            IsFromHistory = isFromHistory;
-            Namespace = @namespace;
-        }
-
-        public override string ToString() => Namespace;
+        IsFromHistory = isFromHistory;
+        Namespace = @namespace;
     }
+
+    public override string ToString() => Namespace;
 }

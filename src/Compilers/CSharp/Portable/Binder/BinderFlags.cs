@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InExpressionTree = 1 << 30,
 
+        /// <summary>
+        /// Indicates the binder is used during collection expression conversion
+        /// to verify applicable methods are available.
+        /// </summary>
+        CollectionExpressionConversionValidation = 1u << 31,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

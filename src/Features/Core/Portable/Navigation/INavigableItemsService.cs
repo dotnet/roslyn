@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Navigation;
 
 /// <summary>
-/// Service used for features that want to find all the locations to potentially navigate to for a symbol at a
-/// particular location, with enough information provided to display those locations in a rich fashion. Differs from
-/// <see cref="IDefinitionLocationService"/> in that this can show a rich display of the items, not just navigate to
-/// them.
+/// Service used for features that want to find all the locations to potentially navigate to for a symbol or its type
+/// at a particular location, with enough information provided to display those locations in a rich fashion. Differs
+/// from <see cref="IDefinitionLocationService"/> in that this can show a rich display of the items, not just navigate
+/// to them.
 /// </summary>
 internal interface INavigableItemsService : ILanguageService
 {
@@ -21,4 +21,9 @@ internal interface INavigableItemsService : ILanguageService
     /// Finds the definitions for the symbol at the specific position in the document.
     /// </summary>
     Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Finds the definitions for the symbol or its type at the specific position in the document.
+    /// </summary>
+    Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, bool forSymbolType, CancellationToken cancellationToken);
 }

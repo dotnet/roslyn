@@ -26,23 +26,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
                    End Sub
         End Function
 
-        Public Function Package(expectedName As String) As NodeVerifier
+        Public Function PackageNode(expectedName As String) As NodeVerifier
             Return Node(_LIB_LISTTYPE.LLT_PACKAGE, expectedName)
         End Function
 
-        Public Function [Namespace](expectedName As String) As NodeVerifier
+        Public Function NamespaceNode(expectedName As String) As NodeVerifier
             Return Node(_LIB_LISTTYPE.LLT_NAMESPACES, expectedName)
         End Function
 
-        Public Function [Class](expectedName As String) As NodeVerifier
+        Public Function ClassNode(expectedName As String) As NodeVerifier
             Return Node(_LIB_LISTTYPE.LLT_CLASSES, expectedName)
         End Function
 
-        Public Function Member(expectedName As String) As NodeVerifier
+        Public Function MemberNode(expectedName As String) As NodeVerifier
             Return Node(_LIB_LISTTYPE.LLT_MEMBERS, expectedName)
         End Function
 
-        Public Function Hierarchy(expectedName As String) As NodeVerifier
+        Public Function HierarchyNode(expectedName As String) As NodeVerifier
             Return Node(_LIB_LISTTYPE.LLT_HIERARCHY, expectedName)
         End Function
 

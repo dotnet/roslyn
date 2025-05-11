@@ -2335,5 +2335,213 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+        public void NestedRethrow(bool await1, bool await2)
+        {
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                try
+                {
+                    await Test1();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.GetType().Name);
+                }
+
+                try
+                {
+                    await Test2();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.GetType().Name);
+                }
+
+                static async Task Test1()
+                {
+                    try
+                    {
+                        throw new Exception1();
+                    }
+                    catch (Exception1)
+                    {
+                        try
+                        {
+                            await Task.FromException(new Exception2());
+                        }
+                        catch (Exception2)
+                        {
+                            {{(await1 ? "await Task.Yield();" : "")}}
+                            throw;
+                        }
+                    }
+                }
+
+                static async Task Test2()
+                {
+                    try
+                    {
+                        throw new Exception1();
+                    }
+                    catch (Exception1)
+                    {
+                        try
+                        {
+                            await Task.FromException(new Exception2());
+                        }
+                        catch (Exception2 ex)
+                        {
+                            {{(await2 ? "await Task.Yield();" : "")}}
+                            throw ex;
+                        }
+                    }
+                }
+
+                class Exception1 : Exception { }
+                class Exception2 : Exception { }
+                """;
+
+            var expectedOutput = """
+                Exception2
+                Exception2
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput,
+                targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
+                targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+        public void NestedRethrow_02(bool await1, bool await2, bool await3)
+        {
+            var source = $$"""
+                #pragma warning disable 1998 // async method lacks 'await' operators
+                using System;
+                using System.Threading.Tasks;
+
+                try
+                {
+                    await Run();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.GetType().Name);
+                }
+
+                static async Task Run()
+                {
+                    try
+                    {
+                        throw new Exception1();
+                    }
+                    catch (Exception1)
+                    {
+                        try
+                        {
+                            {{(await1 ? "await Task.Yield();" : "")}}
+                            throw new Exception2();
+                        }
+                        catch (Exception2)
+                        {
+                            try
+                            {
+                                {{(await2 ? "await Task.Yield();" : "")}}
+                                throw new Exception3();
+                            }
+                            catch (Exception3)
+                            {
+                                {{(await3 ? "await Task.Yield();" : "")}}
+                                throw;
+                            }
+                        }
+                    }
+                }
+
+                class Exception1 : Exception { }
+                class Exception2 : Exception { }
+                class Exception3 : Exception { }
+                """;
+
+            var expectedOutput = "Exception3";
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+        [InlineData("await Task.Yield();")]
+        [InlineData("await using var c = new C();")]
+        [InlineData("await foreach (var x in new C()) { }")]
+        public void NestedRethrow_03(string statement)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+                using System.Threading.Tasks;
+
+                try
+                {
+                    await Run();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.GetType().Name);
+                }
+
+                static async Task Run()
+                {
+                    try
+                    {
+                        throw new Exception1();
+                    }
+                    catch (Exception1)
+                    {
+                        {{statement}}
+                        try
+                        {
+                            throw new Exception2();
+                        }
+                        catch (Exception2)
+                        {
+                            try
+                            {
+                                throw new Exception3();
+                            }
+                            catch (Exception3)
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
+
+                class Exception1 : Exception { }
+                class Exception2 : Exception { }
+                class Exception3 : Exception { }
+
+                class C : IAsyncDisposable, IAsyncEnumerable<int>
+                {
+                    public async ValueTask DisposeAsync() => await Task.Yield();
+                    public async IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken ct)
+                    {
+                        await Task.Yield();
+                        yield return 1;
+                    }
+                }
+                """;
+
+            CSharpTestSource sources = [source, AsyncStreamsTypes];
+
+            var expectedOutput = "Exception3";
+
+            CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
     }
 }

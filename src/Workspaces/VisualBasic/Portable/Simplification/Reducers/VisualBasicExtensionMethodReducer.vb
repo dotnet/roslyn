@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim memberAccess = DirectCast(invocationExpression.Expression, MemberAccessExpressionSyntax)
                 Dim targetSymbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken)
 
-                If (Not targetSymbol.Symbol Is Nothing) AndAlso targetSymbol.Symbol.Kind = SymbolKind.Method Then
+                If (targetSymbol.Symbol IsNot Nothing) AndAlso targetSymbol.Symbol.Kind = SymbolKind.Method Then
                     Dim targetMethodSymbol = DirectCast(targetSymbol.Symbol, IMethodSymbol)
                     If Not targetMethodSymbol.IsReducedExtension() Then
                         Dim argumentList = invocationExpression.ArgumentList
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                                 candidateRewrittenNode,
                                 SpeculativeBindingOption.BindAsExpression).Symbol
 
-                            If Not oldSymbol Is Nothing And Not newSymbol Is Nothing Then
+                            If oldSymbol IsNot Nothing And newSymbol IsNot Nothing Then
                                 If newSymbol.Kind = SymbolKind.Method And oldSymbol.Equals(DirectCast(newSymbol, IMethodSymbol).GetConstructedReducedFrom()) Then
                                     rewrittenNode = candidateRewrittenNode
                                 End If

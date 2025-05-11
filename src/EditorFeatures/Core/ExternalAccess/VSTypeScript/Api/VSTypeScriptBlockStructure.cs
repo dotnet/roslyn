@@ -4,10 +4,9 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptBlockStructure(ImmutableArray<VSTypeScriptBlockSpan> spans)
 {
-    internal readonly struct VSTypeScriptBlockStructure(ImmutableArray<VSTypeScriptBlockSpan> spans)
-    {
-        public ImmutableArray<VSTypeScriptBlockSpan> Spans { get; } = spans;
-    }
+    public ImmutableArray<VSTypeScriptBlockSpan> Spans { get; } = spans;
 }

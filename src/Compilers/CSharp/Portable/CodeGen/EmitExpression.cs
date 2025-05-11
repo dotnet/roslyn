@@ -11,11 +11,11 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 using static System.Linq.ImmutableArrayExtensions;
-using static Microsoft.CodeAnalysis.CSharp.Binder;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -154,6 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayElementLoad((BoundArrayAccess)expression, used);
                     break;
 
+                case BoundKind.RefArrayAccess:
+                    EmitArrayElementRefLoad((BoundRefArrayAccess)expression, used);
+                    break;
+
                 case BoundKind.ArrayLength:
                     EmitArrayLength((BoundArrayLength)expression, used);
                     break;
@@ -236,6 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ModuleVersionIdString:
                     Debug.Assert(used);
                     EmitModuleVersionIdStringLoad();
+                    break;
+
+                case BoundKind.ThrowIfModuleCancellationRequested:
+                    Debug.Assert(!used);
+                    EmitThrowIfModuleCancellationRequested(expression.Syntax);
+                    break;
+
+                case BoundKind.ModuleCancellationTokenExpression:
+                    Debug.Assert(used);
+                    EmitModuleCancellationTokenLoad(expression.Syntax);
                     break;
 
                 case BoundKind.InstrumentationPayloadRoot:
@@ -582,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// We must use a temp when there is a chance that evaluation of the call arguments
-        /// could actually modify value of the reference type reciever. The call must use
+        /// could actually modify value of the reference type receiver. The call must use
         /// the original (unmodified) receiver.
         /// </summary>
         private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
@@ -719,7 +733,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (unexpectedTemp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
-                        Debug.Assert(argument.Type.IsDynamic(), "passing args byref should not clone them into temps");
+                        // receiver of a ref field can be cloned too
+                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
                         AddExpressionTemp(unexpectedTemp);
                     }
 
@@ -1083,10 +1098,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax);
             }
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitArrayElementRefLoad(BoundRefArrayAccess refArrayAccess, bool used)
+        {
+            if (used)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
+            _builder.EmitOpCode(ILOpCode.Pop);
         }
 
         private void EmitFieldLoad(BoundFieldAccess fieldAccess, bool used)
@@ -2284,9 +2310,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be called directly.
-            // we can assume that special types will not be removing overrides
-            return containingType.SpecialType != SpecialType.None;
+            // Overrides in structs of some special types can be called directly.
+            // We can assume that these special types will not be removing overrides.
+            // This pattern can probably be applied to all special types,
+            // but that would introduce a silent change every time a new special type is added,
+            // so we constrain the check to a fixed range of types
+            return containingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -2353,7 +2382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax);
             }
 
             if (expression.InitializerOpt != null)
@@ -3171,7 +3200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode);
             }
         }
 
@@ -3409,7 +3438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var constantValue = type.GetDefaultValue();
                     if (constantValue != null)
                     {
-                        _builder.EmitConstantValue(constantValue);
+                        _builder.EmitConstantValue(constantValue, syntaxNode);
                         return;
                     }
                 }
@@ -3445,17 +3474,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
         {
-            if (used)  // unused constant has no side-effects
+            // unused constant has no side-effects
+            if (!used)
             {
-                // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
-                if (((object)type != null) && (type.TypeKind == TypeKind.TypeParameter) && constantValue.IsNull)
+                return;
+            }
+
+            // Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
+            if (type is { TypeKind: TypeKind.TypeParameter } && constantValue.IsNull)
+            {
+                EmitInitObj(type, used, syntaxNode);
+            }
+            else
+            {
+                // TODO: use-site dependencies are not reported to UsedAssemblyReferences https://github.com/dotnet/roslyn/issues/78172
+                if (constantValue.IsString && constantValue.StringValue.Length > _module.Compilation.DataSectionStringLiteralThreshold)
                 {
-                    EmitInitObj(type, used, syntaxNode);
+                    _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntaxNode);
+                    _ = Binder.GetWellKnownTypeMember(_module.Compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntaxNode);
                 }
-                else
-                {
-                    _builder.EmitConstantValue(constantValue);
-                }
+
+                _builder.EmitConstantValue(constantValue, syntaxNode);
             }
         }
 
@@ -3533,7 +3572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal);
+                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up
             }
             else
             {
@@ -3547,7 +3586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var fieldRef = _module.Translate(field, syntax, _diagnostics.DiagnosticBag, needDeclaration: true);
 
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            _builder.EmitToken(fieldRef, syntax, _diagnostics.DiagnosticBag, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
+            _builder.EmitToken(fieldRef, syntax, Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
@@ -3571,7 +3610,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(
+                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
+                node.Syntax);
+        }
+
+        private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsflda);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax);
+
+            var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
+
+            // BoundThrowIfModuleCancellationRequested should not be created if the method doesn't exist.
+            Debug.Assert(throwMethod != null);
+
+            _builder.EmitOpCode(ILOpCode.Call, -1);
+            _builder.EmitToken(
+                _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
+                syntax);
+        }
+
+        private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax);
         }
 
         private void EmitModuleVersionIdStringLoad()
@@ -3594,7 +3665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax);
         }
 
         private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)

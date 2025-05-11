@@ -34,7 +34,7 @@ End Module]]>.Value
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree})
             Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
             Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
 
@@ -57,7 +57,7 @@ End Module]]>.Value
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree})
             Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
             Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
 
@@ -92,7 +92,7 @@ End Module]]>.Value
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim compilation = CreateCompilationWithMscorlib461AndVBRuntime({syntaxTree})
             Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
             Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
 

@@ -17,6 +17,11 @@
         <target state="translated">包含类型“{0}”的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="translated">属性</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">内置运算符名称“{0}”非法</target>
@@ -80,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">"end" 不得小于 "start"。start="{0}" end="{1}"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0};文件可能被 {1} 锁定</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -225,7 +235,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="translated">旧文件签名的临时路径不可用。</target>
+        <target state="translated">旧式文件签名的临时路径不可用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -263,9 +273,19 @@
         <target state="translated">A SuppressionDescriptor 必须具有一个 ID，且该 ID 不为 null、不是空字符串且不是仅包含空格的字符串。</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="translated">无法发出方法 '{0}' 的本机 PDB，因为其调试元数据大小 {1} 超过 {2} 限制。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">如果已指定元组元素可以为 null 的注释，则注释的数量必须与元组基数相匹配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="translated">'{0}' 类型没有所需的构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,11 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 internal static class CSharpSnippetHelpers
 {
-    public static int GetTargetCaretPositionInBlock<TTargetNode>(SyntaxNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
+    public static int GetTargetCaretPositionInBlock<TTargetNode>(TTargetNode caretTarget, Func<TTargetNode, BlockSyntax> getBlock, SourceText sourceText)
         where TTargetNode : SyntaxNode
     {
-        var targetNode = (TTargetNode)caretTarget;
-        var block = getBlock(targetNode);
+        var block = getBlock(caretTarget);
 
         var triviaSpan = block.CloseBraceToken.LeadingTrivia.Span;
         var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
@@ -44,24 +42,20 @@ internal static class CSharpSnippetHelpers
         return newIndentation.GetIndentationString(parsedDocument.Text, syntaxFormattingOptions.UseTabs, syntaxFormattingOptions.TabSize) + newLine;
     }
 
-    public static async Task<Document> AddBlockIndentationToDocumentAsync<TTargetNode>(Document document, SyntaxAnnotation findSnippetAnnotation, Func<TTargetNode, BlockSyntax> getBlock, CancellationToken cancellationToken)
+    public static async Task<Document> AddBlockIndentationToDocumentAsync<TTargetNode>(
+        Document document, TTargetNode targetNode, Func<TTargetNode, BlockSyntax> getBlock, CancellationToken cancellationToken)
         where TTargetNode : SyntaxNode
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippetNode = root.GetAnnotatedNodes(findSnippetAnnotation).FirstOrDefault();
+        var block = getBlock(targetNode);
 
-        if (snippetNode is not TTargetNode targetStatement)
-            return document;
-
-        var block = getBlock(targetStatement);
-
-        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var indentationString = GetBlockLikeIndentationString(document, block.SpanStart, syntaxFormattingOptions, cancellationToken);
 
         var updatedBlock = block.WithCloseBraceToken(block.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
-        var updatedTargetStatement = targetStatement.ReplaceNode(block, updatedBlock);
+        var updatedTargetStatement = targetNode.ReplaceNode(block, updatedBlock);
 
-        var newRoot = root.ReplaceNode(targetStatement, updatedTargetStatement);
+        var newRoot = root.ReplaceNode(targetNode, updatedTargetStatement);
         return document.WithSyntaxRoot(newRoot);
     }
 }

@@ -5,13 +5,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
+
+/// <summary>
+/// Abstraction for testing purposes.
+/// </summary>
+internal interface IVisualStudioDiagnosticAnalyzerProviderFactory
 {
-    /// <summary>
-    /// Abstraction for testing purposes.
-    /// </summary>
-    internal interface IVisualStudioDiagnosticAnalyzerProviderFactory
-    {
-        Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync(CancellationToken cancellationToken);
-    }
+    Task<VisualStudioDiagnosticAnalyzerProvider> GetOrCreateProviderAsync(CancellationToken cancellationToken);
 }

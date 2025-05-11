@@ -6,7 +6,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
@@ -15,79 +14,78 @@ using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests;
+
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.Formatting)]
+public sealed partial class FormattingTests : TestBase
 {
-    [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.Formatting)]
-    public partial class FormattingTests : TestBase
+    [Fact]
+    public void TestCSharpFormatting()
     {
-        [Fact]
-        public void TestCSharpFormatting()
-        {
-            var text = @"public class C{public int X;}";
-            var expectedFormattedText = @"public class C { public int X; }";
+        var text = @"public class C{public int X;}";
+        var expectedFormattedText = @"public class C { public int X; }";
 
-            AssertFormatCSharp(expectedFormattedText, text);
-        }
+        AssertFormatCSharp(expectedFormattedText, text);
+    }
 
-        [Fact]
-        public void TestCSharpDefaultRules()
-        {
-            using var workspace = new AdhocWorkspace();
+    [Fact]
+    public void TestCSharpDefaultRules()
+    {
+        using var workspace = new AdhocWorkspace();
 
-            var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
-            var rules = service.GetDefaultFormattingRules();
+        var service = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ISyntaxFormattingService>();
+        var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotEmpty(rules);
-        }
+        Assert.NotEmpty(rules);
+    }
 
-        [Fact]
-        public void TestVisualBasicFormatting()
-        {
-            var text = @"
+    [Fact]
+    public void TestVisualBasicFormatting()
+    {
+        var text = @"
 Public Class C
 Public X As Integer
 End Class
 ";
-            var expectedFormattedText = @"
+        var expectedFormattedText = @"
 Public Class C
     Public X As Integer
 End Class
 ";
 
-            AssertFormatVB(expectedFormattedText, text);
-        }
+        AssertFormatVB(expectedFormattedText, text);
+    }
 
-        [Fact]
-        public void TestVisualBasicDefaultFormattingRules()
-        {
-            using var workspace = new AdhocWorkspace();
-            var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
-            var rules = service.GetDefaultFormattingRules();
+    [Fact]
+    public void TestVisualBasicDefaultFormattingRules()
+    {
+        using var workspace = new AdhocWorkspace();
+        var service = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService<ISyntaxFormattingService>();
+        var rules = service.GetDefaultFormattingRules();
 
-            Assert.NotEmpty(rules);
-        }
+        Assert.NotEmpty(rules);
+    }
 
-        private static void AssertFormatCSharp(string expected, string input)
-        {
-            var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
-        }
+    private static void AssertFormatCSharp(string expected, string input)
+    {
+        var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
+        AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
+    }
 
-        private static void AssertFormatVB(string expected, string input)
-        {
-            var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
-        }
+    private static void AssertFormatVB(string expected, string input)
+    {
+        var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
+        AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
+    }
 
-        private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
-        {
-            using var workspace = new AdhocWorkspace();
+    private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
+    {
+        using var workspace = new AdhocWorkspace();
 
-            var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);
-            var actualFormattedText = formattedRoot.ToFullString();
+        var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);
+        var actualFormattedText = formattedRoot.ToFullString();
 
-            Assert.Equal(expected, actualFormattedText);
-        }
+        Assert.Equal(expected, actualFormattedText);
     }
 }

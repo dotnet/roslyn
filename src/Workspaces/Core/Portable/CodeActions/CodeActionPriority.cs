@@ -4,8 +4,6 @@
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions;
 

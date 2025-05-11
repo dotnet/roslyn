@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
-using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.BuildTasks;
-using Xunit;
-using Moq;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -214,12 +211,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void FeaturesInterceptors()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void FeaturesInterceptorsPreview()
         {
             var csc = new Csc();
             csc.InterceptorsPreviewNamespaces = "NS1.NS2;NS3.NS4";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            AssertEx.Equal("""/features:"InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewBoth()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.InterceptorsPreviewNamespaces = "NS5.NS6;NS7.NS8";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4;NS5.NS6;NS7.NS8" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -633,5 +649,107 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
         }
+
+        [Fact]
+        public void PathToManagedTool_Normal()
+        {
+            var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
+            var relativePath = RuntimeHostInfo.IsCoreClrRuntime
+                ? Path.Combine("bincore", "csc.dll")
+                : "csc.exe";
+            var task = new Csc();
+            Assert.Equal(Path.Combine(taskPath, relativePath), task.PathToBuiltInTool);
+        }
+
+#if NETFRAMEWORK
+
+        [Fact]
+        public void PathToManagedTool_Bridge()
+        {
+            var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
+            var task = new Csc()
+            {
+                IsSdkFrameworkToCoreBridgeTask = true
+            };
+            Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
+        }
+
+#endif
+
+        [Fact]
+        public void IsManagedToolRunningOnCoreClr_Normal()
+        {
+            var task = new Csc();
+            Assert.Equal(RuntimeHostInfo.IsCoreClrRuntime, task.IsBuiltinToolRunningOnCoreClr);
+        }
+
+        [Fact]
+        public void IsManagedToolRunningOnCoreClr_Bridge()
+        {
+#if NET
+            Assert.False(ManagedToolTask.CalculateIsSdkFrameworkToCoreBridgeTask());
+#else
+            var task = new Csc();
+            Assert.False(task.IsBuiltinToolRunningOnCoreClr);
+#endif
+        }
+
+#if NETFRAMEWORK && DEBUG
+
+        [Theory]
+        [InlineData("binfx", true, true)]
+        [InlineData("binfx", false, false)]
+        [InlineData("other", true, false)]
+        [InlineData("other", false, false)]
+        public void CalculateIsSdkFrameworkToCoreBridgeTask_DirectoryName(string dirName, bool makeBincore, bool expected)
+        {
+            LoadInAppDomain(dirName, (appDomain, taskAssemblyName, dirPath) =>
+            {
+                if (makeBincore)
+                {
+                    _ = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(dirPath), "bincore"));
+                }
+
+                var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssemblyName, typeof(TaskTestHost).FullName);
+                Assert.Equal(expected, testHost.IsSdkFrameworkToCoreBridgeTask);
+            });
+        }
+
+        [Fact]
+        public void CalculateIsSdkFrameworkToCoreBridgeTask_CscPresent()
+        {
+            LoadInAppDomain("binfx", (appDomain, taskAssemblyName, dirPath) =>
+            {
+                File.WriteAllText(Path.Combine(dirPath, "csc.exe"), "real code");
+                var testHost = (TaskTestHost)appDomain.CreateInstanceAndUnwrap(taskAssemblyName, typeof(TaskTestHost).FullName);
+                Assert.False(testHost.IsSdkFrameworkToCoreBridgeTask);
+            });
+        }
+
+        private static void LoadInAppDomain(string dirName, Action<AppDomain, string, string> action)
+        {
+            using var tempRoot = new TempRoot();
+            var dirPath = tempRoot.CreateDirectory().CreateDirectory(dirName).Path;
+            var taskAssembly = typeof(ManagedCompiler).Assembly;
+            var taskFilePath = taskAssembly.Location!;
+            var taskPath = Path.GetDirectoryName(taskFilePath);
+            foreach (var dllPath in Directory.EnumerateFiles(taskPath, "*.dll"))
+            {
+                File.Copy(dllPath, Path.Combine(dirPath, Path.GetFileName(dllPath)));
+            }
+
+            var appDomain = Roslyn.Test.Utilities.Desktop.AppDomainUtils.Create("TestAppDomain", dirPath);
+            try
+            {
+                action(appDomain, taskAssembly.FullName, dirPath);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+#endif
+
     }
 }

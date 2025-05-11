@@ -6,49 +6,48 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
 {
-    internal abstract class AbstractFallbackEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
+    private readonly EmbeddedLanguageInfo _info;
+    private readonly ImmutableArray<int> _supportedKinds;
+
+    protected AbstractFallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
     {
-        private readonly EmbeddedLanguageInfo _info;
-        private readonly ImmutableArray<int> _supportedKinds;
+        _info = info;
 
-        protected AbstractFallbackEmbeddedLanguageClassifier(EmbeddedLanguageInfo info)
+        using var array = TemporaryArray<int>.Empty;
+
+        array.Add(info.SyntaxKinds.CharacterLiteralToken);
+        array.Add(info.SyntaxKinds.StringLiteralToken);
+        array.Add(info.SyntaxKinds.InterpolatedStringTextToken);
+
+        array.AsRef().AddIfNotNull(info.SyntaxKinds.Utf8StringLiteralToken);
+
+        _supportedKinds = array.ToImmutableAndClear();
+    }
+
+    public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
+    {
+        var token = context.SyntaxToken;
+        if (!_supportedKinds.Contains(token.RawKind))
+            return;
+
+        var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
+        if (virtualChars.IsDefaultOrEmpty)
+            return;
+
+        // Can avoid any work if we got the same number of virtual characters back as characters in the string. In
+        // that case, there are clearly no escaped characters.
+        if (virtualChars.Length == token.Text.Length)
+            return;
+
+        foreach (var vc in virtualChars)
         {
-            _info = info;
-
-            using var array = TemporaryArray<int>.Empty;
-
-            array.Add(info.SyntaxKinds.CharacterLiteralToken);
-            array.Add(info.SyntaxKinds.StringLiteralToken);
-            array.Add(info.SyntaxKinds.InterpolatedStringTextToken);
-
-            array.AsRef().AddIfNotNull(info.SyntaxKinds.Utf8StringLiteralToken);
-
-            _supportedKinds = array.ToImmutableAndClear();
-        }
-
-        public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
-        {
-            var token = context.SyntaxToken;
-            if (!_supportedKinds.Contains(token.RawKind))
-                return;
-
-            var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-            if (virtualChars.IsDefaultOrEmpty)
-                return;
-
-            // Can avoid any work if we got the same number of virtual characters back as characters in the string. In
-            // that case, there are clearly no escaped characters.
-            if (virtualChars.Length == token.Text.Length)
-                return;
-
-            foreach (var vc in virtualChars)
-            {
-                // utf-16 virtual char might have either one or two in text span
-                if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
-                    context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
-            }
+            // utf-16 virtual char might have either one or two in text span
+            if (vc.Span.Length > vc.Rune.Utf16SequenceLength)
+                context.AddClassification(ClassificationTypeNames.StringEscapeCharacter, vc.Span);
         }
     }
 }

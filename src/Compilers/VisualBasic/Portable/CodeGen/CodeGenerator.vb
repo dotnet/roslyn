@@ -190,16 +190,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Function
 
         Private Sub EmitSymbolToken(symbol As FieldSymbol, syntaxNode As SyntaxNode)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode)
         End Sub
 
         Private Sub EmitSymbolToken(symbol As MethodSymbol, syntaxNode As SyntaxNode, Optional encodeAsRawDefinitionToken As Boolean = False)
             Dim methodRef = _module.Translate(symbol, syntaxNode, _diagnostics, needDeclaration:=encodeAsRawDefinitionToken)
-            _builder.EmitToken(methodRef, syntaxNode, _diagnostics, If(encodeAsRawDefinitionToken, Cci.MetadataWriter.RawTokenEncoding.RowId, Cci.MetadataWriter.RawTokenEncoding.None))
+            _builder.EmitToken(methodRef, syntaxNode, If(encodeAsRawDefinitionToken, Cci.MetadataWriter.RawTokenEncoding.RowId, Cci.MetadataWriter.RawTokenEncoding.None))
         End Sub
 
         Private Sub EmitSymbolToken(symbol As TypeSymbol, syntaxNode As SyntaxNode)
-            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode, _diagnostics)
+            _builder.EmitToken(_module.Translate(symbol, syntaxNode, _diagnostics), syntaxNode)
         End Sub
 
         Private Sub EmitSequencePointExpression(node As BoundSequencePointExpression, used As Boolean)

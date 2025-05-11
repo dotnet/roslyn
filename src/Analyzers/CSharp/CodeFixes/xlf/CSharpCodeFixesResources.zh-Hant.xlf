@@ -197,6 +197,11 @@
         <target state="translated">使用集合運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_array">
+        <source>Use explicit array</source>
+        <target state="translated">使用明確陣列</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
         <target state="translated">使用插入的逐字字串</target>

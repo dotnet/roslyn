@@ -42,7 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool HasCodeAnalysisEmbeddedAttribute => false;
 
+            internal sealed override bool HasCompilerLoweringPreserveAttribute => false;
+
             internal sealed override bool IsInterpolatedStringHandlerType => false;
+
+            internal sealed override ParameterSymbol? ExtensionParameter => null;
 
             internal sealed override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
             {
@@ -76,6 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal sealed override bool IsFileLocal => false;
             internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
+
+            internal override string ExtensionName
+                => throw ExceptionUtilities.Unreachable();
 
             public sealed override int Arity
             {

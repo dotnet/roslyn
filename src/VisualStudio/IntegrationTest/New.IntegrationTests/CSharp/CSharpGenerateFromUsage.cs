@@ -7,27 +7,24 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.IntegrationTests.CSharp
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp;
+
+public class CSharpGenerateFromUsage : AbstractEditorTest
 {
-    public class CSharpGenerateFromUsage : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpGenerateFromUsage()
+        : base(nameof(CSharpGenerateFromUsage))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+    }
 
-        public CSharpGenerateFromUsage()
-            : base(nameof(CSharpGenerateFromUsage))
-        {
-        }
-
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
-        public async Task GenerateLocal()
-        {
-            await SetUpEditorAsync(
+    [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateLocal)]
+    public async Task GenerateLocal()
+    {
+        await SetUpEditorAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -35,8 +32,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = $$xyz;
     }
 }", HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.TextContainsAsync(
+        await TestServices.EditorVerifier.CodeActionAsync("Generate local 'xyz'", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextContainsAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -45,6 +42,5 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         string s = xyz;
     }
 }", cancellationToken: HangMitigatingCancellationToken);
-        }
     }
 }

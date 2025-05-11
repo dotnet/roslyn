@@ -669,7 +669,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
                 BoundExpression result = BindMethodGroupInvocation(
                     rightSyntax, rightSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
-                    allowUnexpandedForm: true, anyApplicableCandidates: out anyApplicableCandidates);
+                    ignoreNormalFormIfHasValidParamsParameter: false, anyApplicableCandidates: out anyApplicableCandidates,
+                    disallowExpandedNonArrayParams: false, acceptOnlyMethods: true);
 
                 result.WasCompilerGenerated = true;
 
@@ -682,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This prevents, for example, an unused params parameter after the out parameters.
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
-                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
+                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
                 {
                     if (parameters[i].RefKind != RefKind.Out)
                     {
@@ -872,6 +873,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // is this a local?
             if ((object)localSymbol != null)
             {
+                ReportFieldContextualKeywordConflictIfAny(localSymbol, designation, designation.Identifier, diagnostics);
+
                 if (designation.Parent is DeclarationExpressionSyntax declExpr && declExpr.Designation == designation)
                 {
                     TypeSyntax typeSyntax = declExpr.Type;
@@ -894,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     if (declTypeWithAnnotations.HasType &&
-                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorTypeOrRefLikeType())
+                        localSymbol.Scope == ScopedKind.ScopedValue && !declTypeWithAnnotations.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
                     {
                         diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                     }

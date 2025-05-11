@@ -106,6 +106,137 @@ class Test
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Async()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C
+                {
+                    public async Task ProcessValueAsync()
+                    {
+                        await foreach (int item in GetValuesAsync())
+                        {
+                            await Task.Yield();
+                            Console.Write(item);
+                        }
+                    }
+
+                    private async IAsyncEnumerable<int> GetValuesAsync()
+                    {
+                        await Task.Yield();
+                        lock (this)
+                        {
+                            for (int i = 0; i < 10; i++)
+                            {
+                                yield return i;
+
+                                if (i == 3)
+                                {
+                                    yield break;
+                                }
+                            }
+                        }
+                    }
+                }
+                """ + AsyncStreamsTypes;
+
+            var comp = CreateCompilationWithTasksExtensions(source);
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Sync()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+
+                object o = new object();
+                Console.WriteLine($"Before: {Monitor.IsEntered(o)}");
+                using (IEnumerator<int> e = GetValues(o).GetEnumerator())
+                {
+                    Console.WriteLine($"Inside: {Monitor.IsEntered(o)}");
+                    while (e.MoveNext())
+                    {
+                        Console.WriteLine($"{e.Current}: {Monitor.IsEntered(o)}");
+                    }
+                    Console.WriteLine($"Done: {Monitor.IsEntered(o)}");
+                }
+                Console.WriteLine($"After: {Monitor.IsEntered(o)}");
+
+                static IEnumerable<int> GetValues(object obj)
+                {
+                    lock (obj)
+                    {
+                        for (int i = 0; i < 3; i++)
+                        {
+                            yield return i;
+
+                            if (i == 1)
+                            {
+                                yield break;
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                Before: False
+                Inside: False
+                0: True
+                1: True
+                Done: False
+                After: False
+                """;
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Nested()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        lock (this)
+                        {
+                            yield return 2;
+
+                            local();
+
+                            IEnumerable<int> local()
+                            {
+                                yield return 3;
+
+                                lock (this)
+                                {
+                                    yield return 4;
+
+                                    yield break;
+                                }
+                            }
+
+                            yield break;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()
@@ -308,7 +439,7 @@ namespace RoslynYield
         {
             // The incomplete statement is intended
             var text = "yield return int.";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,18): error CS1001: Identifier expected
                 // yield return int.
@@ -316,10 +447,7 @@ namespace RoslynYield
                 // (1,18): error CS1002: ; expected
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18),
-                // (1,18): error CS0117: 'int' does not contain a definition for ''
-                // yield return int.
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "").WithArguments("int", "").WithLocation(1, 18),
-                // (1,1): error CS7020: You cannot use 'yield' in top-level script code
+                // (1,1): error CS7020: Cannot use 'yield' in top-level script code
                 // yield return int.
                 Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
 
@@ -340,7 +468,7 @@ namespace RoslynYield
         public void TopLevelYieldBreak()
         {
             var text = "yield break;";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'yield' in top-level script code
                 // yield break;
@@ -471,7 +599,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -505,7 +633,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics(
                 // (8,53): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<TKey, TValue>' to 'TKey'
                 //         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
@@ -529,6 +657,90 @@ class Test<TKey, TValue>
             Assert.Null(symbolInfo.Symbol);
             Assert.Contains("System.Collections.Generic.KeyValuePair<TKey, TValue>..ctor(TKey key, TValue value)", symbolInfo.CandidateSymbols.Select(c => c.ToTestDisplayString()));
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_01()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve1Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.GenericParameter)]
+public class Preserve2Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+class Test1
+{
+    IEnumerable<T> M2<[Preserve1][Preserve2]T>(T x)
+    {
+        yield return x;
+    }
+}
+";
+            var comp1 = CreateCompilation([source1, source2, CompilerLoweringPreserveAttributeDefinition]);
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember<NamedTypeSymbol>("Test1.<M2>d__0").TypeParameters.Single().GetAttributes().Select(a => a.ToString()));
+            }
+        }
+
+        [Fact]
+        public void CompilerLoweringPreserveAttribute_02()
+        {
+            string source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve1Attribute : Attribute { }
+
+[CompilerLoweringPreserve]
+[AttributeUsage(AttributeTargets.Parameter)]
+public class Preserve2Attribute : Attribute { }
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter)]
+public class Preserve3Attribute : Attribute { }
+";
+
+            string source2 = @"
+using System.Collections.Generic;
+
+class Test1
+{
+    IEnumerable<int> M2([Preserve1][Preserve2][Preserve3]int x)
+    {
+        yield return x;
+    }
+}
+";
+            var comp1 = CreateCompilation(
+                [source1, source2, CompilerLoweringPreserveAttributeDefinition],
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CompileAndVerify(comp1, symbolValidator: validate).VerifyDiagnostics();
+
+            static void validate(ModuleSymbol m)
+            {
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.x").GetAttributes().Select(a => a.ToString()));
+
+                AssertEx.SequenceEqual(
+                    ["Preserve1Attribute"],
+                    m.GlobalNamespace.GetMember("Test1.<M2>d__0.<>3__x").GetAttributes().Select(a => a.ToString()));
+            }
         }
     }
 }

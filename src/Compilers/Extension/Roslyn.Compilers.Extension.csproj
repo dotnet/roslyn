@@ -13,7 +13,7 @@
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
@@ -29,15 +29,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
-    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Memory" />
-    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="System.Buffers" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Collections.Immutable" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Memory" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Reflection.Metadata" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Numerics.Vectors" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Text.Encoding.CodePages" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" ForceIncludeInVsix="true" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" ForceIncludeInVsix="true" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -109,16 +108,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" Version="$(MicrosoftVisualStudioProjectSystemVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
   </ItemGroup>
 </Project>

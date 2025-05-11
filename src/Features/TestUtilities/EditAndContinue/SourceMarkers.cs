@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 internal static class SourceMarkers
 {
     private static readonly Regex s_tags = new(
-        "[<]  (?<IsEnd>/?)  (?<Name>(AS|ER|N|TS))[:]  (?<Id>[.0-9,]+)  (?<IsStartAndEnd>/?)  [>]", RegexOptions.IgnorePatternWhitespace);
+        "[<]  (?<IsEnd>/?)  (?<Name>(AS|ER|N|S|TS))[:]  (?<Id>[.0-9,]+)  (?<IsStartAndEnd>/?)  [>]", RegexOptions.IgnorePatternWhitespace);
 
     public static readonly Regex ExceptionRegionPattern = new(
         @"[<]ER[:]      (?<Id>(?:[0-9]+[.][0-9]+[,]?)+)   [>]
@@ -35,14 +35,14 @@ internal static class SourceMarkers
         => s_tags.Replace(source, m => new string(' ', m.Length));
 
     internal static string[] Clear(string[] sources)
-        => sources.Select(Clear).ToArray();
+        => [.. sources.Select(Clear)];
 
     private static IEnumerable<(int, int)> ParseIds(Match match)
-        => from ids in match.Groups["Id"].Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+        => from ids in match.Groups["Id"].Value.Split([','], StringSplitOptions.RemoveEmptyEntries)
            let parts = ids.Split('.')
            select (int.Parse(parts[0]), (parts.Length > 1) ? int.Parse(parts[1]) : -1);
 
-    private static IEnumerable<((int major, int minor) id, TextSpan span)> GetSpans(string markedSource, string tagName)
+    private static IEnumerable<((int major, int minor) id, TextSpan span)> ParseSpans(string markedSource, string tagName)
     {
         // id -> content start index
         var tagMap = new Dictionary<(int major, int minor), (int start, int end)>();
@@ -83,30 +83,30 @@ internal static class SourceMarkers
     }
 
     public static IEnumerable<(TextSpan Span, int Id)> GetActiveSpans(string markedSource)
-        => GetSpans(markedSource, tagName: "AS").Select(s => (s.span, s.id.major));
+        => ParseSpans(markedSource, tagName: "AS").Select(s => (s.span, s.id.major));
 
-    public static TextSpan[] GetTrackingSpans(string src, int count)
+    public static (int id, TextSpan span)[] GetTrackingSpans(string src)
     {
         var matches = s_trackingStatementPattern.Matches(src);
         if (matches.Count == 0)
         {
-            return Array.Empty<TextSpan>();
+            return [];
         }
 
-        var result = new TextSpan[count];
+        var result = new List<(int id, TextSpan span)>();
 
         for (var i = 0; i < matches.Count; i++)
         {
             var span = matches[i].Groups["TrackingStatement"];
             foreach (var (id, _) in ParseIds(matches[i]))
             {
-                result[id] = new TextSpan(span.Index, span.Length);
+                result.Add((id, new TextSpan(span.Index, span.Length)));
             }
         }
 
         Contract.ThrowIfTrue(result.Any(span => span == default));
 
-        return result;
+        return [.. result];
     }
 
     public static ImmutableArray<ImmutableArray<TextSpan>> GetExceptionRegions(string markedSource)
@@ -123,7 +123,7 @@ internal static class SourceMarkers
             foreach (var (activeStatementId, exceptionRegionId) in ParseIds(matches[i]))
             {
                 EnsureSlot(result, activeStatementId);
-                result[activeStatementId] ??= new List<TextSpan>();
+                result[activeStatementId] ??= [];
                 EnsureSlot(result[activeStatementId], exceptionRegionId);
 
                 var regionText = plainSource.AsSpan().Slice(exceptionRegion.Index, exceptionRegion.Length);
@@ -134,14 +134,14 @@ internal static class SourceMarkers
             }
         }
 
-        return result.Select(r => r.AsImmutableOrEmpty()).ToImmutableArray();
+        return [.. result.Select(r => r.AsImmutableOrEmpty())];
     }
 
     public static ImmutableArray<ImmutableArray<TextSpan>> GetNodeSpans(string markedSource)
     {
         var result = new List<List<TextSpan>>();
 
-        foreach (var ((major, minor), span) in GetSpans(markedSource, tagName: "N"))
+        foreach (var ((major, minor), span) in ParseSpans(markedSource, tagName: "N"))
         {
             var (i, j) = (minor >= 0) ? (major, minor) : (0, major);
 
@@ -151,7 +151,21 @@ internal static class SourceMarkers
             result[i][j] = span;
         }
 
-        return result.Select(r => r.AsImmutableOrEmpty()).AsImmutableOrEmpty();
+        return [.. result.Select(r => r.AsImmutableOrEmpty())];
+    }
+
+    public static ImmutableArray<TextSpan> GetSpans(string markedSource, string tagName)
+    {
+        var result = new List<TextSpan>();
+
+        foreach (var ((major, minor), span) in ParseSpans(markedSource, tagName))
+        {
+            Debug.Assert(minor == -1);
+            EnsureSlot(result, major);
+            result[major] = span;
+        }
+
+        return [.. result];
     }
 
     public static int IndexOfDifferent(ReadOnlySpan<char> span, char c)

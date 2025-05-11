@@ -11,9 +11,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -22,7 +25,7 @@ using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
-    public class ScriptTests : TestBase
+    public class ScriptTests : CSharpScriptTestBase
     {
         public class Globals
         {
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public void TestCreateScript()
         {
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create("1 + 2", ScriptOptions);
             Assert.Equal("1 + 2", script.Code);
         }
 
@@ -46,20 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public void TestCreateFromStreamScript()
         {
-            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")), ScriptOptions);
             Assert.Equal("1 + 2", script.Code);
         }
 
         [Fact]
         public void TestCreateFromStreamScript_StreamIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((Stream)null));
+            Assert.Throws<ArgumentNullException>(() => CSharpScript.Create((Stream)null, ScriptOptions));
         }
 
         [Fact]
         public async Task TestGetCompilation()
         {
-            var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
+            var state = await CSharpScript.RunAsync("1 + 2", options: ScriptOptions, globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
             Assert.Equal(state.Script.Code, compilation.SyntaxTrees.First().GetText().ToString());
         }
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public async Task TestGetCompilationSourceText()
         {
-            var state = await CSharpScript.RunAsync("1 + 2", globals: new ScriptTests());
+            var state = await CSharpScript.RunAsync("1 + 2", options: ScriptOptions, globals: new ScriptTests());
             var compilation = state.Script.GetCompilation();
             Assert.Equal(state.Script.SourceText, compilation.SyntaxTrees.First().GetText());
         }
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 
         private void TestEmit(DebugInformationFormat format)
         {
-            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.Default.WithEmitDebugInformation(true));
+            var script = CSharpScript.Create("1 + 2", options: ScriptOptions.WithEmitDebugInformation(true));
             var compilation = script.GetCompilation();
             var emitOptions = ScriptBuilder.GetEmitOptions(emitDebugInformation: true).WithDebugInformationFormat(format);
 
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         public async Task TestCreateScriptDelegate()
         {
             // create a delegate for the entire script
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create("1 + 2", ScriptOptions);
             var fn = script.CreateDelegate();
 
             Assert.Equal(3, fn().Result);
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         public async Task TestCreateScriptDelegateWithGlobals()
         {
             // create a delegate for the entire script
-            var script = CSharpScript.Create<int>("X + Y", globalsType: typeof(Globals));
+            var script = CSharpScript.Create<int>("X + Y", options: ScriptOptions, globalsType: typeof(Globals));
             var fn = script.CreateDelegate();
 
             await Assert.ThrowsAsync<ArgumentException>("globals", () => fn());
@@ -126,14 +129,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public async Task TestRunScript()
         {
-            var state = await CSharpScript.RunAsync("1 + 2");
+            var state = await CSharpScript.RunAsync("1 + 2", ScriptOptions);
             Assert.Equal(3, state.ReturnValue);
         }
 
         [Fact]
         public async Task TestCreateAndRunScript()
         {
-            var script = CSharpScript.Create("1 + 2");
+            var script = CSharpScript.Create("1 + 2", ScriptOptions);
             var state = await script.RunAsync();
             Assert.Same(script, state.Script);
             Assert.Equal(3, state.ReturnValue);
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public async Task TestCreateFromStreamAndRunScript()
         {
-            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")));
+            var script = CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("1 + 2")), ScriptOptions);
             var state = await script.RunAsync();
             Assert.Same(script, state.Script);
             Assert.Equal(3, state.ReturnValue);
@@ -151,14 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         [Fact]
         public async Task TestEvalScript()
         {
-            var value = await CSharpScript.EvaluateAsync("1 + 2");
+            var value = await CSharpScript.EvaluateAsync("1 + 2", ScriptOptions);
             Assert.Equal(3, value);
         }
 
         [Fact]
         public async Task TestRunScriptWithSpecifiedReturnType()
         {
-            var state = await CSharpScript.RunAsync("1 + 2");
+            var state = await CSharpScript.RunAsync("1 + 2", ScriptOptions);
             Assert.Equal(3, state.ReturnValue);
         }
 
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         public void TestRunVoidScript()
         {
             var state = ScriptingTestHelpers.RunScriptWithOutput(
-                CSharpScript.Create("System.Console.WriteLine(0);"),
+                CSharpScript.Create("System.Console.WriteLine(0);", ScriptOptions),
                 "0");
             Assert.Null(state.ReturnValue);
         }
@@ -176,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         {
             var state = await CSharpScript.RunAsync(
 @"int F() { return 1; }
-F();");
+F();", ScriptOptions);
             Assert.Null(state.ReturnValue);
         }
 
@@ -192,7 +195,7 @@ class SomeClass
 }
 dynamic d = new SomeClass();
 d.Do();"
-, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+, ScriptOptions.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/170")]
@@ -207,7 +210,7 @@ class SomeClass
 }
 dynamic d = new SomeClass();
 d.Do()"
-, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+, ScriptOptions.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
@@ -218,7 +221,7 @@ d.Do()"
             try
             {
                 var state = CSharpScript.RunAsync(@"if (true)
- System.Console.WriteLine(true)", globals: new ScriptTests());
+ System.Console.WriteLine(true)", options: ScriptOptions, globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
@@ -236,14 +239,14 @@ d.Do()"
         public void TestRunEmbeddedStatementFollowedBySemicolon()
         {
             var state = CSharpScript.RunAsync(@"if (true)
-System.Console.WriteLine(true);", globals: new ScriptTests());
+System.Console.WriteLine(true);", options: ScriptOptions, globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6676")]
         public void TestRunStatementFollowedBySpace()
         {
-            var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", globals: new ScriptTests());
+            var state = CSharpScript.RunAsync(@"System.Console.WriteLine(true) ", options: ScriptOptions, globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
@@ -253,7 +256,7 @@ System.Console.WriteLine(true);", globals: new ScriptTests());
             var state = CSharpScript.RunAsync(@"
 System.Console.WriteLine(true)
 
-", globals: new ScriptTests());
+", options: ScriptOptions, globals: new ScriptTests());
             Assert.Null(state.Exception);
         }
 
@@ -265,7 +268,7 @@ System.Console.WriteLine(true)
             try
             {
                 var state = CSharpScript.RunAsync(@"if (e) a = b 
-throw e;", globals: new ScriptTests());
+throw e;", options: ScriptOptions, globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
@@ -284,14 +287,14 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRunScriptWithGlobals()
         {
-            var state = await CSharpScript.RunAsync("X + Y", globals: new Globals { X = 1, Y = 2 });
+            var state = await CSharpScript.RunAsync("X + Y", options: ScriptOptions, globals: new Globals { X = 1, Y = 2 });
             Assert.Equal(3, state.ReturnValue);
         }
 
         [Fact]
         public async Task TestRunCreatedScriptWithExpectedGlobals()
         {
-            var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
+            var script = CSharpScript.Create("X + Y", options: ScriptOptions, globalsType: typeof(Globals));
             var state = await script.RunAsync(new Globals { X = 1, Y = 2 });
             Assert.Equal(3, state.ReturnValue);
             Assert.Same(script, state.Script);
@@ -300,7 +303,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRunCreatedScriptWithUnexpectedGlobals()
         {
-            var script = CSharpScript.Create("X + Y");
+            var script = CSharpScript.Create("X + Y", ScriptOptions);
 
             // Global variables passed to a script without a global type
             await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new Globals { X = 1, Y = 2 }));
@@ -309,7 +312,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRunCreatedScriptWithoutGlobals()
         {
-            var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
+            var script = CSharpScript.Create("X + Y", options: ScriptOptions, globalsType: typeof(Globals));
 
             //  The script requires access to global variables but none were given
             await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync());
@@ -318,7 +321,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task TestRunCreatedScriptWithMismatchedGlobals()
         {
-            var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
+            var script = CSharpScript.Create("X + Y", options: ScriptOptions, globalsType: typeof(Globals));
 
             //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
             await Assert.ThrowsAsync<ArgumentException>("globals", () => script.RunAsync(new object()));
@@ -327,7 +330,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task ContinueAsync_Error1()
         {
-            var state = await CSharpScript.RunAsync("X + Y", globals: new Globals());
+            var state = await CSharpScript.RunAsync("X + Y", options: ScriptOptions, globals: new Globals());
 
             await Assert.ThrowsAsync<ArgumentNullException>("previousState", () => state.Script.RunFromAsync(null));
         }
@@ -335,8 +338,8 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task ContinueAsync_Error2()
         {
-            var state1 = await CSharpScript.RunAsync("X + Y + 1", globals: new Globals());
-            var state2 = await CSharpScript.RunAsync("X + Y + 2", globals: new Globals());
+            var state1 = await CSharpScript.RunAsync("X + Y + 1", options: ScriptOptions, globals: new Globals());
+            var state2 = await CSharpScript.RunAsync("X + Y + 2", options: ScriptOptions, globals: new Globals());
 
             await Assert.ThrowsAsync<ArgumentException>("previousState", () => state1.Script.RunFromAsync(state2));
         }
@@ -345,7 +348,7 @@ throw e;", globals: new ScriptTests());
         public async Task TestRunScriptWithScriptState()
         {
             // run a script using another scripts end state as the starting state (globals)
-            var state = await CSharpScript.RunAsync("int X = 100;").ContinueWith("X + X");
+            var state = await CSharpScript.RunAsync("int X = 100;", ScriptOptions).ContinueWith("X + X");
             Assert.Equal(200, state.ReturnValue);
         }
 
@@ -359,7 +362,7 @@ throw e;", globals: new ScriptTests());
                 "x + y"
             };
 
-            var state = await CSharpScript.RunAsync("");
+            var state = await CSharpScript.RunAsync("", ScriptOptions);
             foreach (var submission in submissions)
             {
                 state = await state.ContinueWithAsync(submission);
@@ -388,6 +391,7 @@ throw e;", globals: new ScriptTests());
             var script =
                 CSharpScript.Create(
                     "var a = '1';",
+                    options: ScriptOptions,
                     globalsType: globals.GetType()).
                 ContinueWith("var b = 2u;").
                 ContinueWith("var a = 3m;").
@@ -412,7 +416,7 @@ throw e;", globals: new ScriptTests());
         [Fact]
         public async Task ScriptVariable_SetValue()
         {
-            var script = CSharpScript.Create("var x = 1;");
+            var script = CSharpScript.Create("var x = 1;", ScriptOptions);
 
             var s1 = await script.RunAsync();
             s1.GetVariable("x").Value = 2;
@@ -435,7 +439,7 @@ throw e;", globals: new ScriptTests());
 var x = 1;
 readonly var y = 2;
 const int z = 3;
-");
+", ScriptOptions);
 
             Assert.False(state.GetVariable("x").IsReadOnly);
             Assert.True(state.GetVariable("y").IsReadOnly);
@@ -452,7 +456,7 @@ const int z = 3;
         public async Task TestBranchingSubscripts()
         {
             // run script to create declaration of M
-            var state1 = await CSharpScript.RunAsync("int M(int x) { return x + x; }");
+            var state1 = await CSharpScript.RunAsync("int M(int x) { return x + x; }", ScriptOptions);
 
             // run second script starting from first script's end state
             // this script's new declaration should hide the old declaration
@@ -468,7 +472,7 @@ const int z = 3;
         [Fact]
         public async Task StaticDelegate0()
         {
-            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var state0 = await CSharpScript.RunAsync("static int Add(int x, int y) => x + y;", options: ScriptOptions.WithLanguageVersion(LanguageVersion.Preview));
             var state1 = await state0.ContinueWithAsync("System.Func<int, int, int> adder = Add;");
             var state2 = await state1.ContinueWithAsync("adder(1, 1)");
             Assert.Equal(2, state2.ReturnValue);
@@ -477,7 +481,7 @@ const int z = 3;
         [Fact]
         public async Task StaticDelegate1()
         {
-            var state0 = await CSharpScript.RunAsync("class Id<T> { static T Core(T t) => t; public static System.Func<T, T> Get => Core; }");
+            var state0 = await CSharpScript.RunAsync("class Id<T> { static T Core(T t) => t; public static System.Func<T, T> Get => Core; }", ScriptOptions);
             var state1 = await state0.ContinueWithAsync("Id<int>.Get(1)");
             Assert.Equal(1, state1.ReturnValue);
         }
@@ -485,7 +489,7 @@ const int z = 3;
         [Fact]
         public async Task StaticDelegate2()
         {
-            var state0 = await CSharpScript.RunAsync("class Id { static T Core<T>(T t) => t; public static System.Func<T, T> Get<T>() => Core; }");
+            var state0 = await CSharpScript.RunAsync("class Id { static T Core<T>(T t) => t; public static System.Func<T, T> Get<T>() => Core; }", ScriptOptions);
             var state1 = await state0.ContinueWithAsync("Id.Get<int>()(1)");
             Assert.Equal(1, state1.ReturnValue);
         }
@@ -494,7 +498,7 @@ const int z = 3;
         public async Task ReturnIntAsObject()
         {
             var expected = 42;
-            var script = CSharpScript.Create<object>($"return {expected};");
+            var script = CSharpScript.Create<object>($"return {expected};", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Equal(expected, result);
         }
@@ -503,13 +507,13 @@ const int z = 3;
         public void NoReturn()
         {
             Assert.Null(ScriptingTestHelpers.EvaluateScriptWithOutput(
-                CSharpScript.Create("System.Console.WriteLine();"), ""));
+                CSharpScript.Create("System.Console.WriteLine();", ScriptOptions), ""));
         }
 
         [Fact]
         public async Task ReturnAwait()
         {
-            var script = CSharpScript.Create<int>("return await System.Threading.Tasks.Task.FromResult(42);");
+            var script = CSharpScript.Create<int>("return await System.Threading.Tasks.Task.FromResult(42);", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Equal(42, result);
         }
@@ -522,7 +526,7 @@ bool condition = false;
 if (condition)
 {
     return 1;
-}");
+}", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Null(result);
         }
@@ -536,7 +540,7 @@ if (condition)
 {
     return 1;
 }
-System.Console.WriteLine();");
+System.Console.WriteLine();", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Null(result);
 
@@ -546,7 +550,7 @@ if (condition)
 {
     return 1;
 }
-System.Console.WriteLine();");
+System.Console.WriteLine();", ScriptOptions);
 
             Assert.Equal(1, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
@@ -560,7 +564,7 @@ if (condition)
 {
     return 1;
 }
-System.Console.WriteLine();");
+System.Console.WriteLine();", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Equal(0, result);
 
@@ -570,7 +574,7 @@ if (condition)
 {
     return 1;
 }
-System.Console.WriteLine()");
+System.Console.WriteLine()", ScriptOptions);
 
             Assert.Equal(0, ScriptingTestHelpers.EvaluateScriptWithOutput(script, ""));
         }
@@ -584,7 +588,7 @@ if (condition)
 {
     return 1;
 }
-1.1");
+1.1", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Equal(1.1, result);
 
@@ -594,7 +598,7 @@ if (condition)
 {
     return 1;
 }
-1.1");
+1.1", ScriptOptions);
             result = await script.EvaluateAsync();
             Assert.Equal(1, result);
         }
@@ -606,7 +610,7 @@ if (condition)
 if (false)
 {
     return new System.Collections.Generic.List<int> { 1, 2, 3 };
-}");
+}", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Null(result);
 
@@ -614,7 +618,7 @@ if (false)
 if (true)
 {
     return new System.Collections.Generic.List<int> { 1, 2, 3 };
-}");
+}", ScriptOptions);
             result = await script.EvaluateAsync();
             Assert.Equal(new List<int> { 1, 2, 3 }, result);
         }
@@ -626,7 +630,7 @@ if (true)
 if (false)
 {
     return 42;
-}");
+}", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.False(result.HasValue);
 
@@ -634,7 +638,7 @@ if (false)
 if (true)
 {
     return 42;
-}");
+}", ScriptOptions);
             result = await script.EvaluateAsync();
             Assert.Equal(42, result);
         }
@@ -644,7 +648,7 @@ if (true)
         {
             var resolver = TestSourceReferenceResolver.Create(
                 KeyValuePairUtil.Create("a.csx", "return 42;"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
             var result = await script.EvaluateAsync();
@@ -667,7 +671,7 @@ if (false)
     return 42;
 }
 1"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
             var result = await script.EvaluateAsync();
@@ -690,7 +694,7 @@ if (false)
     return 1;
 }
 System.Console.WriteLine(42)"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create("#load \"a.csx\"", options);
             var result = ScriptingTestHelpers.EvaluateScriptWithOutput(script, "42");
@@ -711,7 +715,7 @@ System.Console.WriteLine(42)"));
                 KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
             var script = CSharpScript.Create("#load \"b.csx\"", options);
             var result = await script.EvaluateAsync();
             Assert.Null(result);
@@ -719,7 +723,7 @@ System.Console.WriteLine(42)"));
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePairUtil.Create("a.csx", "1"),
                 KeyValuePairUtil.Create("b.csx", "2"));
-            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
 #load ""b.csx""", options);
@@ -729,7 +733,7 @@ System.Console.WriteLine(42)"));
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePairUtil.Create("a.csx", "1"),
                 KeyValuePairUtil.Create("b.csx", "2"));
-            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
 #load ""b.csx""
@@ -746,7 +750,7 @@ System.Console.WriteLine(42)"));
                 KeyValuePairUtil.Create("b.csx", @"
 #load ""a.csx""
 2"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
             var script = CSharpScript.Create("#load \"b.csx\"", options);
             var result = await script.EvaluateAsync();
             Assert.Equal(1, result);
@@ -754,7 +758,7 @@ System.Console.WriteLine(42)"));
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePairUtil.Create("a.csx", "return 1;"),
                 KeyValuePairUtil.Create("b.csx", "2"));
-            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
 #load ""b.csx""", options);
@@ -764,7 +768,7 @@ System.Console.WriteLine(42)"));
             resolver = TestSourceReferenceResolver.Create(
                 KeyValuePairUtil.Create("a.csx", "return 1;"),
                 KeyValuePairUtil.Create("b.csx", "2"));
-            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            options = ScriptOptions.WithSourceResolver(resolver);
             script = CSharpScript.Create(@"
 #load ""a.csx""
 #load ""b.csx""
@@ -783,7 +787,7 @@ NEXT:
 return 1;
 EOF:;
 2"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
 
             var script = CSharpScript.Create(@"
 #load ""a.csx""
@@ -807,7 +811,7 @@ EOF2: ;
         [Fact]
         public async Task VoidReturn()
         {
-            var script = CSharpScript.Create("return;");
+            var script = CSharpScript.Create("return;", ScriptOptions);
             var result = await script.EvaluateAsync();
             Assert.Null(result);
 
@@ -817,7 +821,7 @@ if (b)
 {
     return;
 }
-b");
+b", ScriptOptions);
             result = await script.EvaluateAsync();
             Assert.Null(result);
         }
@@ -830,7 +834,7 @@ b");
 var i = 42;
 return;
 i = -1;"));
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
             var script = CSharpScript.Create<int>(@"
 #load ""a.csx""
 i", options);
@@ -844,7 +848,7 @@ i", options);
             var code = "throw new System.Exception();";
             try
             {
-                var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(null);
+                var opts = ScriptOptions.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(null);
                 var script = await CSharpScript.RunAsync(code, opts);
             }
             catch (CompilationErrorException ex)
@@ -858,21 +862,21 @@ i", options);
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_CodeFromFile_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            var opts = ScriptOptions.WithEmitDebugInformation(true).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "debug.csx");
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
+            var opts = ScriptOptions.WithEmitDebugInformation(false).WithFilePath(null).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30169")]
         public Task Pdb_CreateFromString_CodeFromFile_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
+            var opts = ScriptOptions.WithEmitDebugInformation(false).WithFilePath("debug.csx").WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
@@ -880,14 +884,14 @@ i", options);
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_CodeFromFile_WithEmitDebugInformation_ResultInPdbEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFilePath("debug.csx");
+            var opts = ScriptOptions.WithEmitDebugInformation(true).WithFilePath("debug.csx");
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "debug.csx");
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_CodeFromFile_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFilePath("debug.csx");
+            var opts = ScriptOptions.WithEmitDebugInformation(false).WithFilePath("debug.csx");
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
@@ -895,7 +899,7 @@ i", options);
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithoutFileEncoding_ResultInPdbEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(null);
+            var opts = ScriptOptions.WithEmitDebugInformation(true).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
@@ -903,21 +907,21 @@ i", options);
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromString_InlineCode_WithEmitDebugInformation_WithFileEncoding_ResultInPdbEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
+            var opts = ScriptOptions.WithEmitDebugInformation(true).WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts), line: 1, column: 1, filename: "");
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithoutFileEncoding_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(null);
+            var opts = ScriptOptions.WithEmitDebugInformation(false).WithFileEncoding(null);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
         [Fact]
         public Task Pdb_CreateFromString_InlineCode_WithoutEmitDebugInformation_WithFileEncoding_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
+            var opts = ScriptOptions.WithEmitDebugInformation(false).WithFileEncoding(Encoding.UTF8);
             return VerifyStackTraceAsync(() => CSharpScript.Create("throw new System.Exception();", opts));
         }
 
@@ -925,14 +929,14 @@ i", options);
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public Task Pdb_CreateFromStream_InlineCode_WithEmitDebugInformation_ResultInPdbEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(true);
+            var opts = ScriptOptions.WithEmitDebugInformation(true);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts), line: 1, column: 1, filename: "");
         }
 
         [Fact]
         public Task Pdb_CreateFromStream_InlineCode_WithoutEmitDebugInformation_ResultInPdbNotEmitted()
         {
-            var opts = ScriptOptions.Default.WithEmitDebugInformation(false);
+            var opts = ScriptOptions.WithEmitDebugInformation(false);
             return VerifyStackTraceAsync(() => CSharpScript.Create(new MemoryStream(Encoding.UTF8.GetBytes("throw new System.Exception();")), opts));
         }
 
@@ -940,7 +944,7 @@ i", options);
         public void StreamWithOffset()
         {
             var resolver = new StreamOffsetResolver();
-            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var options = ScriptOptions.WithSourceResolver(resolver);
             var script = CSharpScript.Create(@"#load ""a.csx""", options);
             ScriptingTestHelpers.EvaluateScriptWithOutput(script, "Hello World!");
         }
@@ -948,7 +952,7 @@ i", options);
         [Fact]
         public void CreateScriptWithFeatureThatIsNotSupportedInTheSelectedLanguageVersion()
         {
-            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7));
+            var script = CSharpScript.Create(@"string x = default;", ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp7));
             var compilation = script.GetCompilation();
 
             compilation.VerifyDiagnostics(
@@ -962,7 +966,7 @@ i", options);
         public void CreateScriptWithNullableContextWithCSharp8()
         {
             var script = CSharpScript.Create(@"#nullable enable
-                string x = null;", ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+                string x = null;", ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp8));
             var compilation = script.GetCompilation();
 
             compilation.VerifyDiagnostics(
@@ -984,7 +988,7 @@ var reply = data switch {
 
 return reply;
 ";
-            var script = CSharpScript.Create(code, ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+            var script = CSharpScript.Create(code, ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp8));
             var compilation = script.GetCompilation();
             compilation.VerifyDiagnostics();
 
@@ -1000,7 +1004,7 @@ return reply;
 
             try
             {
-                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", globals: new ScriptTests());
+                await CSharpScript.RunAsync(@"var data = notExistentVariable switch { _ => null };", options: ScriptOptions, globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
@@ -1022,7 +1026,7 @@ return reply;
 
             try
             {
-                await CSharpScript.RunAsync(@"var data = ""data"" switch { < 5 => null };", globals: new ScriptTests());
+                await CSharpScript.RunAsync(@"var data = ""data"" switch { < 5 => null };", options: ScriptOptions, globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
@@ -1047,7 +1051,7 @@ return reply;
 
             try
             {
-                await CSharpScript.RunAsync(@"var data = ""test"" switch { _ => armError };", globals: new ScriptTests());
+                await CSharpScript.RunAsync(@"var data = ""test"" switch { _ => armError };", options: ScriptOptions, globals: new ScriptTests());
             }
             catch (CompilationErrorException ex)
             {
@@ -1061,6 +1065,38 @@ return reply;
             }
 
             Assert.True(exceptionThrown);
+        }
+
+        [Fact]
+        public void Function_ReturningPartialType()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.Preview))
+                .ContinueWith("partial M() => new();");
+            script.GetCompilation().VerifyDiagnostics(
+                // (1,9): error CS1520: Method must have a return type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(1, 9),
+                // (1,9): error CS0759: No defining declaration found for implementing declaration of partial method 'M()'
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("M()").WithLocation(1, 9),
+                // (1,9): error CS0751: A partial member must be declared within a partial type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 9),
+                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new()").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public async Task Function_ReturningPartialType_CSharp13()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp13))
+                .ContinueWith("partial M() => new();")
+                .ContinueWith("M()");
+            script.GetCompilation().VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+            Assert.Equal("partial", result.GetType().Name);
         }
 
         private class StreamOffsetResolver : SourceReferenceResolver

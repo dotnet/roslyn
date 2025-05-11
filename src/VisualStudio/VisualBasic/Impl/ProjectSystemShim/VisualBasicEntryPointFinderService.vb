@@ -9,16 +9,16 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     <ExportLanguageService(GetType(IEntryPointFinderService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicEntryPointFinderService
-        Implements IEntryPointFinderService
+    Friend NotInheritable Class VisualBasicEntryPointFinderService
+        Inherits AbstractEntryPointFinderService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol) Implements IEntryPointFinderService.FindEntryPoints
-            Return EntryPointFinder.FindEntryPoints(symbol, findFormsOnly)
+        Protected Overrides Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
+            Return VisualBasicEntryPointFinder.FindEntryPoints(compilation, findFormsOnly)
         End Function
     End Class
 End Namespace

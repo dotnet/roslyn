@@ -13,80 +13,79 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text;
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.Undo
+namespace Microsoft.CodeAnalysis.Editor.Undo;
+
+[ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry) : ISourceTextUndoService
 {
-    [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry) : ISourceTextUndoService
+    private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = [];
+
+    private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+
+    public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
     {
-        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
-
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
-
-        public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
+        if (sourceText != null && !string.IsNullOrWhiteSpace(description))
         {
-            if (sourceText != null && !string.IsNullOrWhiteSpace(description))
-            {
-                var transaction = new SourceTextUndoTransaction(this, sourceText, description);
-                _transactions.Add(sourceText, transaction);
-                return transaction;
-            }
-
-            return null;
+            var transaction = new SourceTextUndoTransaction(this, sourceText, description);
+            _transactions.Add(sourceText, transaction);
+            return transaction;
         }
 
-        public bool BeginUndoTransaction(ITextSnapshot snapshot)
-        {
-            var sourceText = snapshot?.AsText();
-            if (sourceText != null)
-            {
-                _transactions.TryGetValue(sourceText, out var transaction);
-                if (transaction != null)
-                {
-                    return transaction.Begin(_undoHistoryRegistry?.GetHistory(snapshot.TextBuffer));
-                }
-            }
+        return null;
+    }
 
-            return false;
+    public bool BeginUndoTransaction(ITextSnapshot snapshot)
+    {
+        var sourceText = snapshot?.AsText();
+        if (sourceText != null)
+        {
+            _transactions.TryGetValue(sourceText, out var transaction);
+            if (transaction != null)
+            {
+                return transaction.Begin(_undoHistoryRegistry?.GetHistory(snapshot.TextBuffer));
+            }
         }
 
-        public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
+        return false;
+    }
+
+    public bool EndUndoTransaction(ISourceTextUndoTransaction transaction)
+    {
+        if (transaction != null && _transactions.ContainsKey(transaction.SourceText))
         {
-            if (transaction != null && _transactions.ContainsKey(transaction.SourceText))
+            _transactions.Remove(transaction.SourceText);
+            return true;
+        }
+
+        return false;
+    }
+
+    private sealed class SourceTextUndoTransaction(ISourceTextUndoService service, SourceText sourceText, string description) : ISourceTextUndoTransaction
+    {
+        private readonly ISourceTextUndoService _service = service;
+        public SourceText SourceText { get; } = sourceText;
+        public string Description { get; } = description;
+
+        private ITextUndoTransaction _transaction;
+
+        internal bool Begin(ITextUndoHistory undoHistory)
+        {
+            if (undoHistory != null)
             {
-                _transactions.Remove(transaction.SourceText);
+                _transaction = new HACK_TextUndoTransactionThatRollsBackProperly(undoHistory.CreateTransaction(Description));
                 return true;
             }
 
             return false;
         }
 
-        private sealed class SourceTextUndoTransaction(ISourceTextUndoService service, SourceText sourceText, string description) : ISourceTextUndoTransaction
+        public void Dispose()
         {
-            private readonly ISourceTextUndoService _service = service;
-            public SourceText SourceText { get; } = sourceText;
-            public string Description { get; } = description;
+            _transaction?.Complete();
 
-            private ITextUndoTransaction _transaction;
-
-            internal bool Begin(ITextUndoHistory undoHistory)
-            {
-                if (undoHistory != null)
-                {
-                    _transaction = new HACK_TextUndoTransactionThatRollsBackProperly(undoHistory.CreateTransaction(Description));
-                    return true;
-                }
-
-                return false;
-            }
-
-            public void Dispose()
-            {
-                _transaction?.Complete();
-
-                _service.EndUndoTransaction(this);
-            }
+            _service.EndUndoTransaction(this);
         }
     }
 }

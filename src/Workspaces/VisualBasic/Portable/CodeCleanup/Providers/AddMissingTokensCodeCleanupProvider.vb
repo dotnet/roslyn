@@ -141,9 +141,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return newNode
                 End If
 
-                If Not TypeOf node.Expression Is NameSyntax AndAlso
-                   Not TypeOf node.Expression Is ParenthesizedExpressionSyntax AndAlso
-                   Not TypeOf node.Expression Is MemberAccessExpressionSyntax Then
+                If TypeOf node.Expression IsNot NameSyntax AndAlso
+                   TypeOf node.Expression IsNot ParenthesizedExpressionSyntax AndAlso
+                   TypeOf node.Expression IsNot MemberAccessExpressionSyntax Then
                     Return newNode
                 End If
 

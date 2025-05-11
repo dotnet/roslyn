@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -1095,12 +1096,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -7294,7 +7295,7 @@ public class C : A<C, C.D>
             metadataComp.VerifyDiagnostics();
             var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
                 new[] { metadataComp.EmitToImageReference() },
-                targetFramework: TargetFramework.Mscorlib45);
+                targetFramework: TargetFramework.Mscorlib461);
 
             // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
             DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);

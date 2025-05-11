@@ -5,16 +5,10 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class WithKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public WithKeywordRecommender()
-            : base(SyntaxKind.WithKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => !context.IsInNonUserCode && context.IsIsOrAsOrSwitchOrWithExpressionContext;
-    }
+internal sealed class WithKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.WithKeyword)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        => !context.IsInNonUserCode && context.IsIsOrAsOrSwitchOrWithExpressionContext;
 }

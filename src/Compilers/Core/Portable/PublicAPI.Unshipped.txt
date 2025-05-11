@@ -1,38 +1,33 @@
-Microsoft.CodeAnalysis.OperationKind.CollectionExpression = 127 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.Spread = 128 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.Elements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.Operations.ISpreadOperation
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation!
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation, TArgument argument) -> TResult?
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation, TArgument argument) -> TResult?
-*REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
-*REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
-*REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CustomSeverityConfigurable = "CustomSeverityConfigurable" -> string!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.Message.get -> string!
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit() -> void
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message) -> void
-Microsoft.CodeAnalysis.Emit.SemanticEdit.RuntimeRudeEdit.get -> System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>?
-Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>? runtimeRudeEdit = null, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
-Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation) -> void
-Microsoft.CodeAnalysis.Text.SourceText.GetContentHash() -> System.Collections.Immutable.ImmutableArray<byte>
-static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 4 -> Microsoft.CodeAnalysis.RefKind
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.MinimumReportedSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
-static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
-virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
-virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
+Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
+static readonly Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.Default -> Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
+Microsoft.CodeAnalysis.IEventSymbol.IsPartialDefinition.get -> bool
+Microsoft.CodeAnalysis.IEventSymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
+Microsoft.CodeAnalysis.IEventSymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IEventSymbol?
+Microsoft.CodeAnalysis.IncrementalGeneratorPostInitializationContext.AddEmbeddedAttributeDefinition() -> void
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
+Microsoft.CodeAnalysis.ITypeSymbol.IsExtension.get -> bool
+Microsoft.CodeAnalysis.TypeKind.Extension = 14 -> Microsoft.CodeAnalysis.TypeKind
+Microsoft.CodeAnalysis.ITypeSymbol.ExtensionParameter.get -> Microsoft.CodeAnalysis.IParameterSymbol?
+const Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionAssignmentOperatorName = "op_AdditionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndAssignmentOperatorName = "op_BitwiseAndAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseOrAssignmentOperatorName = "op_BitwiseOrAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionAssignmentOperatorName = "op_CheckedAdditionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionAssignmentOperatorName = "op_CheckedDivisionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName = "op_CheckedMultiplicationAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName = "op_CheckedSubtractionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DivisionAssignmentOperatorName = "op_DivisionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.ExclusiveOrAssignmentOperatorName = "op_ExclusiveOrAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.LeftShiftAssignmentOperatorName = "op_LeftShiftAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.ModulusAssignmentOperatorName = "op_ModulusAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.MultiplicationAssignmentOperatorName = "op_MultiplicationAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.RightShiftAssignmentOperatorName = "op_RightShiftAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.SubtractionAssignmentOperatorName = "op_SubtractionAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.UnsignedRightShiftAssignmentOperatorName = "op_UnsignedRightShiftAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOperatorName = "op_CheckedDecrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!

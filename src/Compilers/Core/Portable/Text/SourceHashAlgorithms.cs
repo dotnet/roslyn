@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             return algorithm switch
             {
+                // CodeQL [SM02196] This is not enabled by default but exists as a compat option for existing builds.
                 SourceHashAlgorithm.Sha1 => SHA1.Create(),
                 SourceHashAlgorithm.Sha256 => SHA256.Create(),
                 _ => throw ExceptionUtilities.UnexpectedValue(algorithm)

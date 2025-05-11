@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        public override bool AllowsRefLikeType
+        {
+            get { return false; }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get { return false; }

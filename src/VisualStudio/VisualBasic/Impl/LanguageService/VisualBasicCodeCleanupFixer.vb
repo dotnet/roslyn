@@ -21,8 +21,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, workspace As VisualStudioWorkspaceImpl, vsHierarchyItemManager As IVsHierarchyItemManager, globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, workspace, vsHierarchyItemManager, globalOptions)
+        Public Sub New(threadingContext As IThreadingContext, workspace As VisualStudioWorkspaceImpl, vsHierarchyItemManager As IVsHierarchyItemManager)
+            MyBase.New(threadingContext, workspace, vsHierarchyItemManager)
         End Sub
     End Class
 End Namespace

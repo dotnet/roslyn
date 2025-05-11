@@ -14,89 +14,97 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast
+namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddExplicitCast;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpAddExplicitCastCodeFixProvider()
+    : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddExplicitCast), Shared]
-    internal sealed partial class CSharpAddExplicitCastCodeFixProvider
-        : AbstractAddExplicitCastCodeFixProvider<ExpressionSyntax>
+    /// <summary>
+    /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
+    /// </summary>
+    private const string CS0266 = nameof(CS0266);
+
+    /// <summary>
+    /// CS1503: Argument 1: cannot convert from 'x' to 'y'
+    /// </summary>
+    private const string CS1503 = nameof(CS1503);
+
+    private readonly ArgumentFixer _argumentFixer = new();
+    private readonly AttributeArgumentFixer _attributeArgumentFixer = new();
+
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS0266, CS1503];
+
+    protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out ExpressionSyntax castedExpression)
     {
-        /// <summary>
-        /// CS0266: Cannot implicitly convert from type 'x' to 'y'. An explicit conversion exists (are you missing a cast?)
-        /// </summary>
-        private const string CS0266 = nameof(CS0266);
+        var castExpression = (CastExpressionSyntax)expression;
+        type = castExpression.Type;
+        castedExpression = castExpression.Expression;
+    }
 
-        /// <summary>
-        /// CS1503: Argument 1: cannot convert from 'x' to 'y'
-        /// </summary>
-        private const string CS1503 = nameof(CS1503);
+    protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
+        => expression.Cast(type);
 
-        private readonly ArgumentFixer _argumentFixer;
-        private readonly AttributeArgumentFixer _attributeArgumentFixer;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpAddExplicitCastCodeFixProvider()
+    protected override void AddPotentialTargetTypes(
+        Document document,
+        SemanticModel semanticModel,
+        SyntaxNode root,
+        string diagnosticId,
+        ExpressionSyntax spanNode,
+        ArrayBuilder<(ExpressionSyntax node, ITypeSymbol type)> candidates,
+        CancellationToken cancellationToken)
+    {
+        if (diagnosticId == CS0266)
         {
-            _argumentFixer = new ArgumentFixer();
-            _attributeArgumentFixer = new AttributeArgumentFixer();
+            var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
+            var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
+            if (conversionType is null)
+                return;
+
+            candidates.Add((spanNode, conversionType));
         }
-
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS0266, CS1503);
-
-        protected override void GetPartsOfCastOrConversionExpression(ExpressionSyntax expression, out SyntaxNode type, out SyntaxNode castedExpression)
+        else if (diagnosticId == CS1503)
         {
-            var castExpression = (CastExpressionSyntax)expression;
-            type = castExpression.Type;
-            castedExpression = castExpression.Expression;
-        }
-
-        protected override ExpressionSyntax Cast(ExpressionSyntax expression, ITypeSymbol type)
-            => expression.Cast(type);
-
-        protected override bool TryGetTargetTypeInfo(
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxNode root,
-            string diagnosticId,
-            ExpressionSyntax spanNode,
-            CancellationToken cancellationToken,
-            out ImmutableArray<(ExpressionSyntax, ITypeSymbol)> potentialConversionTypes)
-        {
-            potentialConversionTypes = ImmutableArray<(ExpressionSyntax, ITypeSymbol)>.Empty;
-            using var _ = ArrayBuilder<(ExpressionSyntax, ITypeSymbol)>.GetInstance(out var mutablePotentialConversionTypes);
-
-            if (diagnosticId == CS0266)
+            if (spanNode.GetAncestorOrThis<ArgumentSyntax>() is ArgumentSyntax targetArgument
+                && targetArgument.Parent is ArgumentListSyntax argumentList
+                && argumentList.Parent is SyntaxNode invocationNode)
             {
-                var inferenceService = document.GetRequiredLanguageService<ITypeInferenceService>();
-                var conversionType = inferenceService.InferType(semanticModel, spanNode, objectAsDefault: false, cancellationToken);
-                if (conversionType is null)
-                    return false;
-
-                mutablePotentialConversionTypes.Add((spanNode, conversionType));
+                // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
+                candidates.AddRange(_argumentFixer.GetPotentialConversionTypes(
+                    document, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
             }
-            else if (diagnosticId == CS1503)
+            else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
+                && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
+                && attributeArgumentList.Parent is AttributeSyntax attributeNode)
             {
-                if (spanNode.GetAncestorOrThis<ArgumentSyntax>() is ArgumentSyntax targetArgument
-                    && targetArgument.Parent is ArgumentListSyntax argumentList
-                    && argumentList.Parent is SyntaxNode invocationNode)
-                {
-                    // invocationNode could be Invocation Expression, Object Creation, Base Constructor...)
-                    mutablePotentialConversionTypes.AddRange(_argumentFixer.GetPotentialConversionTypes(
-                        document, semanticModel, root, targetArgument, argumentList, invocationNode, cancellationToken));
-                }
-                else if (spanNode.GetAncestorOrThis<AttributeArgumentSyntax>() is AttributeArgumentSyntax targetAttributeArgument
-                    && targetAttributeArgument.Parent is AttributeArgumentListSyntax attributeArgumentList
-                    && attributeArgumentList.Parent is AttributeSyntax attributeNode)
-                {
-                    // attribute node
-                    mutablePotentialConversionTypes.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
-                        document, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
-                }
+                // attribute node
+                candidates.AddRange(_attributeArgumentFixer.GetPotentialConversionTypes(
+                    document, semanticModel, root, targetAttributeArgument, attributeArgumentList, attributeNode, cancellationToken));
             }
-
-            // clear up duplicate types
-            potentialConversionTypes = FilterValidPotentialConversionTypes(document, semanticModel, mutablePotentialConversionTypes);
-            return !potentialConversionTypes.IsEmpty;
         }
+    }
+
+    protected override (SyntaxNode finalTarget, SyntaxNode finalReplacement) Cast(
+        SemanticModel semanticModel, ExpressionSyntax targetNode, ITypeSymbol conversionType)
+    {
+        // The compiler is very ambiguous with assignment expressions `(a += b)`.  An error on it may be an error on the
+        // entire expression or on the RHS of the assignment. Have to reverse engineer what it is doing here.
+        if (targetNode is AssignmentExpressionSyntax assignmentExpression &&
+            assignmentExpression.IsCompoundAssignExpression())
+        {
+            var leftType = semanticModel.GetTypeInfo(assignmentExpression.Left).Type;
+            var rightType = semanticModel.GetTypeInfo(assignmentExpression.Right).Type;
+
+            if (leftType != null && rightType != null)
+            {
+                var conversion = semanticModel.Compilation.ClassifyConversion(rightType, leftType);
+                if (conversion.Exists && conversion.IsExplicit)
+                    return (assignmentExpression.Right, this.Cast(assignmentExpression.Right, leftType));
+            }
+        }
+
+        return base.Cast(semanticModel, targetNode, conversionType);
     }
 }

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
-        private ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
+        private ImmutableArray<ImmutableArray<string>> _interceptorsNamespaces;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -176,31 +177,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
+        internal ImmutableArray<ImmutableArray<string>> InterceptorsNamespaces
         {
             get
             {
-                if (!_interceptorsPreviewNamespaces.IsDefault)
+                if (!_interceptorsNamespaces.IsDefault)
                 {
-                    return _interceptorsPreviewNamespaces;
+                    return _interceptorsNamespaces;
                 }
 
                 // e.g. [["System", "Threading"], ["System", "Collections"]]
-                ImmutableArray<ImmutableArray<string>> previewNamespaces;
-                if (Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces))
-                {
-                    previewNamespaces = namespaces
-                        .Split(';')
-                        .SelectAsArray(segment => segment.Split('.').ToImmutableArray());
-                }
-                else
-                {
-                    previewNamespaces = ImmutableArray<ImmutableArray<string>>.Empty;
-                }
-                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
+                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsNamespaces", out var namespaces) && namespaces.Length > 0
+                    ? makeNamespaces(namespaces)
+                    : ImmutableArray<ImmutableArray<string>>.Empty;
+
+                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsNamespaces, previewNamespaces);
                 return previewNamespaces;
+
+                static ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
+                {
+                    var builder = ArrayBuilder<ImmutableArray<string>>.GetInstance();
+                    var singleNamespaceBuilder = ArrayBuilder<string>.GetInstance();
+                    int currentIndex = 0;
+                    while (currentIndex < namespaces.Length && namespaces.IndexOf(';', currentIndex) is not -1 and var semicolonIndex)
+                    {
+                        addSingleNamespaceParts(builder, singleNamespaceBuilder, namespaces.AsSpan(currentIndex, semicolonIndex - currentIndex));
+                        currentIndex = semicolonIndex + 1;
+                    }
+
+                    addSingleNamespaceParts(builder, singleNamespaceBuilder, namespaces.AsSpan(currentIndex));
+                    singleNamespaceBuilder.Free();
+                    return builder.ToImmutableAndFree();
+                }
+
+                static void addSingleNamespaceParts(ArrayBuilder<ImmutableArray<string>> namespacesBuilder, ArrayBuilder<string> singleNamespaceBuilder, ReadOnlySpan<char> @namespace)
+                {
+                    int currentIndex = 0;
+                    while (currentIndex < @namespace.Length && @namespace.IndexOf('.', currentIndex) is not -1 and var dotIndex)
+                    {
+                        singleNamespaceBuilder.Add(@namespace.Slice(currentIndex, dotIndex - currentIndex).ToString());
+                        currentIndex = dotIndex + 1;
+                    }
+                    singleNamespaceBuilder.Add(@namespace.Slice(currentIndex).ToString());
+
+                    if (!namespacesBuilder.Any(ns => ns.SequenceEqual(singleNamespaceBuilder)))
+                    {
+                        namespacesBuilder.Add(singleNamespaceBuilder.ToImmutable());
+                    }
+
+                    singleNamespaceBuilder.Clear();
+                }
             }
         }
+
+        /// <summary>
+        /// Used for parsing .cs file-based programs.
+        /// </summary>
+        /// <remarks>
+        /// In this mode, ignored directives <c>#:</c> are allowed.
+        /// </remarks>
+        internal bool FileBasedProgram => Features.ContainsKey("FileBasedProgram");
 
         internal override void ValidateOptions(ArrayBuilder<Diagnostic> builder)
         {

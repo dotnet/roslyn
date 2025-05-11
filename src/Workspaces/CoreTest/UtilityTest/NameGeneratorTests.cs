@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class NameGeneratorTests
+public sealed class NameGeneratorTests
 {
     [Fact]
     public void TestGenerateUniqueName()
@@ -96,10 +96,10 @@ public class NameGeneratorTests
 
     private static void VerifyEnsureUniquenessInPlace(string[] names, bool[]? isFixed, Func<string, bool>? canUse, bool isCaseSensitive, string[] expectedResult)
     {
-        var namesBuilder = new ArrayBuilder<string>();
+        using var _1 = ArrayBuilder<string>.GetInstance(out var namesBuilder);
         namesBuilder.AddRange(names);
 
-        var isFixedBuilder = new ArrayBuilder<bool>();
+        using var _2 = ArrayBuilder<bool>.GetInstance(out var isFixedBuilder);
         isFixedBuilder.AddRange(isFixed ?? Enumerable.Repeat(false, names.Length));
 
         NameGenerator.EnsureUniquenessInPlace(namesBuilder, isFixedBuilder, canUse, isCaseSensitive);

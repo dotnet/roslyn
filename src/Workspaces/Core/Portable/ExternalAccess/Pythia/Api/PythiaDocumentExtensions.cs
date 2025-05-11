@@ -6,11 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal static class PythiaDocumentExtensions
 {
-    internal static class PythiaDocumentExtensions
-    {
-        public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
-            => DocumentExtensions.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken).AsTask();
-    }
+    public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode? node, CancellationToken cancellationToken)
+        => DocumentExtensions.ReuseExistingSpeculativeModelAsync(document, node, cancellationToken).AsTask();
 }

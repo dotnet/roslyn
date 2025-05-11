@@ -7,21 +7,19 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal sealed class AggregatedFormattingResult : AbstractAggregatedFormattingResult
 {
-    internal class AggregatedFormattingResult : AbstractAggregatedFormattingResult
+    public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans)
+        : base(node, results, formattingSpans)
     {
-        public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans)
-            : base(node, results, formattingSpans)
-        {
-        }
+    }
 
-        protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map, CancellationToken cancellationToken)
-        {
-            var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, cancellationToken);
-            return rewriter.Transform();
-        }
+    protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map, CancellationToken cancellationToken)
+    {
+        var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, cancellationToken);
+        return rewriter.Transform();
     }
 }

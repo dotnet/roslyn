@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -574,8 +574,8 @@ public class C
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                verifyEntryPoint(metadataOutput, expectZero: true);
-                VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
+                verifyEntryPoint(metadataOutput, expectZero: false);
+                VerifyMethods(metadataOutput, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
@@ -3462,7 +3462,7 @@ class C
             var compilation = CSharpCompilation.Create(
                 "v2Fx.exe",
                 new[] { Parse(source) },
-                new[] { Net20.mscorlib });
+                new[] { Net20.References.mscorlib });
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
             //that contains System.Object.
@@ -4041,7 +4041,12 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CSharpCompilation.Create(
+                assemblyName: null,
+                syntaxTrees: [SyntaxFactory.ParseSyntaxTree("class A { }")],
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                options: TestOptions.ReleaseModule.WithModuleName(name + extension));
+
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;

@@ -5,6 +5,8 @@
 Imports System
 Imports System.Diagnostics
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class ResumableStateMachineStateAllocator
         Private ReadOnly _slotAllocator As VariableSlotAllocator
         Private ReadOnly _increasing As Boolean
-        Private ReadOnly _firstState As Integer
+        Private ReadOnly _firstState As StateMachineState
 
         ''' <summary>
         ''' The number of the next generated resumable state (i.e. state that resumes execution of the state machine after await expression or yield return).
@@ -71,7 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Function GenerateThrowMissingStateDispatch(f As SyntheticBoundNodeFactory, cachedState As BoundExpression, message As String) As BoundStatement
+        Public Function GenerateThrowMissingStateDispatch(f As SyntheticBoundNodeFactory, cachedState As BoundExpression, errorCode As HotReloadExceptionCode) As BoundStatement
+            Debug.Assert(f.CompilationState IsNot Nothing)
+            Debug.Assert(f.CompilationState.ModuleBuilderOpt IsNot Nothing)
+
             If Not HasMissingStates Then
                 Return Nothing
             End If
@@ -84,8 +89,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     f.Literal(_firstState)),
                 f.Throw(
                     f.[New](
-                        f.WellKnownMember(Of MethodSymbol)(WellKnownMember.System_InvalidOperationException__ctorString),
-                        f.StringLiteral(ConstantValue.Create(message)))))
+                        DirectCast(f.CompilationState.ModuleBuilderOpt.GetOrCreateHotReloadExceptionConstructorDefinition(), MethodSymbol),
+                        f.StringLiteral(ConstantValue.Create(errorCode.GetExceptionMessage())),
+                        f.Literal(errorCode.GetExceptionCodeValue()))))
         End Function
     End Class
 End Namespace

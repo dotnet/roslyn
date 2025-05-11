@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeStyle;
+
+internal static class NotificationOptionExtensions
 {
-    internal static class NotificationOptionExtensions
-    {
-        public static string ToEditorConfigString(this NotificationOption2 notificationOption)
-            => notificationOption.Severity.ToEditorConfigString();
-    }
+    public static string ToEditorConfigString(this NotificationOption2 notificationOption)
+        => notificationOption.Severity.ToEditorConfigString();
 }

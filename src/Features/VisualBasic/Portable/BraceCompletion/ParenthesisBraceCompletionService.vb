@@ -12,8 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
-    <Export(LanguageNames.VisualBasic, GetType(IBraceCompletionService)), [Shared]>
-    Friend Class ParenthesisBraceCompletionService
+    <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class ParenthesisBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 
         <ImportingConstructor>
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
             If skippedTriviaNode IsNot Nothing Then
                 Dim skippedToken = skippedTriviaNode.ParentTrivia.Token
                 ' These checks don't make any sense.  Leaving them in place to avoid breaking something as part of this move.
-                If skippedToken.Kind <> SyntaxKind.CloseParenToken OrElse Not TypeOf skippedToken.Parent Is BinaryConditionalExpressionSyntax Then
+                If skippedToken.Kind <> SyntaxKind.CloseParenToken OrElse TypeOf skippedToken.Parent IsNot BinaryConditionalExpressionSyntax Then
                     Return False
                 End If
             End If

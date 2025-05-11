@@ -316,6 +316,52 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
         End Function
 
         <WpfFact>
+        Public Async Function SingleStatementBlock() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main()
+    {
+        for (int variable1 = 0; variable1 &lt; 10; variable1++)
+            [|Console.Write(0);|]
+        int variable2 = 0;
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, False)
+                state.SendTypeChars("variable")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionItemsContainAll("variable1", "variable2")
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function SingleStatementBlockInvokeCompletion() As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main()
+    {
+        for (int variable1 = 0; variable1 &lt; 10; variable1++)
+            [|Console.Write(0);|]
+        int variable2 = 0;
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, False)
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll("variable1")
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function SignatureHelpInParameterizedConstructor() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -417,8 +463,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531165")>
         Public Async Function ClassDesigner1() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -445,8 +490,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531167")>
         Public Async Function ClassDesigner2() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -470,8 +514,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1124544")>
         Public Async Function CompletionUsesContextBufferPositions() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -735,8 +778,7 @@ $$</Document>
             End Using
         End Function
 
-        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163608")>
         Public Async Function TestItemDescription() As Task
             Dim text = <Workspace>
                            <Project Language="C#" CommonReferences="true">

@@ -5,48 +5,41 @@
 using System;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.FileHeaders;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
+namespace Microsoft.CodeAnalysis.CSharp.FileHeaders;
+
+/// <summary>
+/// Helper class used for working with file headers.
+/// </summary>
+internal sealed class CSharpFileHeaderHelper() : AbstractFileHeaderHelper(CSharpSyntaxKinds.Instance)
 {
-    /// <summary>
-    /// Helper class used for working with file headers.
-    /// </summary>
-    internal sealed class CSharpFileHeaderHelper : AbstractFileHeaderHelper
+    public static readonly CSharpFileHeaderHelper Instance = new();
+
+    public override string CommentPrefix => "//";
+
+    protected override ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia)
     {
-        public static readonly CSharpFileHeaderHelper Instance = new();
-
-        private CSharpFileHeaderHelper()
-            : base(CSharpSyntaxKinds.Instance)
+        if (commentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
         {
+            return commentTrivia.ToFullString().AsMemory()[2..];
         }
-
-        public override string CommentPrefix => "//";
-
-        protected override ReadOnlyMemory<char> GetTextContextOfComment(SyntaxTrivia commentTrivia)
+        else if (commentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
         {
-            if (commentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-            {
-                return commentTrivia.ToFullString().AsMemory()[2..];
-            }
-            else if (commentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                var triviaString = commentTrivia.ToFullString();
+            var triviaString = commentTrivia.ToFullString();
 
-                var startIndex = triviaString.IndexOf("/*", StringComparison.Ordinal) + 2;
-                var endIndex = triviaString.LastIndexOf("*/", StringComparison.Ordinal);
-                if (endIndex < startIndex)
-                {
-                    // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
-                    return triviaString.AsMemory()[startIndex..];
-                }
-
-                return triviaString.AsMemory()[startIndex..endIndex];
-            }
-            else
+            var startIndex = triviaString.IndexOf("/*", StringComparison.Ordinal) + 2;
+            var endIndex = triviaString.LastIndexOf("*/", StringComparison.Ordinal);
+            if (endIndex < startIndex)
             {
-                throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
+                // While editing, it is possible to have a multiline comment trivia that does not contain the closing '*/' yet.
+                return triviaString.AsMemory()[startIndex..];
             }
+
+            return triviaString.AsMemory()[startIndex..endIndex];
+        }
+        else
+        {
+            throw ExceptionUtilities.UnexpectedValue(commentTrivia.Kind());
         }
     }
 }

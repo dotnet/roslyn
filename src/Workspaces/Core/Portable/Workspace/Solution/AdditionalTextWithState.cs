@@ -6,30 +6,29 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+/// <summary>
+/// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="AdditionalDocumentState"/>.
+/// </summary>
+/// <remarks>
+/// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
+/// </remarks>
+internal sealed class AdditionalTextWithState(AdditionalDocumentState documentState) : AdditionalText
 {
+    private readonly AdditionalDocumentState _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
+
     /// <summary>
-    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="AdditionalDocumentState"/>.
+    /// Resolved path of the document.
     /// </summary>
-    /// <remarks>
-    /// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
-    /// </remarks>
-    internal sealed class AdditionalTextWithState(AdditionalDocumentState documentState) : AdditionalText
+    public override string Path => _documentState.FilePath ?? _documentState.Name;
+
+    /// <summary>
+    /// Retrieves a <see cref="SourceText"/> with the contents of this file.
+    /// </summary>
+    public override SourceText GetText(CancellationToken cancellationToken = default)
     {
-        private readonly AdditionalDocumentState _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
-
-        /// <summary>
-        /// Resolved path of the document.
-        /// </summary>
-        public override string Path => _documentState.FilePath ?? _documentState.Name;
-
-        /// <summary>
-        /// Retrieves a <see cref="SourceText"/> with the contents of this file.
-        /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default)
-        {
-            var text = _documentState.GetTextSynchronously(cancellationToken);
-            return text;
-        }
+        var text = _documentState.GetTextSynchronously(cancellationToken);
+        return text;
     }
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -533,7 +534,7 @@ public class A {
 }
 ";
 
-            var compilation = CreateEmptyCompilation(text, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(text, new[] { Net40.References.mscorlib });
             int[] ary = new int[2];
 
             var globalNS = compilation.SourceModule.GlobalNamespace;
@@ -1572,6 +1573,8 @@ public class NullableTest
             paras = mem.GetParameters();
             Assert.True(paras[0].IsOptional);
             Assert.True(paras[1].IsParams);
+            Assert.True(paras[1].IsParamsArray);
+            Assert.False(paras[1].IsParamsCollection);
             memType = paras[0].Type;
             Assert.Same(comp.GetSpecialType(SpecialType.System_Double), memType.GetNullableUnderlyingType());
             memType = paras[1].Type;

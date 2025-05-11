@@ -3,23 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal abstract partial class TreeData
 {
-    internal abstract partial class TreeData
+    private sealed class Debug(SyntaxNode root, SourceText text) : NodeAndText(root, text)
     {
-        private class Debug(SyntaxNode root, SourceText text) : NodeAndText(root, text)
+        private readonly TreeData _debugNodeData = new Node(root);
+
+        public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
         {
-            private readonly TreeData _debugNodeData = new Node(root);
+            var text = base.GetTextBetween(token1, token2);
+            Contract.ThrowIfFalse(text == _debugNodeData.GetTextBetween(token1, token2));
 
-            public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)
-            {
-                var text = base.GetTextBetween(token1, token2);
-                Contract.ThrowIfFalse(text == _debugNodeData.GetTextBetween(token1, token2));
-
-                return text;
-            }
+            return text;
         }
     }
 }

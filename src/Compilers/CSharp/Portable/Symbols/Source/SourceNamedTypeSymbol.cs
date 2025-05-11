@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Record:
                 case DeclarationKind.RecordStruct:
+                case DeclarationKind.Extension:
                     break;
                 default:
                     Debug.Assert(false, "bad declaration kind");
@@ -161,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
+                    case SyntaxKind.ExtensionDeclaration:
                         tpl = ((TypeDeclarationSyntax)typeDecl).TypeParameterList;
                         break;
 
@@ -470,6 +473,7 @@ next:;
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
+                case SyntaxKind.ExtensionDeclaration:
                     var typeDeclaration = (TypeDeclarationSyntax)node;
                     typeParameterList = typeDeclaration.TypeParameterList;
                     return typeDeclaration.ConstraintClauses;
@@ -1212,6 +1216,14 @@ next:;
                 {
                     diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName(), "struct");
                 }
+                else if (IsRecordStruct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InlineArrayAttributeOnRecord, arguments.AttributeSyntaxOpt.Name.Location);
+                }
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.CompilerLoweringPreserveAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasCompilerLoweringPreserveAttribute = true;
             }
             else
             {
@@ -1410,7 +1422,18 @@ next:;
             get
             {
                 var data = GetEarlyDecodedWellKnownAttributeData();
-                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
+                return (data != null && data.HasCodeAnalysisEmbeddedAttribute)
+                    // If this is Microsoft.CodeAnalysis.EmbeddedAttribute, we'll synthesize EmbeddedAttribute even if it's not applied.
+                    || this.IsMicrosoftCodeAnalysisEmbeddedAttribute();
+            }
+        }
+
+        internal override bool HasCompilerLoweringPreserveAttribute
+        {
+            get
+            {
+                var data = GetDecodedWellKnownAttributeData();
+                return data != null && data.HasCompilerLoweringPreserveAttribute;
             }
         }
 
@@ -1655,7 +1678,7 @@ next:;
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -1744,6 +1767,21 @@ next:;
                         ImmutableArray.Create(new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, originalType)),
                         isOptionalUse: true));
             }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute() && GetEarlyDecodedWellKnownAttributeData() is null or { HasCodeAnalysisEmbeddedAttribute: false })
+            {
+                // This is Microsoft.CodeAnalysis.EmbeddedAttribute, and the user didn't manually apply this attribute to itself. Grab the parameterless constructor
+                // and apply it; if there isn't a parameterless constructor, there would have been a declaration diagnostic
+
+                var parameterlessConstructor = InstanceConstructors.FirstOrDefault(c => c.ParameterCount == 0);
+
+                if (parameterlessConstructor is not null)
+                {
+                    AddSynthesizedAttribute(
+                        ref attributes,
+                        SynthesizedAttributeData.Create(DeclaringCompilation, parameterlessConstructor, arguments: [], namedArguments: []));
+                }
+            }
         }
 
         #endregion
@@ -1777,6 +1815,16 @@ next:;
             }
         }
 
+        public override string MetadataName
+        {
+            get
+            {
+                return IsExtension
+                    ? MetadataHelpers.ComposeAritySuffixedMetadataName(this.ExtensionName, Arity, associatedFileIdentifier: null)
+                    : base.MetadataName;
+            }
+        }
+
         protected override void AfterMembersCompletedChecks(BindingDiagnosticBag diagnostics)
         {
             base.AfterMembersCompletedChecks(diagnostics);
@@ -1792,28 +1840,31 @@ next:;
             Debug.Assert(ObsoleteKind != ObsoleteAttributeKind.Uninitialized);
             Debug.Assert(GetMembers().All(m => m.ObsoleteKind != ObsoleteAttributeKind.Uninitialized));
 
-            if (ObsoleteKind != ObsoleteAttributeKind.None
-                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
+            if (ObsoleteKind == ObsoleteAttributeKind.None
+                && !GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
                                          || !method.ShouldCheckRequiredMembers()))
             {
-                return;
+                foreach (var member in GetMembers())
+                {
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    if (member.ObsoleteKind != ObsoleteAttributeKind.None)
+                    {
+                        // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+                        diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
+                    }
+                }
             }
 
-            foreach (var member in GetMembers())
+            if (Indexers.FirstOrDefault() is PropertySymbol indexerSymbol)
             {
-                if (!member.IsRequired())
-                {
-                    continue;
-                }
-
-                if (member.ObsoleteKind != ObsoleteAttributeKind.None)
-                {
-                    // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
-                }
+                Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
-            if (TypeKind == TypeKind.Struct && HasInlineArrayAttribute(out _))
+            if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
                 if (Layout.Kind == LayoutKind.Explicit)
                 {
@@ -1878,7 +1929,7 @@ next:;
 
                     if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
                     {
-                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType(ignoreSpanLikeTypes: true))
                         {
                             diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                         }
@@ -1896,6 +1947,44 @@ next:;
                 if (!ContainingAssembly.RuntimeSupportsInlineArrayTypes)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportInlineArrayTypes, GetFirstLocation());
+                }
+            }
+
+            if (this.IsMicrosoftCodeAnalysisEmbeddedAttribute())
+            {
+                // This is a user-defined implementation of the special attribute Microsoft.CodeAnalysis.EmbeddedAttribute. It needs to follow specific rules:
+                // 1. It must be internal
+                // 2. It must be a class
+                // 3. It must be sealed
+                // 4. It must be non-static
+                // 5. It must have an internal or public parameterless constructor
+                // 6. It must inherit from System.Attribute
+                // 7. It must be allowed on any type declaration (class, struct, interface, enum, or delegate)
+                // 8. It must be non-generic (checked as part of IsMicrosoftCodeAnalysisEmbeddedAttribute, we don't error on this because both types can exist)
+
+                const AttributeTargets expectedTargets = AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Interface | AttributeTargets.Enum | AttributeTargets.Delegate;
+
+                if (DeclaredAccessibility != Accessibility.Internal
+                    || TypeKind != TypeKind.Class
+                    || !IsSealed
+                    || IsStatic
+                    || !InstanceConstructors.Any(c => c is { ParameterCount: 0, DeclaredAccessibility: Accessibility.Internal or Accessibility.Public })
+                    || !this.DeclaringCompilation.IsAttributeType(this)
+                    || (GetAttributeUsageInfo().ValidTargets & expectedTargets) != expectedTargets)
+                {
+                    // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
+                    diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
+                }
+
+            }
+
+            if (IsExtension && ContainingType?.IsExtension != true)
+            {
+                // If the containing type is an extension, we'll have already reported an error
+                if (ContainingType is null || !ContainingType.IsStatic || ContainingType.Arity != 0 || ContainingType.ContainingType is not null)
+                {
+                    var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+                    diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
                 }
             }
         }

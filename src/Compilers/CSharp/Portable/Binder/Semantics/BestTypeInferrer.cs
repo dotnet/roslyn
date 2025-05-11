@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeSymbol> candidateTypes = new HashSet<TypeSymbol>(comparer);
             foreach (BoundExpression expr in exprs)
             {
+                Debug.Assert(!NullableWalker.IsTargetTypedExpression(expr));
                 TypeSymbol? type = expr.GetTypeOrFunctionType();
 
                 if (type is { })
@@ -132,9 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var conversionsWithoutNullability = conversions.WithNullability(false);
-                TypeSymbol? type1 = expr1.Type;
 
-                if (type1 is { })
+                Debug.Assert(!NullableWalker.IsTargetTypedExpression(expr1));
+                if (expr1.Type is { } type1)
                 {
                     if (type1.IsErrorType())
                     {
@@ -148,9 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                TypeSymbol? type2 = expr2.Type;
-
-                if (type2 is { })
+                Debug.Assert(!NullableWalker.IsTargetTypedExpression(expr2));
+                if (expr2.Type is { } type2)
                 {
                     if (type2.IsErrorType())
                     {

@@ -30,7 +30,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; } => 1;
@@ -60,7 +60,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
   public abstract int P => 1;
@@ -74,7 +74,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
    public abstract int P => 1;
@@ -91,7 +91,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class C
 {
    abstract int P => 1;
@@ -109,7 +109,7 @@ abstract class C
         public void Syntax07()
         {
             // The '=' here parses as part of the expression body, not the property
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P => 1 = 2;
@@ -123,7 +123,7 @@ class C
         [Fact]
         public void Syntax08()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int P { get; };
@@ -136,7 +136,7 @@ interface I
         [Fact]
         public void Syntax09()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int P => 2
@@ -149,7 +149,7 @@ class C
         [Fact]
         public void Syntax10()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i]
@@ -168,7 +168,7 @@ interface I
         [Fact]
         public void Syntax11()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i];
@@ -190,7 +190,7 @@ interface I
         [Fact]
         public void Syntax12()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 interface I
 {
     int this[int i] { get; };
@@ -204,7 +204,7 @@ interface I
         public void Syntax13()
         {
             // End the property declaration at the semicolon after the accessor list
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int P { get; set; }; => 2;
@@ -220,7 +220,7 @@ class C
         [Fact]
         public void Syntax14()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     int this[int i] => 2
@@ -233,7 +233,7 @@ class C
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 class C
 {
@@ -251,7 +251,7 @@ class C
     public int P => 2 * 2;
     public int this[int i, int j] => i * j * P;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMember("C");
@@ -281,7 +281,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class B
 {
     public virtual int P { get; set; }
@@ -295,7 +295,7 @@ class C : B
         [Fact]
         public void Override02()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class B
 {
     public int P => 10;
@@ -317,7 +317,7 @@ class C : B
         [Fact]
         public void Override03()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class B
 {
     public virtual int P => 10;
@@ -333,7 +333,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public void P => System.Console.WriteLine(""goo"");
@@ -346,7 +346,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P => System.Console.WriteLine(""goo"");
@@ -359,7 +359,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 interface I 
 {
     int P { get; }
@@ -409,7 +409,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 abstract class A
 {
     protected abstract string Z { get; }
@@ -455,7 +455,7 @@ goo8
         [ClrOnlyFact]
         public void AccessorInheritsVisibility()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     private int P => 1;
@@ -478,7 +478,7 @@ class C
         [Fact]
         public void StaticIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     static int this[int i] => i;
@@ -492,11 +492,11 @@ class C
         [Fact]
         public void RefReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref int P => ref field;
+    public ref int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -515,11 +515,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int P => ref field;
+    public ref readonly int P => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -542,11 +542,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 
@@ -570,11 +570,11 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer1()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     int field = 0;
-    public ref readonly int this[in int arg] => ref field;
+    public ref readonly int this[in int arg] => ref @field;
 }");
             comp.VerifyDiagnostics();
 

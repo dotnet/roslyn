@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -65,30 +66,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((object)on != null);
             Debug.Assert(on.IsDefinition);
 
-            var hs = PooledHashSet<Symbol>.GetInstance();
-            StructDependsClosure(depends, hs, on);
+            var hs = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            var typesWithCycle = PooledHashSet<NamedTypeSymbol>.GetInstance();
+            StructDependsClosure(depends, hs, typesWithCycle, ConsList<NamedTypeSymbol>.Empty.Prepend(on));
 
-            var result = hs.Contains(on);
+            var result = typesWithCycle.Contains(on);
+            typesWithCycle.Free();
             hs.Free();
 
             return result;
         }
 
-        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<Symbol> partialClosure, NamedTypeSymbol on)
+        private static void StructDependsClosure(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
         {
             Debug.Assert((object)type != null);
 
-            if ((object)type.OriginalDefinition == on)
+            if (typesWithCycle.Contains(type.OriginalDefinition))
+            {
+                return;
+            }
+
+            if (on.ContainsReference(type.OriginalDefinition))
             {
                 // found a possibly expanding cycle, for example
                 //     struct X<T> { public T t; }
                 //     struct W<T> { X<W<W<T>>> x; }
                 // while not explicitly forbidden by the spec, it should be.
-                partialClosure.Add(on);
+                typesWithCycle.Add(type.OriginalDefinition);
                 return;
             }
 
             if (partialClosure.Add(type))
+            {
+                if (!type.IsDefinition)
+                {
+                    // First, visit type as a definition in order to detect the fact that it itself has a cycle.
+                    // This prevents us from going into an infinite generic expansion while visiting constructed form
+                    // of the type below.
+                    visitFields(type.OriginalDefinition, partialClosure, typesWithCycle, on.Prepend(type.OriginalDefinition));
+                }
+
+                visitFields(type, partialClosure, typesWithCycle, on);
+            }
+
+            static void visitFields(NamedTypeSymbol type, HashSet<NamedTypeSymbol> partialClosure, HashSet<NamedTypeSymbol> typesWithCycle, ConsList<NamedTypeSymbol> on)
             {
                 foreach (var member in type.GetMembersUnordered())
                 {
@@ -99,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, typesWithCycle, on);
                 }
             }
         }
@@ -122,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static ManagedKind GetManagedKind(NamedTypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var (isManaged, hasGenerics) = IsManagedTypeHelper(type);
+            // The code below should be kept in sync with NamedTypeSymbol.GetManagedKind in VB
+
+            var (isManaged, hasGenerics) = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(type);
             var definitelyManaged = isManaged == ThreeState.True;
             if (isManaged == ThreeState.Unknown)
             {
@@ -201,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else
                         {
-                            var result = IsManagedTypeHelper(fieldNamedType);
+                            var result = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(fieldNamedType);
                             hasGenerics = hasGenerics || result.hasGenerics;
                             // NOTE: don't use ManagedKind.get on a NamedTypeSymbol - that could lead
                             // to infinite recursion.
@@ -235,60 +258,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
             field.HasPointerType ? null : field.Type;
-
-        /// <summary>
-        /// Returns True or False if we can determine whether the type is managed
-        /// without looking at its fields and Unknown otherwise.
-        /// Also returns whether or not the given type is generic.
-        /// </summary>
-        private static (ThreeState isManaged, bool hasGenerics) IsManagedTypeHelper(NamedTypeSymbol type)
-        {
-            // To match dev10, we treat enums as their underlying types.
-            if (type.IsEnumType())
-            {
-                type = type.GetEnumUnderlyingType();
-            }
-
-            // Short-circuit common cases.
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                case SpecialType.System_Char:
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Decimal:
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
-                case SpecialType.System_ArgIterator:
-                case SpecialType.System_RuntimeArgumentHandle:
-                    return (ThreeState.False, false);
-                case SpecialType.System_TypedReference:
-                    return (ThreeState.True, false);
-                case SpecialType.None:
-                default:
-                    // CONSIDER: could provide cases for other common special types.
-                    break; // Proceed with additional checks.
-            }
-
-            bool hasGenerics = type.IsGenericType;
-            switch (type.TypeKind)
-            {
-                case TypeKind.Enum:
-                    return (ThreeState.False, hasGenerics);
-                case TypeKind.Struct:
-                    return (ThreeState.Unknown, hasGenerics);
-                default:
-                    return (ThreeState.True, hasGenerics);
-            }
-        }
     }
 }

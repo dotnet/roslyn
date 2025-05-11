@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Serialization;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
@@ -30,11 +29,6 @@ internal readonly struct SolutionAsset
     public SolutionAsset(Checksum checksum, object value)
     {
         var kind = value.GetWellKnownSynchronizationKind();
-        // SolutionAsset is not allowed to hold strong references to SourceText. SerializableSourceText is used
-        // instead to allow data to be released from process address space when it is also held in temporary
-        // storage.
-        // https://github.com/dotnet/roslyn/issues/43802
-        Contract.ThrowIfTrue(kind is WellKnownSynchronizationKind.SourceText);
 
         Checksum = checksum;
         Kind = kind;

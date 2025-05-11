@@ -4,30 +4,28 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
-        private partial class CSharpCodeGenerator
+        private abstract partial class CSharpCodeGenerator
         {
             private sealed class ExpressionCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                CSharpCodeGenerationOptions options,
+                ExtractMethodGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
                 protected override SyntaxToken CreateMethodName()
@@ -89,41 +87,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(this.SelectionResult.SelectionInExpression);
+                    Contract.ThrowIfFalse(this.SelectionResult.IsExtractMethodOnExpression);
 
                     // special case for array initializer
-                    var returnType = AnalyzerResult.ReturnType;
-                    var containingScope = this.SelectionResult.GetContainingScope();
+                    var returnType = AnalyzerResult.CoreReturnType;
+                    var containingScope = (ExpressionSyntax)this.SelectionResult.GetContainingScope();
 
-                    ExpressionSyntax expression;
-                    if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
-                    {
-                        var typeSyntax = returnType.GenerateTypeSyntax();
+                    var expression = returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax initializerExpression
+                        ? SyntaxFactory.ArrayCreationExpression((ArrayTypeSyntax)returnType.GenerateTypeSyntax(), initializerExpression)
+                        : containingScope;
 
-                        expression = SyntaxFactory.ArrayCreationExpression(typeSyntax as ArrayTypeSyntax, containingScope as InitializerExpressionSyntax);
-                    }
-                    else
-                    {
-                        expression = containingScope as ExpressionSyntax;
-                    }
-
-                    if (AnalyzerResult.HasReturnType)
-                    {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ReturnStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
-                    }
-                    else
-                    {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ExpressionStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
-                    }
+                    return AnalyzerResult.CoreReturnType.SpecialType != SpecialType.System_Void
+                        ? [SyntaxFactory.ReturnStatement(WrapInCheckedExpressionIfNeeded(expression))]
+                        : [SyntaxFactory.ExpressionStatement(WrapInCheckedExpressionIfNeeded(expression))];
                 }
 
                 private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
                 {
-                    var kind = this.SelectionResult.UnderCheckedExpressionContext();
+                    var kind = UnderCheckedExpressionContext();
                     if (kind == SyntaxKind.None)
                     {
                         return expression;
@@ -141,7 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                     // This is similar to FieldDeclaration case but we only want to do this 
                     // if the member has an expression body.
-                    scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
+                    scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>()?.Parent;
+
+                    scope ??= this.SelectionResult.GetContainingScopeOf<PrimaryConstructorBaseTypeSyntax>();
 
                     return scope;
                 }

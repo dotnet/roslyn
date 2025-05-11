@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._visitedExpressions.Contains(analyzedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
+                            RoslynDebug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                            RoslynDebug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
@@ -64,22 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                if (expression.IsParamsArray)
+                if (expression.IsParamsArrayOrCollection)
                 {
-                    // Params array is processed element wise. 
-                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                    // Params collections are processed element wise. 
+                    RoslynDebug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
                 }
                 else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
-                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
+                    RoslynDebug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
                 }
             }
 
-            protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
-                VerifyExpression(node);
-                return (BoundExpression)base.Visit(node);
+                if (node is BoundExpression expr)
+                {
+                    VerifyExpression(expr);
+                }
+                return base.Visit(node);
             }
 
             public override BoundNode? Visit(BoundNode? node)
@@ -91,16 +95,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    _snapshotManager.VerifyNode(node);
                 //}
 
-                if (node is BoundExpression expr)
+                if (node is BoundExpression or BoundPattern)
                 {
-                    return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
+                    return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
                 }
                 return base.Visit(node);
             }
 
             public override BoundNode? VisitArrayCreation(BoundArrayCreation node)
             {
-                if (node.IsParamsArray)
+                if (node.IsParamsArrayOrCollection)
                 {
                     // Synthesized params array is processed element wise.
                     this.Visit(node.InitializerOpt);
@@ -108,6 +112,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return base.VisitArrayCreation(node);
+            }
+
+            public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
+            {
+                if (node.IsParamsArrayOrCollection)
+                {
+                    // Synthesized params collection is processed element wise.
+                    this.VisitList(node.UnconvertedCollectionExpression.Elements);
+                    return null;
+                }
+
+                // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
+                // does not have an element type for the ImplementsIEnumerable case.
+                bool hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
+                foreach (var element in node.Elements)
+                {
+                    if (element is BoundCollectionExpressionSpreadElement spread)
+                    {
+                        Visit(spread.Expression);
+                        Visit(spread.Conversion);
+                        if (spread.EnumeratorInfoOpt != null)
+                        {
+                            VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
+                        }
+                        if (hasElementType)
+                        {
+                            Visit(((BoundExpressionStatement?)spread.IteratorBody)?.Expression);
+                        }
+                    }
+                    else
+                    {
+                        Visit(element);
+                    }
+                }
+                return null;
             }
 
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
@@ -147,26 +186,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode? VisitIfStatement(BoundIfStatement node)
+            {
+                while (true)
+                {
+                    this.Visit(node.Condition);
+                    this.Visit(node.Consequence);
+
+                    var alternative = node.AlternativeOpt;
+                    if (alternative is null)
+                    {
+                        break;
+                    }
+
+                    if (alternative is BoundIfStatement elseIfStatement)
+                    {
+                        node = elseIfStatement;
+                    }
+                    else
+                    {
+                        this.Visit(alternative);
+                        break;
+                    }
+                }
+
+                return null;
+            }
+
             public override BoundNode? VisitForEachStatement(BoundForEachStatement node)
             {
                 Visit(node.IterationVariableType);
                 Visit(node.AwaitOpt);
                 if (node.EnumeratorInfoOpt != null)
                 {
-                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
-                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
-                    {
-                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
-                        {
-                            Visit(arg);
-                        }
-                    }
+                    VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
                 }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
                 Visit(node.Body);
                 return null;
+            }
+
+            private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
+            {
+                Visit(enumeratorInfo.DisposeAwaitableInfo);
+                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                {
+                    foreach (var arg in enumeratorInfo.GetEnumeratorInfo.Arguments)
+                    {
+                        Visit(arg);
+                    }
+                }
             }
 
             public override BoundNode? VisitGotoStatement(BoundGotoStatement node)
@@ -246,6 +317,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+            {
+                // There can be deep recursion on the left side, so verify iteratively to avoid blowing the stack
+                while (true)
+                {
+                    Visit(node.Right);
+
+                    if (node.Left is not BoundBinaryPattern child)
+                    {
+                        Visit(node.Left);
+                        return null;
+                    }
+
+                    node = child;
+                }
+            }
+
             public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
             {
                 Visit(node.SourceTuple);
@@ -309,6 +397,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.ConversionKind == ConversionKind.InterpolatedStringHandler)
                 {
                     Visit(node.Operand.GetInterpolatedStringHandlerData().Construction);
+                }
+                else if (node.IsParamsArrayOrCollection)
+                {
+                    // Synthesized params collection is processed element wise.
+                    this.Visit(node.Operand);
+                    return null;
                 }
 
                 return base.VisitConversion(node);

@@ -9,22 +9,22 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal sealed partial class CSharpExtractMethodService
 {
-    internal partial class CSharpMethodExtractor
+    internal sealed partial class CSharpMethodExtractor
     {
-        private partial class CSharpCodeGenerator
+        private abstract partial class CSharpCodeGenerator
         {
             public sealed class MultipleStatementsCodeGenerator(
-                CSharpSelectionResult selectionResult,
+                SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                CSharpCodeGenerationOptions options,
+                ExtractMethodGenerationOptions options,
                 bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
             {
                 protected override SyntaxToken CreateMethodName()
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         }
                     }
 
-                    return list.ToImmutable();
+                    return list.ToImmutableAndClear();
                 }
 
                 private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)

@@ -5,10 +5,9 @@
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
+
+internal interface ISettingsAggregator : IWorkspaceService
 {
-    internal interface ISettingsAggregator : IWorkspaceService
-    {
-        ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName);
-    }
+    ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName);
 }

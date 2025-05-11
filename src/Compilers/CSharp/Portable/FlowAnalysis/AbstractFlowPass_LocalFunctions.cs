@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return usages;
         }
 
+        protected bool HasLocalFuncUsagesCreated(LocalFunctionSymbol localFunc)
+        {
+            return _localFuncVarUsages?.ContainsKey(localFunc) == true;
+        }
+
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
             if (localFunc.Symbol.IsExtern)
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // transition the state of captured variables if the variables have state changes
             // across all branches leaving the local function
 
-            var localFunctionState = GetOrCreateLocalFuncUsages(localFuncSymbol);
+            var localFunctionState = GetOrCreateLocalFuncUsages((LocalFunctionSymbol)localFuncSymbol);
             var savedLocalFunctionState = LocalFunctionStart(localFunctionState);
 
             var oldPending2 = SavePending();

@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveBlankLines), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
+internal sealed class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.MultipleBlankLinesDiagnosticId);
+        => [IDEDiagnosticIds.MultipleBlankLinesDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -39,7 +39,7 @@ internal class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
     }
 
     private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-        => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
+        => FixAllAsync(document, [diagnostic], cancellationToken);
 
     private static async Task<Document> FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -130,7 +130,7 @@ internal class MultipleBlankLinesCodeFixProvider() : CodeFixProvider
             currentStart++;
         }
 
-        return new SyntaxTriviaList(builder.ToImmutable());
+        return [.. builder.ToImmutable()];
     }
 
     private static bool IsEndOfLine(ISyntaxKindsService syntaxKinds, SyntaxTriviaList triviaList, int index)

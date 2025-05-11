@@ -7,45 +7,44 @@ using System.Collections.Concurrent;
 using System.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal interface IRemoteServiceCallbackDispatcher
 {
-    internal interface IRemoteServiceCallbackDispatcher
+    RemoteServiceCallbackDispatcher.Handle CreateHandle(object? instance);
+}
+
+internal class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
+{
+    internal readonly struct Handle(ConcurrentDictionary<RemoteServiceCallbackId, object> callbackInstances, RemoteServiceCallbackId callbackId) : IDisposable
     {
-        RemoteServiceCallbackDispatcher.Handle CreateHandle(object? instance);
+        public readonly RemoteServiceCallbackId Id = callbackId;
+
+        public void Dispose()
+        {
+            Contract.ThrowIfTrue(callbackInstances?.TryRemove(Id, out _) == false);
+        }
     }
 
-    internal class RemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
+    private int _callbackId = 1;
+    private readonly ConcurrentDictionary<RemoteServiceCallbackId, object> _callbackInstances = new(concurrencyLevel: 2, capacity: 10);
+
+    public Handle CreateHandle(object? instance)
     {
-        internal readonly struct Handle(ConcurrentDictionary<RemoteServiceCallbackId, object> callbackInstances, RemoteServiceCallbackId callbackId) : IDisposable
+        if (instance is null)
         {
-            public readonly RemoteServiceCallbackId Id = callbackId;
-
-            public void Dispose()
-            {
-                Contract.ThrowIfTrue(callbackInstances?.TryRemove(Id, out _) == false);
-            }
+            return default;
         }
 
-        private int _callbackId = 1;
-        private readonly ConcurrentDictionary<RemoteServiceCallbackId, object> _callbackInstances = new(concurrencyLevel: 2, capacity: 10);
+        var callbackId = new RemoteServiceCallbackId(Interlocked.Increment(ref _callbackId));
+        var handle = new Handle(_callbackInstances, callbackId);
+        _callbackInstances.Add(callbackId, instance);
+        return handle;
+    }
 
-        public Handle CreateHandle(object? instance)
-        {
-            if (instance is null)
-            {
-                return default;
-            }
-
-            var callbackId = new RemoteServiceCallbackId(Interlocked.Increment(ref _callbackId));
-            var handle = new Handle(_callbackInstances, callbackId);
-            _callbackInstances.Add(callbackId, instance);
-            return handle;
-        }
-
-        public object GetCallback(RemoteServiceCallbackId callbackId)
-        {
-            Contract.ThrowIfFalse(_callbackInstances.TryGetValue(callbackId, out var instance));
-            return instance;
-        }
+    public object GetCallback(RemoteServiceCallbackId callbackId)
+    {
+        Contract.ThrowIfFalse(_callbackInstances.TryGetValue(callbackId, out var instance));
+        return instance;
     }
 }

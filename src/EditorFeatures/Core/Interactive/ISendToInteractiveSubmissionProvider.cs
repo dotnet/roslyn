@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal interface ISendToInteractiveSubmissionProvider
 {
-    internal interface ISendToInteractiveSubmissionProvider
-    {
-        string GetSelectedText(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken);
-    }
+    string GetSelectedText(IEditorOptions editorOptions, EditorCommandArgs args, CancellationToken cancellationToken);
 }

@@ -154,6 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Return _underlyingProperty.GetOverloadResolutionPriority()
+        End Function
+
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Return _underlyingProperty.IsShared

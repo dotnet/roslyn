@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal use of experimental API
 #nullable disable
 
 using System;
@@ -35,27 +36,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
-        private readonly bool _ignoresAccessibility;
+        private readonly SemanticModelOptions _options;
         private ScriptLocalScopeBinder.Labels _globalStatementLabels;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
-#nullable enable
-        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
+        internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, SemanticModelOptions options)
         {
             _compilation = compilation;
             _syntaxTree = syntaxTree;
-            _ignoresAccessibility = ignoreAccessibility;
+            _options = options;
 
-            _binderFactory = compilation.GetBinderFactory(SyntaxTree, ignoreAccessibility);
+            _binderFactory = compilation.GetBinderFactory(SyntaxTree, (options & SemanticModelOptions.IgnoreAccessibility) != 0);
         }
 
-        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, bool ignoreAccessibility)
+        internal SyntaxTreeSemanticModel(CSharpCompilation parentCompilation, SyntaxTree parentSyntaxTree, SyntaxTree speculatedSyntaxTree, SemanticModelOptions options)
         {
             _compilation = parentCompilation;
             _syntaxTree = speculatedSyntaxTree;
-            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility);
-            _ignoresAccessibility = ignoreAccessibility;
+            _binderFactory = _compilation.GetBinderFactory(parentSyntaxTree, ignoreAccessibility: (options & SemanticModelOptions.IgnoreAccessibility) != 0);
+            _options = options;
         }
 
         /// <summary>
@@ -91,13 +91,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal SemanticModelOptions Options => _options;
+
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>
         public override bool IgnoresAccessibility
         {
-            get { return _ignoresAccessibility; }
+            get { return (_options & SemanticModelOptions.IgnoreAccessibility) != 0; }
         }
+
+        public override bool NullableAnalysisIsDisabled => (_options & SemanticModelOptions.DisableNullableAnalysis) != 0;
 
         private void VerifySpanForGetDiagnostics(TextSpan? span)
         {
@@ -797,6 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
 
@@ -867,6 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.RecordDeclaration:
+                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                         {
                             var typeDecl = (TypeDeclarationSyntax)memberDecl;
                             return typeDecl.ParameterList is object &&
@@ -1085,6 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.RecordDeclaration:
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : likely needs work for semantic model
                     {
                         SynthesizedPrimaryConstructor symbol = TryGetSynthesizedPrimaryConstructor((TypeDeclarationSyntax)node);
 
@@ -1374,8 +1381,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarationSyntax != null);
 
+            if (declarationSyntax is ExtensionDeclarationSyntax extensionDeclaration)
+            {
+                return GetDeclaredExtension(extensionDeclaration);
+            }
+
             var name = declarationSyntax.Identifier.ValueText;
             return GetDeclaredNamedType(declarationSyntax, name);
+        }
+
+        private NamedTypeSymbol GetDeclaredExtension(ExtensionDeclarationSyntax extensionDeclaration)
+        {
+            Debug.Assert(extensionDeclaration != null);
+
+            var container = GetDeclaredTypeMemberContainer(extensionDeclaration);
+            Debug.Assert(container is not null);
+
+            // look for any extension declaration with same declaration location
+            var collection = container.GetMembersUnordered();
+            var declarationSpan = extensionDeclaration.Span;
+            foreach (var symbol in collection)
+            {
+                if (symbol is TypeSymbol { IsExtension: true } && symbol.HasLocationContainedWithin(this.SyntaxTree, declarationSpan, out var wasZeroWidthMatch))
+                {
+                    if (!wasZeroWidthMatch)
+                        return (NamedTypeSymbol)symbol;
+                }
+            }
+
+            return null;
         }
 
         private NamedTypeSymbol GetDeclaredType(DelegateDeclarationSyntax declarationSyntax)
@@ -1795,10 +1829,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     zeroWidthMatch = symbol;
                 }
 
-                // Handle the case of the implementation of a partial method.
-                var partial = symbol.Kind == SymbolKind.Method
-                    ? ((MethodSymbol)symbol).PartialImplementationPart
-                    : null;
+                // Handle the case of the implementation of a partial member.
+                Symbol partial = symbol.GetPartialImplementationPart();
                 if ((object)partial != null)
                 {
                     var loc = partial.GetFirstLocation();
@@ -1995,6 +2027,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+        private ParameterSymbol GetExtensionParameterSymbol(
+            ParameterSyntax parameter,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(parameter != null);
+
+            if (parameter.Parent is not ParameterListSyntax { Parent: ExtensionDeclarationSyntax extensionDecl })
+            {
+                return null;
+            }
+
+            INamedTypeSymbol extension = GetDeclaredSymbol(extensionDecl, cancellationToken);
+            if (extension is null)
+            {
+                return null;
+            }
+
+            IParameterSymbol extensionParameter = extension.ExtensionParameter;
+            foreach (var location in extensionParameter.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (location.SourceTree == this.SyntaxTree && parameter.Span.Contains(location.SourceSpan))
+                {
+                    return extensionParameter.GetSymbol<ParameterSymbol>();
+                }
+            }
+
+            return null;
+        }
+
         private ParameterSymbol GetMethodParameterSymbol(
             ParameterSyntax parameter,
             CancellationToken cancellationToken)
@@ -2029,9 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return
-                GetParameterSymbol(method.Parameters, parameter, cancellationToken) ??
-                ((object)method.PartialDefinitionPart == null ? null : GetParameterSymbol(method.PartialDefinitionPart.Parameters, parameter, cancellationToken));
+            return GetParameterSymbol(method.Parameters, parameter, cancellationToken);
         }
 
         private ParameterSymbol GetIndexerParameterSymbol(
@@ -2119,15 +2180,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 GetMethodParameterSymbol(declarationSyntax, cancellationToken) ??
                 GetIndexerParameterSymbol(declarationSyntax, cancellationToken) ??
-                GetDelegateParameterSymbol(declarationSyntax, cancellationToken);
+                GetDelegateParameterSymbol(declarationSyntax, cancellationToken) ??
+                GetExtensionParameterSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
-        /// Given a type parameter declaration (field or method), get the corresponding symbol
+        /// Given a type parameter declaration (on a type or method), get the corresponding symbol
         /// </summary>
-        /// <param name="typeParameter"></param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
         public override ITypeParameterSymbol GetDeclaredSymbol(TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (typeParameter == null)
@@ -2161,10 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return this.GetTypeParameterSymbol(typeSymbol.TypeParameters, typeParameter).GetPublicSymbol();
 
                     case MethodSymbol methodSymbol:
-                        return (this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter) ??
-                            ((object)methodSymbol.PartialDefinitionPart == null
-                                ? null
-                                : this.GetTypeParameterSymbol(methodSymbol.PartialDefinitionPart.TypeParameters, typeParameter))).GetPublicSymbol();
+                        return this.GetTypeParameterSymbol(methodSymbol.TypeParameters, typeParameter).GetPublicSymbol();
                 }
             }
 

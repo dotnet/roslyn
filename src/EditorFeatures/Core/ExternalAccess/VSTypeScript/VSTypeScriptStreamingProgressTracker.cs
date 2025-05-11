@@ -7,16 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+internal sealed class VSTypeScriptStreamingProgressTracker(IStreamingProgressTracker progressTracker) : IVSTypeScriptStreamingProgressTracker
 {
-    internal sealed class VSTypeScriptStreamingProgressTracker(IStreamingProgressTracker progressTracker) : IVSTypeScriptStreamingProgressTracker
-    {
-        private readonly IStreamingProgressTracker _progressTracker = progressTracker;
+    private readonly IStreamingProgressTracker _progressTracker = progressTracker;
 
-        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
-            => _progressTracker.AddItemsAsync(count, cancellationToken);
+    public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
+        => _progressTracker.AddItemsAsync(count, cancellationToken);
 
-        public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-            => _progressTracker.ItemCompletedAsync(cancellationToken);
-    }
+    public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
+        => _progressTracker.ItemCompletedAsync(cancellationToken);
 }

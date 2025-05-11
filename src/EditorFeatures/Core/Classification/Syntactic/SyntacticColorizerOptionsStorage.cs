@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Classification
+namespace Microsoft.CodeAnalysis.Classification;
+
+internal static class SyntacticColorizerOptionsStorage
 {
-    internal static class SyntacticColorizerOptionsStorage
-    {
-        public static readonly Option2<bool> SyntacticColorizer = new("dotnet_enable_syntactic_colorizer", defaultValue: true);
-    }
+    public static readonly Option2<bool> SyntacticColorizer = new("dotnet_enable_syntactic_colorizer", defaultValue: true);
 }

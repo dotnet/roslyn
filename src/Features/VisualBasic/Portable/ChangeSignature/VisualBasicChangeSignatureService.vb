@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
@@ -270,14 +271,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return matchingNode
         End Function
 
-        Public Overrides Async Function ChangeSignatureAsync(
-            document As Document,
+        Public Overrides Function ChangeSignature(
+            document As SemanticDocument,
             declarationSymbol As ISymbol,
             potentiallyUpdatedNode As SyntaxNode,
             originalNode As SyntaxNode,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
-            cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            lineFormattingOptions As LineFormattingOptions,
+            cancellationToken As CancellationToken) As SyntaxNode
 
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse
@@ -290,14 +291,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventBlock) OrElse
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
-                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim updatedLeadingTrivia = UpdateParamNodesInLeadingTrivia(
+                    document.Document, vbnode, declarationSymbol, updatedSignature, lineFormattingOptions)
                 vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
             If vbnode.IsKind(SyntaxKind.SubStatement) OrElse vbnode.IsKind(SyntaxKind.FunctionStatement) Then
                 Dim method = DirectCast(vbnode, MethodStatementSyntax)
                 Dim updatedParameters = UpdateDeclaration(method.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.EventStatement) Then
@@ -305,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
                 If eventStatement.ParameterList IsNot Nothing Then
                     Dim updatedParameters = UpdateDeclaration(eventStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                    eventStatement = eventStatement.WithParameterList(eventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                    eventStatement = eventStatement.WithParameterList(eventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
                 End If
 
                 Return eventStatement
@@ -316,14 +318,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
                 If eventBlock.EventStatement.ParameterList IsNot Nothing Then
                     Dim updatedParameters = UpdateDeclaration(eventBlock.EventStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                    Return eventBlock.WithEventStatement(eventBlock.EventStatement.WithParameterList(eventBlock.EventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation)))
+                    Return eventBlock.WithEventStatement(eventBlock.EventStatement.WithParameterList(eventBlock.EventStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation)))
                 End If
 
                 Dim raiseEventAccessor = eventBlock.Accessors.FirstOrDefault(Function(a) a.IsKind(SyntaxKind.RaiseEventAccessorBlock))
                 If raiseEventAccessor IsNot Nothing Then
                     If raiseEventAccessor.BlockStatement.ParameterList IsNot Nothing Then
                         Dim updatedParameters = UpdateDeclaration(raiseEventAccessor.BlockStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                        Dim updatedRaiseEventAccessor = raiseEventAccessor.WithAccessorStatement(raiseEventAccessor.AccessorStatement.WithParameterList(raiseEventAccessor.AccessorStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation)))
+                        Dim updatedRaiseEventAccessor = raiseEventAccessor.WithAccessorStatement(raiseEventAccessor.AccessorStatement.WithParameterList(raiseEventAccessor.AccessorStatement.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation)))
                         eventBlock = eventBlock.WithAccessors(eventBlock.Accessors.Remove(raiseEventAccessor).Add(updatedRaiseEventAccessor))
                     End If
                 End If
@@ -333,24 +335,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 
             If vbnode.IsKind(SyntaxKind.RaiseEventStatement) Then
                 Dim raiseEventStatement = DirectCast(vbnode, RaiseEventStatementSyntax)
-                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = document.SemanticModel
                 Dim delegateInvokeMethod = DirectCast(DirectCast(semanticModel.GetSymbolInfo(raiseEventStatement.Name, cancellationToken).Symbol, IEventSymbol).Type, INamedTypeSymbol).DelegateInvokeMethod
 
-                Return raiseEventStatement.WithArgumentList(Await UpdateArgumentListAsync(
+                Return raiseEventStatement.WithArgumentList(UpdateArgumentList(
+                    document,
                     delegateInvokeMethod,
                     updatedSignature,
                     raiseEventStatement.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=False,
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(False))
+                    cancellationToken))
             End If
 
             If vbnode.IsKind(SyntaxKind.InvocationExpression) Then
                 Dim invocation = DirectCast(vbnode, InvocationExpressionSyntax)
-                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = document.SemanticModel
 
                 Dim isReducedExtensionMethod = False
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, InvocationExpressionSyntax), cancellationToken)
@@ -371,68 +373,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                     End If
                 End If
 
-                Return invocation.WithArgumentList(Await UpdateArgumentListAsync(
+                Return invocation.WithArgumentList(UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     updatedSignature,
                     invocation.ArgumentList,
                     isReducedExtensionMethod,
                     IsParamsArrayExpanded(semanticModel, invocation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(False))
+                    cancellationToken))
             End If
 
             If vbnode.IsKind(SyntaxKind.SubNewStatement) Then
                 Dim constructor = DirectCast(vbnode, SubNewStatementSyntax)
                 Dim newParameters = UpdateDeclaration(constructor.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Return constructor.WithParameterList(constructor.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return constructor.WithParameterList(constructor.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.Attribute) Then
                 Dim attribute = DirectCast(vbnode, AttributeSyntax)
 
-                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = document.SemanticModel
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, AttributeSyntax), cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
-                Return attribute.WithArgumentList(Await UpdateArgumentListAsync(
+                Return attribute.WithArgumentList(UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     updatedSignature,
                     attribute.ArgumentList,
                     isReducedExtensionMethod:=False,
                     isParamsArrayExpanded:=False,
                     generateAttributeArguments:=True,
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(False))
+                    cancellationToken))
             End If
 
             If vbnode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(vbnode, ObjectCreationExpressionSyntax)
-                Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim semanticModel = document.SemanticModel
 
                 Dim symbolInfo = semanticModel.GetSymbolInfo(DirectCast(originalNode, ObjectCreationExpressionSyntax), cancellationToken)
                 Dim methodSymbol = TryCast(symbolInfo.Symbol, IMethodSymbol)
 
                 Dim paramsArrayExpanded = IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken)
 
-                Return objectCreation.WithArgumentList(Await UpdateArgumentListAsync(
+                Return objectCreation.WithArgumentList(UpdateArgumentList(
+                    document,
                     declarationSymbol,
                     updatedSignature,
                     objectCreation.ArgumentList,
                     isReducedExtensionMethod:=False,
                     IsParamsArrayExpanded(semanticModel, objectCreation, symbolInfo, cancellationToken),
                     generateAttributeArguments:=False,
-                    document,
                     originalNode.SpanStart,
-                    cancellationToken).ConfigureAwait(False))
+                    cancellationToken))
             End If
 
             If vbnode.IsKind(SyntaxKind.PropertyStatement) Then
                 Dim propertyStatement = DirectCast(vbnode, PropertyStatementSyntax)
                 Dim newParameters = UpdateDeclaration(propertyStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Return propertyStatement.WithParameterList(propertyStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return propertyStatement.WithParameterList(propertyStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
             End If
 
             If vbnode.IsKind(SyntaxKind.CrefReference) Then
@@ -457,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 Dim newParameters = UpdateDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
                 Return lambda.WithSubOrFunctionHeader(newBegin)
             End If
 
@@ -471,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 Dim newParameters = UpdateDeclaration(lambda.SubOrFunctionHeader.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Dim newBegin = lambda.SubOrFunctionHeader.WithParameterList(lambda.SubOrFunctionHeader.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
                 Return lambda.WithSubOrFunctionHeader(newBegin)
             End If
 
@@ -479,22 +481,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.DelegateFunctionStatement) Then
                 Dim delegateStatement = DirectCast(vbnode, DelegateStatementSyntax)
                 Dim newParameters = UpdateDeclaration(delegateStatement.ParameterList.Parameters, updatedSignature, s_createNewParameterSyntaxDelegate)
-                Return delegateStatement.WithParameterList(delegateStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation))
+                Return delegateStatement.WithParameterList(delegateStatement.ParameterList.WithParameters(newParameters).WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation))
             End If
 
             Return vbnode
         End Function
 
-        Private Async Function UpdateArgumentListAsync(
+        Private Function UpdateArgumentList(
+            document As SemanticDocument,
             declarationSymbol As ISymbol,
             signaturePermutation As SignatureChange,
             argumentList As ArgumentListSyntax,
             isReducedExtensionMethod As Boolean,
             isParamsArrayExpanded As Boolean,
             generateAttributeArguments As Boolean,
-            document As Document,
             position As Integer,
-            cancellationToken As CancellationToken) As Task(Of ArgumentListSyntax)
+            cancellationToken As CancellationToken) As ArgumentListSyntax
 
             Dim newArguments = PermuteArgumentList(
                 argumentList.Arguments,
@@ -502,20 +504,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 declarationSymbol,
                 isReducedExtensionMethod)
 
-            newArguments = Await AddNewArgumentsToListAsync(
+            newArguments = AddNewArgumentsToList(
+                document,
                 declarationSymbol,
                 newArguments,
                 signaturePermutation,
                 isReducedExtensionMethod,
                 isParamsArrayExpanded,
                 generateAttributeArguments,
-                document,
                 position,
-                cancellationToken).ConfigureAwait(False)
+                cancellationToken)
 
             Return argumentList.
                 WithArguments(newArguments).
-                WithAdditionalAnnotations(changeSignatureFormattingAnnotation)
+                WithAdditionalAnnotations(ChangeSignatureFormattingAnnotation)
         End Function
 
         Private Shared Function IsParamsArrayExpanded(semanticModel As SemanticModel, node As SyntaxNode, symbolInfo As SymbolInfo, cancellationToken As CancellationToken) As Boolean
@@ -602,13 +604,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 type:=addedParameter.Type.GenerateTypeSyntax())
         End Function
 
-        Private Async Function UpdateParamNodesInLeadingTriviaAsync(
+        Private Function UpdateParamNodesInLeadingTrivia(
             document As Document,
             node As VisualBasicSyntaxNode,
             declarationSymbol As ISymbol,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
-            cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxTrivia))
+            lineFormattingOption As LineFormattingOptions) As ImmutableArray(Of SyntaxTrivia)
 
             If Not node.HasLeadingTrivia Then
                 Return ImmutableArray(Of SyntaxTrivia).Empty
@@ -626,8 +627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
-            Dim options = Await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
-            Return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options)
+            Return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, lineFormattingOption)
         End Function
 
         Private Function VerifyAndPermuteParamNodes(paramNodes As ImmutableArray(Of XmlElementSyntax), declarationSymbol As ISymbol, updatedSignature As SignatureChange) As ImmutableArray(Of SyntaxNode)
@@ -734,8 +734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return results.ToImmutableAndFree()
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Dim coreRules = Formatter.GetDefaultFormattingRules(document)
+            Dim result = New FixedSizeArrayBuilder(Of AbstractFormattingRule)(1 + coreRules.Length)
+            result.Add(New ChangeSignatureFormattingRule())
+            result.AddRange(coreRules)
+            Return result.MoveToImmutable()
         End Function
 
         Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T

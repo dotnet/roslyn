@@ -5,136 +5,125 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.ImplementInterface;
+using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
+[ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : AbstractMemberInsertingCompletionProvider
 {
-    [ExportCompletionProvider(nameof(ExplicitInterfaceMemberCompletionProvider), LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
-    internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
+    internal override string Language => LanguageNames.CSharp;
+
+    public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+        => text[characterPosition] == '.';
+
+    public override ImmutableHashSet<char> TriggerCharacters { get; } = ['.'];
+
+    protected override async Task<ISymbol> GenerateMemberAsync(
+        Document document,
+        CompletionItem completionItem,
+        Compilation compilation,
+        ISymbol member,
+        INamedTypeSymbol containingType,
+        CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExplicitInterfaceMemberCompletionProvider()
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var implementInterfaceService = document.GetRequiredLanguageService<IImplementInterfaceService>();
+
+        var position = SymbolCompletionItem.GetContextPosition(completionItem);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position);
+        var typeDeclaration = token.GetRequiredAncestor<BaseTypeDeclarationSyntax>();
+
+        var info = new ImplementInterfaceInfo
         {
-        }
+            ClassOrStructType = containingType,
+            ContextNode = typeDeclaration,
+        };
 
-        internal override string Language => LanguageNames.CSharp;
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
-            => text[characterPosition] == '.';
+        // Implement this member explicitly in the implementing type, and return the resultant member to actually
+        // generate into the right declaration location.
+        var members = implementInterfaceService.ImplementInterfaceMember(
+            document, info, options, new() { Explicitly = true }, compilation, member);
+        return members.Single();
+    }
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
+    protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
+    {
+        // Common implementation with override and partial completion providers
+        var tokenSpanEnd = MemberInsertionCompletionItem.GetTokenSpanEnd(completionItem);
+        return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
+    }
 
-        public override async Task ProvideCompletionsAsync(CompletionContext context)
+    protected override SyntaxNode GetSyntax(SyntaxToken token)
+    {
+        var ancestor = token.Parent;
+        while (ancestor is not null)
         {
-            try
+            var kind = ancestor.Kind();
+            switch (kind)
             {
-                var document = context.Document;
-                var position = context.Position;
-                var cancellationToken = context.CancellationToken;
-
-                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-
-                if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                    syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
-                {
-                    return;
-                }
-
-                var targetToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                            .GetPreviousTokenIfTouchingWord(position);
-
-                if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
-                    return;
-
-                var node = targetToken.Parent;
-                if (node is not ExplicitInterfaceSpecifierSyntax specifierNode)
-                    return;
-
-                // Bind the interface name which is to the left of the dot
-                var name = specifierNode.Name;
-
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
-                if (symbol?.TypeKind != TypeKind.Interface)
-                    return;
-
-                // We're going to create a entry for each one, including the signature
-                var namePosition = name.SpanStart;
-                foreach (var member in symbol.GetMembers())
-                {
-                    if (!member.IsAbstract && !member.IsVirtual)
-                        continue;
-
-                    if (member.IsAccessor() ||
-                        member.Kind == SymbolKind.NamedType ||
-                        !semanticModel.IsAccessible(node.SpanStart, member))
-                    {
-                        continue;
-                    }
-
-                    var memberString = CompletionSymbolDisplay.ToDisplayString(member);
-
-                    // Split the member string into two parts (generally the name, and the signature portion). We want
-                    // the split so that other features (like spell-checking), only look at the name portion.
-                    var (displayText, displayTextSuffix) = SplitMemberName(memberString);
-
-                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText,
-                        displayTextSuffix,
-                        insertionText: memberString,
-                        symbols: ImmutableArray.Create<ISymbol>(member),
-                        contextPosition: position,
-                        rules: CompletionItemRules.Default));
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
-            {
-                // nop
-            }
-        }
-
-        private static (string text, string suffix) SplitMemberName(string memberString)
-        {
-            for (var i = 0; i < memberString.Length; i++)
-            {
-                if (!SyntaxFacts.IsIdentifierPartCharacter(memberString[i]))
-                    return (memberString[0..i], memberString[i..]);
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                    return ancestor;
             }
 
-            return (memberString, "");
+            ancestor = ancestor.Parent;
         }
 
-        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
+        throw ExceptionUtilities.UnexpectedValue(token);
+    }
 
-        public override Task<TextChange?> GetTextChangeAsync(
-            Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    protected override TextSpan GetTargetSelectionSpan(SyntaxNode caretTarget)
+    {
+        return CompletionUtilities.GetTargetSelectionSpanForInsertedMember(caretTarget);
+    }
+
+    public override async Task ProvideCompletionsAsync(CompletionContext context)
+    {
+        var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
+        var items = await state.GetItemsAsync().ConfigureAwait(false);
+
+        if (!items.IsDefaultOrEmpty)
         {
-            // If the user is typing a punctuation portion of the signature, then just emit the name.  i.e. if the
-            // member is `Contains<T>(string key)`, then typing `<` should just emit `Contains` and not
-            // `Contains<T>(string key)<`
-            return Task.FromResult<TextChange?>(new TextChange(
-                selectedItem.Span,
-                ch is '(' or '[' or '<'
-                    ? selectedItem.DisplayText
-                    : SymbolCompletionItem.GetInsertionText(selectedItem)));
+            context.IsExclusive = true;
+            context.AddItems(items);
         }
     }
+
+    private static (string text, string suffix) SplitMemberName(string memberString)
+    {
+        for (var i = 0; i < memberString.Length; i++)
+        {
+            if (memberString[i] is '(' or '[' or '<')
+                return (memberString[0..i], memberString[i..]);
+        }
+
+        return (memberString, "");
+    }
+
+    internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+        => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 }

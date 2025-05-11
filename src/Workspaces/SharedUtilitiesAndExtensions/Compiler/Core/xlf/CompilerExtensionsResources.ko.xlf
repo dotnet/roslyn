@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../CompilerExtensionsResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Absolute_path_expected">
         <source>Absolute path expected.</source>
         <target state="translated">절대 경로가 필요합니다.</target>
@@ -11,11 +21,6 @@
         <source>Abstract Method</source>
         <target state="translated">추상 메서드</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">키가 같지만 값이 다른 요소가 이미 있습니다.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
@@ -55,6 +60,16 @@
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
         <target state="translated">필드 기본 설정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">들여쓰기 및 간격</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="translated">IDisposable.Dispose()의 인스턴스화된 파트에서 예외가 발생했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface">
@@ -162,11 +177,6 @@
         <target state="translated">공용 또는 보호된 필드</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">세그먼트 크기는 1보다 큰 2의 거듭제곱이어야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">지정된 시퀀스에 중복 항목이 있습니다.</target>
@@ -181,6 +191,11 @@
         <source>Static Method</source>
         <target state="translated">정적 메서드</target>
         <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">스트림은 읽기 및 찾기 작업을 지원해야 합니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
@@ -236,6 +251,11 @@
         <source>Types</source>
         <target state="translated">형식</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
+        <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>

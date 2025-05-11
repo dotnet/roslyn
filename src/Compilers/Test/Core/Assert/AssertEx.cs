@@ -19,6 +19,7 @@ using DiffPlex;
 using DiffPlex.Chunkers;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -76,11 +77,6 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
-                if (x.GetType() != y.GetType())
-                {
-                    return false;
-                }
-
                 if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
@@ -96,10 +92,7 @@ namespace Roslyn.Test.Utilities
                     return comparable.CompareTo(y) == 0;
                 }
 
-                var enumerableX = x as IEnumerable;
-                var enumerableY = y as IEnumerable;
-
-                if (enumerableX != null && enumerableY != null)
+                if (x is IEnumerable enumerableX && y is IEnumerable enumerableY)
                 {
                     var enumeratorX = enumerableX.GetEnumerator();
                     var enumeratorY = enumerableY.GetEnumerator();
@@ -168,6 +161,12 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void Equal<T>(ReadOnlySpan<T> expected, T[] actual) =>
+            Equal<T>(expected.ToArray(), actual);
+
+        public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual)
+            => Equal(expected, actual, comparer: null, message: null);
+
         public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null)
         {
             if (actual == null || expected.IsDefault)
@@ -180,17 +179,23 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
+        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual)
+            => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
+
+        public static void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
-            if (expected == null || actual.IsDefault)
+            if (expected == null || actual == null)
             {
-                Assert.True((expected == null) == actual.IsDefault, message);
+                Assert.True(expected is null == actual is null, message);
             }
             else
             {
-                Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
+                Equal(expected, actual, comparer, message, itemSeparator);
             }
         }
+
+        public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual)
+            => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
 
         public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
@@ -682,6 +687,14 @@ namespace Roslyn.Test.Utilities
 
             var expectedString = string.Join(itemSeparator, expected.Take(10).Select(itemInspector));
             var actualString = string.Join(itemSeparator, actual.Select(itemInspector));
+            var diffString = DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector);
+
+            if (DifferOnlyInWhitespace(expectedString, actualString))
+            {
+                expectedString = VisualizeWhitespace(expectedString);
+                actualString = VisualizeWhitespace(actualString);
+                diffString = VisualizeWhitespace(diffString);
+            }
 
             var message = new StringBuilder();
 
@@ -701,7 +714,7 @@ namespace Roslyn.Test.Utilities
             message.AppendLine("Actual:");
             message.AppendLine(actualString);
             message.AppendLine("Differences:");
-            message.AppendLine(DiffUtil.DiffReport(expected, actual, itemSeparator, comparer, itemInspector));
+            message.AppendLine(diffString);
 
             if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Count(), expectedValueSourcePath, expectedValueSourceLine, out var link))
             {
@@ -709,6 +722,38 @@ namespace Roslyn.Test.Utilities
             }
 
             return message.ToString();
+        }
+
+        private static bool DifferOnlyInWhitespace(IEnumerable<char> expected, IEnumerable<char> actual)
+            => expected.Where(c => !char.IsWhiteSpace(c)).SequenceEqual(actual.Where(c => !char.IsWhiteSpace(c)));
+
+        private static string VisualizeWhitespace(string str)
+        {
+            var result = new StringBuilder(str.Length);
+
+            var i = 0;
+            while (i < str.Length)
+            {
+                var c = str[i++];
+                if (c == '\r' && i < str.Length && str[i] == '\n')
+                {
+                    result.Append("␍␊\r\n");
+                    i++;
+                }
+                else
+                {
+                    result.Append(c switch
+                    {
+                        ' ' => "·",
+                        '\t' => "→",
+                        '\r' => "␍\r",
+                        '\n' => "␊\n",
+                        _ => c,
+                    });
+                }
+            }
+
+            return result.ToString();
         }
 
         public static string GetAssertMessage<T>(
@@ -840,11 +885,19 @@ namespace Roslyn.Test.Utilities
             public int GetHashCode(string str) => str.Trim().GetHashCode();
         }
 
-        public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
-        {
-            IEnumerable<string> GetLines(string str) =>
+        private static IEnumerable<string> GetLines(string str) =>
                 str.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
+        public static void AssertLinesEqual(string expected, string actual)
+        {
+            AssertEx.Equal(
+                GetLines(expected),
+                GetLines(actual),
+                comparer: LineComparer.Instance);
+        }
+
+        public static void AssertLinesEqual(string expected, string actual, string message, string expectedValueSourcePath, int expectedValueSourceLine, bool escapeQuotes)
+        {
             AssertEx.Equal(
                 GetLines(expected),
                 GetLines(actual),
@@ -959,5 +1012,89 @@ namespace Roslyn.Test.Utilities
             Assert.NotNull(value);
             Debug.Assert(value is object);
         }
+
+        public static void Contains<T>(IEnumerable<T> collection, Predicate<T> filter, Func<T, string>? itemInspector = null, string? itemSeparator = null)
+        {
+            foreach (var item in collection)
+            {
+                if (filter(item))
+                {
+                    return;
+                }
+            }
+
+            Fail("Filter does not match any item in the collection: " + Environment.NewLine +
+                ToString(collection, itemSeparator ?? Environment.NewLine, itemInspector));
+        }
+
+#nullable enable
+
+        /// <summary>
+        /// The xunit Assert.Equal method is not callable in Visual Basic  due to the presence of
+        /// the unmanaged constraint. Need to indirect through C# here until we resolve this.
+        ///
+        /// https://github.com/dotnet/roslyn/issues/75063
+        /// </summary>
+        public static void Equal<T>(T[] expected, T[] actual) =>
+            Assert.Equal<T>(expected, actual);
+
+        /// <summary>
+        /// The xunit Assert.Equal method is not callable in Visual Basic  due to the presence of
+        /// the unmanaged constraint. Need to indirect through C# here until we resolve this.
+        ///
+        /// https://github.com/dotnet/roslyn/issues/75063
+        /// </summary>
+        public static void Equal<T>(T expected, T actual) =>
+            Assert.Equal<T>(expected, actual);
+
+        /// <summary>
+        /// The xunit Assert.NotEqual method is not callable in Visual Basic  due to the presence of
+        /// the unmanaged constraint. Need to indirect through C# here until we resolve this.
+        ///
+        /// https://github.com/dotnet/roslyn/issues/75063
+        /// </summary>
+        public static void NotEqual<T>(T expected, T actual) =>
+            Assert.NotEqual<T>(expected, actual);
+
+        /// <summary>
+        /// This assert passes if the collection is not null and empty
+        /// </summary>
+        /// <remarks>
+        /// The core <see cref="Xunit.Assert.Empty(IEnumerable)"/> is annotated to not accept null but many 
+        /// of our call sites pass a potentially nullable value.
+        /// </remarks>
+        public static void AssertEmpty(IEnumerable? collection)
+        {
+            Assert.NotNull(collection);
+            Assert.Empty(collection);
+        }
+
+        /// <summary>
+        /// This assert passes if the collection is not null and has a single item.
+        /// </summary>
+        /// <remarks>
+        /// The core <see cref="Xunit.Assert.Single{T}(IEnumerable{T})"/> is annotated to not accept null but many 
+        /// of our call sites pass a potentially nullable value.
+        /// </remarks>
+        public static T Single<T>(IEnumerable<T>? collection)
+        {
+            Assert.NotNull(collection);
+            return Assert.Single(collection);
+        }
+
+        /// <summary>
+        /// Verify the collection is not null and all the items pass the action.
+        /// </summary>
+        /// <remarks>
+        /// The core <see cref="Xunit.Assert.All{T}(IEnumerable{T}, Action{T})"/> is annotated to not accept null but many 
+        /// of our call sites pass a potentially nullable value.
+        /// </remarks>
+        public static void All<T>(IEnumerable<T>? collection, Action<T> action)
+        {
+            Assert.NotNull(collection);
+            Assert.All(collection, action);
+        }
+
+#nullable disable
     }
 }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 using static SyntaxFactory;
 
-internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
+internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvider
 {
     private const string s_summaryTagName = "summary";
     private const string s_remarksTagName = "remarks";
@@ -57,7 +57,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
     private static XmlElementSyntax ConvertXmlElementName(XmlElementSyntax xmlElement, string name)
     {
         return xmlElement.ReplaceTokens(
-            new[] { xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName },
+            [xmlElement.StartTag.Name.LocalName, xmlElement.EndTag.Name.LocalName],
             (token, _) => Identifier(name).WithTriviaFrom(token));
     }
 
@@ -157,7 +157,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return Trivia(DocumentationCommentTrivia(
                 SyntaxKind.SingleLineDocumentationCommentTrivia,
-                List(content),
+                [.. content],
                 typeStructure.EndOfComment));
         }
 
@@ -217,7 +217,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider : CodeFixProvi
 
             return InsertOrReplaceDocComments(
                 typeDeclarationLeadingTrivia,
-                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(allContent))));
+                Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, [.. allContent])));
         }
     }
 }

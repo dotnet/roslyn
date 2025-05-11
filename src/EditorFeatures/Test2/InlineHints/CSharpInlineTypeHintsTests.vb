@@ -4,7 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <Trait(Traits.Feature, Traits.Features.InlineHints)>
-    Public Class CSharpInlineTypeHintsTests
+    Public NotInheritable Class CSharpInlineTypeHintsTests
         Inherits AbstractInlineHintsTests
 
         <WpfFact>
@@ -766,7 +766,7 @@ class A
                     <Document>
 class A
 {
-    void M(System.Threading.CancellationToken ct = new CancellationToken()) { }
+    void M(System.Threading.CancellationToken ct = new System.Threading.CancellationToken()) { }
 }
                     </Document>
                 </Project>
@@ -841,6 +841,92 @@ class A
             ? 1
             : new int();
     }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestOnlyProduceTagsWithinSelection() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        var a = 0;
+        [|var {|int :|}b = 0;
+        var {|int :|}c = 0;|]
+        var d = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void Main() 
+    {
+        var a = 0;
+        int b = 0;
+        int c = 0;
+        var d = 0;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyTypeHints(input, output)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72219")>
+        Public Async Function TestAlias() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Collections.Generic;
+using TestFile = (string Path, string Content);
+
+class C
+{
+    void M()
+    {
+        var {|List&lt;TestFile&gt; :|}testFiles = GetTestFiles();
+    }
+
+    List&lt;TestFile&gt; GetTestFiles() => default;
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim output =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+using System.Collections.Generic;
+using TestFile = (string Path, string Content);
+
+class C
+{
+    void M()
+    {
+        List&lt;TestFile&gt; testFiles = GetTestFiles();
+    }
+
+    List&lt;TestFile&gt; GetTestFiles() => default;
 }
                     </Document>
                 </Project>

@@ -5,53 +5,64 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal sealed class AdditionalDocumentState : TextDocumentState
 {
-    internal sealed class AdditionalDocumentState : TextDocumentState
+    public readonly AdditionalText AdditionalText;
+
+    private AdditionalDocumentState(
+        SolutionServices solutionServices,
+        IDocumentServiceProvider? documentServiceProvider,
+        DocumentInfo.DocumentAttributes attributes,
+        ITextAndVersionSource textAndVersionSource,
+        LoadTextOptions loadTextOptions)
+        : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
     {
-        private readonly AdditionalText _additionalText;
+        AdditionalText = new AdditionalTextWithState(this);
+    }
 
-        private AdditionalDocumentState(
-            SolutionServices solutionServices,
-            IDocumentServiceProvider documentServiceProvider,
-            DocumentInfo.DocumentAttributes attributes,
-            ITextAndVersionSource textAndVersionSource,
-            LoadTextOptions loadTextOptions)
-            : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
-        {
-            _additionalText = new AdditionalTextWithState(this);
-        }
+    public AdditionalDocumentState(
+        SolutionServices solutionServices,
+        DocumentInfo documentInfo,
+        LoadTextOptions loadTextOptions)
+        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo.TextLoader, documentInfo.FilePath, loadTextOptions), loadTextOptions)
+    {
+    }
 
-        public AdditionalDocumentState(
-            SolutionServices solutionServices,
-            DocumentInfo documentInfo,
-            LoadTextOptions loadTextOptions)
-            : base(solutionServices, documentInfo, loadTextOptions)
-        {
-            _additionalText = new AdditionalTextWithState(this);
-        }
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => new AdditionalDocumentState(
+            SolutionServices,
+            DocumentServiceProvider,
+            newAttributes,
+            TextAndVersionSource,
+            LoadTextOptions);
 
-        public AdditionalText AdditionalText => _additionalText;
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new AdditionalDocumentState(
+            SolutionServices,
+            newProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions);
 
-        public new AdditionalDocumentState UpdateText(TextLoader loader, PreservationMode mode)
-            => (AdditionalDocumentState)base.UpdateText(loader, mode);
+    public new AdditionalDocumentState UpdateText(TextLoader loader, PreservationMode mode)
+        => (AdditionalDocumentState)base.UpdateText(loader, mode);
 
-        public new AdditionalDocumentState UpdateText(SourceText text, PreservationMode mode)
-            => (AdditionalDocumentState)base.UpdateText(text, mode);
+    public new AdditionalDocumentState UpdateText(SourceText text, PreservationMode mode)
+        => (AdditionalDocumentState)base.UpdateText(text, mode);
 
-        public new AdditionalDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-            => (AdditionalDocumentState)base.UpdateText(newTextAndVersion, mode);
+    public new AdditionalDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
+        => (AdditionalDocumentState)base.UpdateText(newTextAndVersion, mode);
 
-        protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
-        {
-            return new AdditionalDocumentState(
-                this.solutionServices,
-                this.Services,
-                this.Attributes,
-                newTextSource,
-                this.LoadTextOptions);
-        }
+    protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
+    {
+        return new AdditionalDocumentState(
+            this.SolutionServices,
+            this.DocumentServiceProvider,
+            this.Attributes,
+            newTextSource,
+            this.LoadTextOptions);
     }
 }

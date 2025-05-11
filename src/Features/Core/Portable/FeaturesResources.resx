@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -201,12 +201,6 @@
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_constructor_0_1" xml:space="preserve">
-    <value>Generate constructor '{0}({1})'</value>
-  </data>
-  <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
-    <value>Generate field assigning constructor '{0}({1})'</value>
-  </data>
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
     <value>Generate Equals and GetHashCode</value>
   </data>
@@ -216,50 +210,11 @@
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
   </data>
-  <data name="Generate_constructor_in_0" xml:space="preserve">
-    <value>Generate constructor in '{0}'</value>
-  </data>
-  <data name="Generate_all" xml:space="preserve">
-    <value>Generate all</value>
-  </data>
-  <data name="Generate_enum_member_0" xml:space="preserve">
-    <value>Generate enum member '{0}'</value>
-  </data>
-  <data name="Generate_constant_0" xml:space="preserve">
-    <value>Generate constant '{0}'</value>
-  </data>
-  <data name="Generate_read_only_property_0" xml:space="preserve">
-    <value>Generate read-only property '{0}'</value>
-  </data>
-  <data name="Generate_property_0" xml:space="preserve">
-    <value>Generate property '{0}'</value>
-  </data>
-  <data name="Generate_read_only_field_0" xml:space="preserve">
-    <value>Generate read-only field '{0}'</value>
-  </data>
-  <data name="Generate_field_0" xml:space="preserve">
-    <value>Generate field '{0}'</value>
-  </data>
-  <data name="Generate_local_0" xml:space="preserve">
-    <value>Generate local '{0}'</value>
-  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>
   <data name="Generate_nested_0_1" xml:space="preserve">
     <value>Generate nested {0} '{1}'</value>
-  </data>
-  <data name="Implement_all_members_explicitly" xml:space="preserve">
-    <value>Implement all members explicitly</value>
-  </data>
-  <data name="Implement_interface_abstractly" xml:space="preserve">
-    <value>Implement interface abstractly</value>
-  </data>
-  <data name="Implement_interface_through_0" xml:space="preserve">
-    <value>Implement interface through '{0}'</value>
-  </data>
-  <data name="Implement_interface" xml:space="preserve">
-    <value>Implement interface</value>
   </data>
   <data name="Introduce_field_for_0" xml:space="preserve">
     <value>Introduce field for '{0}'</value>
@@ -339,9 +294,6 @@
   <data name="Returns_colon" xml:space="preserve">
     <value>Returns:</value>
   </data>
-  <data name="Exceptions_colon" xml:space="preserve">
-    <value>Exceptions:</value>
-  </data>
   <data name="Remarks_colon" xml:space="preserve">
     <value>Remarks:</value>
   </data>
@@ -378,6 +330,9 @@
   <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Changing attribute '{0}' requires restarting the application.</value>
   </data>
+  <data name="Changing_0_might_not_have_any_effect_until_the_application_is_restarted" xml:space="preserve">
+    <value>Changing '{0}' might not have any effect until the application is restarted.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
@@ -390,14 +345,17 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application.</value>
+  </data>
   <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a {1} requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface requires restarting the application.</value>
@@ -405,8 +363,11 @@
   <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface method requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a class with explicit or sequential layout requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</value>
+  </data>
+  <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
@@ -550,15 +511,6 @@
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
   </data>
-  <data name="Generate_abstract_property_0" xml:space="preserve">
-    <value>Generate abstract property '{0}'</value>
-  </data>
-  <data name="Generate_abstract_method_0" xml:space="preserve">
-    <value>Generate abstract method '{0}'</value>
-  </data>
-  <data name="Generate_method_0" xml:space="preserve">
-    <value>Generate method '{0}'</value>
-  </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
   </data>
@@ -614,7 +566,7 @@ Do you want to continue?</value>
     <value>Not Available ⚠</value>
   </data>
   <data name="_0_1" xml:space="preserve">
-    <value>    {0} - {1}</value>
+    <value>{0} - {1}</value>
   </data>
   <data name="You_can_use_the_navigation_bar_to_switch_contexts" xml:space="preserve">
     <value>You can use the navigation bar to switch contexts.</value>
@@ -655,12 +607,6 @@ Do you want to continue?</value>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
   </data>
-  <data name="Implement_interface_explicitly_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface explicitly with Dispose pattern</value>
-  </data>
-  <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface with Dispose pattern</value>
-  </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>
@@ -684,12 +630,6 @@ Do you want to continue?</value>
   </data>
   <data name="Containing_Type" xml:space="preserve">
     <value>Containing Type</value>
-  </data>
-  <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
-    <value>TODO: dispose managed state (managed objects)</value>
-  </data>
-  <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
-    <value>TODO: set large fields to null</value>
   </data>
   <data name="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying {0} which contains a static variable requires restarting the application.</value>
@@ -826,9 +766,6 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
-  <data name="Generate_variable_0" xml:space="preserve">
-    <value>Generate variable '{0}'</value>
-  </data>
   <data name="Classes" xml:space="preserve">
     <value>Classes</value>
   </data>
@@ -867,9 +804,6 @@ This version used in: {2}</value>
   </data>
   <data name="Structures" xml:space="preserve">
     <value>Structures</value>
-  </data>
-  <data name="Parameters_colon" xml:space="preserve">
-    <value>Parameters:</value>
   </data>
   <data name="Variadic_SignatureHelpItem_must_have_at_least_one_parameter" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
@@ -910,9 +844,6 @@ This version used in: {2}</value>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
-  </data>
-  <data name="Implement_abstract_class" xml:space="preserve">
-    <value>Implement abstract class</value>
   </data>
   <data name="Use_framework_type" xml:space="preserve">
     <value>Use framework type</value>
@@ -974,8 +905,8 @@ This version used in: {2}</value>
   <data name="Remove_separators" xml:space="preserve">
     <value>Remove separators</value>
   </data>
-  <data name="Generate_constructor" xml:space="preserve">
-    <value>Generate constructor...</value>
+  <data name="Generate_constructor_from_members" xml:space="preserve">
+    <value>Generate constructor from members...</value>
   </data>
   <data name="Pick_members_to_be_used_as_constructor_parameters" xml:space="preserve">
     <value>Pick members to be used as constructor parameters</value>
@@ -1011,7 +942,7 @@ This version used in: {2}</value>
     <value>Initialize property '{0}'</value>
   </data>
   <data name="Add_null_checks" xml:space="preserve">
-    <value>Add null checks</value>
+    <value>Add _null checks</value>
   </data>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
@@ -1030,6 +961,9 @@ This version used in: {2}</value>
   </data>
   <data name="Move_declaration_near_reference" xml:space="preserve">
     <value>Move declaration near reference</value>
+  </data>
+  <data name="Move_declaration_near_reference_may_change_semantics" xml:space="preserve">
+    <value>Move declaration near reference (may change semantics)</value>
   </data>
   <data name="Convert_to_full_property" xml:space="preserve">
     <value>Convert to full property</value>
@@ -1216,8 +1150,8 @@ This version used in: {2}</value>
   <data name="Merge_with_next_0_statement" xml:space="preserve">
     <value>Merge with next '{0}' statement</value>
   </data>
-  <data name="Pull_0_up" xml:space="preserve">
-    <value>Pull '{0}' up</value>
+  <data name="Pull_0_up_to" xml:space="preserve">
+    <value>Pull '{0}' up to ...</value>
   </data>
   <data name="Pull_members_up_to_base_type" xml:space="preserve">
     <value>Pull members up to base type...</value>
@@ -1230,9 +1164,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_long_call_chain" xml:space="preserve">
     <value>Wrap long call chain</value>
-  </data>
-  <data name="Pull_0_up_to_1" xml:space="preserve">
-    <value>Pull '{0}' up to '{1}'</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
@@ -1249,17 +1180,8 @@ This version used in: {2}</value>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
   </data>
-  <data name="Generate_parameter_0" xml:space="preserve">
-    <value>Generate parameter '{0}'</value>
-  </data>
-  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
-    <value>Generate parameter '{0}' (and overrides/implementations)</value>
-  </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
-  </data>
-  <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
-    <value>Stream must support read and seek operations.</value>
   </data>
   <data name="MethodMustReturnStreamThatSupportsReadAndSeek" xml:space="preserve">
     <value>{0} must return a stream that supports read and seek operations.</value>
@@ -1319,8 +1241,8 @@ This version used in: {2}</value>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
   </data>
-  <data name="Implement_through_0" xml:space="preserve">
-    <value>Implement through '{0}'</value>
+  <data name="Parameters_colon" xml:space="preserve">
+    <value>Parameters:</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
@@ -1328,24 +1250,9 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="Resolve_conflict_markers" xml:space="preserve">
-    <value>Resolve conflict markers</value>
-  </data>
-  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
-    <value>Base classes contain inaccessible unimplemented members</value>
-  </data>
   <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
     <value>Add 'DebuggerDisplay' attribute</value>
     <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
-  </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
-    <value>Do not change this code. Put cleanup code in '{0}' method</value>
-  </data>
-  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer" xml:space="preserve">
-    <value>TODO: free unmanaged resources (unmanaged objects) and override finalizer</value>
-  </data>
-  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
   <data name="AM_PM_abbreviated" xml:space="preserve">
     <value>AM/PM (abbreviated)</value>
@@ -1804,9 +1711,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   <data name="_24_hour_clock_2_digits_description" xml:space="preserve">
     <value>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</value>
   </data>
-  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
-    <value>Implement remaining members explicitly</value>
-  </data>
   <data name="Generate_for_0" xml:space="preserve">
     <value>Generate for '{0}'</value>
   </data>
@@ -1843,8 +1747,8 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Cannot include class \{0} in character range</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</comment>
   </data>
-  <data name="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
-    <value>Capture group numbers must be less than or equal to Int32.MaxValue</value>
+  <data name="Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue" xml:space="preserve">
+    <value>Quantifier and capture group numbers must be less than or equal to Int32.MaxValue</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{2147483648}</comment>
   </data>
   <data name="Capture_number_cannot_be_zero" xml:space="preserve">
@@ -1863,17 +1767,21 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <value>Incomplete \p{X} character escape</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \p{ Cc }</comment>
   </data>
-  <data name="Insufficient_hexadecimal_digits" xml:space="preserve">
-    <value>Insufficient hexadecimal digits</value>
+  <data name="Insufficient_or_invalid_hexadecimal_digits" xml:space="preserve">
+    <value>Insufficient or invalid hexadecimal digits</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</comment>
   </data>
   <data name="Invalid_group_name_Group_names_must_begin_with_a_word_character" xml:space="preserve">
     <value>Invalid group name: Group names must begin with a word character</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</comment>
   </data>
-  <data name="Malformed" xml:space="preserve">
-    <value>malformed</value>
+  <data name="Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0" xml:space="preserve">
+    <value>Conditional alternation is missing a closing parenthesis after the group number {0}</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(0</comment>
+  </data>
+  <data name="Conditional_alternation_refers_to_an_undefined_group_number_0" xml:space="preserve">
+    <value>Conditional alternation refers to an undefined group number {0}</value>
+    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1)\1))</comment>
   </data>
   <data name="Malformed_character_escape" xml:space="preserve">
     <value>Malformed \p{X} character escape</value>
@@ -1888,23 +1796,19 @@ If the "H" format specifier is used without other custom format specifiers, it's
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</comment>
   </data>
   <data name="Nested_quantifier_0" xml:space="preserve">
-    <value>Nested quantifier {0}</value>
+    <value>Nested quantifier '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: a**. In this case {0} will be '*', the extra unnecessary quantifier.</comment>
   </data>
   <data name="Not_enough_close_parens" xml:space="preserve">
     <value>Not enough )'s</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</comment>
   </data>
-  <data name="Quantifier_x_y_following_nothing" xml:space="preserve">
-    <value>Quantifier {x,y} following nothing</value>
+  <data name="Quantifier_0_following_nothing" xml:space="preserve">
+    <value>Quantifier '{0}' following nothing</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</comment>
   </data>
-  <data name="Reference_to_undefined_group" xml:space="preserve">
-    <value>reference to undefined group</value>
-    <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(1))</comment>
-  </data>
   <data name="Reference_to_undefined_group_name_0" xml:space="preserve">
-    <value>Reference to undefined group name {0}</value>
+    <value>Reference to undefined group name '{0}'</value>
     <comment>This is an error message shown to the user when they write an invalid Regular Expression. Example: \k&lt;a&gt;. Here, {0} will be the name of the undefined group ('a')</comment>
   </data>
   <data name="Reference_to_undefined_group_number_0" xml:space="preserve">
@@ -2627,12 +2531,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
   </data>
-  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with fields)</value>
-  </data>
-  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with properties)</value>
-  </data>
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
   </data>
@@ -2652,7 +2550,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
   </data>
   <data name="The_assembly_0_references_compiler_version_1_newer_than_2" xml:space="preserve">
-    <value>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
+    <value>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</value>
   </data>
   <data name="Apply_file_header_preferences" xml:space="preserve">
     <value>Apply file header preferences</value>
@@ -2782,6 +2680,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
+  </data>
+  <data name="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
+    <value>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
@@ -3082,9 +2983,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Fixing_0" xml:space="preserve">
     <value>Fixing '{0}'</value>
   </data>
-  <data name="Pull_selected_members_up_to_0" xml:space="preserve">
-    <value>Pull selected members up to {0}</value>
-  </data>
   <data name="Pull_selected_members_up" xml:space="preserve">
     <value>Pull selected members up</value>
   </data>
@@ -3227,5 +3125,108 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Fix_All_0" xml:space="preserve">
     <value>Fix All: {0}</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Symbols" xml:space="preserve">
+    <value>Symbols</value>
+  </data>
+  <data name="SemanticSearch" xml:space="preserve">
+    <value>Semantic Search</value>
+  </data>
+  <data name="Query" xml:space="preserve">
+    <value>Query</value>
+  </data>
+  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
+  </data>
+  <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
+    <value>Semantic search query terminated with exception</value>
+  </data>
+  <data name="Semantic_search_query_failed_to_compile" xml:space="preserve">
+    <value>Semantic search query failed to compile</value>
+  </data>
+  <data name="The_query_does_not_specify_0_top_level_function" xml:space="preserve">
+    <value>The query does not specify '{0}' top-level function</value>
+  </data>
+  <data name="Method_0_must_be_static_and_non_generic" xml:space="preserve">
+    <value>Method '{0}' must be static and non-generic</value>
+  </data>
+  <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
+    <value>The query specifies multiple top-level functions '{1}'</value>
+  </data>
+  <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
+    <value>Top-level function '{0}' must have a single parameter</value>
+  </data>
+  <data name="Parameter_type_0_is_not_among_supported_types_1" xml:space="preserve">
+    <value>Parameter type '{0}' is not among supported types: {1}</value>
+  </data>
+  <data name="Return_type_0_is_not_among_supported_types_1" xml:space="preserve">
+    <value>Return type '{0}' is not among supported types: {1}</value>
+  </data>
+  <data name="Unable_to_load_type_0_1" xml:space="preserve">
+    <value>Unable to load type '{0}': '{1}'</value>
+  </data>
+  <data name="NET_Code_Actions" xml:space="preserve">
+    <value>.NET Code Actions</value>
+  </data>
+  <data name="Symbol_search" xml:space="preserve">
+    <value>Symbol search</value>
+  </data>
+  <data name="Conflict_s_detected" xml:space="preserve">
+    <value>Conflict(s) detected.</value>
+  </data>
+  <data name="Simplify_name_0" xml:space="preserve">
+    <value>Simplify name '{0}'</value>
+  </data>
+  <data name="Simplify_member_access_0" xml:space="preserve">
+    <value>Simplify member access '{0}'</value>
+  </data>
+  <data name="Not_all_code_paths_return" xml:space="preserve">
+    <value>Not all code paths return</value>
+  </data>
+  <data name="namespace_name" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="class_name" xml:space="preserve">
+    <value>&lt;class name&gt;</value>
+  </data>
+  <data name="interface_name" xml:space="preserve">
+    <value>&lt;interface name&gt;</value>
+  </data>
+  <data name="Unable_to_create_0" xml:space="preserve">
+    <value>Unable to create '{0}'</value>
+  </data>
+  <data name="Cannot_determine_valid_range_of_statements_to_extract" xml:space="preserve">
+    <value>Cannot determine valid range of statements to extract</value>
+  </data>
+  <data name="No_valid_statement_range_to_extract" xml:space="preserve">
+    <value>No valid statement range to extract</value>
+  </data>
+  <data name="Convert_to_field_property" xml:space="preserve">
+    <value>Convert to 'field' property</value>
+    <comment>{Locked="field"} "field" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Extension_0_is_already_registered" xml:space="preserve">
+    <value>Extension '{0}' is already registered.</value>
+  </data>
+  <data name="Extension_0_was_not_registered" xml:space="preserve">
+    <value>Extension '{0}' was not registered.</value>
+  </data>
+  <data name="Unable_to_get_the_directory_name_for_0" xml:space="preserve">
+    <value>Unable to get the directory name for {0}.</value>
+  </data>
+  <data name="No_extension_registered_as_0" xml:space="preserve">
+    <value>No extension registered as '{0}'.</value>
+  </data>
+  <data name="No_extensions_registered_at_0" xml:space="preserve">
+    <value>No extensions registered at '{0}'.</value>
+  </data>
+  <data name="No_handler_found_for_message_0" xml:space="preserve">
+    <value>No handler found for message {0}.</value>
+  </data>
+  <data name="Multiple_handlers_found_for_message_0" xml:space="preserve">
+    <value>Multiple handlers found for message {0}.</value>
   </data>
 </root>

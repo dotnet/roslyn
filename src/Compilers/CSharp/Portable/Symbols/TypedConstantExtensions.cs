@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         valueStringBuilder.Append(typeName);
-                        valueStringBuilder.Append(".");
+                        valueStringBuilder.Append('.');
                         valueStringBuilder.Append(field.Name);
                     }
                 }
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         valueStringBuilder.Append(typeName);
-                        valueStringBuilder.Append(".");
+                        valueStringBuilder.Append('.');
                         valueStringBuilder.Append(field.Name);
                     }
                 }

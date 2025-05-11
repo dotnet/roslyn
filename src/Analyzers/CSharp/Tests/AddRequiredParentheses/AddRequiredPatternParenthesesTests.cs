@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -15,140 +13,135 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-    public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
+
+    private Task TestMissingAsync(string initialMarkup, OptionsCollection options)
+        => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
+
+    private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
+        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+
+    [Fact]
+    public async Task TestLogicalPrecedence()
     {
-        public AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
-
-        private Task TestMissingAsync(string initialMarkup, OptionsCollection options)
-            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
-
-        private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-            => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
-
-        [Fact]
-        public async Task TestLogicalPrecedence()
-        {
-            await TestAsync(
-                """
-                class C
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or b $$and c;
-                    }
+                    object x = o is a or b $$and c;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or (b and c);
-                    }
+                    object x = o is a or (b and c);
                 }
-                """, RequireAllParenthesesForClarity);
-        }
+            }
+            """, RequireAllParenthesesForClarity);
+    }
 
-        [Fact]
-        public async Task TestNoLogicalOnLowerPrecedence()
-        {
-            await TestMissingAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNoLogicalOnLowerPrecedence()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a $$or b and c;
-                    }
+                    object x = o is a $$or b and c;
                 }
-                """, RequireAllParenthesesForClarity);
-        }
+            }
+            """, RequireAllParenthesesForClarity);
+    }
 
-        [Fact]
-        public async Task TestNotIfLogicalPrecedenceStaysTheSame()
-        {
-            await TestMissingAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNotIfLogicalPrecedenceStaysTheSame()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or b $$or c;
-                    }
+                    object x = o is a or b $$or c;
                 }
-                """, RequireAllParenthesesForClarity);
-        }
+            }
+            """, RequireAllParenthesesForClarity);
+    }
 
-        [Fact]
-        public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
-        {
-            await TestMissingAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or b $$or c;
-                    }
+                    object x = o is a or b $$or c;
                 }
-                """, RequireArithmeticBinaryParenthesesForClarity);
-        }
+            }
+            """, RequireArithmeticBinaryParenthesesForClarity);
+    }
 
-        [Fact]
-        public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or b $$and c and d;
-                    }
+                    object x = o is a or b $$and c and d;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or (b and c and d);
-                    }
+                    object x = o is a or (b and c and d);
                 }
-                """, RequireAllParenthesesForClarity);
-        }
+            }
+            """, RequireAllParenthesesForClarity);
+    }
 
-        [Fact]
-        public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or b and c $$and d;
-                    }
+                    object x = o is a or b and c $$and d;
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
                 {
-                    void M(object o)
-                    {
-                        object x = o is a or (b and c and d);
-                    }
+                    object x = o is a or (b and c and d);
                 }
-                """, RequireAllParenthesesForClarity);
-        }
+            }
+            """, RequireAllParenthesesForClarity);
     }
 }

@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -24,50 +23,34 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
     {
         private readonly AnalyzerConfigOptions _options;
         private readonly Lazy<NamingStylePreferences> _lazyNamingStylePreferences;
+        private readonly StructuredAnalyzerConfigOptions? _fallback;
 
-        public Implementation(AnalyzerConfigOptions options)
+        public Implementation(AnalyzerConfigOptions options, StructuredAnalyzerConfigOptions? fallback)
         {
             _options = options;
             _lazyNamingStylePreferences = new Lazy<NamingStylePreferences>(() => EditorConfigNamingStyleParser.ParseDictionary(_options));
+            _fallback = fallback;
         }
 
         public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _options.TryGetValue(key, out value);
+            => _options.TryGetValue(key, out value) || _fallback?.TryGetValue(key, out value) == true;
 
         public override IEnumerable<string> Keys
-            => _options.Keys;
+            => _fallback == null ? _options.Keys : _options.Keys.Union(_fallback.Keys);
 
         public override NamingStylePreferences GetNamingStylePreferences()
-            => _lazyNamingStylePreferences.Value;
+            // Note: this is not equivallent to constructing NamingStylePreferences from merged key-value pair sets.
+            // We look up the fallback naming style preferences only if there is no naming style preference in this set.
+            // We do not mix the preferences from the two key-value pair sets.
+            => _lazyNamingStylePreferences.Value is { IsEmpty: false } nonEmpty ? nonEmpty : _fallback?.GetNamingStylePreferences() ?? NamingStylePreferences.Empty;
     }
 
-    private sealed class EmptyImplementation : StructuredAnalyzerConfigOptions
-    {
-        public override NamingStylePreferences GetNamingStylePreferences()
-            => NamingStylePreferences.Empty;
-
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-        {
-            value = null;
-            return false;
-        }
-
-        public override IEnumerable<string> Keys
-            => SpecializedCollections.EmptyEnumerable<string>();
-    }
-
-    public static readonly StructuredAnalyzerConfigOptions Empty = new EmptyImplementation();
+    public static readonly StructuredAnalyzerConfigOptions Empty = Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty));
 
     public abstract NamingStylePreferences GetNamingStylePreferences();
 
-    public static StructuredAnalyzerConfigOptions Create(ImmutableDictionary<string, string> options)
-    {
-        Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
-        return new Implementation(new DictionaryAnalyzerConfigOptions(options));
-    }
-
-    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options)
-        => new Implementation(options);
+    public static StructuredAnalyzerConfigOptions Create(AnalyzerConfigOptions options, StructuredAnalyzerConfigOptions? fallback = null)
+        => new Implementation(options, fallback);
 
     public bool TryGetOption<T>(OptionKey2 optionKey, out T value)
         => this.TryGetEditorConfigOption(optionKey.Option, out value);
@@ -115,7 +98,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
         {
             if (!s_codeStyleStructuredOptions.TryGetValue(configOptions, out options))
             {
-                options = new Implementation(configOptions);
+                options = new Implementation(configOptions, fallback: Empty);
                 s_codeStyleStructuredOptions.Add(configOptions, options);
             }
         }

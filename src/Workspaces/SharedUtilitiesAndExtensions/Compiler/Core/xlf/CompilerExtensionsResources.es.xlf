@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CompilerExtensionsResources.resx">
     <body>
+      <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
+        <source>A language name cannot be specified for this option.</source>
+        <target state="translated">No se puede especificar ningún nombre de idioma para esta opción.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="A_language_name_must_be_specified_for_this_option">
+        <source>A language name must be specified for this option.</source>
+        <target state="translated">Se debe especificar un nombre de lenguaje para esta opción.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Absolute_path_expected">
         <source>Absolute path expected.</source>
         <target state="translated">Ruta de acceso absoluta esperada.</target>
@@ -11,11 +21,6 @@
         <source>Abstract Method</source>
         <target state="translated">Método abstracto</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
-      </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">Ya existe un elemento con la misma clave pero un valor distinto.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
@@ -55,6 +60,16 @@
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
         <target state="translated">Preferencias de campo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_and_spacing">
+        <source>Indentation and spacing</source>
+        <target state="translated">Sangría y espaciado</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="translated">Los elementos con instancias produjeron excepciones desde IDisposable.Dispose().</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface">
@@ -162,11 +177,6 @@
         <target state="translated">Campo público o protegido</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
       </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">El tamaño del segmento debe ser una potencia de 2 mayor que 1</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>
         <target state="translated">La secuencia especificada tiene elementos duplicados.</target>
@@ -181,6 +191,11 @@
         <source>Static Method</source>
         <target state="translated">Método estático</target>
         <note>{locked: static}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
+      </trans-unit>
+      <trans-unit id="StreamMustSupportReadAndSeek">
+        <source>Stream must support read and seek operations.</source>
+        <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Struct">
         <source>Struct</source>
@@ -236,6 +251,11 @@
         <source>Types</source>
         <target state="translated">Tipos</target>
         <note>{locked:types} unless the capitalization should be handled differently</note>
+      </trans-unit>
+      <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
+        <source>Value too large to be represented as a 30 bit unsigned integer.</source>
+        <target state="translated">Valor demasiado largo para representarse como entero sin signo de 30 bits.</target>
+        <note />
       </trans-unit>
       <trans-unit id="this_dot_and_Me_dot_preferences">
         <source>this. and Me. preferences</source>

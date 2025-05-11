@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If isLateBound Then
                 Debug.Assert(type.IsObjectType)
             ElseIf Not isOperator Then
-                Debug.Assert(type.IsSameTypeIgnoringAll(signatureType))
+                Debug.Assert(type.IsErrorType() OrElse type.IsSameTypeIgnoringAll(signatureType))
             ElseIf Not isLifted.HasValue Then
                 If type.IsSameTypeIgnoringAll(signatureType) Then
                     isLifted = False

@@ -20,109 +20,109 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing;
+
+[UseExportProvider]
+public sealed class AddImportsTests
 {
-    [UseExportProvider]
-    public class AddImportsTests
+    private static async Task<Document> GetDocument(string code, bool withAnnotations)
     {
-        private static async Task<Document> GetDocument(string code, bool withAnnotations)
+        var ws = new AdhocWorkspace();
+        var emptyProject = ws.AddProject(
+            ProjectInfo.Create(
+                ProjectId.CreateNewId(),
+                VersionStamp.Default,
+                "test",
+                "test.dll",
+                LanguageNames.CSharp,
+                metadataReferences: [NetFramework.mscorlib]));
+
+        var doc = emptyProject.AddDocument("test.cs", code);
+
+        if (withAnnotations)
         {
-            var ws = new AdhocWorkspace();
-            var emptyProject = ws.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    "test",
-                    "test.dll",
-                    LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+            var root = await doc.GetSyntaxRootAsync();
+            var model = await doc.GetSemanticModelAsync();
 
-            var doc = emptyProject.AddDocument("test.cs", code);
-
-            if (withAnnotations)
-            {
-                var root = await doc.GetSyntaxRootAsync();
-                var model = await doc.GetSemanticModelAsync();
-
-                root = root.ReplaceNodes(root.DescendantNodesAndSelf().OfType<TypeSyntax>(),
-                    (o, c) =>
-                    {
-                        var symbol = model.GetSymbolInfo(o).Symbol;
-                        return symbol != null
-                            ? c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation)
-                            : c;
-                    });
-                doc = doc.WithSyntaxRoot(root);
-            }
-
-            return doc;
+            root = root.ReplaceNodes(root.DescendantNodesAndSelf().OfType<TypeSyntax>(),
+                (o, c) =>
+                {
+                    var symbol = model.GetSymbolInfo(o).Symbol;
+                    return symbol != null
+                        ? c.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol), Simplifier.Annotation)
+                        : c;
+                });
+            doc = doc.WithSyntaxRoot(root);
         }
 
-        private static Task TestNoImportsAddedAsync(
-            string initialText,
-            bool useSymbolAnnotations)
+        return doc;
+    }
+
+    private static Task TestNoImportsAddedAsync(
+        string initialText,
+        bool useSymbolAnnotations)
+    {
+        return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, performCheck: false);
+    }
+
+    private static async Task TestAsync(
+        string initialText,
+        string importsAddedText,
+        string simplifiedText,
+        bool useSymbolAnnotations,
+        bool placeSystemNamespaceFirst = true,
+        bool placeImportsInsideNamespaces = false,
+        bool performCheck = true)
+    {
+        var doc = await GetDocument(initialText, useSymbolAnnotations);
+
+        var addImportOptions = new AddImportPlacementOptions()
         {
-            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, performCheck: false);
+            PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+            UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
+        };
+
+        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+
+        var simplifierOptions = CSharpSimplifierOptions.Default;
+
+        var imported = useSymbolAnnotations
+            ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
+            : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
+
+        if (importsAddedText != null)
+        {
+            var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
+            var actualText = (await formatted.GetTextAsync()).ToString();
+            Assert.Equal(importsAddedText, actualText);
         }
 
-        private static async Task TestAsync(
-            string initialText,
-            string importsAddedText,
-            string simplifiedText,
-            bool useSymbolAnnotations,
-            bool placeSystemNamespaceFirst = true,
-            bool placeImportsInsideNamespaces = false,
-            bool performCheck = true)
+        if (simplifiedText != null)
         {
-            var doc = await GetDocument(initialText, useSymbolAnnotations);
+            var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
+            var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
 
-            var addImportOptions = new AddImportPlacementOptions()
-            {
-                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
-                UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
-            };
-
-            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
-
-            var simplifierOptions = CSharpSimplifierOptions.Default;
-
-            var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
-
-            if (importsAddedText != null)
-            {
-                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
-                var actualText = (await formatted.GetTextAsync()).ToString();
-                Assert.Equal(importsAddedText, actualText);
-            }
-
-            if (simplifiedText != null)
-            {
-                var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
-                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
-
-                var actualText = (await formatted.GetTextAsync()).ToString();
-                AssertEx.EqualOrDiff(simplifiedText, actualText);
-            }
-
-            if (performCheck)
-            {
-                if (initialText == importsAddedText && importsAddedText == simplifiedText)
-                    throw new Exception($"use {nameof(TestNoImportsAddedAsync)}");
-            }
+            var actualText = (await formatted.GetTextAsync()).ToString();
+            AssertEx.EqualOrDiff(simplifiedText, actualText);
         }
 
-        public static object[][] TestAllData =
-        [
-            [false],
-            [true],
-        ];
-
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddImport(bool useSymbolAnnotations)
+        if (performCheck)
         {
-            await TestAsync(
+            if (initialText == importsAddedText && importsAddedText == simplifiedText)
+                throw new Exception($"use {nameof(TestNoImportsAddedAsync)}");
+        }
+    }
+
+    public static object[][] TestAllData =
+    [
+        [false],
+        [true],
+    ];
+
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestAddImport(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -141,12 +141,12 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddSystemImportFirst(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestAddSystemImportFirst(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"using N;
 
 class C
@@ -169,12 +169,12 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestDoNotAddSystemImportFirst(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestDoNotAddSystemImportFirst(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"using N;
 
 class C
@@ -197,15 +197,15 @@ class C
 {
     public List<int> F;
 }",
-                useSymbolAnnotations,
-                placeSystemNamespaceFirst: false
+            useSymbolAnnotations,
+            placeSystemNamespaceFirst: false
 );
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddImportsInOrder(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestAddImportsInOrder(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"using System.Collections;
 using System.Diagnostics;
 
@@ -231,12 +231,12 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestAddMultipleImportsInOrder(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestAddMultipleImportsInOrder(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -260,12 +260,12 @@ class C
     public List<int> F;
     public EventHandler Handler;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotRedundantlyAdded(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNotRedundantlyAdded(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"using System.Collections.Generic;
 
 class C
@@ -286,12 +286,12 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Fact]
-        public async Task TestBuiltInTypeFromSyntaxes()
-        {
-            await TestAsync(
+    [Fact]
+    public async Task TestBuiltInTypeFromSyntaxes()
+    {
+        await TestAsync(
 @"class C
 {
     public System.Int32 F;
@@ -309,12 +309,12 @@ class C
 {
     public int F;
 }", useSymbolAnnotations: false);
-        }
+    }
 
-        [Fact]
-        public async Task TestBuiltInTypeFromSymbols()
-        {
-            await TestAsync(
+    [Fact]
+    public async Task TestBuiltInTypeFromSymbols()
+    {
+        await TestAsync(
 @"class C
 {
     public System.Int32 F;
@@ -329,21 +329,21 @@ class C
 {
     public int F;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForNamespaceDeclarations(bool useSymbolAnnotations)
-        {
-            await TestNoImportsAddedAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNotAddedForNamespaceDeclarations(bool useSymbolAnnotations)
+    {
+        await TestNoImportsAddedAsync(
 @"namespace N
 {
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesInsideNamespaceDeclarations(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNotAddedForReferencesInsideNamespaceDeclarations(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     class C
@@ -367,12 +367,12 @@ class C
         private C c;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesInsideParentOfNamespaceDeclarations(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNotAddedForReferencesInsideParentOfNamespaceDeclarations(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     class C
@@ -417,12 +417,12 @@ namespace N.N1
         private C c;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNotAddedForReferencesMatchingNestedImports(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNotAddedForReferencesMatchingNestedImports(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     using System.Collections.Generic;
@@ -452,15 +452,15 @@ namespace N.N1
         private List<int> F;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportRemovedIfItMakesReferenceAmbiguous(bool useSymbolAnnotations)
-        {
-            // this is not really an artifact of the AddImports feature, it is due
-            // to Simplifier not reducing the namespace reference because it would 
-            // become ambiguous, thus leaving an unused using directive
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportRemovedIfItMakesReferenceAmbiguous(bool useSymbolAnnotations)
+    {
+        // this is not really an artifact of the AddImports feature, it is due
+        // to Simplifier not reducing the namespace reference because it would 
+        // become ambiguous, thus leaving an unused using directive
+        await TestAsync(
 @"namespace N
 {
     class C
@@ -499,13 +499,13 @@ class C
 {
     public N.C F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
+    public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
 // <copyright file=""File.cs"" company=""MyOrgnaization"">
 // Copyright (C) MyOrgnaization 2016
@@ -539,13 +539,13 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
+    public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"// --------------------------------------------------------------------------------------------------------------------
 // <copyright file=""File.cs"" company=""MyOrgnaization"">
 // Copyright (C) MyOrgnaization 2016
@@ -583,13 +583,13 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
-        public async Task TestLeadingWhitespaceLinesArePreserved(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/8797")]
+    public async Task TestLeadingWhitespaceLinesArePreserved(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -608,12 +608,12 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportAddedToNestedImports(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportAddedToNestedImports(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     using System;
@@ -645,12 +645,12 @@ class C
         private List<int> F;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportNameNotSimplfied(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportNameNotSimplfied(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace System
 {
     using System.Threading;
@@ -682,12 +682,12 @@ class C
         private List<int> F;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestUnnecessaryImportAddedAndRemoved(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestUnnecessaryImportAddedAndRemoved(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"using List = System.Collections.Generic.List<int>;
 
 namespace System
@@ -718,12 +718,12 @@ namespace System
         private List F;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        public async Task TestImportAddedToStartOfDocumentIfNoNestedImports(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    public async Task TestImportAddedToStartOfDocumentIfNoNestedImports(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     class C
@@ -751,16 +751,16 @@ namespace N
         private List<int> F;
     }
 }", useSymbolAnnotations);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/9228")]
-        public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool useSymbolAnnotations)
-        {
-            var externalCode =
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/9228")]
+    public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly(bool useSymbolAnnotations)
+    {
+        var externalCode =
 @"namespace N.M { public class A : System.Attribute { } }";
 
-            var code =
+        var code =
 @"using System;
 using N.M;
 
@@ -771,53 +771,53 @@ class C
     public void M2([A] String p2) { }
 }";
 
-            var otherAssemblyReference = GetInMemoryAssemblyReferenceForCode(externalCode);
+        var otherAssemblyReference = GetInMemoryAssemblyReferenceForCode(externalCode);
 
-            var ws = new AdhocWorkspace();
-            var emptyProject = ws.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    "test",
-                    "test.dll",
-                    LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+        var ws = new AdhocWorkspace();
+        var emptyProject = ws.AddProject(
+            ProjectInfo.Create(
+                ProjectId.CreateNewId(),
+                VersionStamp.Default,
+                "test",
+                "test.dll",
+                LanguageNames.CSharp,
+                metadataReferences: [NetFramework.mscorlib]));
 
-            var project = emptyProject
-                .AddMetadataReferences(new[] { otherAssemblyReference })
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var project = emptyProject
+            .AddMetadataReferences([otherAssemblyReference])
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            project = project.AddDocument("duplicate.cs", externalCode).Project;
-            var document = project.AddDocument("test.cs", code);
+        project = project.AddDocument("duplicate.cs", externalCode).Project;
+        var document = project.AddDocument("test.cs", code);
 
-            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
-            var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
-            Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+        var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
+        var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
+        Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
 
-            var attribute = compilation.GetTypeByMetadataName("N.M.A");
+        var attribute = compilation.GetTypeByMetadataName("N.M.A");
 
-            var syntaxRoot = await document.GetSyntaxRootAsync(CancellationToken.None).ConfigureAwait(false);
-            SyntaxNode p1SyntaxNode = syntaxRoot.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+        var syntaxRoot = await document.GetSyntaxRootAsync(CancellationToken.None).ConfigureAwait(false);
+        SyntaxNode p1SyntaxNode = syntaxRoot.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
 
-            // Add N.M.A attribute to p1.
-            var editor = await DocumentEditor.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
-            var attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
+        // Add N.M.A attribute to p1.
+        var editor = await DocumentEditor.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
+        var attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
 
-            editor.AddAttribute(p1SyntaxNode, attributeSyntax);
-            var documentWithAttribute = editor.GetChangedDocument();
+        editor.AddAttribute(p1SyntaxNode, attributeSyntax);
+        var documentWithAttribute = editor.GetChangedDocument();
 
-            var addImportOptions = new AddImportPlacementOptions();
-            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+        var addImportOptions = new AddImportPlacementOptions();
+        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 
-            // Add namespace import.
-            var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
+        // Add namespace import.
+        var imported = useSymbolAnnotations
+            ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
+            : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
 
-            var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
-            var actualText = (await formatted.GetTextAsync()).ToString();
+        var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
+        var actualText = (await formatted.GetTextAsync()).ToString();
 
-            Assert.Equal(@"using System;
+        Assert.Equal(@"using System;
 using N.M;
 
 class C
@@ -826,26 +826,26 @@ class C
 
     public void M2([A] String p2) { }
 }", actualText);
-        }
+    }
 
-        private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)
-        {
-            var tree = CSharpSyntaxTree.ParseText(code);
+    private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)
+    {
+        var tree = CSharpSyntaxTree.ParseText(code);
 
-            var compilation = CSharpCompilation
-                .Create("test.dll", new[] { tree })
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(TestMetadata.Net451.mscorlib);
+        var compilation = CSharpCompilation
+            .Create("test.dll", [tree])
+            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .AddReferences(NetFramework.mscorlib);
 
-            return compilation.ToMetadataReference();
-        }
+        return compilation.ToMetadataReference();
+    }
 
-        #region AddImports Safe Tests
+    #region AddImports Safe Tests
 
-        [Fact]
-        public async Task TestSafeWithMatchingSimpleName()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingSimpleName()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -863,12 +863,12 @@ class C
 {
     C1 M(A.C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingGenericName()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingGenericName()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -886,12 +886,12 @@ class C
 {
     C1<int> M(A.C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingQualifiedName()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingQualifiedName()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -912,12 +912,12 @@ class C
 {
     O.C1 M(A.C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingAliasedIdentifierName()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingAliasedIdentifierName()
+    {
+        await TestNoImportsAddedAsync(
 @"using C1 = B.C1;
 
 namespace A
@@ -938,12 +938,12 @@ namespace Inner
         C1 M(A.C2 c2) => default;
     }
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingGenericNameAndTypeArguments()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingGenericNameAndTypeArguments()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -963,12 +963,12 @@ class C
 {
     C1<C3> M(A.C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingGenericNameAndTypeArguments_DifferentArity()
-        {
-            await TestAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingGenericNameAndTypeArguments_DifferentArity()
+    {
+        await TestAsync(
 @"using B;
 
 namespace A
@@ -1025,12 +1025,12 @@ class C
 {
     C1<C3> M(C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingQualifiedNameAndTypeArguments()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingQualifiedNameAndTypeArguments()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1053,12 +1053,12 @@ class C
 {
     O.C1<C3> M(A.C2 c2) => default;
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39641")]
-        public async Task TestSafeWithMatchingSimpleNameInAllLocations()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39641")]
+    public async Task TestSafeWithMatchingSimpleNameInAllLocations()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 using System.Collections.Generic;
 
@@ -1092,12 +1092,12 @@ class C
         return result;
     }
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingExtensionMethod()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingExtensionMethod()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1121,12 +1121,12 @@ class C
 {
     void M(A.C1 c1) => 42.M();
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingExtensionMethodAndArguments()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingExtensionMethodAndArguments()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1152,12 +1152,12 @@ class C
 {
     void M(A.C1 c1) => 42.M(default(C2));
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithMatchingExtensionMethodAndTypeArguments()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithMatchingExtensionMethodAndTypeArguments()
+    {
+        await TestNoImportsAddedAsync(
 @"using B;
 
 namespace A
@@ -1183,12 +1183,12 @@ class C
 {
     void M(A.C1 c1) => 42.M<C2>();
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Fact]
-        public async Task TestSafeWithLambdaExtensionMethodAmbiguity()
-        {
-            await TestNoImportsAddedAsync(
+    [Fact]
+    public async Task TestSafeWithLambdaExtensionMethodAmbiguity()
+    {
+        await TestNoImportsAddedAsync(
 @"using System;
 
 class C
@@ -1216,13 +1216,13 @@ namespace N
         public static void M1(this int a){}
     }
 }", useSymbolAnnotations: true);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
-        public async Task TestAddImport_InsideNamespace(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
+    public async Task TestAddImport_InsideNamespace(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N
 {
     class C
@@ -1250,13 +1250,13 @@ namespace N
         public List<int> F;
     }
 }", useSymbolAnnotations, placeImportsInsideNamespaces: true);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
-        public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
+    public async Task TestAddImport_InsideNamespace_NoNamespace(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"class C
 {
     public System.Collections.Generic.List<int> F;
@@ -1275,13 +1275,13 @@ class C
 {
     public List<int> F;
 }", useSymbolAnnotations, placeImportsInsideNamespaces: true);
-        }
+    }
 
-        [Theory, MemberData(nameof(TestAllData))]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
-        public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
-        {
-            await TestAsync(
+    [Theory, MemberData(nameof(TestAllData))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
+    public async Task TestAddImport_InsideNamespace_MultipleNamespaces(bool useSymbolAnnotations)
+    {
+        await TestAsync(
 @"namespace N1
 {
     namespace N2
@@ -1318,8 +1318,7 @@ class C
         }
     }
 }", useSymbolAnnotations, placeImportsInsideNamespaces: true);
-        }
-
-        #endregion
     }
+
+    #endregion
 }

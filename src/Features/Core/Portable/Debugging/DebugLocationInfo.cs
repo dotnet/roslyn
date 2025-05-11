@@ -4,21 +4,20 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Debugging
+namespace Microsoft.CodeAnalysis.Debugging;
+
+internal readonly struct DebugLocationInfo
 {
-    internal readonly struct DebugLocationInfo
+    public readonly string Name;
+    public readonly int LineOffset;
+
+    public DebugLocationInfo(string name, int lineOffset)
     {
-        public readonly string Name;
-        public readonly int LineOffset;
-
-        public DebugLocationInfo(string name, int lineOffset)
-        {
-            RoslynDebug.Assert(name != null);
-            Name = name;
-            LineOffset = lineOffset;
-        }
-
-        public bool IsDefault
-            => Name == null;
+        RoslynDebug.Assert(name != null);
+        Name = name;
+        LineOffset = lineOffset;
     }
+
+    public bool IsDefault
+        => Name == null;
 }

@@ -5410,7 +5410,7 @@ public struct Fixable
         public void CustomFixedStructVariousErr06_UseSite()
         {
             var missing_cs = "public struct Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = @"
 public struct Fixable
@@ -5421,7 +5421,7 @@ public struct Fixable
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -5436,7 +5436,7 @@ unsafe class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (void* p = new Fixable(1))

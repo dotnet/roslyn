@@ -18,10 +18,10 @@ steps:
   - task: CopyFiles@2
     displayName: Copy Dumps to Logs
     inputs:
-      contents: '$(Build.SourcesDirectory)/bin/**/*.dmp'
+      contents: '$(Build.SourcesDirectory)/artifacts/bin/**/*.dmp'
       targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
     continueOnError: true
-    condition: not(succeeded())
+    condition: always()
 
   - task: PublishPipelineArtifact@1
     displayName: Publish Logs
@@ -29,4 +29,4 @@ steps:
       targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
       artifactName: '${{ parameters.jobName }} Attempt $(System.JobAttempt) Logs'
     continueOnError: true
-    condition: not(succeeded())
+    condition: always()

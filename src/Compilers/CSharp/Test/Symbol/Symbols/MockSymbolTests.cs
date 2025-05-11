@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     builder.Append("    ");
                 }
 
-                builder.Append("}");
+                builder.Append('}');
             }
         }
 

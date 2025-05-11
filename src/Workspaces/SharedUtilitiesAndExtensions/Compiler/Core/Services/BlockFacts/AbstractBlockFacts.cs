@@ -5,15 +5,27 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.LanguageService
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+internal abstract class AbstractBlockFacts<TStatementSyntax> : IBlockFacts
+    where TStatementSyntax : SyntaxNode
 {
-    internal abstract class AbstractBlockFacts : IBlockFacts
-    {
-        public abstract bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node);
-        public abstract bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node);
-        public abstract IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node);
-        public abstract SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
-        public abstract bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
-        public abstract IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode? node);
-    }
+    public abstract bool IsScopeBlock([NotNullWhen(true)] SyntaxNode? node);
+    public abstract bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node);
+
+    public abstract SyntaxNode? GetImmediateParentExecutableBlockForStatement(TStatementSyntax statement);
+
+    public abstract IReadOnlyList<TStatementSyntax> GetExecutableBlockStatements(SyntaxNode? node);
+    public abstract SyntaxNode? FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
+    public abstract bool IsStatementContainer([NotNullWhen(true)] SyntaxNode? node);
+    public abstract IReadOnlyList<TStatementSyntax> GetStatementContainerStatements(SyntaxNode? node);
+
+    SyntaxNode? IBlockFacts.GetImmediateParentExecutableBlockForStatement(SyntaxNode statement)
+        => GetImmediateParentExecutableBlockForStatement((TStatementSyntax)statement);
+
+    IReadOnlyList<SyntaxNode> IBlockFacts.GetExecutableBlockStatements(SyntaxNode? node)
+        => GetExecutableBlockStatements(node);
+
+    IReadOnlyList<SyntaxNode> IBlockFacts.GetStatementContainerStatements(SyntaxNode? node)
+        => GetStatementContainerStatements(node);
 }

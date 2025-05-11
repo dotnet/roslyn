@@ -9,7 +9,6 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected FieldSymbol? stateField;
         protected FieldSymbol? instanceIdField;
         protected IReadOnlyDictionary<Symbol, CapturedSymbolReplacement>? nonReusableLocalProxies;
+        protected ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup;
         protected int nextFreeHoistedLocalSlot;
         protected IOrderedReadOnlySet<Symbol>? hoistedVariables;
         protected Dictionary<Symbol, CapturedSymbolReplacement>? initialParameters;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
-            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
+            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty);
 
             this.body = body;
             this.method = method;
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
 
-            CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
+            CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nonReusableFieldsForCleanup, out this.nextFreeHoistedLocalSlot);
 
             this.hoistedVariables = variablesToHoist;
 
@@ -136,9 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CreateNonReusableLocalProxies(
             IEnumerable<Symbol> variablesToHoist,
             out IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies,
+            out ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             out int nextFreeHoistedLocalSlot)
         {
             var proxiesBuilder = new Dictionary<Symbol, CapturedSymbolReplacement>();
+            var nonReusableFieldsForCleanupBuilder = ArrayBuilder<FieldSymbol>.GetInstance();
 
             var typeMap = stateMachineType.TypeMap;
             bool isDebugBuild = F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug;
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
                         field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex);
+                        nonReusableFieldsForCleanupBuilder.Add(field);
                     }
 
                     if (field != null)
@@ -249,12 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
+                        var proxyField = F.StateMachineFieldForRegularParameter(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, parameter, isPublic: !PreserveInitialParameterValuesAndThreadId);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValuesAndThreadId)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineFieldForRegularParameter(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), parameter, isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }
@@ -262,6 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             proxies = proxiesBuilder;
+            nonReusableFieldsForCleanup = nonReusableFieldsForCleanupBuilder.ToImmutableAndFree();
         }
 
         private bool ShouldPreallocateNonReusableProxy(LocalSymbol local)
@@ -311,7 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(method.ThisParameter, out proxy))
                 {
-                    bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)), F.This()));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        (F, stateMachineVariable));
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, F.This()));
                 }
             }
 
@@ -320,8 +329,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(parameter, out proxy))
                 {
-                    bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)),
-                                                 F.Parameter(parameter)));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        (F, stateMachineVariable));
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, F.Parameter(parameter)));
                 }
             }
 
@@ -456,10 +469,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(method.ThisParameter, out proxy))
                 {
-                    bodyBuilder.Add(
-                        F.Assignment(
-                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
-                            copySrc[method.ThisParameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        (F, resultVariable));
+
+                    var rightExpression = copySrc[method.ThisParameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, rightExpression));
                 }
             }
 
@@ -471,9 +488,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (copyDest.TryGetValue(parameter, out proxy))
                 {
                     // result.parameter
-                    BoundExpression resultParameter = proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable));
+                    BoundExpression resultParameter = proxy.Replacement(
+                        F.Syntax,
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        (F, resultVariable));
+
                     // this.parameterProxy
-                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This());
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
                     BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
 
                     bodyBuilder.Add(copy);

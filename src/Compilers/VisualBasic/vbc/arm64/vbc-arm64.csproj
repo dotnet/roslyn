@@ -10,7 +10,7 @@
     <AssemblyName>vbc</AssemblyName>
     <DisableNullableWarnings>true</DisableNullableWarnings>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   
   <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->

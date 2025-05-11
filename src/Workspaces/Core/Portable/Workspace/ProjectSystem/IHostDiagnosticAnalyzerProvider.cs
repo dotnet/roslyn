@@ -5,14 +5,18 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+
+/// <summary>
+/// An interface implemented by hosts to provide the host-level analyzers; for example in Visual Studio for Windows this
+/// is where we'll fetch VSIX-defined analyzers.
+/// </summary>
+internal interface IHostDiagnosticAnalyzerProvider
 {
+    ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions();
+
     /// <summary>
-    /// An interface implemented by hosts to provide the host-level analyzers; for example in Visual Studio for Windows this
-    /// is where we'll fetch VSIX-defined analyzers.
+    /// Gets the path to any assemblies that represent the closure of razor compiler.
     /// </summary>
-    internal interface IHostDiagnosticAnalyzerProvider
-    {
-        ImmutableArray<(AnalyzerFileReference reference, string extensionId)> GetAnalyzerReferencesInExtensions();
-    }
+    ImmutableArray<(string path, string extensionId)> GetRazorAssembliesInExtensions();
 }

@@ -100,6 +100,7 @@ if (!validateOnly)
     File.WriteAllText(fileWithPath, builder.ToString());
 }
 
+// NOTE: Network errors (timeouts and 5xx status codes) are not considered failures.
 async Task<bool> checkHelpLinkAsync(string helpLink)
 {
     try
@@ -111,11 +112,28 @@ async Task<bool> checkHelpLinkAsync(string helpLink)
 
         var request = new HttpRequestMessage(HttpMethod.Head, uri);
         using var response = await httpClient.SendAsync(request).ConfigureAwait(false);
-        return response?.StatusCode == HttpStatusCode.OK;
+        var success = response?.StatusCode == HttpStatusCode.OK;
+
+        if (!success && response is not null)
+        {
+            Console.WriteLine($"##[warning]Failed to check '{helpLink}': {response.StatusCode}");
+            if ((int)response.StatusCode >= 500)
+            {
+                return true;
+            }
+        }
+
+        return success;
     }
-    catch (WebException)
+    catch (TaskCanceledException)
     {
-        return false;
+        Console.WriteLine($"##[warning]Timeout while checking '{helpLink}'.");
+        return true;
+    }
+    catch (HttpRequestException e)
+    {
+        Console.WriteLine($"##[warning]Failed while checking '{helpLink}' (${e.StatusCode}, ${e.HttpRequestError}): ${e.Message}");
+        return true;
     }
 }
 

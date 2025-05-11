@@ -6,16 +6,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class RemoveKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public RemoveKeywordRecommender()
-            : base(SyntaxKind.RemoveKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => context.TargetToken.IsAccessorDeclarationContext<EventDeclarationSyntax>(position, SyntaxKind.RemoveKeyword);
-    }
+internal sealed class RemoveKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.RemoveKeyword)
+{
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        => context.TargetToken.IsAccessorDeclarationContext<EventDeclarationSyntax>(position, SyntaxKind.RemoveKeyword);
 }

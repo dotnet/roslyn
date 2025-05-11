@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId);
+        [IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -37,7 +36,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEd
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = editor.Generator;

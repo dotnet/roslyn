@@ -13,21 +13,20 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[Shared]
+[ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionServiceImplementation implementation) : IBreakpointResolutionService
 {
-    [Shared]
-    [ExportLanguageService(typeof(IBreakpointResolutionService), InternalLanguageNames.TypeScript)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptBreakpointResolutionService(IVSTypeScriptBreakpointResolutionServiceImplementation implementation) : IBreakpointResolutionService
-    {
-        private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation = implementation;
+    private readonly IVSTypeScriptBreakpointResolutionServiceImplementation _implementation = implementation;
 
-        public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
-            => (await _implementation.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
+    public async Task<BreakpointResolutionResult?> ResolveBreakpointAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken = default)
+        => (await _implementation.ResolveBreakpointAsync(document, textSpan, cancellationToken).ConfigureAwait(false)).UnderlyingObject;
 
-        public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
-            => (await _implementation.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
+    public async Task<IEnumerable<BreakpointResolutionResult>> ResolveBreakpointsAsync(Solution solution, string name, CancellationToken cancellationToken = default)
+        => (await _implementation.ResolveBreakpointsAsync(solution, name, cancellationToken).ConfigureAwait(false)).Select(r => r.UnderlyingObject);
 
-    }
 }

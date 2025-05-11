@@ -5,15 +5,19 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegularConstructor;
 
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertPrimaryToRegularConstructorCodeRefactoringProvider>;
 
-public class ConvertPrimaryToRegularConstructorTests
+[UseExportProvider]
+public sealed class ConvertPrimaryToRegularConstructorTests
 {
     private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """
         [*.cs]
@@ -2465,14 +2469,13 @@ public class ConvertPrimaryToRegularConstructorTests
             FixedCode = """
                 class C
                 {
-                    public C(int i)
-                    {
-                    }
 
                     #region constructors
 
                     #endregion
-
+                    public C(int i)
+                    {
+                    }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -2713,6 +2716,90 @@ public class ConvertPrimaryToRegularConstructorTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72340")]
+    public async Task TestClassWithoutBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|Class1()|];
+                """,
+            FixedCode = """
+                class Class1
+                {
+                    public Class1()
+                    {
+                    }
+                }
+
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotOnExtension()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                static class Class1
+                {
+                    [|extension(string s)|]
+                    {
+                        public void Goo() { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76981")]
+    public async Task TestConvertWithReferencesToParameter1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                namespace N
+                {
+                    internal class [|Goo(int bar)|]
+                    {
+                        public int Bar { get; private set; } = bar;
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                namespace N
+                {
+                    internal class Goo
+                    {
+                        private readonly int bar;
+
+                        public Goo(int bar)
+                        {
+                            this.bar = bar;
+                            Bar = bar;
+                        }
+
+                        public int Bar { get; private set; }
+
+                        public void Baz()
+                        {
+                            Bar = bar;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
 }

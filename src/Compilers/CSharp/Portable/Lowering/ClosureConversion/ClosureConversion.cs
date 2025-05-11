@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
+
 #nullable enable
 
         private ClosureConversion(
@@ -622,7 +627,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, frame pointer local variables themselves can be "captured".  In that case
                 // the inner frames contain pointers to the enclosing frames.  That is, nested
                 // frame pointers are organized in a linked list.
-                return proxyField.Replacement(syntax, frameType => FramePointer(syntax, frameType));
+                return proxyField.Replacement(
+                    syntax,
+                    static (frameType, arg) => arg.self.FramePointer(arg.syntax, frameType),
+                    (syntax, self: this));
             }
 
             var localFrame = (LocalSymbol)framePointer;
@@ -765,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         LocalSymbol localToUse;
-                        if (!localMap.TryGetValue(local, out localToUse))
+                        if (!TryGetRewrittenLocal(local, out localToUse))
                         {
                             localToUse = local;
                         }
@@ -777,7 +785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
+                var left = proxy.Replacement(
+                    syntax,
+                    static (frameType1, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
+                    (syntax, framePointer));
+
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
@@ -1181,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var newPrologue = (BoundStatement)Visit(newInstrumentation.Prologue);
                 var newEpilogue = (BoundStatement)Visit(newInstrumentation.Epilogue);
-                newInstrumentation = newInstrumentation.Update(newInstrumentation.Local, newPrologue, newEpilogue);
+                newInstrumentation = newInstrumentation.Update(newInstrumentation.Locals, newPrologue, newEpilogue);
             }
 
             // TODO: we may not need to update if there was nothing to rewrite.
@@ -1191,17 +1203,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitScope(BoundScope node)
         {
             Debug.Assert(!node.Locals.IsEmpty);
-            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
-            RewriteLocals(node.Locals, newLocals);
+            var newLocals = VisitLocals(node.Locals);
 
             var statements = VisitList(node.Statements);
-            if (newLocals.Count == 0)
+            if (newLocals.Length == 0)
             {
-                newLocals.Free();
                 return new BoundStatementList(node.Syntax, statements);
             }
 
-            return node.Update(newLocals.ToImmutableAndFree(), statements);
+            return node.Update(newLocals, statements);
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)

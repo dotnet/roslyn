@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitBaseline baseline,
             ImmutableArray<SemanticEdit> edits,
             IEnumerable<ISymbol> allAddedSymbols = null,
+            EmitDifferenceOptions? options = null,
             CompilationTestData testData = null)
         {
             testData ??= new CompilationTestData();
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 mdStream,
                 ilStream,
                 pdbStream,
+                options ?? EmitDifferenceOptions.Default,
                 testData,
                 CancellationToken.None);
 
@@ -276,10 +278,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var compilation = createCompilation();
             var roots = ArrayBuilder<(IOperation operation, ISymbol associatedSymbol)>.GetInstance();
             var stopWatch = new Stopwatch();
-            if (!System.Diagnostics.Debugger.IsAttached)
-            {
-                stopWatch.Start();
-            }
+            start(stopWatch);
 
             void checkTimeout()
             {
@@ -346,12 +345,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 stopWatch.Stop();
                 checkControlFlowGraph(root, associatedSymbol);
-                stopWatch.Start();
+                start(stopWatch);
             }
 
             roots.Free();
             stopWatch.Stop();
             return;
+
+            static void start(Stopwatch stopWatch)
+            {
+                if (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    stopWatch.Start();
+                }
+            }
 
             void checkControlFlowGraph(IOperation root, ISymbol associatedSymbol)
             {

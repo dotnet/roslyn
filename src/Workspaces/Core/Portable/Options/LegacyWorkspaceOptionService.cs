@@ -29,7 +29,7 @@ internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptio
     public IGlobalOptionService GlobalOptions { get; } = globalOptionService;
 
     // access is interlocked
-    private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces = ImmutableArray<WeakReference<Workspace>>.Empty;
+    private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces = [];
 
     /// <summary>
     /// Stores options that are not defined by Roslyn and do not implement <see cref="IOption2"/>.

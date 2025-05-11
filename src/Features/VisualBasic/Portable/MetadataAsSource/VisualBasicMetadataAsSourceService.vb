@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -63,8 +64,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             Return document.WithSyntaxRoot(newSyntaxRoot)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return _memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Dim coreRules = Formatter.GetDefaultFormattingRules(document)
+            Dim result = New FixedSizeArrayBuilder(Of AbstractFormattingRule)(1 + coreRules.Length)
+            result.Add(_memberSeparationRule)
+            result.AddRange(coreRules)
+            Return result.MoveToImmutable()
         End Function
 
         Protected Overrides Function GetReducers() As ImmutableArray(Of AbstractReducer)

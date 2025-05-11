@@ -52,7 +52,7 @@ class C
             string text = @"
 var array = { 1, 2 };
 ";
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
                 // var array = { 1, 2 };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, "array = { 1, 2 }"));

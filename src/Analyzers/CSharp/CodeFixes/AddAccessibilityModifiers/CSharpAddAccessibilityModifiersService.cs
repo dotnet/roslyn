@@ -4,18 +4,12 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
-{
-    [ExportLanguageService(typeof(IAddAccessibilityModifiersService), LanguageNames.CSharp), Shared]
-    internal class CSharpAddAccessibilityModifiersService : CSharpAddAccessibilityModifiers, IAddAccessibilityModifiersService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAddAccessibilityModifiersService()
-        {
-        }
-    }
-}
+namespace Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
+
+[ExportLanguageService(typeof(IAddOrRemoveAccessibilityModifiersService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddOrRemoveAccessibilityModifiersService() : CSharpAddOrRemoveAccessibilityModifiers, IAddOrRemoveAccessibilityModifiersService;

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1283,6 +1284,62 @@ class C
 
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
             VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2018744")]
+        public void TestDeeplyNested1()
+        {
+            var expr = string.Join(" + ", Enumerable.Range(0, 10000).Select(_ => "a"));
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a, int b, int c)
+                    {
+                        var v = {{expr}} + b;
+                    }
+                }
+                """");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a, int b, int c)
+                    {
+                        var v = {{expr}} + c;
+                    }
+                }
+                """");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2018744")]
+        public void TestDeeplyNested2()
+        {
+            var expr = string.Join(" + ", Enumerable.Range(0, 10000).Select(_ => "a"));
+
+            var tree1 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a)
+                    {
+                        var v = {{expr}};
+                    }
+                }
+                """");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree($$""""
+                class C
+                {
+                    void M(int a)
+                    {
+                        var v = {{expr}};
+                    }
+                }
+                """");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
         }
     }
 }

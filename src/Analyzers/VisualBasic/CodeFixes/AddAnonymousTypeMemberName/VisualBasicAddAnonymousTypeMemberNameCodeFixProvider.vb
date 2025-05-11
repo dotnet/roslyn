@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
             ImmutableArray.Create(BC36556)
 
         Protected Overrides Function HasName(declarator As FieldInitializerSyntax) As Boolean
-            Return Not TypeOf declarator Is InferredFieldInitializerSyntax
+            Return TypeOf declarator IsNot InferredFieldInitializerSyntax
         End Function
 
         Protected Overrides Function GetExpression(declarator As FieldInitializerSyntax) As ExpressionSyntax

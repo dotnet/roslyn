@@ -60,19 +60,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (MethodKind == MethodKind.ExplicitInterfaceImplementation)
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodNotExplicit, _location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberNotExplicit, _location);
                 }
 
                 if (!ContainingType.IsPartial())
                 {
-                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyInPartialClass, _location);
+                    diagnostics.Add(ErrorCode.ERR_PartialMemberOnlyInPartialClass, _location);
                 }
-            }
-
-            if (!IsPartial)
-            {
-                LazyAsyncMethodChecks(CancellationToken.None);
-                Debug.Assert(state.HasComplete(CompletionPart.FinishAsyncMethodChecks));
             }
 
             // The runtime will not treat this method as an override or implementation of another
@@ -251,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
+            ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
 
             if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
             {

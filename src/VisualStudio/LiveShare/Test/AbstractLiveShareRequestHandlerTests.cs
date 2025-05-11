@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
@@ -27,7 +26,7 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
         .AddParts(typeof(TestWorkspaceRegistrationService))
         .AddParts(typeof(TestWorkspaceConfigurationService));
 
-    private class MockHostProtocolConverter : IHostProtocolConverter
+    private sealed class MockHostProtocolConverter : IHostProtocolConverter
     {
         private readonly Func<Uri, Uri> _uriConversionFunction;
 
@@ -64,7 +63,7 @@ public abstract class AbstractLiveShareRequestHandlerTests(ITestOutputHelper tes
 
     protected static ILspRequestHandler<RequestType, ResponseType, Solution> GetHandler<RequestType, ResponseType>(Solution solution, string methodName)
     {
-        var workspace = (EditorTestWorkspace)solution.Workspace;
+        var workspace = (LspTestWorkspace)solution.Workspace;
         var handlers = workspace.ExportProvider.GetExportedValues<ILspRequestHandler>(LiveShareConstants.RoslynContractName);
         return (ILspRequestHandler<RequestType, ResponseType, Solution>)handlers.Single(handler => handler is ILspRequestHandler<RequestType, ResponseType, Solution> && IsMatchingMethod(handler, methodName));
 

@@ -13,8 +13,10 @@ internal abstract partial class GreenNode
     [NonCopyable]
     public ref struct NodeEnumerable(GreenNode node)
     {
+        private readonly GreenNode _node = node;
+
         public readonly Enumerator GetEnumerator()
-            => new Enumerator(node);
+            => new Enumerator(_node);
 
         [NonCopyable]
         public ref struct Enumerator

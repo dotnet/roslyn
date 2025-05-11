@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedList<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedList<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue);
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedList<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedList<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -101,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedList<T> InterlockedExchange<T>(ref ImmutableSegmentedList<T> location, ImmutableSegmentedList<T> value)
         {
-            return ImmutableSegmentedList<T>.PrivateInterlocked.InterlockedExchange(ref location, value);
+            return ImmutableSegmentedList<T>.PrivateMarshal.InterlockedExchange(ref location, value);
         }
 
         /// <summary>
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedList<T> InterlockedCompareExchange<T>(ref ImmutableSegmentedList<T> location, ImmutableSegmentedList<T> value, ImmutableSegmentedList<T> comparand)
         {
-            return ImmutableSegmentedList<T>.PrivateInterlocked.InterlockedCompareExchange(ref location, value, comparand);
+            return ImmutableSegmentedList<T>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
         }
 
         /// <summary>
@@ -153,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedHashSet<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedHashSet<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue);
@@ -194,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedHashSet<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedHashSet<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -222,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedHashSet<T> InterlockedExchange<T>(ref ImmutableSegmentedHashSet<T> location, ImmutableSegmentedHashSet<T> value)
         {
-            return ImmutableSegmentedHashSet<T>.PrivateInterlocked.InterlockedExchange(ref location, value);
+            return ImmutableSegmentedHashSet<T>.PrivateMarshal.InterlockedExchange(ref location, value);
         }
 
         /// <summary>
@@ -236,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedHashSet<T> InterlockedCompareExchange<T>(ref ImmutableSegmentedHashSet<T> location, ImmutableSegmentedHashSet<T> value, ImmutableSegmentedHashSet<T> comparand)
         {
-            return ImmutableSegmentedHashSet<T>.PrivateInterlocked.InterlockedCompareExchange(ref location, value, comparand);
+            return ImmutableSegmentedHashSet<T>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
         }
 
         /// <summary>
@@ -276,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue);
@@ -319,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -349,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ImmutableSegmentedDictionary<TKey, TValue> InterlockedExchange<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, ImmutableSegmentedDictionary<TKey, TValue> value)
             where TKey : notnull
         {
-            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.InterlockedExchange(ref location, value);
+            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.InterlockedExchange(ref location, value);
         }
 
         /// <summary>
@@ -365,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ImmutableSegmentedDictionary<TKey, TValue> InterlockedCompareExchange<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, ImmutableSegmentedDictionary<TKey, TValue> value, ImmutableSegmentedDictionary<TKey, TValue> comparand)
             where TKey : notnull
         {
-            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.InterlockedCompareExchange(ref location, value, comparand);
+            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
         }
 
         /// <summary>
@@ -391,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -411,7 +414,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -428,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static TValue GetOrAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -462,7 +465,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -498,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -530,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -557,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var valueComparer = EqualityComparer<TValue>.Default;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -584,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryRemove<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, [MaybeNullWhen(false)] out TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -604,6 +607,33 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 priorCollection = interlockedResult; // we already have a volatile read that we can reuse for the next loop
             }
+        }
+
+        /// <summary>
+        /// Reads from an ImmutableArray location, ensuring that a read barrier is inserted to prevent any subsequent reads from being reordered before this read.
+        /// </summary>
+        /// <remarks>
+        /// This method is not intended to be used to provide write barriers.
+        /// </remarks>
+        public static ImmutableArray<T> VolatileRead<T>(ref readonly ImmutableArray<T> location)
+        {
+            var value = location;
+            // When Volatile.ReadBarrier() is available in .NET 10, it can be used here.
+            Interlocked.MemoryBarrier();
+            return value;
+        }
+
+        /// <summary>
+        /// Writes to an ImmutableArray location, ensuring that a write barrier is inserted to prevent any prior writes from being reordered after this write.
+        /// </summary>
+        /// <remarks>
+        /// This method is not intended to be used to provide read barriers.
+        /// </remarks>
+        public static void VolatileWrite<T>(ref ImmutableArray<T> location, ImmutableArray<T> value)
+        {
+            // When Volatile.WriteBarrier() is available in .NET 10, it can be used here.
+            Interlocked.MemoryBarrier();
+            location = value;
         }
     }
 }

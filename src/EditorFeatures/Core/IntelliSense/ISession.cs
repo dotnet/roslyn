@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
+
+internal interface ISession<TModel>
 {
-    internal interface ISession<TModel>
-    {
-        TModel InitialUnfilteredModel { get; }
+    TModel InitialUnfilteredModel { get; }
 
-        void Stop();
+    void Stop();
 
-        TModel WaitForController();
-    }
+    Task WaitForModelComputation_ForTestingPurposesOnlyAsync();
 }

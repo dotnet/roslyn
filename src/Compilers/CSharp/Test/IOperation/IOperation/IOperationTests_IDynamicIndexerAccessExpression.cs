@@ -25,6 +25,7 @@ class C
     }
 
     public int this[int i] => 0;
+    public int this[long i] => 0;
 }
 ";
             string expectedOperationTree = @"
@@ -152,6 +153,7 @@ class C
     }
 
     public int this[int i, ref dynamic ch] => 0;
+    public int this[long i, ref dynamic ch] => 0;
 }
 ";
             string expectedOperationTree = @"
@@ -171,7 +173,10 @@ IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynami
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0631: ref and out are not valid in this context
                 //     public int this[int i, ref dynamic ch] => 0;
-                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(9, 28),
+                // (10,29): error CS0631: ref and out are not valid in this context
+                //     public int this[long i, ref dynamic ch] => 0;
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(10, 29)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -324,6 +329,7 @@ class C
     }
 
     public int this[Action a, Action y] => 0;
+    public int this[Action a, int y] => 0;
 }
 ";
             string expectedOperationTree = @"
@@ -395,6 +401,7 @@ class C
     }/*</bind>*/
 
     public int this[int i] => 0;
+    public int this[long i] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -441,6 +448,7 @@ class C
     }/*</bind>*/
 
     public static int this[int i] => 0;
+    public static int this[long i] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -476,6 +484,9 @@ Block[B2] - Exit
                 // file.cs(9,23): error CS0106: The modifier 'static' is not valid for this item
                 //     public static int this[int i] => 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(9, 23),
+                // (10,23): error CS0106: The modifier 'static' is not valid for this item
+                //     public static int this[long i] => 0;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(10, 23),
                 // file.cs(6,13): error CS0119: 'C' is a type, which is not valid in the given context
                 //         p = C[d];
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(6, 13)
@@ -497,6 +508,7 @@ class C
     }/*</bind>*/
 
     public int this[int i] => 0;
+    public int this[long i] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -597,6 +609,7 @@ class C
     }/*</bind>*/
 
     public int this[int i] => 0;
+    public int this[long i] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -701,6 +714,7 @@ class C
     }/*</bind>*/
 
     public int this[int i] => 0;
+    public int this[long i] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -840,6 +854,7 @@ class C
     }/*</bind>*/
 
     public int this[int i, int j] => 0;
+    public int this[long i, int j] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -945,6 +960,7 @@ class C
     }/*</bind>*/
 
     public int this[int i, int j] => 0;
+    public int this[int i, long j] => 0;
 }
 ";
             string expectedFlowGraph = @"
@@ -1054,6 +1070,7 @@ class C
     }/*</bind>*/
 
     public int this[int i, int j] => 0;
+    public int this[int i, long j] => 0;
 }
 ";
             string expectedFlowGraph = @"

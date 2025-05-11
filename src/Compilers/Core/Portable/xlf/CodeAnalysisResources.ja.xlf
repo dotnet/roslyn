@@ -17,6 +17,11 @@
         <target state="translated">型 '{0}' を含むアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="translated">属性</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">不正な組み込み演算子名 '{0}'</target>
@@ -80,6 +85,11 @@
       <trans-unit id="EndMustNotBeLessThanStart">
         <source>'end' must not be less than 'start'. start='{0}' end='{1}'.</source>
         <target state="translated">'end' は 'start' より小さくすることはできません。start='{0}' end='{1}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExceptionMessage_FileMayBeLockedBy">
+        <source>{0}; file may be locked by {1}</source>
+        <target state="translated">{0};ファイルが {1} によってロックされている可能性があります</target>
         <note />
       </trans-unit>
       <trans-unit id="GeneratorNameColumnHeader">
@@ -225,7 +235,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="translated">レガシ ファイル署名の一時パスは使用できません。</target>
+        <target state="translated">レガシ ファイル署名用の一時パスは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -263,9 +273,19 @@
         <target state="translated">SuppressionDescriptor では、null でも、空の文字列でも、空白のみの文字列でもない ID が必要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="translated">メソッド '{0}' のネイティブ PDB を生成できません。デバッグ メタデータ のサイズ {1} が制限 {2} を超えています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="translated">'{0}' 型に必要なコンストラクターがありません</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

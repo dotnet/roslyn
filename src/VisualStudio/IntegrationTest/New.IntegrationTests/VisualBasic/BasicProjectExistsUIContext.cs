@@ -11,33 +11,32 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+public class BasicProjectExistsUIContext : AbstractIntegrationTest
 {
-    public class BasicProjectExistsUIContext : AbstractIntegrationTest
+    public override async Task InitializeAsync()
     {
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync();
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicProjectExistsUIContext), HangMitigatingCancellationToken);
-        }
+        await base.InitializeAsync();
+        await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicProjectExistsUIContext), HangMitigatingCancellationToken);
+    }
 
-        [IdeFact]
-        public async Task ProjectContextChanges()
-        {
-            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
-            var contextProvider = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService<IProjectExistsUIContextProviderLanguageService>();
-            var context = contextProvider.GetUIContext();
+    [IdeFact]
+    public async Task ProjectContextChanges()
+    {
+        var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+        var contextProvider = workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService<IProjectExistsUIContextProviderLanguageService>();
+        var context = contextProvider.GetUIContext();
 
-            Assert.False(context.IsActive);
+        Assert.False(context.IsActive);
 
-            await TestServices.SolutionExplorer.AddProjectAsync("TestVisualBasicProject", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync("TestVisualBasicProject", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
 
-            Assert.True(context.IsActive);
+        Assert.True(context.IsActive);
 
-            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
-            Assert.False(context.IsActive);
-        }
+        Assert.False(context.IsActive);
     }
 }

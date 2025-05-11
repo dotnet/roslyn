@@ -31,9 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
                 },
                 hasInitializer: false,
-                isAutoProperty: false,
+                hasExplicitAccessMod: false,
+                hasAutoPropertyGet: false,
+                hasAutoPropertySet: false,
                 isExpressionBodied: false,
-                isInitOnly: false,
+                accessorsHaveImplementation: true,
+                getterUsesFieldKeyword: false,
+                setterUsesFieldKeyword: false,
                 RefKind.None,
                 PropertyName,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -47,8 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => new SyntaxList<AttributeListSyntax>();
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+
+        protected override SourcePropertySymbolBase? BoundAttributesSource => null;
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 
@@ -83,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             VerifyOverridesEqualityContractFromBase(this, diagnostics);
         }
 
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
@@ -149,14 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
-            {
-                base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-                Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
+            public override bool IsImplicitlyDeclared => true;
 
             public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 try
                 {
                     F.CurrentFunction = this;
-                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType))));
+                    F.CloseMethod(F.Block(F.Return(F.Typeof(ContainingType, ReturnType))));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

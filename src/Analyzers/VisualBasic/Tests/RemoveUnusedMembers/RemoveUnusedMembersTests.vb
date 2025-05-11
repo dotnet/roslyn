@@ -1620,9 +1620,8 @@ End Class",
 parseOptions:=Nothing,
 compilationOptions:=Nothing,
 options:=Nothing,
-globalOptions:=Nothing,
 "IDE0051",
-DiagnosticSeverity.Info,
+DiagnosticSeverity.Hidden,
 diagnosticMessage:=String.Format(AnalyzersResources.Private_member_0_is_unused, "C.New"))
         End Function
     End Class

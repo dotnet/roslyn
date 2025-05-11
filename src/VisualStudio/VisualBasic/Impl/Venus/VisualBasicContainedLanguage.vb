@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=False,
@@ -100,7 +100,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 itemidInsertionPoint,
                 useHandlesClause:=True,
                 additionalFormattingRule:=LineAdjustmentFormattingRule.Instance,
-                GlobalOptions,
                 cancellationToken:=Nothing)
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1
@@ -117,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,
@@ -140,7 +139,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
             Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
-                BasicVSResources.IntelliSense,
+                EditorFeaturesResources.IntelliSense,
                 defaultDescription:="",
                 allowCancellation:=False,
                 showProgress:=Nothing,

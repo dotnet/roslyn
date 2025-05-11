@@ -160,7 +160,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist')? equals_value_clause?
   ;
 
 constructor_initializer
@@ -208,10 +208,23 @@ type_parameter_constraint_clause
   ;
 
 type_parameter_constraint
-  : class_or_struct_constraint
+  : allows_constraint_clause
+  | class_or_struct_constraint
   | constructor_constraint
   | default_constraint
   | type_constraint
+  ;
+
+allows_constraint_clause
+  : 'allows' allows_constraint (',' allows_constraint)*
+  ;
+
+allows_constraint
+  : ref_struct_constraint
+  ;
+
+ref_struct_constraint
+  : 'ref' 'struct'
   ;
 
 class_or_struct_constraint
@@ -232,7 +245,7 @@ type_constraint
   ;
 
 operator_declaration
-  : attribute_list* modifier* type explicit_interface_specifier? 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is') parameter_list (block | (arrow_expression_clause ';'))
+  : attribute_list* modifier* type explicit_interface_specifier? 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | 'is' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>=') parameter_list (block | (arrow_expression_clause ';'))
   ;
 
 base_namespace_declaration
@@ -310,6 +323,7 @@ enum_member_declaration
 
 type_declaration
   : class_declaration
+  | extension_declaration
   | interface_declaration
   | record_declaration
   | struct_declaration
@@ -317,6 +331,10 @@ type_declaration
 
 class_declaration
   : attribute_list* modifier* 'class' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+extension_declaration
+  : attribute_list* modifier* 'extension' type_parameter_list? parameter_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 interface_declaration
@@ -734,6 +752,7 @@ expression
   | default_expression
   | element_access_expression
   | element_binding_expression
+  | field_expression
   | implicit_array_creation_expression
   | implicit_element_access
   | implicit_stack_alloc_array_creation_expression
@@ -878,6 +897,10 @@ element_binding_expression
   : bracketed_argument_list
   ;
 
+field_expression
+  : 'field'
+  ;
+
 implicit_array_creation_expression
   : 'new' '[' ','* ']' initializer_expression
   ;
@@ -931,6 +954,18 @@ interpolation_format_clause
   : ':' interpolated_string_text_token
   ;
 
+interpolated_multi_line_raw_string_start_token
+  : '$'+ '"""' '"'*
+  ;
+
+interpolated_raw_string_end_token
+  : '"""' '"'* /* must match number of quotes in raw_string_start_token */
+  ;
+
+interpolated_single_line_raw_string_start_token
+  : '$'+ '"""' '"'*
+  ;
+
 invocation_expression
   : expression argument_list
   ;
@@ -940,19 +975,31 @@ is_pattern_expression
   ;
 
 literal_expression
-  : '__arglist'
-  | 'default'
+  : 'default'
   | 'false'
   | 'null'
   | 'true'
+  | '__arglist'
   | character_literal_token
   | multi_line_raw_string_literal_token
   | numeric_literal_token
   | single_line_raw_string_literal_token
   | string_literal_token
-  | utf_8_multi_line_raw_string_literal_token
-  | utf_8_single_line_raw_string_literal_token
-  | utf_8_string_literal_token
+  | utf8_multi_line_raw_string_literal_token
+  | utf8_single_line_raw_string_literal_token
+  | utf8_string_literal_token
+  ;
+
+utf8_multi_line_raw_string_literal_token
+  : multi_line_raw_string_literal_token ('U8' | 'u8')
+  ;
+
+utf8_single_line_raw_string_literal_token
+  : single_line_raw_string_literal_token ('U8' | 'u8')
+  ;
+
+utf8_string_literal_token
+  : string_literal_token ('U8' | 'u8')
   ;
 
 make_ref_expression
@@ -1101,20 +1148,20 @@ with_expression
   ;
 
 xml_node
-  : xml_c_data_section
-  | xml_comment
+  : xml_comment
+  | xml_c_data_section
   | xml_element
   | xml_empty_element
   | xml_processing_instruction
   | xml_text
   ;
 
-xml_c_data_section
-  : '<![CDATA[' xml_text_literal_token* ']]>'
-  ;
-
 xml_comment
   : '<!--' xml_text_literal_token* '-->'
+  ;
+
+xml_c_data_section
+  : '<![CDATA[' xml_text_literal_token* ']]>'
   ;
 
 xml_element
@@ -1184,7 +1231,7 @@ name_member_cref
   ;
 
 operator_member_cref
-  : 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true') cref_parameter_list?
+  : 'operator' 'checked'? ('+' | '-' | '!' | '~' | '++' | '--' | '*' | '/' | '%' | '<<' | '>>' | '>>>' | '|' | '&' | '^' | '==' | '!=' | '<' | '<=' | '>' | '>=' | 'false' | 'true' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=' | '>>>=') cref_parameter_list?
   ;
 
 qualified_cref
@@ -1232,6 +1279,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
+  | ignored_directive_trivia
   | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
@@ -1284,6 +1332,10 @@ end_region_directive_trivia
 
 error_directive_trivia
   : '#' 'error'
+  ;
+
+ignored_directive_trivia
+  : '#' ':' string_literal_token?
   ;
 
 line_or_span_directive_trivia
@@ -1347,6 +1399,354 @@ skipped_tokens_trivia
   : syntax_token*
   ;
 
+syntax_token
+  : character_literal_token
+  | identifier_token
+  | keyword
+  | numeric_literal_token
+  | operator_token
+  | punctuation_token
+  | string_literal_token
+  ;
+
+identifier_token
+  : '@'? identifier_start_character identifier_part_character
+  ;
+
+identifier_start_character
+  : letter_character
+  | underscore_character
+  ;
+
+letter_character
+  : /* [\p{L}\p{Nl}] category letter, all subcategories; category number, subcategory letter */
+  | unicode_escape_sequence /* only escapes for categories L & Nl allowed */
+  ;
+
+underscore_character
+  : '\\u005' /* unicode_escape_sequence for underscore */
+  | '_'
+  ;
+
+identifier_part_character
+  : combining_character
+  | connecting_character
+  | decimal_digit_character
+  | formatting_character
+  | letter_character
+  ;
+
+combining_character
+  : /* [\p{Mn}\p{Mc}] category Mark, subcategories non-spacing and spacing combining */
+  | unicode_escape_sequence /* only escapes for categories Mn & Mc allowed */
+  ;
+
+connecting_character
+  : /* [\p{Pc}] category Punctuation, subcategory connector */
+  | unicode_escape_sequence /* only escapes for category Pc allowed */
+  ;
+
+decimal_digit_character
+  : /* [\p{Nd}] category number, subcategory decimal digit */
+  | unicode_escape_sequence /* only escapes for category Nd allowed */
+  ;
+
+formatting_character
+  : /* [\p{Cf}] category Other, subcategory format. */
+  | unicode_escape_sequence /* only escapes for category Cf allowed */
+  ;
+
+keyword
+  : 'as'
+  | 'base'
+  | 'bool'
+  | 'break'
+  | 'byte'
+  | 'case'
+  | 'catch'
+  | 'char'
+  | 'checked'
+  | 'class'
+  | 'continue'
+  | 'decimal'
+  | 'default'
+  | 'delegate'
+  | 'do'
+  | 'double'
+  | 'else'
+  | 'enum'
+  | 'event'
+  | 'explicit'
+  | 'false'
+  | 'finally'
+  | 'float'
+  | 'for'
+  | 'foreach'
+  | 'goto'
+  | 'if'
+  | 'implicit'
+  | 'in'
+  | 'int'
+  | 'interface'
+  | 'is'
+  | 'lock'
+  | 'long'
+  | 'namespace'
+  | 'null'
+  | 'object'
+  | 'operator'
+  | 'out'
+  | 'params'
+  | 'return'
+  | 'sbyte'
+  | 'short'
+  | 'sizeof'
+  | 'stackalloc'
+  | 'string'
+  | 'struct'
+  | 'switch'
+  | 'this'
+  | 'throw'
+  | 'true'
+  | 'try'
+  | 'typeof'
+  | 'uint'
+  | 'ulong'
+  | 'unchecked'
+  | 'ushort'
+  | 'using'
+  | 'void'
+  | 'while'
+  | '__arglist'
+  | '__makeref'
+  | '__reftype'
+  | '__refvalue'
+  | modifier
+  ;
+
+numeric_literal_token
+  : integer_literal_token
+  | real_literal_token
+  ;
+
+integer_literal_token
+  : decimal_integer_literal_token
+  | hexadecimal_integer_literal_token
+  ;
+
+decimal_integer_literal_token
+  : decimal_digit+ integer_type_suffix?
+  ;
+
+decimal_digit
+  : '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  ;
+
+integer_type_suffix
+  : 'L'
+  | 'l'
+  | 'LU'
+  | 'lU'
+  | 'Lu'
+  | 'lu'
+  | 'U'
+  | 'u'
+  | 'UL'
+  | 'uL'
+  | 'Ul'
+  | 'ul'
+  ;
+
+hexadecimal_integer_literal_token
+  : ('0x' | '0X') hexadecimal_digit+ integer_type_suffix?
+  ;
+
+hexadecimal_digit
+  : 'A'
+  | 'a'
+  | 'B'
+  | 'b'
+  | 'C'
+  | 'c'
+  | 'D'
+  | 'd'
+  | 'E'
+  | 'e'
+  | 'F'
+  | 'f'
+  | decimal_digit
+  ;
+
+real_literal_token
+  : '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ '.' decimal_digit+ exponent_part? real_type_suffix?
+  | decimal_digit+ exponent_part real_type_suffix?
+  | decimal_digit+ real_type_suffix
+  ;
+
+exponent_part
+  : ('E' | 'e') ('+' | '-')? decimal_digit+
+  ;
+
+real_type_suffix
+  : 'D'
+  | 'd'
+  | 'F'
+  | 'f'
+  | 'M'
+  | 'm'
+  ;
+
+character_literal_token
+  : '\'' character '\''
+  ;
+
+character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_character
+  | unicode_escape_sequence
+  ;
+
+hexadecimal_escape_sequence
+  : '\\x' hexadecimal_digit hexadecimal_digit? hexadecimal_digit? hexadecimal_digit?
+  ;
+
+simple_escape_sequence
+  : '\\"'
+  | '\\0'
+  | '\\a'
+  | '\\b'
+  | '\\f'
+  | '\\n'
+  | '\\r'
+  | '\\t'
+  | '\\v'
+  | '\\\''
+  | '\\\\'
+  ;
+
+single_character
+  : /* ~['\\\u000D\u000A\u0085\u2028\u2029] anything but ', \\, and new_line_character */
+  ;
+
+unicode_escape_sequence
+  : '\\u' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  | '\\U' hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit hexadecimal_digit
+  ;
+
+string_literal_token
+  : regular_string_literal_token
+  | verbatim_string_literal_token
+  ;
+
+regular_string_literal_token
+  : '"' regular_string_literal_character* '"'
+  ;
+
+regular_string_literal_character
+  : hexadecimal_escape_sequence
+  | simple_escape_sequence
+  | single_regular_string_literal_character
+  | unicode_escape_sequence
+  ;
+
+single_regular_string_literal_character
+  : /* ~["\\\u000D\u000A\u0085\u2028\u2029] anything but ", \, and new_line_character */
+  ;
+
+verbatim_string_literal_token
+  : '@"' verbatim_string_literal_character* '"'
+  ;
+
+verbatim_string_literal_character
+  : quote_escape_sequence
+  | single_verbatim_string_literal_character
+  ;
+
+quote_escape_sequence
+  : '""'
+  ;
+
+single_verbatim_string_literal_character
+  : /* anything but quotation mark (U+0022) */
+  ;
+
+operator_token
+  : '!'
+  | '!='
+  | '%'
+  | '%='
+  | '&&'
+  | '&'
+  | '&='
+  | '*'
+  | '*='
+  | '+'
+  | '++'
+  | '+='
+  | '-'
+  | '--'
+  | '-='
+  | '/'
+  | '/='
+  | '<'
+  | '<<'
+  | '<<='
+  | '<='
+  | '='
+  | '=='
+  | '>'
+  | '>='
+  | '>>'
+  | '>>='
+  | '>>>'
+  | '>>>='
+  | '??'
+  | '??='
+  | 'as'
+  | 'is'
+  | '^'
+  | '^='
+  | '|'
+  | '|='
+  | '||'
+  | '~'
+  ;
+
+punctuation_token
+  : '"'
+  | '#'
+  | '('
+  | ')'
+  | ','
+  | '->'
+  | '.'
+  | '..'
+  | '/>'
+  | ':'
+  | '::'
+  | ';'
+  | '</'
+  | '=>'
+  | '?'
+  | '['
+  | '\''
+  | '\\'
+  | ']'
+  | '{'
+  | '}'
+  ;
+
 base_argument_list
   : argument_list
   | bracketed_argument_list
@@ -1367,29 +1767,9 @@ base_parameter
   | parameter
   ;
 
-character_literal_token
-  : /* see lexical specification */
-  ;
-
 expression_or_pattern
   : expression
   | pattern
-  ;
-
-identifier_token
-  : /* see lexical specification */
-  ;
-
-interpolated_multi_line_raw_string_start_token
-  : /* see lexical specification */
-  ;
-
-interpolated_raw_string_end_token
-  : /* see lexical specification */
-  ;
-
-interpolated_single_line_raw_string_start_token
-  : /* see lexical specification */
   ;
 
 interpolated_string_text_token
@@ -1400,31 +1780,7 @@ multi_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
-numeric_literal_token
-  : /* see lexical specification */
-  ;
-
 single_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-string_literal_token
-  : /* see lexical specification */
-  ;
-
-syntax_token
-  : /* see lexical specification */
-  ;
-
-utf_8_multi_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-utf_8_single_line_raw_string_literal_token
-  : /* see lexical specification */
-  ;
-
-utf_8_string_literal_token
   : /* see lexical specification */
   ;
 

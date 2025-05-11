@@ -6,15 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GenerateType
+namespace Microsoft.CodeAnalysis.GenerateType;
+
+internal interface IGenerateTypeService : ILanguageService
 {
-    internal interface IGenerateTypeService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateTypeAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-        Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
-        string GetRootNamespace(CompilationOptions options);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateTypeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+    Task<(INamespaceSymbol, INamespaceOrTypeSymbol, Location)> GetOrGenerateEnclosingNamespaceSymbolAsync(INamedTypeSymbol namedTypeSymbol, string[] containers, Document selectedDocument, SyntaxNode selectedDocumentRoot, CancellationToken cancellationToken);
+    string GetRootNamespace(CompilationOptions options);
 }
