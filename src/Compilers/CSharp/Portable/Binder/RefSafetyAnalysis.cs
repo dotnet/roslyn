@@ -923,22 +923,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpression(BoundCollectionExpression node)
         {
-            if (node.CollectionCreation is { } collectionCreation)
-            {
-                if (node.CollectionBuilderSpanPlaceholder is { } spanPlaceholder)
-                {
-                    var elementType = ((NamedTypeSymbol)spanPlaceholder.Type!).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-                    var safeContext = LocalRewriter.ShouldUseRuntimeHelpersCreateSpan(node, elementType.Type) ? SafeContext.ReturnOnly : _localScopeDepth;
-                    var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContext)>.GetInstance();
-                    placeholders.Add((spanPlaceholder, safeContext));
-                    using var _ = new PlaceholderRegion(this, placeholders);
-                    Visit(collectionCreation);
-                }
-                else
-                {
-                    Visit(collectionCreation);
-                }
-            }
+            // PROTOTYPE: Test when builder method takes a ref to ref struct as an argument and the
+            // elements is/is not scoped. Is RefSafety_CollectionBuilderArguments() such a test?
+            Visit(node.CollectionCreation);
             VisitList(node.Elements);
             return null;
         }

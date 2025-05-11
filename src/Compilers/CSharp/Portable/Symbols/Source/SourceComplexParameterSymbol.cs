@@ -1638,15 +1638,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             Debug.Assert(builderType is { });
                             Debug.Assert(!string.IsNullOrEmpty(methodName));
 
-                            MethodSymbol? collectionBuilderMethod = binder.GetAndValidateCollectionBuilderMethod(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
-                            if (collectionBuilderMethod is null)
+                            var candidateMethods = binder.GetAndValidateCollectionBuilderMethods(syntax, targetType.OriginalDefinition, builderType, methodName, diagnostics);
+                            if (candidateMethods.Any())
                             {
-                                return;
-                            }
+                                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+                                var typeArguments = targetType.GetAllTypeArguments(ref useSiteInfo);
+                                diagnostics.Add(syntax, useSiteInfo);
+                                var candidateMethodGroup = binder.BindCollectionBuilderMethodGroup(syntax, methodName, typeArguments, candidateMethods);
+                                var collectionCreation = binder.BindCollectionBuilderCreate(
+                                    syntax,
+                                    candidateMethodGroup,
+                                    withElement: null,
+                                    targetType,
+                                    diagnostics);
 
-                            if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
-                            {
-                                checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
+                                if (collectionCreation is BoundCall { Method: var collectionBuilderMethod } &&
+                                    ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
+                                {
+                                    checkIsAtLeastAsVisible(syntax, binder, collectionBuilderMethod, diagnostics);
+                                }
                             }
                         }
                         break;

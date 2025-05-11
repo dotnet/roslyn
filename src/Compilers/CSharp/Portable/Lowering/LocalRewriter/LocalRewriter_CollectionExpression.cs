@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        Debug.Assert(Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] });
-
                         // A few special cases when a collection type is an ImmutableArray<T>
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
@@ -142,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool usesSingleParameterBuilderMethod(CSharpCompilation compilation, BoundCollectionExpression node, TypeWithAnnotations elementType)
             {
                 var method = Binder.GetCollectionBuilderMethod(node);
-                Debug.Assert(method is { Parameters: [var parameter] } &&
+                Debug.Assert(method is { Parameters: [.., var parameter] } &&
                     parameter.Type.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T).Construct([elementType]), TypeCompareKind.AllIgnoreOptions));
-                return method is { Parameters.Length: 1 };
+                return method is { ParameterCount: 1 }; // PROTOTYPE: Test when ParameterCount > 1.
             }
 
             static BoundNode unwrapListElement(BoundCollectionExpression node, BoundNode element)
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             spreadExpression = null;
 
             if (node.Elements is [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }] &&
-                Binder.GetCollectionBuilderMethod(node) is { Parameters: [var parameter] } builder &&
+                Binder.GetCollectionBuilderMethod(node) is { Parameters: [.., var parameter] } builder && // PROTOTYPE: Test with more than one parameter.
                 ConversionsBase.HasIdentityConversion(parameter.Type, spreadType) &&
                 (!builder.ReturnType.IsRefLikeType || parameter.EffectiveScope == ScopedKind.ScopedValue))
             {
@@ -515,26 +513,100 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(node.Type is { });
-            Debug.Assert(node.CollectionCreation is { });
+            Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionBuilderArgumentsOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is null);
-            Debug.Assert(node.CollectionBuilderSpanPlaceholder is { Type: NamedTypeSymbol { } });
 
-            var spanPlaceholder = node.CollectionBuilderSpanPlaceholder;
-            var spanType = (NamedTypeSymbol)spanPlaceholder.Type;
+            if (node.CollectionCreation is not BoundCall { Method: CollectionBuilderArgumentsOnlyMethodSymbol argsOnlyMethod } argsOnlyCall)
+            {
+                throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
+            }
+
+            Debug.Assert(argsOnlyCall.ReceiverOpt is null);
+            Debug.Assert(!argsOnlyCall.Expanded);
+
+            var syntax = node.Syntax;
+            var builderMethod = argsOnlyMethod.UnderlyingMethod;
+            var spanType = (NamedTypeSymbol)builderMethod.Parameters[^1].Type;
+            var spanPlaceholder = new BoundValuePlaceholder(syntax, spanType);
+
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
+            // var instance = Builder.Create<TElement>([elements], args);
+            var arguments = argsOnlyCall.Arguments;
+            var argsToParamsOpt = argsOnlyCall.ArgsToParamsOpt;
+            var argumentRefKindsOpt = argsOnlyCall.ArgumentRefKindsOpt;
+
+            Debug.Assert(argsToParamsOpt.IsDefault || argsToParamsOpt.Length == arguments.Length);
+            Debug.Assert(argumentRefKindsOpt.IsDefault || argumentRefKindsOpt.Length == arguments.Length);
+
+            arguments = arguments.Add(spanPlaceholder);
+            if (!argsToParamsOpt.IsDefault)
+            {
+                argsToParamsOpt = argsToParamsOpt.Add(builderMethod.ParameterCount - 1);
+            }
+            if (!argumentRefKindsOpt.IsDefault)
+            {
+                // PROTOTYPE: Test this case.
+                argumentRefKindsOpt = argumentRefKindsOpt.Add(RefKind.None);
+            }
+
+            // PROTOTYPE: Order of evaluation is incorrect. We should visit arguments before the elements.
             // If collection expression is of form `[.. anotherReadOnlySpan]`
             // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
-            BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
+            BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression) // PROTOTYPE: Test optimization with non-empty args, and test order of evaluation.
                 ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]);
-
             AddPlaceholderReplacement(spanPlaceholder, span);
-            var result = VisitExpression(node.CollectionCreation);
+
+            ArrayBuilder<LocalSymbol>? tempsBuilder = null;
+            BoundExpression? rewrittenReceiver = null;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                arguments,
+                builderMethod,
+                argsToParamsOpt,
+                argumentRefKindsOpt,
+                storesOpt: null,
+                ref tempsBuilder);
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                builderMethod,
+                expanded: false,
+                argsToParamsOpt,
+                ref argumentRefKindsOpt, // PROTOTYPE: Test where this makes a difference.
+                ref tempsBuilder);
+            BoundExpression result = new BoundCall(
+                syntax,
+                receiverOpt: null,
+                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                builderMethod,
+                rewrittenArguments,
+                argumentNamesOpt: default,
+                argumentRefKindsOpt,
+                isDelegateCall: false,
+                expanded: false,
+                invokedAsExtensionMethod: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                LookupResultKind.Viable,
+                builderMethod.ReturnType);
             RemovePlaceholderReplacement(spanPlaceholder);
-            return result;
+
+            Debug.Assert(result.Type is { });
+            if (tempsBuilder is { })
+            {
+                result = new BoundSequence(
+                    syntax,
+                    tempsBuilder.ToImmutableAndFree(),
+                    sideEffects: [],
+                    result,
+                    result.Type);
+            }
+
+            return _factory.Convert(node.Type, result);
         }
 
         internal static bool IsAllocatingRefStructCollectionExpression(BoundCollectionExpressionBase node, CollectionExpressionTypeKind collectionKind, TypeSymbol? elementType, CSharpCompilation compilation)
