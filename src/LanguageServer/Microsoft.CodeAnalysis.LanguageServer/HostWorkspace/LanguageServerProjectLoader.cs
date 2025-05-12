@@ -250,13 +250,19 @@ internal abstract class LanguageServerProjectLoader
                 var newProjectTargetsBuilder = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
-                    LoadedProject target = previousProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework)
-                        ?? await CreateNewProjectTargetAsync(loadedProjectInfo);
+                    var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                    needsRestore |= targetNeedsRestore;
-                    telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
+                    if (targetAlreadyExists)
+                    {
+                        _ = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                    }
+                    else
+                    {
+                        var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                        needsRestore |= targetNeedsRestore;
+                        telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
+                    }
                 }
 
                 var newProjectTargets = newProjectTargetsBuilder.ToImmutableAndFree();
@@ -305,8 +311,14 @@ internal abstract class LanguageServerProjectLoader
             return false;
         }
 
-        async Task<LoadedProject> CreateNewProjectTargetAsync(ProjectFileInfo loadedProjectInfo)
+        async Task<(LoadedProject, bool alreadyExists)> GetOrCreateProjectTargetAsync(ImmutableArray<LoadedProject> previousProjectTargets, ProjectFileInfo loadedProjectInfo)
         {
+            var existingProject = previousProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
+            if (existingProject != null)
+            {
+                return (existingProject, alreadyExists: true);
+            }
+
             var targetFramework = loadedProjectInfo.TargetFramework;
             var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
 
@@ -325,7 +337,7 @@ internal abstract class LanguageServerProjectLoader
 
             var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
             loadedProject.NeedsReload += (_, _) => _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
-            return loadedProject;
+            return (loadedProject, alreadyExists: false);
         }
 
         async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
@@ -410,7 +422,7 @@ internal abstract class LanguageServerProjectLoader
 
             if (loadState is ProjectLoadState.Primordial(var projectId))
             {
-                ProjectFactory.Workspace.OnProjectRemoved(projectId);
+                await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
             }
             else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
             {

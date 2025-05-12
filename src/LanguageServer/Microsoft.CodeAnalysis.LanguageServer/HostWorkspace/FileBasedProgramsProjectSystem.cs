@@ -61,9 +61,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public Workspace Workspace => ProjectFactory.Workspace;
 
+    private string GetDocumentFilePath(DocumentUri uri) => uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
+
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
-        var documentFilePath = uri.ParsedUri is not null ? ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri) : uri.UriString;
+        var documentFilePath = GetDocumentFilePath(uri);
 
         // https://github.com/dotnet/roslyn/issues/78421: MetadataAsSource should be its own workspace
         if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
@@ -107,7 +109,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             Contract.ThrowIfNull(projectInfo.ParseOptions);
             projectInfo = projectInfo.WithParseOptions(projectInfo.ParseOptions.WithFeatures([new("FileBasedProgram", "true")]));
 
-            workspace.OnProjectAdded(projectInfo);
+            ProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
 
             // https://github.com/dotnet/roslyn/pull/78267
             // Work around an issue where opening a Razor file in the misc workspace causes a crash.
@@ -124,7 +126,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
-        var documentPath = uri.ParsedUri is { } parsedUri ? ProtocolConversions.GetDocumentFilePathFromUri(parsedUri) : uri.UriString;
+        var documentPath = GetDocumentFilePath(uri);
         if (removeFromMetadataWorkspace && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentPath))
         {
             return;
