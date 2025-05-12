@@ -14,12 +14,11 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class MoveToNamespaceDialogInProcess
+internal sealed partial class MoveToNamespaceDialogInProcess
 {
     private async Task<MoveToNamespaceDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

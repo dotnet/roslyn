@@ -27,13 +27,13 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
         if (workspace is null)
             return;
 
-        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+        Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, static (m, workspace) =>
         {
             m["WorkspaceKind"] = workspace.Kind;
             m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
             m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
             m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
-        }));
+        }, workspace));
 
         lock (_gate)
         {
@@ -82,7 +82,7 @@ internal abstract class LspWorkspaceRegistrationService : IDisposable
     public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
 }
 
-internal class LspWorkspaceRegisteredEventArgs : EventArgs
+internal sealed class LspWorkspaceRegisteredEventArgs : EventArgs
 {
     public Workspace Workspace { get; }
 

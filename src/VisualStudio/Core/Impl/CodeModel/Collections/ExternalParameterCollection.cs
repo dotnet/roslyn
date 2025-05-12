@@ -12,79 +12,78 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalE
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICodeElements))]
+public sealed class ExternalParameterCollection : AbstractCodeElementCollection
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICodeElements))]
-    public sealed class ExternalParameterCollection : AbstractCodeElementCollection
+    internal static EnvDTE.CodeElements Create(
+        CodeModelState state,
+        AbstractExternalCodeMember parent,
+        ProjectId projectId)
     {
-        internal static EnvDTE.CodeElements Create(
-            CodeModelState state,
-            AbstractExternalCodeMember parent,
-            ProjectId projectId)
+        var collection = new ExternalParameterCollection(state, parent, projectId);
+        return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+    }
+
+    private readonly ProjectId _projectId;
+
+    private ExternalParameterCollection(
+        CodeModelState state,
+        AbstractExternalCodeMember parent,
+        ProjectId projectId)
+        : base(state, parent)
+    {
+        _projectId = projectId;
+    }
+
+    private AbstractExternalCodeMember ParentElement
+    {
+        get { return (AbstractExternalCodeMember)this.Parent; }
+    }
+
+    private ImmutableArray<IParameterSymbol> GetParameters()
+    {
+        var symbol = this.ParentElement.LookupSymbol();
+        return symbol.GetParameters();
+    }
+
+    protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+    {
+        var parameters = GetParameters();
+
+        if (index < parameters.Length)
         {
-            var collection = new ExternalParameterCollection(state, parent, projectId);
-            return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+            element = (EnvDTE.CodeElement)ExternalCodeParameter.Create(this.State, _projectId, parameters[index], this.ParentElement);
+            return true;
         }
 
-        private readonly ProjectId _projectId;
+        element = null;
+        return false;
+    }
 
-        private ExternalParameterCollection(
-            CodeModelState state,
-            AbstractExternalCodeMember parent,
-            ProjectId projectId)
-            : base(state, parent)
+    protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+    {
+        var parameters = GetParameters();
+        var index = parameters.IndexOf(p => p.Name == name);
+
+        if (index >= 0 && index < parameters.Length)
         {
-            _projectId = projectId;
+            element = (EnvDTE.CodeElement)ExternalCodeParameter.Create(this.State, _projectId, parameters[index], this.ParentElement);
+            return true;
         }
 
-        private AbstractExternalCodeMember ParentElement
-        {
-            get { return (AbstractExternalCodeMember)this.Parent; }
-        }
+        element = null;
+        return false;
+    }
 
-        private ImmutableArray<IParameterSymbol> GetParameters()
-        {
-            var symbol = this.ParentElement.LookupSymbol();
-            return symbol.GetParameters();
-        }
-
-        protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+    public override int Count
+    {
+        get
         {
             var parameters = GetParameters();
-
-            if (index < parameters.Length)
-            {
-                element = (EnvDTE.CodeElement)ExternalCodeParameter.Create(this.State, _projectId, parameters[index], this.ParentElement);
-                return true;
-            }
-
-            element = null;
-            return false;
-        }
-
-        protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
-        {
-            var parameters = GetParameters();
-            var index = parameters.IndexOf(p => p.Name == name);
-
-            if (index >= 0 && index < parameters.Length)
-            {
-                element = (EnvDTE.CodeElement)ExternalCodeParameter.Create(this.State, _projectId, parameters[index], this.ParentElement);
-                return true;
-            }
-
-            element = null;
-            return false;
-        }
-
-        public override int Count
-        {
-            get
-            {
-                var parameters = GetParameters();
-                return parameters.Length;
-            }
+            return parameters.Length;
         }
     }
 }

@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
-        public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
+        public Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForIdsAsync(Project project, DocumentId? documentId, ImmutableHashSet<string>? diagnosticIds, Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)
         {
-            return await ProduceProjectDiagnosticsAsync(
+            return ProduceProjectDiagnosticsAsync(
                 project, diagnosticIds, shouldIncludeAnalyzer,
                 // Ensure we compute and return diagnostics for both the normal docs and the additional docs in this
                 // project if no specific document id was requested.
@@ -29,23 +29,23 @@ internal partial class DiagnosticAnalyzerService
                 includeNonLocalDocumentDiagnostics,
                 // return diagnostics specific to one project or document
                 includeProjectNonLocalResult: documentId == null,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
-        public async Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
+        public Task<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsForIdsAsync(
             Project project,
             ImmutableHashSet<string>? diagnosticIds,
             Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer,
             bool includeNonLocalDocumentDiagnostics,
             CancellationToken cancellationToken)
         {
-            return await ProduceProjectDiagnosticsAsync(
+            return ProduceProjectDiagnosticsAsync(
                project, diagnosticIds, shouldIncludeAnalyzer,
                documentIds: [],
                includeLocalDocumentDiagnostics: false,
                includeNonLocalDocumentDiagnostics: includeNonLocalDocumentDiagnostics,
                includeProjectNonLocalResult: true,
-               cancellationToken).ConfigureAwait(false);
+               cancellationToken);
         }
 
         private async Task<ImmutableArray<DiagnosticData>> ProduceProjectDiagnosticsAsync(
@@ -121,7 +121,7 @@ internal partial class DiagnosticAnalyzerService
                 if (s_projectToForceAnalysisData.TryGetValue(project.State, out var box) &&
                     analyzers.IsSubsetOf(box.Value.analyzers))
                 {
-                    var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
                     if (box.Value.checksum == checksum)
                         return box.Value.diagnosticAnalysisResults;
                 }
@@ -130,7 +130,8 @@ internal partial class DiagnosticAnalyzerService
                 var compilation = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, analyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var result = await ComputeDiagnosticAnalysisResultsAsync(compilation, project, analyzers, cancellationToken).ConfigureAwait(false);
+                var result = await ComputeDiagnosticAnalysisResultsAsync(
+                    compilation, project, [.. analyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
                 return result;
             }
 

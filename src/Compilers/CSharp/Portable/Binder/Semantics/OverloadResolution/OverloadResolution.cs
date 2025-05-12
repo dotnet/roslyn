@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
-                RemoveStaticInstanceMismatches(results, arguments, receiver);
+                RemoveStaticInstanceMismatches(results, receiver);
 
                 RemoveConstraintViolations(results, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo));
 
@@ -578,15 +578,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RemoveStaticInstanceMismatches<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
-            AnalyzedArguments arguments,
             BoundExpression receiverOpt) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
-            // is a type, or static members when the receiver is an instance. This does not apply to extension method invocations,
-            // because extension methods are only considered when the receiver is an instance. It also does not apply when the
+            // is a type, or static members when the receiver is an instance. This does not apply when the
             // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either
             // an instance or a static member would be acceptable.
-            if (arguments.IsExtensionMethodInvocation || Binder.IsTypeOrValueExpression(receiverOpt))
+            if (Binder.IsTypeOrValueExpression(receiverOpt))
             {
                 return;
             }
@@ -612,6 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var result = results[f];
                 TMember member = result.Member;
+                if (member is MethodSymbol { IsExtensionMethod: true })
+                {
+                    continue;
+                }
+
                 if (result.Result.IsValid && member.RequiresInstanceReceiver() == requireStatic)
                 {
                     results[f] = result.WithResult(MemberAnalysisResult.StaticInstanceMismatch());
@@ -638,18 +641,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RemoveConstraintViolations<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include methods for which the type arguments
-            // violate the constraints of the method's type parameters.
-
-            // Constraint violations apply to method in a method group, not to properties in a "property group".
-            if (typeof(TMember) != typeof(MethodSymbol))
-            {
-                return;
-            }
+            // violate the constraints of the member's type parameters.
 
             for (int f = 0; f < results.Count; ++f)
             {
                 var result = results[f];
-                var member = (MethodSymbol)(Symbol)result.Member;
+                var member = result.Member;
                 // a constraint failure on the method trumps (for reporting purposes) a previously-detected
                 // constraint failure on the constructed type of a parameter
                 if ((result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ConstructedParameterFailedConstraintCheck) &&
@@ -791,9 +788,10 @@ outerDefault:
         }
 #nullable disable
 
-        private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template)
+        private bool FailsConstraintChecks<TMember>(TMember member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, CompoundUseSiteInfo<AssemblySymbol> template) where TMember : Symbol
         {
-            if (method.Arity == 0 || method.OriginalDefinition == (object)method)
+            int arity = member.GetMemberArityIncludingExtension();
+            if (arity == 0 || member.OriginalDefinition == (object)member)
             {
                 constraintFailureDiagnosticsOpt = null;
                 return false;
@@ -801,12 +799,25 @@ outerDefault:
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
-                method,
-                new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template),
-                diagnosticsBuilder,
-                nullabilityDiagnosticsBuilderOpt: null,
-                ref useSiteDiagnosticsBuilder);
+            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(this.Compilation, this.Conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template);
+
+            bool constraintsSatisfied = true;
+            if (member is MethodSymbol method && method.Arity > 0)
+            {
+                constraintsSatisfied &= ConstraintsHelper.CheckMethodConstraints(
+                    method,
+                    constraintsArgs,
+                    diagnosticsBuilder,
+                    nullabilityDiagnosticsBuilderOpt: null,
+                    ref useSiteDiagnosticsBuilder);
+            }
+
+            if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+            {
+                constraintsSatisfied &= ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
+                    extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
+                    diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder);
+            }
 
             if (!constraintsSatisfied)
             {
@@ -1157,7 +1168,7 @@ outerDefault:
             // This is specifying an impossible condition; the member lookup algorithm has already filtered
             // out methods from the method group that have the wrong generic arity.
 
-            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArity());
+            Debug.Assert(typeArguments.Count == 0 || typeArguments.Count == member.GetMemberArityIncludingExtension());
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
@@ -1462,20 +1473,24 @@ outerDefault:
             for (int f = 0; f < results.Count; ++f)
             {
                 var result = results[f];
-                if (result.Result.IsValid && !TypeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo))
+                if (result.Result.IsValid)
                 {
-                    results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
+                    if (!typeArgumentsAccessible(result.Member.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)
+                        || (result.Member.GetIsNewExtensionMember() && !typeArgumentsAccessible(result.Member.ContainingType.GetMemberTypeArgumentsNoUseSiteDiagnostics(), ref useSiteInfo)))
+                    {
+                        results[f] = result.WithResult(MemberAnalysisResult.InaccessibleTypeArgument());
+                    }
                 }
             }
-        }
 
-        private bool TypeArgumentsAccessible(ImmutableArray<TypeSymbol> typeArguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            foreach (TypeSymbol arg in typeArguments)
+            bool typeArgumentsAccessible(ImmutableArray<TypeSymbol> typeArguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                if (!_binder.IsAccessible(arg, ref useSiteInfo)) return false;
+                foreach (TypeSymbol arg in typeArguments)
+                {
+                    if (!_binder.IsAccessible(arg, ref useSiteInfo)) return false;
+                }
+                return true;
             }
-            return true;
         }
 
         private static void RemoveLessDerivedMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1874,7 +1889,7 @@ outerDefault:
                     continue;
                 }
 
-                var containingType = result.MemberWithPriority.ContainingType;
+                var containingType = result.MemberWithPriority.ContainingType; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : how should ORPA apply to new extension methods?
                 if (resultsByContainingType.TryGetValue(containingType, out var previousResults))
                 {
                     var previousPriority = previousResults.First().MemberWithPriority.GetOverloadResolutionPriority();
@@ -2065,16 +2080,29 @@ outerDefault:
             worse.Free();
         }
 
+#nullable enable
         /// <summary>
         /// Returns the parameter corresponding to the given argument index.
         /// </summary>
-        private static ParameterSymbol GetParameter(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters)
+        private static ParameterSymbol GetParameterOrExtensionParameter<TMember>(int argIndex, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TMember member)
+            where TMember : Symbol
         {
+            if (member.GetIsNewExtensionMember())
+            {
+                if (argIndex == 0)
+                {
+                    ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                    Debug.Assert(extensionParameter is not null);
+                    return extensionParameter;
+                }
+
+                argIndex--;
+            }
+
             int paramIndex = result.ParameterFromArgument(argIndex);
             return parameters[paramIndex];
         }
 
-#nullable enable
         private BetterResult BetterFunctionMember<TMember>(
             MemberResolutionResult<TMember> m1,
             MemberResolutionResult<TMember> m2,
@@ -2164,9 +2192,9 @@ outerDefault:
                     continue;
                 }
 
-                var type1 = getParameterTypeAndRefKind(i, m1.Result, m1LeastOverriddenParameters, m1.Result.ParamsElementTypeOpt, out RefKind parameter1RefKind);
+                var type1 = getParameterTypeAndRefKind(i, m1.Result, m1LeastOverriddenParameters, m1.Result.ParamsElementTypeOpt, m1.LeastOverriddenMember, out RefKind parameter1RefKind);
 
-                var type2 = getParameterTypeAndRefKind(i, m2.Result, m2LeastOverriddenParameters, m2.Result.ParamsElementTypeOpt, out RefKind parameter2RefKind);
+                var type2 = getParameterTypeAndRefKind(i, m2.Result, m2LeastOverriddenParameters, m2.Result.ParamsElementTypeOpt, m2.LeastOverriddenMember, out RefKind parameter2RefKind);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -2306,9 +2334,9 @@ outerDefault:
                         continue;
                     }
 
-                    var type1 = getParameterTypeAndRefKind(i, m1.Result, m1LeastOverriddenParameters, m1.Result.ParamsElementTypeOpt, out _);
+                    var type1 = getParameterTypeAndRefKind(i, m1.Result, m1LeastOverriddenParameters, m1.Result.ParamsElementTypeOpt, m1.LeastOverriddenMember, out _);
 
-                    var type2 = getParameterTypeAndRefKind(i, m2.Result, m2LeastOverriddenParameters, m2.Result.ParamsElementTypeOpt, out _);
+                    var type2 = getParameterTypeAndRefKind(i, m2.Result, m2LeastOverriddenParameters, m2.Result.ParamsElementTypeOpt, m2.LeastOverriddenMember, out _);
 
                     var type1Normalized = type1;
                     var type2Normalized = type2;
@@ -2376,14 +2404,14 @@ outerDefault:
             }
 
             // If MP is a non-generic method and MQ is a generic method, then MP is better than MQ.
-            if (m1.Member.GetMemberArity() == 0)
+            if (m1.Member.GetMemberArityIncludingExtension() == 0)
             {
-                if (m2.Member.GetMemberArity() > 0)
+                if (m2.Member.GetMemberArityIncludingExtension() > 0)
                 {
                     return BetterResult.Left;
                 }
             }
-            else if (m2.Member.GetMemberArity() == 0)
+            else if (m2.Member.GetMemberArityIncludingExtension() == 0)
             {
                 return BetterResult.Right;
             }
@@ -2466,9 +2494,9 @@ outerDefault:
                         continue;
                     }
 
-                    uninst1.Add(getParameterTypeAndRefKind(i, m1.Result, m1DefinitionParameters, m1.Result.DefinitionParamsElementTypeOpt, out _));
+                    uninst1.Add(getParameterTypeAndRefKind(i, m1.Result, m1DefinitionParameters, m1.Result.DefinitionParamsElementTypeOpt, (TMember)m1.LeastOverriddenMember.OriginalDefinition, out _));
 
-                    uninst2.Add(getParameterTypeAndRefKind(i, m2.Result, m2DefinitionParameters, m2.Result.DefinitionParamsElementTypeOpt, out _));
+                    uninst2.Add(getParameterTypeAndRefKind(i, m2.Result, m2DefinitionParameters, m2.Result.DefinitionParamsElementTypeOpt, (TMember)m2.LeastOverriddenMember.OriginalDefinition, out _));
                 }
 
                 result = MoreSpecificType(ref uninst1.AsRef(), ref uninst2.AsRef(), ref useSiteInfo);
@@ -2526,8 +2554,8 @@ outerDefault:
 
                 for (i = 0; i < arguments.Count; ++i)
                 {
-                    var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                    var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
+                    var parameter1 = GetParameterOrExtensionParameter(i, m1.Result, m1LeastOverriddenParameters, m1.LeastOverriddenMember);
+                    var parameter2 = GetParameterOrExtensionParameter(i, m2.Result, m2LeastOverriddenParameters, m2.LeastOverriddenMember);
 
                     if ((parameter1.Ordinal == m1ParamsOrdinal) != (parameter2.Ordinal == m2ParamsOrdinal))
                     {
@@ -2555,13 +2583,15 @@ outerDefault:
             return BetterResult.Neither;
 
             // Returns the parameter type (considering params).
-            static TypeSymbol getParameterTypeAndRefKind(int i, MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, TypeWithAnnotations paramsElementTypeOpt, out RefKind parameter1RefKind)
+            static TypeSymbol getParameterTypeAndRefKind(int i, MemberAnalysisResult memberResolutionResult, ImmutableArray<ParameterSymbol> parameters,
+                TypeWithAnnotations paramsElementTypeOpt, TMember member, out RefKind parameter1RefKind)
             {
-                var parameter = GetParameter(i, result, parameters);
+                ParameterSymbol parameter = GetParameterOrExtensionParameter(i, memberResolutionResult, parameters, member);
+
                 parameter1RefKind = parameter.RefKind;
 
                 var type = parameter.Type;
-                if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                if (memberResolutionResult.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                     parameter.Ordinal == parameters.Length - 1)
                 {
                     Debug.Assert(paramsElementTypeOpt.HasType);
@@ -2612,8 +2642,8 @@ outerDefault:
             {
                 if (arguments[i].Kind != BoundKind.ArgListOperator)
                 {
-                    var p1 = GetParameter(i, m1.Result, parameters1);
-                    var p2 = GetParameter(i, m2.Result, parameters2);
+                    var p1 = GetParameterOrExtensionParameter(i, m1.Result, parameters1, m1.Member);
+                    var p2 = GetParameterOrExtensionParameter(i, m2.Result, parameters2, m2.Member);
 
                     bool isInterpolatedStringHandlerConversion = false;
 
@@ -2663,9 +2693,10 @@ outerDefault:
         }
 #nullable disable
 
+        // Note: includes the extension parameter
         private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
-            declaredParameterCount = m.Member.GetParameterCount();
+            declaredParameterCount = m.Member.GetParameterCount() + (m.Member.GetIsNewExtensionMember() ? 1 : 0);
 
             if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
@@ -3846,17 +3877,26 @@ outerDefault:
             Debug.Assert(argumentRefKinds != null);
 
             hasAnyRefOmittedArgument = false;
-            ImmutableArray<ParameterSymbol> parameters = member.GetParameters();
 
-            // We simulate an extra parameter for vararg methods
-            int parameterCount = member.GetParameterCount() + (member.GetIsVararg() ? 1 : 0);
+            ImmutableArray<ParameterSymbol> parameters = member.GetParametersIncludingExtensionParameter();
+
+            // We simulate an extra parameter for vararg methods 
+            int parameterCount = parameters.Length + (member.GetIsVararg() ? 1 : 0);
 
             if (argumentCount == parameterCount && argToParamMap.IsDefaultOrEmpty)
             {
-                ImmutableArray<RefKind> parameterRefKinds = member.GetParameterRefKinds();
-                if (parameterRefKinds.IsDefaultOrEmpty)
+                bool hasSomeRefKinds = !member.GetParameterRefKinds().IsDefaultOrEmpty;
+                bool isNewExtensionMember = member.GetIsNewExtensionMember();
+                if (isNewExtensionMember)
                 {
-                    return new EffectiveParameters(member.GetParameterTypes(), parameterRefKinds, firstParamsElementIndex: -1);
+                    Debug.Assert(member.ContainingType.ExtensionParameter is not null);
+                    hasSomeRefKinds |= member.ContainingType.ExtensionParameter.RefKind != RefKind.None;
+                }
+
+                if (!hasSomeRefKinds)
+                {
+                    var parameterTypes = isNewExtensionMember ? GetParameterTypesIncludingReceiver(member) : member.GetParameterTypes();
+                    return new EffectiveParameters(parameterTypes, refKinds: default, firstParamsElementIndex: -1);
                 }
             }
 
@@ -4000,7 +4040,7 @@ outerDefault:
             var types = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
-            var parameters = member.GetParameters();
+            var parameters = member.GetParametersIncludingExtensionParameter();
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
             TypeWithAnnotations paramsIterationType = default;
@@ -4205,14 +4245,13 @@ outerDefault:
             Debug.Assert(GetConstructedFrom(leastOverriddenMember) == (object)leastOverriddenMember);
 
             bool ignoreOpenTypes;
-            MethodSymbol method;
             EffectiveParameters constructedEffectiveParameters;
             bool hasTypeArgumentsInferredFromFunctionType = false;
             if ((options & Options.InferringUniqueMethodGroupSignature) == 0 &&
-                member.Kind == SymbolKind.Method && (method = (MethodSymbol)(Symbol)member).Arity > 0)
+                member.GetMemberArityIncludingExtension() > 0)
             {
-                MethodSymbol leastOverriddenMethod = (MethodSymbol)(Symbol)leastOverriddenMember;
                 ImmutableArray<TypeWithAnnotations> typeArguments;
+                bool isNewExtensionMember = member.GetIsNewExtensionMember();
 
                 if (typeArgumentsBuilder.Count == 0 && arguments.HasDynamicArgument && !inferWithDynamic)
                 {
@@ -4226,7 +4265,7 @@ outerDefault:
                     // We don't need to check constraints of types of the non-elided parameters since they 
                     // have no effect on applicability of this candidate.
                     ignoreOpenTypes = true;
-                    typeArguments = method.TypeArgumentsWithAnnotations;
+                    typeArguments = getAllTypeArguments(member, isNewExtensionMember);
                 }
                 else
                 {
@@ -4239,8 +4278,10 @@ outerDefault:
                     {
                         // infer generic type arguments:
                         MemberAnalysisResult inferenceError;
-                        typeArguments = InferMethodTypeArguments(method,
-                                            leastOverriddenMethod.ConstructedFrom.TypeParameters,
+                        ImmutableArray<TypeParameterSymbol> typeParameters = GetTypeParametersIncludingExtension(leastOverriddenMember);
+
+                        typeArguments = InferMethodTypeArguments(member,
+                                            typeParameters,
                                             arguments,
                                             constructedFromEffectiveParameters,
                                             out hasTypeArgumentsInferredFromFunctionType,
@@ -4252,8 +4293,8 @@ outerDefault:
                         }
                     }
 
-                    member = (TMember)(Symbol)method.Construct(typeArguments);
-                    leastOverriddenMember = (TMember)(Symbol)leastOverriddenMethod.ConstructedFrom.Construct(typeArguments);
+                    member = member.ConstructIncludingExtension(typeArguments);
+                    leastOverriddenMember = GetConstructedFrom(leastOverriddenMember).ConstructIncludingExtension(typeArguments);
 
                     // Spec (§7.6.5.1)
                     //   Once the (inferred) type arguments are substituted for the corresponding method type parameters, 
@@ -4283,7 +4324,10 @@ outerDefault:
                     // the generic method still needs to be discarded, even though type inference
                     // never saw the second formal parameter.
 
-                    var parameterTypes = leastOverriddenMember.GetParameterTypes();
+                    var parameterTypes = isNewExtensionMember
+                        ? GetParameterTypesIncludingReceiver(leastOverriddenMember)
+                        : leastOverriddenMember.GetParameterTypes();
+
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
                         if (!parameterTypes[i].Type.CheckAllConstraints(Compilation, Conversions))
@@ -4295,7 +4339,7 @@ outerDefault:
                     ignoreOpenTypes = false;
                 }
 
-                var map = new TypeMap(leastOverriddenMethod.TypeParameters, typeArguments, allowAlpha: true);
+                var map = new TypeMap(GetTypeParametersIncludingExtension(isNewExtensionMember ? leastOverriddenMember.OriginalDefinition : leastOverriddenMember), typeArguments, allowAlpha: true);
 
                 constructedEffectiveParameters = new EffectiveParameters(
                     map.SubstituteTypes(constructedFromEffectiveParameters.ParameterTypes),
@@ -4323,16 +4367,54 @@ outerDefault:
                 isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
+
+            static ImmutableArray<TypeWithAnnotations> getAllTypeArguments(TMember member, bool isNewExtensionMember)
+            {
+                if (member is MethodSymbol method)
+                {
+                    return isNewExtensionMember
+                        ? method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations)
+                        : method.TypeArgumentsWithAnnotations;
+                }
+                else if (member is PropertySymbol property)
+                {
+                    Debug.Assert(isNewExtensionMember);
+                    var result = property.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                    Debug.Assert(!result.IsDefaultOrEmpty);
+                    return result;
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(member);
+            }
         }
 
-        private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments(
-            MethodSymbol method,
+        internal static ImmutableArray<TypeParameterSymbol> GetTypeParametersIncludingExtension<TMember>(TMember member) where TMember : Symbol
+        {
+            if (member is MethodSymbol method)
+            {
+                return method.GetIsNewExtensionMember()
+                    ? method.ContainingType.TypeParameters.Concat(method.TypeParameters)
+                    : method.ConstructedFrom.TypeParameters;
+            }
+
+            if (member is PropertySymbol property)
+            {
+                Debug.Assert(property.GetIsNewExtensionMember());
+                return property.ContainingType.TypeParameters;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(member);
+        }
+
+        private ImmutableArray<TypeWithAnnotations> InferMethodTypeArguments<TMember>(
+            TMember member,
             ImmutableArray<TypeParameterSymbol> originalTypeParameters,
             AnalyzedArguments arguments,
             EffectiveParameters originalEffectiveParameters,
             out bool hasTypeArgumentsInferredFromFunctionType,
             out MemberAnalysisResult error,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            where TMember : Symbol
         {
             var args = arguments.Arguments.ToImmutable();
 
@@ -4341,15 +4423,20 @@ outerDefault:
             // a possibly constructed generic type, is exceedingly subtle. See the comments
             // in "Infer" for details.
 
+            PooledDictionary<TypeParameterSymbol, int> ordinals = makeOrdinalsIfNeeded(member, originalTypeParameters);
+
             var inferenceResult = MethodTypeInferrer.Infer(
                 _binder,
                 _binder.Conversions,
                 originalTypeParameters,
-                method.ContainingType,
+                member.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                ref useSiteInfo);
+                ref useSiteInfo,
+                ordinals: ordinals);
+
+            ordinals?.Free();
 
             if (inferenceResult.Success)
             {
@@ -4358,15 +4445,32 @@ outerDefault:
                 return inferenceResult.InferredTypeArguments;
             }
 
-            if (arguments.IsExtensionMethodInvocation)
+            if (arguments.IncludesReceiverAsArgument)
             {
-                var canInfer = MethodTypeInferrer.CanInferTypeArgumentsFromFirstArgument(
-                    _binder.Compilation,
-                    _binder.Conversions,
-                    method,
-                    args,
-                    useSiteInfo: ref useSiteInfo,
-                    out _);
+                bool canInfer;
+                if (member.GetIsNewExtensionMember())
+                {
+                    if (member.ContainingType.Arity > 0)
+                    {
+                        var extensionTypeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(member.ContainingType, args[0], _binder.Compilation, _binder.Conversions, ref useSiteInfo);
+                        canInfer = !extensionTypeArguments.IsDefault && !extensionTypeArguments.Any(t => !t.HasType);
+                    }
+                    else
+                    {
+                        canInfer = true;
+                    }
+                }
+                else
+                {
+                    canInfer = MethodTypeInferrer.CanInferTypeArgumentsFromFirstArgument(
+                        _binder.Compilation,
+                        _binder.Conversions,
+                        (MethodSymbol)(Symbol)member,
+                        args,
+                        useSiteInfo: ref useSiteInfo,
+                        out _);
+                }
+
                 if (!canInfer)
                 {
                     hasTypeArgumentsInferredFromFunctionType = false;
@@ -4378,7 +4482,38 @@ outerDefault:
             hasTypeArgumentsInferredFromFunctionType = false;
             error = MemberAnalysisResult.TypeInferenceFailed();
             return default(ImmutableArray<TypeWithAnnotations>);
+
+#nullable enable
+            static PooledDictionary<TypeParameterSymbol, int>? makeOrdinalsIfNeeded(TMember member, ImmutableArray<TypeParameterSymbol> originalTypeParameters)
+            {
+                if (member is MethodSymbol method)
+                {
+                    PooledDictionary<TypeParameterSymbol, int>? ordinals = null;
+                    if (method.GetIsNewExtensionMember() && method.Arity > 0 && method.ContainingType.Arity > 0)
+                    {
+                        Debug.Assert(originalTypeParameters.Length == method.Arity + method.ContainingType.Arity);
+
+                        // Since we're concatenating type parameters from the extension and from the method together
+                        // we need to control the ordinals that are used
+                        ordinals = PooledDictionary<TypeParameterSymbol, int>.GetInstance();
+                        for (int i = 0; i < originalTypeParameters.Length; i++)
+                        {
+                            ordinals.Add(originalTypeParameters[i], i);
+                        }
+                    }
+
+                    return ordinals;
+                }
+
+                if (member is PropertySymbol)
+                {
+                    return null;
+                }
+
+                throw ExceptionUtilities.UnexpectedValue(member);
+            }
         }
+#nullable disable
 
         private MemberAnalysisResult IsApplicable(
             Symbol candidate, // method or property
@@ -4467,7 +4602,7 @@ outerDefault:
                 {
                     RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
-                    bool forExtensionMethodThisArg = arguments.IsExtensionMethodThisArgument(argumentPosition);
+                    bool forExtensionMethodThisArg = arguments.IsExtensionMethodReceiverArgument(argumentPosition);
 
                     if (forExtensionMethodThisArg)
                     {

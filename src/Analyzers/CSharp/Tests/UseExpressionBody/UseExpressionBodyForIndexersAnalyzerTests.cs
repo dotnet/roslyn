@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExpressionBodyCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForIndexersAnalyzerTests
+public sealed class UseExpressionBodyForIndexersAnalyzerTests
 {
     private static async Task TestWithUseExpressionBody(string code, string fixedCode)
     {

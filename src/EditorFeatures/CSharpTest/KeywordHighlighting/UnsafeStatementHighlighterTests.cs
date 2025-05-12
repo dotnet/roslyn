@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-public class UnsafeStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class UnsafeStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(UnsafeStatementHighlighter);

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps;
 
-public class MapTests
+public sealed class MapTests
 {
     [Fact]
     public void TestEnumerator()
@@ -119,7 +119,7 @@ public class MapTests
         Assert.Empty(map);
     }
 
-    private class PathologicalComparer<T> : IEqualityComparer<T>
+    private sealed class PathologicalComparer<T> : IEqualityComparer<T>
     {
         public bool Equals(T x, T y)
             => EqualityComparer<T>.Default.Equals(x, y);

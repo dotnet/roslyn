@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Handlers;
 
 [LanguageServerEndpoint("initialize", LanguageServerConstants.DefaultLanguageName)]
-internal class InitializeHandler<TRequest, TResponse, TRequestContext>
+internal sealed class InitializeHandler<TRequest, TResponse, TRequestContext>
     : IRequestHandler<TRequest, TResponse, TRequestContext>
 {
     private readonly IInitializeManager<TRequest, TResponse> _capabilitiesManager;

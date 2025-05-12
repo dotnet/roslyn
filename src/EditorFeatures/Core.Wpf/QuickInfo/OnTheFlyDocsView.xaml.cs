@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
+using Microsoft.CodeAnalysis.Editor.Copilot;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -179,7 +180,8 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var (responseString, isQuotaExceeded) = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
+            var prompt = await copilotService.GetOnTheFlyDocsPromptAsync(_onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
+            var (responseString, isQuotaExceeded) = await copilotService.GetOnTheFlyDocsResponseAsync(prompt, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -197,7 +199,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         // https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/45121/Free-SKU-Handling-Guidance-and-Recommendations
                         var uiShell = _serviceProvider.GetServiceOnMainThread<SVsUIShell, IVsUIShell>();
                         uiShell.PostExecCommand(
-                            new Guid("39B0DEDE-D931-4A92-9AA2-3447BC4998DC"),
+                            CopilotConstants.CopilotQuotaExceededGuid,
                             0x3901,
                             nCmdexecopt: 0,
                             pvaIn: null);
@@ -217,10 +219,10 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 else
                 {
                     SetResultText(EditorFeaturesResources.An_error_occurred_while_generating_documentation_for_this_code);
-                    Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(m =>
+                    Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Error_Displayed, KeyValueLogMessage.Create(static (m, copilotRequestTime) =>
                     {
                         m["ElapsedTime"] = copilotRequestTime;
-                    }, LogLevel.Information));
+                    }, copilotRequestTime, LogLevel.Information));
                 }
 
                 CurrentState = OnTheFlyDocsState.Finished;
@@ -230,19 +232,20 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 SetResultText(responseString);
                 CurrentState = OnTheFlyDocsState.Finished;
 
-                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Displayed, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Displayed, KeyValueLogMessage.Create(static (m, args) =>
                 {
+                    var (copilotRequestTime, responseString) = args;
                     m["ElapsedTime"] = copilotRequestTime;
                     m["ResponseLength"] = responseString.Length;
-                }, LogLevel.Information));
+                }, (copilotRequestTime, responseString), LogLevel.Information));
             }
         }
         catch (OperationCanceledException)
         {
-            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Canceled, KeyValueLogMessage.Create(m =>
+            Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Results_Canceled, KeyValueLogMessage.Create(static (m, stopwatch) =>
             {
                 m["ElapsedTime"] = stopwatch.Elapsed;
-            }, LogLevel.Information));
+            }, stopwatch, LogLevel.Information));
         }
         catch (Exception e) when (FatalError.ReportAndCatch(e))
         {
@@ -272,10 +275,10 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public void RequestResults()
     {
         CurrentState = OnTheFlyDocsState.Loading;
-        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(static (m, _onTheFlyDocsInfo) =>
         {
             m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
-        }, LogLevel.Information));
+        }, _onTheFlyDocsInfo, LogLevel.Information));
 
         OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
         if (_onTheFlyDocsInfo.HasComments)

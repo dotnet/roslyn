@@ -5,14 +5,13 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
 [Export(typeof(ILoggerFactory))]
 [Export(typeof(ServerLoggerFactory))]
 [Shared]
-internal class ServerLoggerFactory : ILoggerFactory
+internal sealed class ServerLoggerFactory : ILoggerFactory
 {
     private ILoggerFactory? _loggerFactory;
 

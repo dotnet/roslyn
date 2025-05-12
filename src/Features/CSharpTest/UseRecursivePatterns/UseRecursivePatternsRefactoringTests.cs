@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<UseRecursivePatternsCodeRefactori
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseRecursivePatterns)]
-public class UseRecursivePatternsRefactoringTests
+public sealed class UseRecursivePatternsRefactoringTests
 {
     private static Task VerifyAsync(
         string initialMarkup,

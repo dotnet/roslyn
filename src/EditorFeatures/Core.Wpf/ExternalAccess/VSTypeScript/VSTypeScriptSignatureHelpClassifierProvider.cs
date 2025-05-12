@@ -11,20 +11,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
-{
-    [Export(typeof(IVSTypeScriptSignatureHelpClassifierProvider))]
-    [Shared]
-    internal sealed class VSTypeScriptSignatureHelpClassifierProvider
-        : IVSTypeScriptSignatureHelpClassifierProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptSignatureHelpClassifierProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-        public IClassifier Create(ITextBuffer textBuffer, ClassificationTypeMap typeMap)
-            => new SignatureHelpClassifier(textBuffer, typeMap);
+[Export(typeof(IVSTypeScriptSignatureHelpClassifierProvider))]
+[Shared]
+internal sealed class VSTypeScriptSignatureHelpClassifierProvider
+    : IVSTypeScriptSignatureHelpClassifierProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VSTypeScriptSignatureHelpClassifierProvider()
+    {
     }
+
+    public IClassifier Create(ITextBuffer textBuffer, ClassificationTypeMap typeMap)
+        => new SignatureHelpClassifier(textBuffer, typeMap);
 }

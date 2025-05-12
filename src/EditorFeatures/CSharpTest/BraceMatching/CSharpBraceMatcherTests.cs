@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceMatching;
 
 [Trait(Traits.Feature, Traits.Features.BraceMatching)]
-public class CSharpBraceMatcherTests : AbstractBraceMatcherTests
+public sealed class CSharpBraceMatcherTests : AbstractBraceMatcherTests
 {
     protected override EditorTestWorkspace CreateWorkspaceFromCode(string code, ParseOptions options)
         => EditorTestWorkspace.CreateCSharp(code, options);

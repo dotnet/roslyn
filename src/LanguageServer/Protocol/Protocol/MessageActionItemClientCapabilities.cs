@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Capabilities specific to the `MessageActionItem` type
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class MessageActionItemClientCapabilities
+internal sealed class MessageActionItemClientCapabilities
 {
     /// <summary>
     /// Whether the client supports additional attributes which

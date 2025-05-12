@@ -934,6 +934,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override bool HasEnumeratorCancellationAttribute => throw ExceptionUtilities.Unreachable();
+
         internal override bool IsMetadataIn
         {
             get { return (_flags & ParameterAttributes.In) != 0; }

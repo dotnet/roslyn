@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
+
+internal interface IXamlCompletionService : ILanguageService
 {
-    internal interface IXamlCompletionService : ILanguageService
-    {
-        Task<XamlCompletionResult> GetCompletionsAsync(XamlCompletionContext completionContext, CancellationToken cancellationToken);
-        Task<ISymbol> GetSymbolAsync(XamlCompletionContext completionContext, string label, CancellationToken cancellationToken);
-    }
+    Task<XamlCompletionResult> GetCompletionsAsync(XamlCompletionContext completionContext, CancellationToken cancellationToken);
+    Task<ISymbol> GetSymbolAsync(XamlCompletionContext completionContext, string label, CancellationToken cancellationToken);
 }

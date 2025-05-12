@@ -14,36 +14,35 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
+
+[Export(typeof(ISignatureHelpSourceProvider))]
+[Export(typeof(IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>))]
+[Name(PredefinedSignatureHelpPresenterNames.RoslynSignatureHelpPresenter)]
+[ContentType(ContentTypeNames.RoslynContentType)]
+internal sealed partial class SignatureHelpPresenter : IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
 {
-    [Export(typeof(ISignatureHelpSourceProvider))]
-    [Export(typeof(IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>))]
-    [Name(PredefinedSignatureHelpPresenterNames.RoslynSignatureHelpPresenter)]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class SignatureHelpPresenter : IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
+    private static readonly object s_augmentSessionKey = new();
+    private readonly IThreadingContext _threadingContext;
+    private readonly ISignatureHelpBroker _sigHelpBroker;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public SignatureHelpPresenter(IThreadingContext threadingContext, ISignatureHelpBroker sigHelpBroker)
     {
-        private static readonly object s_augmentSessionKey = new();
-        private readonly IThreadingContext _threadingContext;
-        private readonly ISignatureHelpBroker _sigHelpBroker;
+        _threadingContext = threadingContext;
+        _sigHelpBroker = sigHelpBroker;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpPresenter(IThreadingContext threadingContext, ISignatureHelpBroker sigHelpBroker)
-        {
-            _threadingContext = threadingContext;
-            _sigHelpBroker = sigHelpBroker;
-        }
+    ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ISignatureHelpSession sessionOpt)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        return new SignatureHelpPresenterSession(_threadingContext, _sigHelpBroker, textView);
+    }
 
-        ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ISignatureHelpSession sessionOpt)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            return new SignatureHelpPresenterSession(_threadingContext, _sigHelpBroker, textView);
-        }
-
-        ISignatureHelpSource ISignatureHelpSourceProvider.TryCreateSignatureHelpSource(ITextBuffer textBuffer)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            return new SignatureHelpSource(_threadingContext);
-        }
+    ISignatureHelpSource ISignatureHelpSourceProvider.TryCreateSignatureHelpSource(ITextBuffer textBuffer)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        return new SignatureHelpSource(_threadingContext);
     }
 }

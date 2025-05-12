@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using Xunit;
@@ -16,21 +14,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     /// </summary>
     public sealed class CappedStringWriter : StringWriter
     {
+        public const int DefaultMaxLength = 1024 * 1024;
+
         private readonly int _expectedLength;
         private int _remaining;
 
         public int Length => GetStringBuilder().Length;
 
-        public CappedStringWriter(int expectedLength)
+        public CappedStringWriter(int? maxLength)
         {
-            if (expectedLength < 0)
+            if (maxLength is int m)
             {
-                _expectedLength = _remaining = 1024 * 1024;
+                _expectedLength = m;
+                _remaining = Math.Max(256, m * 4);
             }
             else
             {
-                _expectedLength = expectedLength;
-                _remaining = Math.Max(256, expectedLength * 4);
+                _expectedLength = DefaultMaxLength;
+                _remaining = DefaultMaxLength;
             }
         }
 
@@ -65,8 +66,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public override void Write(string value)
+        public override void Write(string? value)
         {
+            if (value is null)
+            {
+                return;
+            }
+
             if (value.Length <= _remaining)
             {
                 _remaining -= value.Length;

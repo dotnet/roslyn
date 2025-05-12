@@ -8,18 +8,17 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+
+internal sealed class DefaultNavigateToPreviewService : INavigateToPreviewService
 {
-    internal sealed class DefaultNavigateToPreviewService : INavigateToPreviewService
+    public __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document)
+        => __VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
+
+    public bool CanPreview(Document document)
+        => true;
+
+    public void PreviewItem(INavigateToItemDisplay itemDisplay)
     {
-        public __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document)
-            => __VSPROVISIONALVIEWINGSTATUS.PVS_Disabled;
-
-        public bool CanPreview(Document document)
-            => true;
-
-        public void PreviewItem(INavigateToItemDisplay itemDisplay)
-        {
-        }
     }
 }

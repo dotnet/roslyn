@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
     /// <summary>
     /// Cached data from a <see cref="ProjectState"/> to the last <see cref="CompilationWithAnalyzersPair"/> instance
@@ -37,7 +36,7 @@ internal partial class DiagnosticAnalyzerService
             return null;
 
         var projectState = project.State;
-        var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+        var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
         // Make sure the cached pair was computed with at least the same state sets we're asking about.  if not,
         // recompute and cache with the new state sets.

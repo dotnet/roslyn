@@ -102,11 +102,6 @@
         <target state="translated">표시 안 함</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rule_Set">
-        <source>Rule Set</source>
-        <target state="translated">규칙 집합</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
         <target state="translated">편집을 위해 {0}을(를) 체크 아웃하는 중...</target>

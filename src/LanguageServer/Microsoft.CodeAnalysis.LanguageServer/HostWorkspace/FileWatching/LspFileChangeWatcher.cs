@@ -173,7 +173,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             }
         }
 
-        private class WatchedFile : IWatchedFile
+        private sealed class WatchedFile : IWatchedFile
         {
             private readonly string _filePath;
             private readonly LspFileWatchRegistration _fileWatchRegistration;

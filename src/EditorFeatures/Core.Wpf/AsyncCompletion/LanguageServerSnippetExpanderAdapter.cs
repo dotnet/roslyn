@@ -9,22 +9,21 @@ using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+[Export(typeof(ILanguageServerSnippetExpander))]
+[Shared]
+internal sealed class LanguageServerSnippetExpanderAdapter : ILanguageServerSnippetExpander
 {
-    [Export(typeof(ILanguageServerSnippetExpander))]
-    [Shared]
-    internal sealed class LanguageServerSnippetExpanderAdapter : ILanguageServerSnippetExpander
+    private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LanguageServerSnippetExpanderAdapter(LanguageServerSnippetExpander languageServerSnippetExpander)
     {
-        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LanguageServerSnippetExpanderAdapter(LanguageServerSnippetExpander languageServerSnippetExpander)
-        {
-            _languageServerSnippetExpander = languageServerSnippetExpander;
-        }
-
-        public bool TryExpand(string lspSnippetText, SnapshotSpan snapshotSpan, ITextView textView)
-            => _languageServerSnippetExpander.TryExpand(lspSnippetText, snapshotSpan, textView);
+        _languageServerSnippetExpander = languageServerSnippetExpander;
     }
+
+    public bool TryExpand(string lspSnippetText, SnapshotSpan snapshotSpan, ITextView textView)
+        => _languageServerSnippetExpander.TryExpand(lspSnippetText, snapshotSpan, textView);
 }

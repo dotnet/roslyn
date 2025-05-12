@@ -15,45 +15,44 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments;
+
+[UseExportProvider]
+public abstract class AbstractXmlTagCompletionTests
 {
-    [UseExportProvider]
-    public abstract class AbstractXmlTagCompletionTests
+    private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace testWorkspace);
+    private protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
+
+    public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
     {
-        private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace testWorkspace);
-        private protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
+        using var workspace = CreateTestWorkspace(initialMarkup);
 
-        public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
+        var testDocument = workspace.Documents.Single();
+        var view = testDocument.GetTextView();
+        view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+
+        var commandHandler = CreateCommandHandler(workspace);
+
+        var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
+        var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
+
+        commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
+        MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+
+        Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+
+        var caretPosition = view.Caret.Position.BufferPosition.Position;
+        Assert.True(expectedPosition == caretPosition,
+            string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
+    }
+
+    private static Action CreateInsertTextHandler(ITextView textView, string text)
+    {
+        return () =>
         {
-            using var workspace = CreateTestWorkspace(initialMarkup);
-
-            var testDocument = workspace.Documents.Single();
-            var view = testDocument.GetTextView();
-            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-            var commandHandler = CreateCommandHandler(workspace);
-
-            var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
-            var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
-
-            commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
-            MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
-
-            Assert.Equal(expectedCode, view.TextSnapshot.GetText());
-
-            var caretPosition = view.Caret.Position.BufferPosition.Position;
-            Assert.True(expectedPosition == caretPosition,
-                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
-        }
-
-        private static Action CreateInsertTextHandler(ITextView textView, string text)
-        {
-            return () =>
-            {
-                var caretPosition = textView.Caret.Position.BufferPosition;
-                var newSpanshot = textView.TextBuffer.Insert(caretPosition, text);
-                textView.Caret.MoveTo(new SnapshotPoint(newSpanshot, caretPosition + text.Length));
-            };
-        }
+            var caretPosition = textView.Caret.Position.BufferPosition;
+            var newSpanshot = textView.TextBuffer.Insert(caretPosition, text);
+            textView.Caret.MoveTo(new SnapshotPoint(newSpanshot, caretPosition + text.Length));
+        };
     }
 }

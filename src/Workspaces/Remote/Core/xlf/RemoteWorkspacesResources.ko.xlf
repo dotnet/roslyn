@@ -57,6 +57,11 @@
         <target state="translated">필드 리팩터링 캡슐화</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="new">Extension message handler</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
         <source>Extension method import completion</source>
         <target state="translated">확장 메서드 가져오기 완료</target>

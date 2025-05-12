@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
@@ -56,7 +55,6 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
 
         var solution = context.Solution;
-        var enableDiagnosticsInSourceGeneratedFiles = solution.Services.GetService<ISolutionCrawlerOptionsService>()?.EnableDiagnosticsInSourceGeneratedFiles == true;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
@@ -76,12 +74,8 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             AddDocumentSources(project.Documents);
             AddDocumentSources(project.AdditionalDocuments);
 
-            // If all features are enabled for source generated documents, then compute todo-comments/diagnostics for them.
-            if (enableDiagnosticsInSourceGeneratedFiles)
-            {
-                var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-                AddDocumentSources(sourceGeneratedDocuments);
-            }
+            var sourceGeneratedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            AddDocumentSources(sourceGeneratedDocuments);
 
             // Finally, add the appropriate FSA or CodeAnalysis project source to get project specific diagnostics, not associated with any document.
             AddProjectSource();

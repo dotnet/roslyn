@@ -12,41 +12,40 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
+namespace Microsoft.CodeAnalysis.Editor.CommandHandlers;
+
+internal abstract class AbstractSignatureHelpCommandHandler
 {
-    internal abstract class AbstractSignatureHelpCommandHandler
+    protected readonly IThreadingContext ThreadingContext;
+    private readonly SignatureHelpControllerProvider _controllerProvider;
+    private readonly IGlobalOptionService _globalOptions;
+
+    public AbstractSignatureHelpCommandHandler(
+        IThreadingContext threadingContext,
+        SignatureHelpControllerProvider controllerProvider,
+        IGlobalOptionService globalOptions)
     {
-        protected readonly IThreadingContext ThreadingContext;
-        private readonly SignatureHelpControllerProvider _controllerProvider;
-        private readonly IGlobalOptionService _globalOptions;
+        ThreadingContext = threadingContext;
+        _controllerProvider = controllerProvider;
+        _globalOptions = globalOptions;
+    }
 
-        public AbstractSignatureHelpCommandHandler(
-            IThreadingContext threadingContext,
-            SignatureHelpControllerProvider controllerProvider,
-            IGlobalOptionService globalOptions)
+    protected bool TryGetController(EditorCommandArgs args, out Controller controller)
+    {
+        this.ThreadingContext.ThrowIfNotOnUIThread();
+
+        // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
+        // be shown whether or not the option is set.
+        var languageName = args.SubjectBuffer.GetLanguageName();
+        if (args is not InvokeSignatureHelpCommandArgs &&
+            languageName != null &&
+            !_globalOptions.GetOption(SignatureHelpViewOptionsStorage.ShowSignatureHelp, languageName))
         {
-            ThreadingContext = threadingContext;
-            _controllerProvider = controllerProvider;
-            _globalOptions = globalOptions;
+            controller = null;
+            return false;
         }
 
-        protected bool TryGetController(EditorCommandArgs args, out Controller controller)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-
-            // If args is `InvokeSignatureHelpCommandArgs` then sig help was explicitly invoked by the user and should
-            // be shown whether or not the option is set.
-            var languageName = args.SubjectBuffer.GetLanguageName();
-            if (args is not InvokeSignatureHelpCommandArgs &&
-                languageName != null &&
-                !_globalOptions.GetOption(SignatureHelpViewOptionsStorage.ShowSignatureHelp, languageName))
-            {
-                controller = null;
-                return false;
-            }
-
-            controller = _controllerProvider.GetController(args.TextView, args.SubjectBuffer);
-            return controller is not null;
-        }
+        controller = _controllerProvider.GetController(args.TextView, args.SubjectBuffer);
+        return controller is not null;
     }
 }

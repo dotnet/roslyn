@@ -18,7 +18,7 @@ internal sealed class RazorDynamicDocumentSyncRegistration(IGlobalOptionService 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
         => new OnInitialized(globalOptionService);
 
-    public class OnInitialized : IOnInitialized, ILspService
+    public sealed class OnInitialized : IOnInitialized, ILspService
     {
         private readonly IGlobalOptionService _globalOptionService;
 

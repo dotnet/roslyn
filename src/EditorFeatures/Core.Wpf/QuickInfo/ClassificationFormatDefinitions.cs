@@ -18,7 +18,7 @@ internal sealed class ClassificationFormatDefinitions
     [Name(ClassificationTypeDefinitions.ReducedEmphasisText)]
     [Order(After = Priority.High)]
     [UserVisible(false)]
-    private class ReducedEmphasisTextFormat : ClassificationFormatDefinition
+    private sealed class ReducedEmphasisTextFormat : ClassificationFormatDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

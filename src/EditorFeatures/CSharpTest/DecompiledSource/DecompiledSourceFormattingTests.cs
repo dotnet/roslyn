@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DecompiledSource;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.DecompiledSource)]
-public class DecompiledSourceFormattingTests
+public sealed class DecompiledSourceFormattingTests
 {
     [Fact]
     public async Task TestIfFormatting1()

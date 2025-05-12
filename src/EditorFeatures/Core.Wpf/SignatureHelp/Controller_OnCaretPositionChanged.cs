@@ -5,17 +5,16 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
-{
-    internal partial class Controller
-    {
-        internal override void OnCaretPositionChanged(object sender, EventArgs args)
-        {
-            this.ThreadingContext.ThrowIfNotOnUIThread();
-            OnCaretPositionChanged();
-        }
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 
-        private void OnCaretPositionChanged()
-            => Retrigger();
+internal sealed partial class Controller
+{
+    internal override void OnCaretPositionChanged(object sender, EventArgs args)
+    {
+        this.ThreadingContext.ThrowIfNotOnUIThread();
+        OnCaretPositionChanged();
     }
+
+    private void OnCaretPositionChanged()
+        => Retrigger();
 }

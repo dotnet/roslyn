@@ -19,7 +19,6 @@
 
       $(RoslynPackageDescriptionDetails)
     </PackageDescription>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_GetFilesToPackage</TargetsForTfmSpecificContentInPackage>
     <!-- Remove NU5128 once https://github.com/NuGet/Home/issues/8583 is fixed -->
     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
 
@@ -47,17 +46,25 @@
     <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
+  <Target Name="_GetFiles" AfterTargets="Build" DependsOnTargets="$(_DependsOn)" Condition="'$(TargetFramework)' != ''">
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcore"/>
       <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcore/bincore"/>
       <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcore/bincore/runtimes"/>
-     
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+      <_File Include="@(DesktopCompilerArtifact)" Condition="'%(DesktopCompilerArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
+      <_File Include="@(DesktopCompilerResourceArtifact)" Condition="'%(DesktopCompilerResourceArtifact.NeededForBuildTask)' == 'true'" TargetDir="tasks/netcore/binfx"/>
+
+      <_FileWithPath Include="@(_File)" TargetPath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
+
+      <TfmSpecificPackageFile Include="@(_FileWithPath)" PackagePath="%(_FileWithPath.TargetPath)" />
     </ItemGroup>
+
+    <!-- Used for debugging parts of the toolset (e.g., build tasks). -->
+    <Copy SourceFiles="@(_FileWithPath)"
+          DestinationFiles="$(BaseOutputPath)$(Configuration)\%(_FileWithPath.TargetPath)"
+          SkipUnchangedFiles="true" />
   </Target>
 
   <Import Project="..\DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />

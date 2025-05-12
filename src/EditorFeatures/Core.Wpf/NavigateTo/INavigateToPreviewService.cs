@@ -9,12 +9,11 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+
+internal interface INavigateToPreviewService : IWorkspaceService
 {
-    internal interface INavigateToPreviewService : IWorkspaceService
-    {
-        __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document);
-        bool CanPreview(Document document);
-        void PreviewItem(INavigateToItemDisplay itemDisplay);
-    }
+    __VSPROVISIONALVIEWINGSTATUS GetProvisionalViewingStatus(INavigableItem.NavigableDocument document);
+    bool CanPreview(Document document);
+    void PreviewItem(INavigateToItemDisplay itemDisplay);
 }

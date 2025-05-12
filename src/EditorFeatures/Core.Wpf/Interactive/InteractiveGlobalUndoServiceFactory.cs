@@ -10,81 +10,79 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+[ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), [WorkspaceKind.Interactive]), Shared]
+internal sealed class InteractiveGlobalUndoServiceFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), [WorkspaceKind.Interactive]), Shared]
-    internal sealed class InteractiveGlobalUndoServiceFactory : IWorkspaceServiceFactory
+    private readonly GlobalUndoService _singleton;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public InteractiveGlobalUndoServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
+        => _singleton = new GlobalUndoService(undoHistoryRegistry);
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => _singleton;
+
+    private sealed class GlobalUndoService : IGlobalUndoService
     {
-        private readonly GlobalUndoService _singleton;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InteractiveGlobalUndoServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
-            => _singleton = new GlobalUndoService(undoHistoryRegistry);
+        public bool IsGlobalTransactionOpen(Workspace workspace)
+            => GetHistory(workspace).CurrentTransaction != null;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => _singleton;
+        public GlobalUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
+            => _undoHistoryRegistry = undoHistoryRegistry;
 
-        private class GlobalUndoService : IGlobalUndoService
+        public bool CanUndo(Workspace workspace)
         {
-            private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
+            // only primary workspace supports global undo
+            return workspace is InteractiveWindowWorkspace;
+        }
 
-            public bool IsGlobalTransactionOpen(Workspace workspace)
-                => GetHistory(workspace).CurrentTransaction != null;
-
-            public GlobalUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-                => _undoHistoryRegistry = undoHistoryRegistry;
-
-            public bool CanUndo(Workspace workspace)
+        public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
+        {
+            if (!CanUndo(workspace))
             {
-                // only primary workspace supports global undo
-                return workspace is InteractiveWindowWorkspace;
+                throw new ArgumentException(EditorFeaturesResources.Given_Workspace_doesn_t_support_Undo);
             }
 
-            public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
+            var textUndoHistory = GetHistory(workspace);
+
+            var transaction = textUndoHistory.CreateTransaction(description);
+
+            return new InteractiveGlobalUndoTransaction(transaction);
+        }
+
+        private ITextUndoHistory GetHistory(Workspace workspace)
+        {
+            var interactiveWorkspace = (InteractiveWindowWorkspace)workspace;
+            var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
+
+            Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));
+
+            return textUndoHistory;
+        }
+
+        private sealed class InteractiveGlobalUndoTransaction : IWorkspaceGlobalUndoTransaction
+        {
+            private readonly ITextUndoTransaction _transaction;
+
+            public InteractiveGlobalUndoTransaction(ITextUndoTransaction transaction)
+                => _transaction = transaction;
+
+            public void AddDocument(DocumentId id)
             {
-                if (!CanUndo(workspace))
-                {
-                    throw new ArgumentException(EditorFeaturesResources.Given_Workspace_doesn_t_support_Undo);
-                }
-
-                var textUndoHistory = GetHistory(workspace);
-
-                var transaction = textUndoHistory.CreateTransaction(description);
-
-                return new InteractiveGlobalUndoTransaction(transaction);
+                // Nothing to do.
             }
 
-            private ITextUndoHistory GetHistory(Workspace workspace)
-            {
-                var interactiveWorkspace = (InteractiveWindowWorkspace)workspace;
-                var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
+            public void Commit()
+                => _transaction.Complete();
 
-                Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));
-
-                return textUndoHistory;
-            }
-
-            private class InteractiveGlobalUndoTransaction : IWorkspaceGlobalUndoTransaction
-            {
-                private readonly ITextUndoTransaction _transaction;
-
-                public InteractiveGlobalUndoTransaction(ITextUndoTransaction transaction)
-                    => _transaction = transaction;
-
-                public void AddDocument(DocumentId id)
-                {
-                    // Nothing to do.
-                }
-
-                public void Commit()
-                    => _transaction.Complete();
-
-                public void Dispose()
-                    => _transaction.Dispose();
-            }
+            public void Dispose()
+                => _transaction.Dispose();
         }
     }
 }

@@ -10120,7 +10120,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
         [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
         [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
         [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
-        public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
+        public void UncheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
         {
             UsingDeclaration(op + " operator unchecked D(C x) => x;", expectedErrors:
                 // (1,19): error CS9027: Unexpected keyword 'unchecked'

@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo;
 
 [Trait(Traits.Feature, Traits.Features.NavigateTo)]
-public class InteractiveNavigateToTests : AbstractNavigateToTests
+public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 {
     protected override string Language => "csharp";
 

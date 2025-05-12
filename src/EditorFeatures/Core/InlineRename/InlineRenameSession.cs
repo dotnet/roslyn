@@ -35,7 +35,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal partial class InlineRenameSession : IInlineRenameSession, IFeatureController
+internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatureController
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
@@ -198,7 +198,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public string OriginalSymbolName => RenameInfo.DisplayName;
 
     // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
-    private class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
+    private sealed class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
     {
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly Document _document = document;
@@ -393,10 +393,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             var changedDocuments = args.NewSolution.GetChangedDocuments(args.OldSolution);
             if (changedDocuments.Any())
             {
-                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(static (m, args) =>
                 {
                     m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
-                }));
+                }, args));
 
                 Cancel();
             }

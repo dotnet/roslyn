@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ContextVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
+public sealed class ContextVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
     internal override Type GetArgumentProviderType()
         => typeof(ContextVariableArgumentProvider);

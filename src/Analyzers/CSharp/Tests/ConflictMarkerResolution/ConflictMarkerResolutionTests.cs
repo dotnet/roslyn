@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConflictMarkerResolutio
 using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpResolveConflictMarkerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsResolveConflictMarker)]
-public class ConflictMarkerResolutionTests
+public sealed class ConflictMarkerResolutionTests
 {
     [Fact]
     public async Task TestTakeTop1()

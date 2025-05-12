@@ -4,7 +4,6 @@
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
-  <Import Project="WpfWorkarounds.targets" Condition="'$(UseWpf)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -402,4 +401,26 @@
   <Target Name="Workaround_CopyResolvedFilesToPublishPreserveNewest" BeforeTargets="_CopyResolvedFilesToPublishPreserveNewest" DependsOnTargets="GenerateManifests" />
 
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
+
+  <!--
+    This target uses Inputs/Outputs so when it is skipped because they are up to date, ApplyOptimizations is skipped.
+    This is a workaround for https://github.com/dotnet/roslyn/issues/77941.
+  -->
+  <Target Name="_DisableApplyOptimizations"
+          BeforeTargets="_InitializeAssemblyOptimizationWithTargetAssembly">
+    <PropertyGroup>
+      <EnableNgenOptimization>false</EnableNgenOptimization>
+    </PropertyGroup>
+  </Target>
+  <Target Name="_DetermineIfApplyOptimizationsShouldBeDisabled"
+          AfterTargets="_DisableApplyOptimizations"
+          Inputs="$(MSBuildAllProjects);@(IntermediateAssembly)"
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+    <CallTarget Targets="_EnableApplyOptimizations" />
+  </Target>
+  <Target Name="_EnableApplyOptimizations">
+    <PropertyGroup>
+      <EnableNgenOptimization>true</EnableNgenOptimization>
+    </PropertyGroup>
+  </Target>
 </Project>

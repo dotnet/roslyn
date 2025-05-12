@@ -332,8 +332,7 @@ public partial class Project
     /// </summary>
     /// <remarks>
     /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
-    /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
-    /// similarly tricky like that.
+    /// generated. This method is best avoided unless you manually ensure you realise the generated document before calling this method.
     /// </remarks>
     internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
     {
@@ -543,36 +542,6 @@ public partial class Project
     /// </summary>
     public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         => State.GetSemanticVersionAsync(cancellationToken);
-
-    /// <summary>
-    /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
-    /// transitive dependencies.
-    /// </summary>
-    /// <remarks>
-    /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
-    /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
-    /// <list type="bullet">
-    ///    <item>Files inside the current project</item>
-    ///    <item>Project properties of the current project</item>
-    ///    <item>Visible files in referenced projects</item>
-    ///    <item>Project properties in referenced projects</item>
-    /// </list>
-    /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
-    /// semantic work.   
-    /// 
-    /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
-    /// <list type="bullet">
-    ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
-    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
-    ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
-    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
-    /// </list>   
-    /// </para>
-    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
-    /// As such, it is not usable across different sessions of a particular host.
-    /// </remarks>
-    internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
-        => Solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the new assembly name.

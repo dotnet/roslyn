@@ -29,7 +29,7 @@ using static Microsoft.VisualStudio.VSConstants;
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
 [Guid(Guids.StackTraceExplorerToolWindowIdString)]
-internal class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
+internal sealed class StackTraceExplorerToolWindow : ToolWindowPane, IOleCommandTarget
 {
     private bool _initialized;
 

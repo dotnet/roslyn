@@ -455,4 +455,38 @@ public sealed class ReturnKeywordRecommenderTests : KeywordRecommenderTests
             record R([$$] int i) { }
             """);
     }
+
+    [Fact]
+    public async Task TestWithinExtension1()
+    {
+        await VerifyAbsenceAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+    }
+
+    [Fact]
+    public async Task TestWithinExtension2()
+    {
+        await VerifyKeywordAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        [$$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+    }
 }

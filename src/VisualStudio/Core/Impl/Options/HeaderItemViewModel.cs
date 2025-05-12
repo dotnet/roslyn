@@ -4,10 +4,9 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+internal sealed class HeaderItemViewModel
 {
-    internal class HeaderItemViewModel
-    {
-        public string Header { get; internal set; }
-    }
+    public string Header { get; internal set; }
 }

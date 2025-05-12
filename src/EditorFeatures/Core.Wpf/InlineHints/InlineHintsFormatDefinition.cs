@@ -12,29 +12,28 @@ using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineHints
-{
-    internal sealed class ClassificationTypeDefinitions
-    {
-        [Export]
-        [Name(InlineHintsTag.TagId)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal ClassificationTypeDefinition InlineHints;
+namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 
-        [Export(typeof(EditorFormatDefinition))]
-        [Name(InlineHintsTag.TagId)]
-        [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
-        [UserVisible(true)]
-        internal sealed class InlineHintsFormatDefinition : EditorFormatDefinition
+internal sealed class ClassificationTypeDefinitions
+{
+    [Export]
+    [Name(InlineHintsTag.TagId)]
+    [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+    internal ClassificationTypeDefinition InlineHints;
+
+    [Export(typeof(EditorFormatDefinition))]
+    [Name(InlineHintsTag.TagId)]
+    [Order(After = LanguagePriority.NaturalLanguage, Before = LanguagePriority.FormalLanguage)]
+    [UserVisible(true)]
+    internal sealed class InlineHintsFormatDefinition : EditorFormatDefinition
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public InlineHintsFormatDefinition()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public InlineHintsFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Inline_Hints;
-                this.ForegroundBrush = new SolidColorBrush(Color.FromRgb(104, 104, 104));
-                this.BackgroundBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230));
-            }
+            this.DisplayName = EditorFeaturesResources.Inline_Hints;
+            this.ForegroundBrush = new SolidColorBrush(Color.FromRgb(104, 104, 104));
+            this.BackgroundBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230));
         }
     }
 }

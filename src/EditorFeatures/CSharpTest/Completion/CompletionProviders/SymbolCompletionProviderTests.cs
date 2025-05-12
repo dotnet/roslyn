@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SymbolCompletionProvider);
@@ -15077,6 +15077,22 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         await VerifyExpectedItemsAsync(markup, [
             ItemExpectation.Exists("X"),
             ItemExpectation.Exists("Y"),
+        ]);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PartialPropertyOrConstructor(
+        [CombinatorialValues("class", "struct", "record", "record class", "record struct", "interface")] string typeKind,
+        [CombinatorialValues("", "public", "private", "static", "extern")] string modifiers)
+    {
+        var markup = $$"""
+            partial {{typeKind}} C
+            {
+                {{modifiers}} partial $$
+            }
+            """;
+        await VerifyExpectedItemsAsync(markup, [
+            ItemExpectation.Exists("C"),
         ]);
     }
 

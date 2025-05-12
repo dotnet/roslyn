@@ -18,70 +18,69 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+
+/// <summary>
+/// This tagger assumes content of the buffer never get changed. 
+/// and the buffer provides static classification information on the buffer content
+/// through <see cref="PredefinedPreviewTaggerKeys.StaticClassificationSpansKey" /> in the buffer property bag
+/// </summary>
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(IClassificationTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(TextViewRoles.PreviewRole)]
+internal sealed class PreviewStaticClassificationTaggerProvider : ITaggerProvider
 {
-    /// <summary>
-    /// This tagger assumes content of the buffer never get changed. 
-    /// and the buffer provides static classification information on the buffer content
-    /// through <see cref="PredefinedPreviewTaggerKeys.StaticClassificationSpansKey" /> in the buffer property bag
-    /// </summary>
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewStaticClassificationTaggerProvider : ITaggerProvider
+    private readonly ClassificationTypeMap _typeMap;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
+        => _typeMap = typeMap;
+
+    public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
+        where T : ITag
+    {
+        return new Tagger(_typeMap, buffer) as ITagger<T>;
+    }
+
+    private sealed class Tagger : ITagger<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
+        private readonly ITextBuffer _buffer;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
-            => _typeMap = typeMap;
-
-        public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
-            where T : ITag
+        public Tagger(ClassificationTypeMap typeMap, ITextBuffer buffer)
         {
-            return new Tagger(_typeMap, buffer) as ITagger<T>;
+            _typeMap = typeMap;
+            _buffer = buffer;
         }
 
-        private class Tagger : ITagger<IClassificationTag>
-        {
-            private readonly ClassificationTypeMap _typeMap;
-            private readonly ITextBuffer _buffer;
+        /// <summary>
+        /// The tags never change for this tagger.
+        /// </summary>
+        event EventHandler<SnapshotSpanEventArgs> ITagger<IClassificationTag>.TagsChanged { add { } remove { } }
 
-            public Tagger(ClassificationTypeMap typeMap, ITextBuffer buffer)
+        IEnumerable<ITagSpan<IClassificationTag>> ITagger<IClassificationTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            => GetTags(spans);
+
+        public IEnumerable<TagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        {
+            if (!_buffer.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.StaticClassificationSpansKey, out ImmutableArray<ClassifiedSpan> classifiedSpans))
             {
-                _typeMap = typeMap;
-                _buffer = buffer;
+                yield break;
             }
 
-            /// <summary>
-            /// The tags never change for this tagger.
-            /// </summary>
-            event EventHandler<SnapshotSpanEventArgs> ITagger<IClassificationTag>.TagsChanged { add { } remove { } }
-
-            IEnumerable<ITagSpan<IClassificationTag>> ITagger<IClassificationTag>.GetTags(NormalizedSnapshotSpanCollection spans)
-                => GetTags(spans);
-
-            public IEnumerable<TagSpan<IClassificationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            foreach (var span in spans)
             {
-                if (!_buffer.Properties.TryGetProperty(PredefinedPreviewTaggerKeys.StaticClassificationSpansKey, out ImmutableArray<ClassifiedSpan> classifiedSpans))
-                {
-                    yield break;
-                }
+                // we don't need to care about snapshot since everything is static and never changes in preview
+                var requestSpan = span.Span.ToTextSpan();
 
-                foreach (var span in spans)
+                foreach (var classifiedSpan in classifiedSpans)
                 {
-                    // we don't need to care about snapshot since everything is static and never changes in preview
-                    var requestSpan = span.Span.ToTextSpan();
-
-                    foreach (var classifiedSpan in classifiedSpans)
+                    if (classifiedSpan.TextSpan.IntersectsWith(requestSpan))
                     {
-                        if (classifiedSpan.TextSpan.IntersectsWith(requestSpan))
-                        {
-                            yield return ClassificationUtilities.Convert(_typeMap, span.Snapshot, classifiedSpan);
-                        }
+                        yield return ClassificationUtilities.Convert(_typeMap, span.Snapshot, classifiedSpan);
                     }
                 }
             }

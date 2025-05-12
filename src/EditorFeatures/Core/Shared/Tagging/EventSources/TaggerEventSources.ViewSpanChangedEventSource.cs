@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
 internal partial class TaggerEventSources
 {
-    private class ViewSpanChangedEventSource : AbstractTaggerEventSource
+    private sealed class ViewSpanChangedEventSource : AbstractTaggerEventSource
     {
         private readonly IThreadingContext _threadingContext;
         private readonly ITextView _textView;

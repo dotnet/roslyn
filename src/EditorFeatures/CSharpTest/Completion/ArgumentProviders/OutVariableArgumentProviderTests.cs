@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class OutVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
+public sealed class OutVariableArgumentProviderTests : AbstractCSharpArgumentProviderTests
 {
     private static readonly OptionsCollection s_useExplicitTypeOptions = new(LanguageNames.CSharp)
     {

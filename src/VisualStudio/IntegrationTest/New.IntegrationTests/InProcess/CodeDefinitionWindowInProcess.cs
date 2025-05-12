@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class CodeDefinitionWindowInProcess
+internal sealed partial class CodeDefinitionWindowInProcess
 {
     public async Task ShowAsync(CancellationToken cancellationToken)
     {

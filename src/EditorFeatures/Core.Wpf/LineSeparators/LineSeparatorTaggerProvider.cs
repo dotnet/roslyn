@@ -24,94 +24,93 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
+
+/// <summary>
+/// This factory is called to create taggers that provide information about where line
+/// separators go.
+/// </summary>
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(LineSeparatorTag))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[ContentType(ContentTypeNames.VisualBasicContentType)]
+internal sealed partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
 {
-    /// <summary>
-    /// This factory is called to create taggers that provide information about where line
-    /// separators go.
-    /// </summary>
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(LineSeparatorTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal sealed partial class LineSeparatorTaggerProvider : AsynchronousTaggerProvider<LineSeparatorTag>
+    private readonly IEditorFormatMap _editorFormatMap;
+
+    protected sealed override ImmutableArray<IOption2> Options { get; } = [];
+
+    private readonly object _lineSeparatorTagGate = new();
+    private LineSeparatorTag _lineSeparatorTag;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LineSeparatorTaggerProvider(
+        TaggerHost taggerHost,
+        IEditorFormatMapService editorFormatMapService)
+        : base(taggerHost, FeatureAttribute.LineSeparators)
     {
-        private readonly IEditorFormatMap _editorFormatMap;
+        _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
+        _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
+        _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+    }
 
-        protected sealed override ImmutableArray<IOption2> Options { get; } = [];
+    protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-        private readonly object _lineSeparatorTagGate = new();
-        private LineSeparatorTag _lineSeparatorTag;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LineSeparatorTaggerProvider(
-            TaggerHost taggerHost,
-            IEditorFormatMapService editorFormatMapService)
-            : base(taggerHost, FeatureAttribute.LineSeparators)
+    private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
+    {
+        lock (_lineSeparatorTagGate)
         {
-            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
             _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
         }
+    }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
+    protected override ITaggerEventSource CreateEventSource(
+        ITextView? textView, ITextBuffer subjectBuffer)
+    {
+        return TaggerEventSources.Compose(
+            new EditorFormatMapChangedEventSource(_editorFormatMap),
+            TaggerEventSources.OnTextChanged(subjectBuffer));
+    }
 
-        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
+    protected override async Task ProduceTagsAsync(
+        TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+    {
+        var document = documentSnapshotSpan.Document;
+        if (document == null)
+            return;
+
+        if (!GlobalOptions.GetOption(LineSeparatorsOptionsStorage.LineSeparator, document.Project.Language))
+            return;
+
+        using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
         {
+            var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+            var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
+            if (lineSeparatorService == null)
+                return;
+
+            var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (lineSeparatorSpans.Length == 0)
+                return;
+
+            LineSeparatorTag tag;
             lock (_lineSeparatorTagGate)
             {
-                _lineSeparatorTag = new LineSeparatorTag(_editorFormatMap);
+                tag = _lineSeparatorTag;
             }
+
+            foreach (var span in lineSeparatorSpans)
+                context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
-
-        protected override ITaggerEventSource CreateEventSource(
-            ITextView? textView, ITextBuffer subjectBuffer)
-        {
-            return TaggerEventSources.Compose(
-                new EditorFormatMapChangedEventSource(_editorFormatMap),
-                TaggerEventSources.OnTextChanged(subjectBuffer));
-        }
-
-        protected override async Task ProduceTagsAsync(
-            TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
-        {
-            var document = documentSnapshotSpan.Document;
-            if (document == null)
-                return;
-
-            if (!GlobalOptions.GetOption(LineSeparatorsOptionsStorage.LineSeparator, document.Project.Language))
-                return;
-
-            using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
-            {
-                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
-                if (lineSeparatorService == null)
-                    return;
-
-                var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (lineSeparatorSpans.Length == 0)
-                    return;
-
-                LineSeparatorTag tag;
-                lock (_lineSeparatorTagGate)
-                {
-                    tag = _lineSeparatorTag;
-                }
-
-                foreach (var span in lineSeparatorSpans)
-                    context.AddTag(new TagSpan<LineSeparatorTag>(span.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
-            }
-        }
-
-        /// <summary>
-        /// We create and cache a separator tag to use (unless the format mapping changes).  So we can just use identity
-        /// comparisons here.
-        /// </summary>
-        protected override bool TagEquals(LineSeparatorTag tag1, LineSeparatorTag tag2)
-            => tag1 == tag2;
     }
+
+    /// <summary>
+    /// We create and cache a separator tag to use (unless the format mapping changes).  So we can just use identity
+    /// comparisons here.
+    /// </summary>
+    protected override bool TagEquals(LineSeparatorTag tag1, LineSeparatorTag tag2)
+        => tag1 == tag2;
 }

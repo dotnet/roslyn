@@ -6,20 +6,19 @@ using System;
 using System.Threading;
 using System.Windows;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+
+internal sealed class GraphicsResult : IDisposable
 {
-    internal class GraphicsResult : IDisposable
+    public UIElement VisualElement { get; }
+    private Action? _dispose;
+
+    public GraphicsResult(UIElement visualElement, Action? dispose)
     {
-        public UIElement VisualElement { get; }
-        private Action? _dispose;
-
-        public GraphicsResult(UIElement visualElement, Action? dispose)
-        {
-            VisualElement = visualElement;
-            _dispose = dispose;
-        }
-
-        public void Dispose()
-            => Interlocked.Exchange(ref _dispose, null)?.Invoke();
+        VisualElement = visualElement;
+        _dispose = dispose;
     }
+
+    public void Dispose()
+        => Interlocked.Exchange(ref _dispose, null)?.Invoke();
 }

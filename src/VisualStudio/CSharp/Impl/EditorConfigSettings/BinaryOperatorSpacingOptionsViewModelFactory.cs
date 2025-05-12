@@ -10,23 +10,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings;
+
+[Export(typeof(IEnumSettingViewModelFactory)), Shared]
+internal sealed class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory
 {
-    [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class BinaryOperatorSpacingOptionsViewModelFactory : IEnumSettingViewModelFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public BinaryOperatorSpacingOptionsViewModelFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public BinaryOperatorSpacingOptionsViewModelFactory()
-        {
-        }
-
-        public IEnumSettingViewModel CreateViewModel(Setting setting)
-        {
-            return new BinaryOperatorSpacingOptionsViewModel(setting);
-        }
-
-        public bool IsSupported(OptionKey2 key)
-            => key.Option.Type == typeof(BinaryOperatorSpacingOptions);
     }
+
+    public IEnumSettingViewModel CreateViewModel(Setting setting)
+    {
+        return new BinaryOperatorSpacingOptionsViewModel(setting);
+    }
+
+    public bool IsSupported(OptionKey2 key)
+        => key.Option.Type == typeof(BinaryOperatorSpacingOptions);
 }

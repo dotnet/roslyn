@@ -4,18 +4,17 @@
 
 #nullable disable
 
-namespace Microsoft.VisualStudio.LanguageServices.LiveShare
-{
-    internal class LiveShareConstants
-    {
-        // The service name for an LSP server implemented using Roslyn designed to be used with the Roslyn client
-        public const string RoslynContractName = "Roslyn";
-        // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
-        public const string RoslynLSPSDKContractName = "RoslynLSPSDK";
-        public const string TypeScriptLanguageName = "TypeScript";
+namespace Microsoft.VisualStudio.LanguageServices.LiveShare;
 
-        public const string CSharpContractName = "CSharp";
-        public const string VisualBasicContractName = "VisualBasic";
-        public const string TypeScriptContractName = "TypeScript";
-    }
+internal sealed class LiveShareConstants
+{
+    // The service name for an LSP server implemented using Roslyn designed to be used with the Roslyn client
+    public const string RoslynContractName = "Roslyn";
+    // The service name for an LSP server implemented using Roslyn designed to be used with the LSP SDK client
+    public const string RoslynLSPSDKContractName = "RoslynLSPSDK";
+    public const string TypeScriptLanguageName = "TypeScript";
+
+    public const string CSharpContractName = "CSharp";
+    public const string VisualBasicContractName = "VisualBasic";
+    public const string TypeScriptContractName = "TypeScript";
 }

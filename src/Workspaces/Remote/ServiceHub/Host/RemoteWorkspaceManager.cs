@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,7 +28,8 @@ internal class RemoteWorkspaceManager
             .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
             .Add(typeof(BrokeredServiceBase).Assembly)
             .Add(typeof(IRazorLanguageServerTarget).Assembly)
-            .Add(typeof(RemoteWorkspacesResources).Assembly);
+            .Add(typeof(RemoteWorkspacesResources).Assembly)
+            .Add(typeof(IExtensionWorkspaceMessageHandler<,>).Assembly);
 
     /// <summary>
     /// Default workspace manager used by the product. Tests may specify a custom <see

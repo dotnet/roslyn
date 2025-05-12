@@ -20,98 +20,97 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.QuickInfo;
+
+[ExportWorkspaceService(typeof(IContentControlService), layer: ServiceLayer.Editor), Shared]
+internal sealed partial class ContentControlService : IContentControlService
 {
-    [ExportWorkspaceService(typeof(IContentControlService), layer: ServiceLayer.Editor), Shared]
-    internal partial class ContentControlService : IContentControlService
+    private readonly IThreadingContext _threadingContext;
+    private readonly ITextEditorFactoryService _textEditorFactoryService;
+    private readonly IContentTypeRegistryService _contentTypeRegistryService;
+    private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+    private readonly EditorOptionsService _editorOptionsService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ContentControlService(
+        IThreadingContext threadingContext,
+        ITextEditorFactoryService textEditorFactoryService,
+        IContentTypeRegistryService contentTypeRegistryService,
+        IProjectionBufferFactoryService projectionBufferFactoryService,
+        EditorOptionsService editorOptionsService)
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly EditorOptionsService _editorOptionsService;
+        _threadingContext = threadingContext;
+        _textEditorFactoryService = textEditorFactoryService;
+        _contentTypeRegistryService = contentTypeRegistryService;
+        _projectionBufferFactoryService = projectionBufferFactoryService;
+        _editorOptionsService = editorOptionsService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ContentControlService(
-            IThreadingContext threadingContext,
-            ITextEditorFactoryService textEditorFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            EditorOptionsService editorOptionsService)
+    public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
+        => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
+
+    public DisposableToolTip CreateDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
+    {
+        var control = CreateViewHostingControl(textBuffer, contentSpan);
+
+        // Create the actual tooltip around the region of that text buffer we want to show.
+        var toolTip = new ToolTip
         {
-            _threadingContext = threadingContext;
-            _textEditorFactoryService = textEditorFactoryService;
-            _contentTypeRegistryService = contentTypeRegistryService;
-            _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsService = editorOptionsService;
-        }
+            Content = control
+        };
 
-        public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
-            => LazyToolTip.AttachTo(element, _threadingContext, createToolTip);
+        toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
 
-        public DisposableToolTip CreateDisposableToolTip(Document document, ITextBuffer textBuffer, Span contentSpan, object backgroundResourceKey)
+        // Create a preview workspace for this text buffer and open it's corresponding
+        // document.
+        //
+        // our underlying preview tagger and mechanism to attach tagger to associated buffer of
+        // opened document will light up automatically
+        var workspace = new PreviewWorkspace(document.Project.Solution);
+        workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
+
+        return new DisposableToolTip(toolTip, workspace);
+    }
+
+    public DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)
+    {
+        var control = CreateViewHostingControl(textBuffer, textBuffer.CurrentSnapshot.GetFullSpan().Span);
+
+        // Create the actual tooltip around the region of that text buffer we want to show.
+        var toolTip = new ToolTip
         {
-            var control = CreateViewHostingControl(textBuffer, contentSpan);
+            Content = control
+        };
 
-            // Create the actual tooltip around the region of that text buffer we want to show.
-            var toolTip = new ToolTip
-            {
-                Content = control
-            };
+        toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
 
-            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
+        // we have stand alone view that is not associated with roslyn solution
+        return new DisposableToolTip(toolTip, workspaceOpt: null);
+    }
 
-            // Create a preview workspace for this text buffer and open it's corresponding
-            // document.
-            //
-            // our underlying preview tagger and mechanism to attach tagger to associated buffer of
-            // opened document will light up automatically
-            var workspace = new PreviewWorkspace(document.Project.Solution);
-            workspace.OpenDocument(document.Id, textBuffer.AsTextContainer());
+    public ViewHostingControl CreateViewHostingControl(ITextBuffer textBuffer, Span contentSpan)
+    {
+        var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(contentSpan);
 
-            return new DisposableToolTip(toolTip, workspace);
-        }
+        var contentType = _contentTypeRegistryService.GetContentType(
+            IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
 
-        public DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey)
-        {
-            var control = CreateViewHostingControl(textBuffer, textBuffer.CurrentSnapshot.GetFullSpan().Span);
+        var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
+            TextViewRoles.PreviewRole,
+            PredefinedTextViewRoles.Analyzable,
+            PredefinedTextViewRoles.Document,
+            PredefinedTextViewRoles.Editable);
 
-            // Create the actual tooltip around the region of that text buffer we want to show.
-            var toolTip = new ToolTip
-            {
-                Content = control
-            };
+        var contentControl = ProjectionBufferContent.Create(
+            _threadingContext,
+            [snapshotSpan],
+            _projectionBufferFactoryService,
+            _editorOptionsService,
+            _textEditorFactoryService,
+            contentType,
+            roleSet);
 
-            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
-
-            // we have stand alone view that is not associated with roslyn solution
-            return new DisposableToolTip(toolTip, workspaceOpt: null);
-        }
-
-        public ViewHostingControl CreateViewHostingControl(ITextBuffer textBuffer, Span contentSpan)
-        {
-            var snapshotSpan = textBuffer.CurrentSnapshot.GetSpan(contentSpan);
-
-            var contentType = _contentTypeRegistryService.GetContentType(
-                IProjectionBufferFactoryServiceExtensions.RoslynPreviewContentType);
-
-            var roleSet = _textEditorFactoryService.CreateTextViewRoleSet(
-                TextViewRoles.PreviewRole,
-                PredefinedTextViewRoles.Analyzable,
-                PredefinedTextViewRoles.Document,
-                PredefinedTextViewRoles.Editable);
-
-            var contentControl = ProjectionBufferContent.Create(
-                _threadingContext,
-                [snapshotSpan],
-                _projectionBufferFactoryService,
-                _editorOptionsService,
-                _textEditorFactoryService,
-                contentType,
-                roleSet);
-
-            return contentControl;
-        }
+        return contentControl;
     }
 }

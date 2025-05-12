@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCa
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "Test")]
 [Shared]
 [PartNotDiscoverable]
-internal class ExceptionInComputeRefactoringsAsync : CodeRefactoringProvider
+internal sealed class ExceptionInComputeRefactoringsAsync : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

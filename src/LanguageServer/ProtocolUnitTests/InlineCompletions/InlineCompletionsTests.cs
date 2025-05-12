@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
+public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 {
     public InlineCompletionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

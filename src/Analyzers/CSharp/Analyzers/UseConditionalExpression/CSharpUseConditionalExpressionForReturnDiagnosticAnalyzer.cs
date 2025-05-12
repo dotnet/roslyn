@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseConditionalExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer
+internal sealed class CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer
     : AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer<IfStatementSyntax>
 {
     public CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer()

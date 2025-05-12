@@ -5,22 +5,21 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.VisualStudio.Text.Classification;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Tagging;
+
+internal sealed class EditorFormatMapChangedEventSource : AbstractTaggerEventSource
 {
-    internal sealed class EditorFormatMapChangedEventSource : AbstractTaggerEventSource
-    {
-        private readonly IEditorFormatMap _editorFormatMap;
+    private readonly IEditorFormatMap _editorFormatMap;
 
-        public EditorFormatMapChangedEventSource(IEditorFormatMap editorFormatMap)
-            => _editorFormatMap = editorFormatMap;
+    public EditorFormatMapChangedEventSource(IEditorFormatMap editorFormatMap)
+        => _editorFormatMap = editorFormatMap;
 
-        public override void Connect()
-            => _editorFormatMap.FormatMappingChanged += OnEditorFormatMapChanged;
+    public override void Connect()
+        => _editorFormatMap.FormatMappingChanged += OnEditorFormatMapChanged;
 
-        public override void Disconnect()
-            => _editorFormatMap.FormatMappingChanged -= OnEditorFormatMapChanged;
+    public override void Disconnect()
+        => _editorFormatMap.FormatMappingChanged -= OnEditorFormatMapChanged;
 
-        private void OnEditorFormatMapChanged(object sender, FormatItemsEventArgs e)
-            => this.RaiseChanged();
-    }
+    private void OnEditorFormatMapChanged(object sender, FormatItemsEventArgs e)
+        => this.RaiseChanged();
 }

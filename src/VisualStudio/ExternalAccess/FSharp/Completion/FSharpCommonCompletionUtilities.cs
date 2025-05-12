@@ -8,13 +8,12 @@ using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
+
+internal static class FSharpCommonCompletionUtilities
 {
-    internal static class FSharpCommonCompletionUtilities
+    public static bool IsStartingNewWord(SourceText text, int characterPosition, Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
     {
-        public static bool IsStartingNewWord(SourceText text, int characterPosition, Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
-        {
-            return CommonCompletionUtilities.IsStartingNewWord(text, characterPosition, isWordStartCharacter, isWordCharacter);
-        }
+        return CommonCompletionUtilities.IsStartingNewWord(text, characterPosition, isWordStartCharacter, isWordCharacter);
     }
 }

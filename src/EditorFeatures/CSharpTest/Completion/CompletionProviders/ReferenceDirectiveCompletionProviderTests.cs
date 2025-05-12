@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
+public sealed class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ReferenceDirectiveCompletionProvider);

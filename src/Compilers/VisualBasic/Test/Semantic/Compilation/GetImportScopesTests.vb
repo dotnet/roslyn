@@ -338,7 +338,7 @@ end namespace
 #Region "xml namespace"
 
         <Fact>
-        Public Sub TestBeforeXmlNamespae()
+        Public Sub TestBeforeXmlNamespace()
             Dim Text = "'pos
 Imports <xmlns:r1=""http://roslyn"">"
             Dim scopes = GetImportScopes(Text)

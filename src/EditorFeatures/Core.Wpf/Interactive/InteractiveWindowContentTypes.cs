@@ -7,19 +7,18 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Interactive
-{
-    /// <summary>
-    /// Represents the content type for specialized interactive commands for C# and VB
-    /// interactive window which override the implementation of these commands in underlying
-    /// interactive window.
-    /// </summary>
-    internal static class InteractiveWindowContentTypes
-    {
-        public const string CommandContentTypeName = "Specialized CSharp and VB Interactive Command";
+namespace Microsoft.CodeAnalysis.Interactive;
 
-        [Export, Name(CommandContentTypeName), BaseDefinition("code")]
-        internal static readonly ContentTypeDefinition CommandContentTypeDefinition;
-    }
+/// <summary>
+/// Represents the content type for specialized interactive commands for C# and VB
+/// interactive window which override the implementation of these commands in underlying
+/// interactive window.
+/// </summary>
+internal static class InteractiveWindowContentTypes
+{
+    public const string CommandContentTypeName = "Specialized CSharp and VB Interactive Command";
+
+    [Export, Name(CommandContentTypeName), BaseDefinition("code")]
+    internal static readonly ContentTypeDefinition CommandContentTypeDefinition;
 }
 

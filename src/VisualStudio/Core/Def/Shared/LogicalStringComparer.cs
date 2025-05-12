@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal class LogicalStringComparer : IComparer<string>
+internal sealed class LogicalStringComparer : IComparer<string>
 {
     [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
     private static extern int StrCmpLogicalW(string psz1, string psz2);

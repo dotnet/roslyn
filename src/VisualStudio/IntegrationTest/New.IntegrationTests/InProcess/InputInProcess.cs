@@ -23,7 +23,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class InputInProcess
+internal sealed partial class InputInProcess
 {
     internal Task SendAsync(InputKey key, CancellationToken cancellationToken)
         => SendAsync([key], cancellationToken);

@@ -12,20 +12,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
+namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
+
+[Export(typeof(EditorFormatDefinition))]
+[Name(EditAndContinueErrorTypeDefinition.Name)]
+[UserVisible(true)]
+internal sealed class EditAndContinueErrorTypeFormatDefinition : EditorFormatDefinition
 {
-    [Export(typeof(EditorFormatDefinition))]
-    [Name(EditAndContinueErrorTypeDefinition.Name)]
-    [UserVisible(true)]
-    internal sealed class EditAndContinueErrorTypeFormatDefinition : EditorFormatDefinition
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public EditAndContinueErrorTypeFormatDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditAndContinueErrorTypeFormatDefinition()
-        {
-            this.ForegroundBrush = Brushes.Purple;
-            this.BackgroundCustomizable = false;
-            this.DisplayName = EditorFeaturesResources.Rude_Edit;
-        }
+        this.ForegroundBrush = Brushes.Purple;
+        this.BackgroundCustomizable = false;
+        this.DisplayName = EditorFeaturesResources.Rude_Edit;
     }
 }

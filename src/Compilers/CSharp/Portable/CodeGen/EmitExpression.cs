@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         /// <summary>
         /// We must use a temp when there is a chance that evaluation of the call arguments
-        /// could actually modify value of the reference type reciever. The call must use
+        /// could actually modify value of the reference type receiver. The call must use
         /// the original (unmodified) receiver.
         /// </summary>
         private sealed class IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
@@ -3588,7 +3588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal);
+                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up
             }
             else
             {

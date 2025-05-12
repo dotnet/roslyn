@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.NewLines.ConditionalExpressionPlacement;
-using Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Xunit;
 
@@ -16,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     ConditionalExpressionPlacementDiagnosticAnalyzer,
     ConditionalExpressionPlacementCodeFixProvider>;
 
-public class ConditionalExpressionPlacementTests
+public sealed class ConditionalExpressionPlacementTests
 {
     [Fact]
     public async Task TestNotWithOptionOff()

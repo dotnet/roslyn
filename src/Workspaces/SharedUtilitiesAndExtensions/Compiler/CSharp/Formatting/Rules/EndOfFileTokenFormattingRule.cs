@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal class EndOfFileTokenFormattingRule : BaseFormattingRule
+internal sealed class EndOfFileTokenFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp End Of File Token Formatting Rule";
 

@@ -29,7 +29,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
     {
         var globalOptions = (GlobalOptionService)await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         var provider = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioOptionPersisterProvider>(HangMitigatingCancellationToken);
-        var vsSettingsPersister = (VisualStudioOptionPersister)await provider.GetOrCreatePersisterAsync(HangMitigatingCancellationToken);
+        var vsSettingsPersister = (VisualStudioOptionPersister)provider.GetOrCreatePersister();
 
         var optionsInfo = OptionsTestInfo.CollectOptions(Path.GetDirectoryName(typeof(GlobalOptionsTest).Assembly.Location!));
         var allLanguages = new[] { LanguageNames.CSharp, LanguageNames.VisualBasic };

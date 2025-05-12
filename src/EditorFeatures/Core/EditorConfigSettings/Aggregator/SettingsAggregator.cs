@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 
-internal partial class SettingsAggregator : ISettingsAggregator
+internal sealed partial class SettingsAggregator : ISettingsAggregator
 {
     private readonly Workspace _workspace;
     private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;

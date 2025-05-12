@@ -5,7 +5,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using System.Diagnostics.CodeAnalysis;
@@ -13,7 +12,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
 [Guid(Guids.ValueTrackingToolWindowIdString)]
-internal class ValueTrackingToolWindow : ToolWindowPane
+internal sealed class ValueTrackingToolWindow : ToolWindowPane
 {
     private readonly ValueTrackingRoot _root = new();
 

@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileCreate
+internal sealed class FileCreate
 {
     /// <summary>
     /// A <c>file://</c> URI for the location of the file/folder being created.

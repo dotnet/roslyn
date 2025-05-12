@@ -6,12 +6,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal class ServerConfigurationFactory
+internal sealed class ServerConfigurationFactory
 {
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -41,7 +40,7 @@ internal class ServerConfigurationFactory
     }
 }
 
-internal record class ServerConfiguration(
+internal sealed record class ServerConfiguration(
     bool LaunchDebugger,
     LogConfiguration LogConfiguration,
     string? StarredCompletionsPath,
@@ -55,7 +54,7 @@ internal record class ServerConfiguration(
     bool UseStdIo,
     string ExtensionLogDirectory);
 
-internal class LogConfiguration
+internal sealed class LogConfiguration
 {
     private int _currentLogLevel;
 

@@ -222,12 +222,13 @@ internal sealed class SolutionChecksumUpdater
         // Update aggregated telemetry with success status of sending the synchronization data.
         var metricName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededMetricName : SynchronizeTextChangesStatusFailedMetricName;
         var keyName = wasSynchronized.Value ? SynchronizeTextChangesStatusSucceededKeyName : SynchronizeTextChangesStatusFailedKeyName;
-        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(m =>
+        TelemetryLogging.LogAggregatedCounter(FunctionId.ChecksumUpdater_SynchronizeTextChangesStatus, KeyValueLogMessage.Create(static (m, args) =>
         {
+            var (keyName, metricName) = args;
             m[TelemetryLogging.KeyName] = keyName;
             m[TelemetryLogging.KeyValue] = 1L;
             m[TelemetryLogging.KeyMetricName] = metricName;
-        }));
+        }, (keyName, metricName)));
 
         return;
 

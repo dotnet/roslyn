@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class DiagnosticAnalyzerService
+internal sealed partial class DiagnosticAnalyzerService
 {
-    private partial class DiagnosticIncrementalAnalyzer
+    private sealed partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
         /// Cached data from a real <see cref="ProjectState"/> instance to the cached diagnostic data produced by
@@ -37,7 +37,7 @@ internal partial class DiagnosticAnalyzerService
         public async Task<ImmutableArray<DiagnosticData>> ForceAnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var projectState = project.State;
-            var checksum = await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false);
+            var checksum = await project.GetDiagnosticChecksumAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -86,7 +86,8 @@ internal partial class DiagnosticAnalyzerService
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(
                     project, fullSolutionAnalysisAnalyzers, hostAnalyzerInfo, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
-                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(compilationWithAnalyzers, project, fullSolutionAnalysisAnalyzers, cancellationToken).ConfigureAwait(false);
+                var projectAnalysisData = await ComputeDiagnosticAnalysisResultsAsync(
+                    compilationWithAnalyzers, project, [.. fullSolutionAnalysisAnalyzers.OfType<DocumentDiagnosticAnalyzer>()], cancellationToken).ConfigureAwait(false);
                 return (checksum, fullSolutionAnalysisAnalyzers, projectAnalysisData);
             }
 

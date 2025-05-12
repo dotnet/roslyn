@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedInstanceMethodSymbol
+    internal sealed class SynthesizedDelegateInvokeMethod : SynthesizedMethodSymbol
     {
         internal readonly struct ParameterDescription
         {

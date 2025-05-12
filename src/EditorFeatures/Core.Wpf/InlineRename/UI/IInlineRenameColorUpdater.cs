@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal interface IInlineRenameColorUpdater
 {
-    internal interface IInlineRenameColorUpdater
-    {
-        /// <summary>
-        /// Implemented by a host to set the properties on <see cref="InlineRenameColors"/>.
-        /// </summary>
-        public void UpdateColors();
-    }
+    /// <summary>
+    /// Implemented by a host to set the properties on <see cref="InlineRenameColors"/>.
+    /// </summary>
+    public void UpdateColors();
 }

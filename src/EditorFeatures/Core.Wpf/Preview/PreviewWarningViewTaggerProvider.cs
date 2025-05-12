@@ -13,21 +13,20 @@ using Microsoft.VisualStudio.Utilities;
 using System;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+
+[Export(typeof(ITaggerProvider))]
+[TagType(typeof(PreviewWarningTag))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[ContentType(ContentTypeNames.XamlContentType)]
+[TextViewRole(TextViewRoles.PreviewRole)]
+internal sealed class PreviewWarningTaggerProvider
+    : AbstractPreviewTaggerProvider<PreviewWarningTag>
 {
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(PreviewWarningTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [TextViewRole(TextViewRoles.PreviewRole)]
-    internal class PreviewWarningTaggerProvider
-        : AbstractPreviewTaggerProvider<PreviewWarningTag>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PreviewWarningTaggerProvider()
+        : base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PreviewWarningTaggerProvider()
-            : base(PredefinedPreviewTaggerKeys.WarningSpansKey, PreviewWarningTag.Instance)
-        {
-        }
     }
 }

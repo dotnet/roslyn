@@ -5,11 +5,10 @@
 using System.Collections.Immutable;
 using System.Reflection;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+public static class DesktopMefHostServices
 {
-    public static class DesktopMefHostServices
-    {
-        public static MefHostServices DefaultServices => MefHostServices.DefaultHost;
-        public static ImmutableArray<Assembly> DefaultAssemblies => MefHostServices.DefaultAssemblies;
-    }
+    public static MefHostServices DefaultServices => MefHostServices.DefaultHost;
+    public static ImmutableArray<Assembly> DefaultAssemblies => MefHostServices.DefaultAssemblies;
 }

@@ -21,10 +21,10 @@ internal interface ISourceLinkService
 /// The result of findding a PDB file
 /// </summary>
 /// <param name="PdbFilePath">The path to the PDB file in the debugger cache</param>
-internal record PdbFilePathResult(string PdbFilePath);
+internal sealed record PdbFilePathResult(string PdbFilePath);
 
 /// <summary>
 /// The result of finding a source file via SourceLink
 /// </summary>
 /// <param name="SourceFilePath">The path to the source file in the debugger cache</param>
-internal record SourceFilePathResult(string SourceFilePath);
+internal sealed record SourceFilePathResult(string SourceFilePath);

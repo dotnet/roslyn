@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (TextWindow.PeekChar(1) is '$' or '@' or '"')
             {
                 // $$ - definitely starts a raw interpolated string.
-                // $@ - definitely starts an interplated string.
+                // $@ - definitely starts an interpolated string.
                 //
                 // This will also match for $@@.  This is an error case when the user thinks they can mix verbatim and raw
                 // interpolations together.  This will be properly handled in ScanInterpolatedStringLiteral
@@ -2510,7 +2510,7 @@ top:
             return token;
         }
 
-        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        private string? LexOptionalPreprocessingMessage()
         {
             PooledStringBuilder? builder = null;
 
@@ -2534,10 +2534,11 @@ top:
                 this.TextWindow.AdvanceChar();
             }
 
-            var leading = builder == null
-                ? null
-                : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
+            return builder?.ToStringAndFree();
+        }
 
+        private SyntaxToken LexEndOfDirectiveAfterOptionalPreprocessingMessage(SyntaxTrivia? leading)
+        {
             // now try to consume the EOL if there.
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
@@ -2550,6 +2551,23 @@ top:
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
             return endOfDirective;
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        {
+            var leading = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxFactory.PreprocessingMessage(message)
+                : null;
+
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(leading);
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalContent(out SyntaxToken? content)
+        {
+            content = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxToken.StringLiteral(message)
+                : null;
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(null);
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
@@ -2598,6 +2616,11 @@ top:
                 case '-':
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.MinusToken;
+                    break;
+
+                case ':':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.ColonToken;
                     break;
 
                 case '!':

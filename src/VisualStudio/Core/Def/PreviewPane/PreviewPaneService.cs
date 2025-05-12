@@ -24,7 +24,7 @@ using SVsUIShell = Microsoft.VisualStudio.Shell.Interop.SVsUIShell;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane;
 
 [ExportWorkspaceServiceFactory(typeof(IPreviewPaneService), ServiceLayer.Host), Shared]
-internal class PreviewPaneService : IPreviewPaneService, IWorkspaceServiceFactory
+internal sealed class PreviewPaneService : IPreviewPaneService, IWorkspaceServiceFactory
 {
     private readonly IVsUIShell _uiShell;
 

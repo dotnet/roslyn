@@ -20,95 +20,94 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+internal static class Extensions
 {
-    internal static class Extensions
+    public static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, SourceText newSource, bool includeFirstLines)
     {
-        public static IEnumerable<RudeEditDiagnosticDescription> ToDescription(this IEnumerable<RudeEditDiagnostic> diagnostics, SourceText newSource, bool includeFirstLines)
-        {
-            return diagnostics.Select(d => new RudeEditDiagnosticDescription(
-                d.Kind,
-                d.Span == default ? null : newSource.ToString(d.Span),
-                d.Arguments,
-                firstLine: includeFirstLines ? newSource.Lines.GetLineFromPosition(d.Span.Start).ToString().Trim() : null));
-        }
-
-        private const string LineSeparator = "\r\n";
-
-        public static IEnumerable<string> ToLines(this string str)
-        {
-            var i = 0;
-            while (true)
-            {
-                var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
-                if (eoln < 0)
-                {
-                    yield return str[i..];
-                    yield break;
-                }
-
-                yield return str[i..eoln];
-                i = eoln + LineSeparator.Length;
-            }
-        }
-
-        public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp)
-            => AddTestProject(solution, projectName, language, out _);
-
-        public static Project AddTestProject(this Solution solution, string projectName, out ProjectId id)
-            => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
-
-        public static Project AddTestProject(this Solution solution, string projectName, string language, out ProjectId id)
-        {
-            var info = CreateProjectInfo(projectName, language);
-            return solution.AddProject(info).GetRequiredProject(id = info.Id);
-        }
-
-        public static Document AddTestDocument(this Project project, string source, string path)
-            => project.AddTestDocument(source, path, out _);
-
-        public static Document AddTestDocument(this Project project, string source, string path, out DocumentId id)
-            => project.Solution.AddTestDocument(project.Id, source, path, out id);
-
-        public static Document AddTestDocument(this Solution solution, ProjectId projectId, string source, string path, out DocumentId id)
-            => solution.AddDocument(
-                id = DocumentId.CreateNewId(projectId),
-                name: PathUtilities.GetFileName(path),
-                SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
-                filePath: path).GetRequiredDocument(id);
-
-        public static Guid CreateProjectTelemetryId(string projectName)
-        {
-            Assert.True(Encoding.UTF8.GetByteCount(projectName) <= 20, "Use shorter project names in tests");
-            return BlobContentId.FromHash(Encoding.UTF8.GetBytes(projectName.PadRight(20, '\0'))).Guid;
-        }
-
-        public static ProjectInfo CreateProjectInfo(string projectName, string language = LanguageNames.CSharp)
-            => ProjectInfo.Create(
-                ProjectId.CreateNewId(debugName: projectName),
-                VersionStamp.Create(),
-                name: projectName,
-                assemblyName: projectName,
-                language,
-                parseOptions: language switch
-                {
-                    LanguageNames.CSharp => CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute(),
-                    LanguageNames.VisualBasic => VisualBasicParseOptions.Default,
-                    NoCompilationConstants.LanguageName => null,
-                    _ => throw ExceptionUtilities.UnexpectedValue(language)
-                },
-                compilationOptions: TestOptions.DebugDll,
-                filePath: projectName + language switch
-                {
-                    LanguageNames.CSharp => ".csproj",
-                    LanguageNames.VisualBasic => ".vbproj",
-                    NoCompilationConstants.LanguageName => ".noproj",
-                    _ => throw ExceptionUtilities.UnexpectedValue(language)
-                })
-                .WithCompilationOutputInfo(new CompilationOutputInfo(
-                    assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
-                    generatedFilesOutputDirectory: null))
-                .WithTelemetryId(CreateProjectTelemetryId(projectName));
-
+        return diagnostics.Select(d => new RudeEditDiagnosticDescription(
+            d.Kind,
+            d.Span == default ? null : newSource.ToString(d.Span),
+            d.Arguments,
+            firstLine: includeFirstLines ? newSource.Lines.GetLineFromPosition(d.Span.Start).ToString().Trim() : null));
     }
+
+    private const string LineSeparator = "\r\n";
+
+    public static IEnumerable<string> ToLines(this string str)
+    {
+        var i = 0;
+        while (true)
+        {
+            var eoln = str.IndexOf(LineSeparator, i, StringComparison.Ordinal);
+            if (eoln < 0)
+            {
+                yield return str[i..];
+                yield break;
+            }
+
+            yield return str[i..eoln];
+            i = eoln + LineSeparator.Length;
+        }
+    }
+
+    public static Project AddTestProject(this Solution solution, string projectName, string language = LanguageNames.CSharp)
+        => AddTestProject(solution, projectName, language, out _);
+
+    public static Project AddTestProject(this Solution solution, string projectName, out ProjectId id)
+        => AddTestProject(solution, projectName, LanguageNames.CSharp, out id);
+
+    public static Project AddTestProject(this Solution solution, string projectName, string language, out ProjectId id)
+    {
+        var info = CreateProjectInfo(projectName, language);
+        return solution.AddProject(info).GetRequiredProject(id = info.Id);
+    }
+
+    public static Document AddTestDocument(this Project project, string source, string path)
+        => project.AddTestDocument(source, path, out _);
+
+    public static Document AddTestDocument(this Project project, string source, string path, out DocumentId id)
+        => project.Solution.AddTestDocument(project.Id, source, path, out id);
+
+    public static Document AddTestDocument(this Solution solution, ProjectId projectId, string source, string path, out DocumentId id)
+        => solution.AddDocument(
+            id = DocumentId.CreateNewId(projectId),
+            name: PathUtilities.GetFileName(path),
+            SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
+            filePath: path).GetRequiredDocument(id);
+
+    public static Guid CreateProjectTelemetryId(string projectName)
+    {
+        Assert.True(Encoding.UTF8.GetByteCount(projectName) <= 20, "Use shorter project names in tests");
+        return BlobContentId.FromHash(Encoding.UTF8.GetBytes(projectName.PadRight(20, '\0'))).Guid;
+    }
+
+    public static ProjectInfo CreateProjectInfo(string projectName, string language = LanguageNames.CSharp)
+        => ProjectInfo.Create(
+            ProjectId.CreateNewId(debugName: projectName),
+            VersionStamp.Create(),
+            name: projectName,
+            assemblyName: projectName,
+            language,
+            parseOptions: language switch
+            {
+                LanguageNames.CSharp => CSharpParseOptions.Default.WithNoRefSafetyRulesAttribute(),
+                LanguageNames.VisualBasic => VisualBasicParseOptions.Default,
+                NoCompilationConstants.LanguageName => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(language)
+            },
+            compilationOptions: TestOptions.DebugDll,
+            filePath: projectName + language switch
+            {
+                LanguageNames.CSharp => ".csproj",
+                LanguageNames.VisualBasic => ".vbproj",
+                NoCompilationConstants.LanguageName => ".noproj",
+                _ => throw ExceptionUtilities.UnexpectedValue(language)
+            })
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
+                generatedFilesOutputDirectory: null))
+            .WithTelemetryId(CreateProjectTelemetryId(projectName));
+
 }

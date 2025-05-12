@@ -7,17 +7,16 @@
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Text;
 
-namespace Roslyn.Hosting.Diagnostics.VenusMargin
-{
-    public class ProjectionBufferViewModel
-    {
-        public ObservableCollection<ITextBuffer> SourceBuffers { get; }
-        public ObservableCollection<SnapshotSpan> SourceSpans { get; }
+namespace Roslyn.Hosting.Diagnostics.VenusMargin;
 
-        public ProjectionBufferViewModel()
-        {
-            SourceBuffers = [];
-            SourceSpans = [];
-        }
+public class ProjectionBufferViewModel
+{
+    public ObservableCollection<ITextBuffer> SourceBuffers { get; }
+    public ObservableCollection<SnapshotSpan> SourceSpans { get; }
+
+    public ProjectionBufferViewModel()
+    {
+        SourceBuffers = [];
+        SourceSpans = [];
     }
 }

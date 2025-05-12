@@ -285,14 +285,14 @@ internal sealed partial class ManagedHotReloadLanguageService(
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
 
+            using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+            runningProjectPaths.AddAll(runningProjects);
+            var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
+
             EmitSolutionUpdateResults.Data results;
 
             try
             {
-                using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
-                runningProjectPaths.AddAll(runningProjects);
-                var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
-
                 results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectIds, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -304,9 +304,10 @@ internal sealed partial class ManagedHotReloadLanguageService(
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
+                var firstProject = designTimeSolution.GetProject(runningProjectIds.FirstOrDefault()) ?? designTimeSolution.Projects.First();
                 results = new EmitSolutionUpdateResults.Data()
                 {
-                    Diagnostics = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)],
+                    Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
                     RudeEdits = [],
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
                     SyntaxError = null,

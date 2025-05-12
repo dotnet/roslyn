@@ -13,14 +13,13 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 
 [IntentProvider(WellKnownIntents.Rename, LanguageNames.CSharp), Shared]
-internal class RenameIntentProvider : IIntentProvider
+internal sealed class RenameIntentProvider : IIntentProvider
 {
-    private record RenameIntentData(string NewName);
+    private sealed record RenameIntentData(string NewName);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

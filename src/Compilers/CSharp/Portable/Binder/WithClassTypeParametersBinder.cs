@@ -62,5 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        protected override LookupOptions LookupMask
+        {
+            get
+            {
+                if (_namedType.IsExtension)
+                {
+                    // Extension type parameters should get the same treatment as method type parameters
+                    return WithMethodTypeParametersBinder.MethodTypeParameterLookupMask;
+                }
+
+                return base.LookupMask;
+            }
+        }
     }
 }

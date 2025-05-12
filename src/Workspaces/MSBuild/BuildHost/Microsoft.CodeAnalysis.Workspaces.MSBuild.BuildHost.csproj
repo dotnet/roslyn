@@ -27,6 +27,8 @@
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
     <_MsbuildVersion>17.3.4</_MsbuildVersion>
+    <!-- S.C.I 9.0 no longer supports .NET 6 -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />

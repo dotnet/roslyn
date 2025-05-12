@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-internal class GraphQueryManager
+internal sealed class GraphQueryManager
 {
     private readonly Workspace _workspace;
 

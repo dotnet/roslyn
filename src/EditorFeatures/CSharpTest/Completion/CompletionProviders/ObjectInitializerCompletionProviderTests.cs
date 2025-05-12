@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(ObjectAndWithInitializerCompletionProvider);

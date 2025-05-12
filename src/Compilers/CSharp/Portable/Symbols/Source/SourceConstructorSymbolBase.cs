@@ -97,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
             }
+
+            PartialConstructorChecks(diagnostics);
+        }
+
+        protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(!IsPartial);
         }
 
         public sealed override bool IsImplicitlyDeclared
@@ -258,12 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            AddRequiredMembersMarkerAttributes(ref attributes, this);
         }
     }
 }

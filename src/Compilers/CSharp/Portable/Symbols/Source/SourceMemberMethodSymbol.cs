@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We currently pack everything into a 32 bit int with the following layout:
             //
-            // |            |t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
+            // |          |m|t|a|b|e|n|vvv|yy|s|r|q|z|kkk|wwwww|
             // 
             // w = method kind.  5 bits.
             // k = ref kind.  3 bits.
@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // b = HasAnyBody. 1 bit.
             // a = IsVararg. 1 bit.
             // t = HasThisInitializer. 1 bit.
+            // m = HasExplicitAccessModifier. 1 bit.
             private int _flags;
 
             private const int MethodKindOffset = 0;
@@ -81,8 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsVarargSize = 1;
 
             private const int HasThisInitializerOffset = IsVarargOffset + IsVarargSize;
-#pragma warning disable IDE0051 // Remove unused private members
             private const int HasThisInitializerSize = 1;
+
+            private const int HasExplicitAccessModifierOffset = HasThisInitializerOffset + HasThisInitializerSize;
+#pragma warning disable IDE0051 // Remove unused private members
+            private const int HasExplicitAccessModifierSize = 1;
 #pragma warning restore IDE0051 // Remove unused private members
 
             private const int HasAnyBodyBit = 1 << HasAnyBodyOffset;
@@ -93,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsMetadataVirtualLockedBit = 1 << IsMetadataVirtualLockedOffset;
             private const int IsVarargBit = 1 << IsVarargOffset;
             private const int HasThisInitializerBit = 1 << HasThisInitializerOffset;
+            private const int HasExplicitAccessModifierBit = 1 << HasExplicitAccessModifierOffset;
 
             private const int ReturnsVoidBit = 1 << ReturnsVoidOffset;
             private const int ReturnsVoidIsSetBit = 1 << ReturnsVoidOffset + 1;
@@ -161,6 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool HasThisInitializer
                 => (_flags & HasThisInitializerBit) != 0;
 
+            public readonly bool HasExplicitAccessModifier
+                => (_flags & HasExplicitAccessModifierBit) != 0;
+
 #if DEBUG
             static Flags()
             {
@@ -188,7 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isNullableAnalysisEnabled,
                 bool isVararg,
                 bool isExplicitInterfaceImplementation,
-                bool hasThisInitializer)
+                bool hasThisInitializer,
+                bool hasExplicitAccessModifier)
             {
                 Debug.Assert(!returnsVoid || returnsVoidIsSet);
 
@@ -204,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
                 int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
                 int hasThisInitializerInt = hasThisInitializer ? HasThisInitializerBit : 0;
+                int hasExplicitAccessModifierInt = hasExplicitAccessModifier ? HasExplicitAccessModifierBit : 0;
 
                 _flags = methodKindInt
                     | refKindInt
@@ -215,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | isMetadataVirtualIgnoringInterfaceImplementationChangesInt
                     | isMetadataVirtualInt
                     | hasThisInitializerInt
+                    | hasExplicitAccessModifierInt
                     | (returnsVoid ? ReturnsVoidBit : 0)
                     | (returnsVoidIsSet ? ReturnsVoidIsSetBit : 0);
             }
@@ -242,7 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                        isVararg: isVararg,
                        isExplicitInterfaceImplementation: isExplicitInterfaceImplementation,
-                       hasThisInitializer: hasThisInitializer)
+                       hasThisInitializer: hasThisInitializer,
+                       hasExplicitAccessModifier: false)
             {
             }
 
@@ -366,26 +378,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!IsStatic && this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            {
+                if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
+                {
+                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
+                    diagnostics.Add(code, GetFirstLocation(), this, extensionParameter.Type);
+                }
+            }
+
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
         }
 
         protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            if (ContainingType.HasFileLocalTypes())
+            NamedTypeSymbol containingType = ContainingType;
+
+            if (containingType is { IsExtension: true, ContainingType: { } enclosing })
+            {
+                containingType = enclosing;
+            }
+
+            if (containingType.HasFileLocalTypes())
             {
                 return;
             }
 
             if (returnType.Type.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, ContainingType);
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, containingType);
             }
 
             foreach (var param in parameters)
             {
                 if (param.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, ContainingType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, containingType);
                 }
             }
         }
@@ -531,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsExtensionMethod
+        public sealed override bool IsExtensionMethod
         {
             get
             {
@@ -1011,74 +1039,6 @@ done:
         {
             Debug.Assert(!this.IsConstructor()); // Constructors should use IsNullableEnabledForConstructorsAndInitializers() instead.
             return flags.IsNullableAnalysisEnabled;
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
-
-            var compilation = this.DeclaringCompilation;
-
-            if (compilation.ShouldEmitNullableAttributes(this) &&
-                ShouldEmitNullableContextValue(out byte nullableContextValue))
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
-            }
-
-            if (this.RequiresExplicitOverride(out _))
-            {
-                // On platforms where it is present, add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizePreserveBaseOverridesAttribute());
-            }
-
-            bool isAsync = this.IsAsync;
-            bool isIterator = this.IsIterator;
-
-            if (!isAsync && !isIterator)
-            {
-                return;
-            }
-
-            // The async state machine type is not synthesized until the async method body is rewritten. If we are
-            // only emitting metadata the method body will not have been rewritten, and the async state machine
-            // type will not have been created. In this case, omit the attribute.
-            if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
-            {
-                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
-                    TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
-
-                if (isAsync && isIterator)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-                else if (isAsync)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-                else if (isIterator)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-            }
-
-            if (isAsync && !isIterator)
-            {
-                // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
-                // This means we need to emit DebuggerStepThroughAttribute in order
-                // to have correct stepping behavior during debugging.
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
-            }
         }
 
         /// <summary>

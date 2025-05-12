@@ -511,13 +511,27 @@ internal sealed class DebuggingSession : IDisposable
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
-        if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        switch (solutionUpdate.ModuleUpdates.Status)
         {
-            StorePendingUpdate(new PendingSolutionUpdate(
-                solution,
-                solutionUpdate.ProjectBaselines,
-                solutionUpdate.ModuleUpdates.Updates,
-                solutionUpdate.NonRemappableRegions));
+            case ModuleUpdateStatus.Ready:
+                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+                // based on whether the updates will be applied successfully or not.
+                StorePendingUpdate(new PendingSolutionUpdate(
+                    solution,
+                    solutionUpdate.ProjectBaselines,
+                    solutionUpdate.ModuleUpdates.Updates,
+                    solutionUpdate.NonRemappableRegions));
+
+                break;
+
+            case ModuleUpdateStatus.None:
+                Contract.ThrowIfFalse(solutionUpdate.ModuleUpdates.Updates.IsEmpty);
+                Contract.ThrowIfFalse(solutionUpdate.NonRemappableRegions.IsEmpty);
+
+                // No significant changes have been made.
+                // Commit the solution to apply any changes in comments that do not generate updates.
+                LastCommittedSolution.CommitSolution(solution);
+                break;
         }
 
         using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     [Collection(AssemblyLoadTestFixtureCollection.Name)]
     public class AnalyzerFileReferenceTests : TestBase
     {
-        private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new DefaultAnalyzerAssemblyLoader();
+        private static readonly AnalyzerAssemblyLoader s_analyzerLoader = new AnalyzerAssemblyLoader();
         private readonly AssemblyLoadTestFixture _testFixture;
         public AnalyzerFileReferenceTests(AssemblyLoadTestFixture testFixture)
         {
@@ -319,13 +319,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithLaterFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
                 new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
                 additionalReferenceDirectories: null,
-                new DefaultAnalyzerAssemblyLoader());
+                new AnalyzerAssemblyLoader());
 
             var writer = new StringWriter();
             var result = compiler.Run(writer);
             Assert.Equal(0, result);
             AssertEx.Equal($"""
-                warning CS9057: The analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency}' references version '100.0.0.0' of the compiler, which is newer than the currently running version '{typeof(DefaultAnalyzerAssemblyLoader).Assembly.GetName().Version}'.
+                warning CS9057: Analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency}' cannot be used because it references version '100.0.0.0' of the compiler, which is newer than the currently running version '42.42.42.42'.
                 in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
 
                 """, writer.ToString());
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
                 new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
                 additionalReferenceDirectories: null,
-                new DefaultAnalyzerAssemblyLoader());
+                new AnalyzerAssemblyLoader());
 
             var writer = new StringWriter();
             var result = compiler.Run(writer);

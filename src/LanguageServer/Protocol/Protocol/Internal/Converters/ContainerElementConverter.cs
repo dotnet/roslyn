@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// System.Text.Json.JsonConverter for serializing and deserializing <see cref="ContainerElement"/>.
 /// </summary>
-internal class ContainerElementConverter : JsonConverter<ContainerElement>
+internal sealed class ContainerElementConverter : JsonConverter<ContainerElement>
 {
     public static readonly ContainerElementConverter Instance = new();
 

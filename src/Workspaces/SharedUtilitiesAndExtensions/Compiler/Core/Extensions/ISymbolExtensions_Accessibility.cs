@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -134,6 +133,7 @@ internal static partial class ISymbolExtensions
             case SymbolKind.Assembly:
             case SymbolKind.NetModule:
             case SymbolKind.RangeVariable:
+            case SymbolKind.Preprocessing:
                 // These types of symbols are always accessible (if visible).
                 return true;
 

@@ -13,7 +13,7 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
+public sealed class AutomaticBracketCompletionTests : AbstractAutomaticBraceCompletionTests
 {
     [WpfFact]
     public void Creation()

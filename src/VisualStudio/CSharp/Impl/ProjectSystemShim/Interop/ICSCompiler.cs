@@ -6,48 +6,47 @@
 
 using System.Runtime.InteropServices;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+
+[ComImport]
+[InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("BD6EE4C6-3BE2-4df9-98D5-4BB2BC874BC1")]
+internal interface ICSCompiler
 {
-    [ComImport]
-    [InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)]
-    [Guid("BD6EE4C6-3BE2-4df9-98D5-4BB2BC874BC1")]
-    internal interface ICSCompiler
-    {
-        ICSSourceModule CreateSourceModule(ICSSourceText text);
+    ICSSourceModule CreateSourceModule(ICSSourceText text);
 
-        /// <summary>
-        /// Get the name table used by the compiler.
-        /// </summary>
-        ICSNameTable GetNameTable();
+    /// <summary>
+    /// Get the name table used by the compiler.
+    /// </summary>
+    ICSNameTable GetNameTable();
 
-        /// <summary>
-        /// Shutdown the compiler. This is called by whoever is "in charge" of the compiler (usually the host itself)
-        /// when it is done with it.  It is used to relieve circular references between the compiler and its host.
-        /// </summary>
-        void Shutdown();
+    /// <summary>
+    /// Shutdown the compiler. This is called by whoever is "in charge" of the compiler (usually the host itself)
+    /// when it is done with it.  It is used to relieve circular references between the compiler and its host.
+    /// </summary>
+    void Shutdown();
 
-        ICSCompilerConfig GetConfiguration();
+    ICSCompilerConfig GetConfiguration();
 
-        ICSInputSet AddInputSet();
-        void RemoveInputSet(ICSInputSet inputSet);
+    ICSInputSet AddInputSet();
+    void RemoveInputSet(ICSInputSet inputSet);
 
-        void Compile(ICSCompileProgress progress);
+    void Compile(ICSCompileProgress progress);
 
-        void BuildForEnc(ICSCompileProgress progress, ICSEncProjectServices encService, [MarshalAs(UnmanagedType.IUnknown)] object pe);
+    void BuildForEnc(ICSCompileProgress progress, ICSEncProjectServices encService, [MarshalAs(UnmanagedType.IUnknown)] object pe);
 
-        [return: MarshalAs(UnmanagedType.LPWStr)]
-        string GetOutputFileName();
+    [return: MarshalAs(UnmanagedType.LPWStr)]
+    string GetOutputFileName();
 
-        // WARNING: the next two methods are complicated signatures, and so these two functions (CreateParser and
-        // CreateLanguageAnalysisEngine) are declared here to hold the vtable slot only. If they are needed, the
-        // declarations will have to be filled out.
+    // WARNING: the next two methods are complicated signatures, and so these two functions (CreateParser and
+    // CreateLanguageAnalysisEngine) are declared here to hold the vtable slot only. If they are needed, the
+    // declarations will have to be filled out.
 
-        [return: MarshalAs(UnmanagedType.IUnknown)]
-        object CreateParser();
+    [return: MarshalAs(UnmanagedType.IUnknown)]
+    object CreateParser();
 
-        [return: MarshalAs(UnmanagedType.IUnknown)]
-        object CreateLanguageAnalysisEngine();
+    [return: MarshalAs(UnmanagedType.IUnknown)]
+    object CreateLanguageAnalysisEngine();
 
-        void ReleaseReservedMemory();
-    }
+    void ReleaseReservedMemory();
 }

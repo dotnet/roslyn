@@ -2346,7 +2346,7 @@ namespace Microsoft.Cci
 
                 mappedFieldDataWriter ??= PooledBlobBuilder.GetInstance();
 
-                // The compiler always aligns each RVA data field to an 8-byte boundary; this accomodates the alignment
+                // The compiler always aligns each RVA data field to an 8-byte boundary; this accommodates the alignment
                 // needs for all primitive types, regardless of which type is actually being used, at the expense of
                 // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
                 // potentially could be tightened to align each field only as much as is actually required by that

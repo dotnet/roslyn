@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -23,78 +22,77 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek;
+
+[Export(typeof(IPeekableItemFactory))]
+internal sealed class PeekableItemFactory : IPeekableItemFactory
 {
-    [Export(typeof(IPeekableItemFactory))]
-    internal class PeekableItemFactory : IPeekableItemFactory
+    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+    private readonly IGlobalOptionService _globalOptions;
+    private readonly IThreadingContext _threadingContext;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public PeekableItemFactory(
+        IMetadataAsSourceFileService metadataAsSourceFileService,
+        IGlobalOptionService globalOptions,
+        IThreadingContext threadingContext)
     {
-        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IThreadingContext _threadingContext;
+        _metadataAsSourceFileService = metadataAsSourceFileService;
+        _globalOptions = globalOptions;
+        _threadingContext = threadingContext;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PeekableItemFactory(
-            IMetadataAsSourceFileService metadataAsSourceFileService,
-            IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext)
+    public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
+        ISymbol symbol,
+        Project project,
+        IPeekResultFactory peekResultFactory,
+        CancellationToken cancellationToken)
+    {
+        if (symbol == null)
+            throw new ArgumentNullException(nameof(symbol));
+
+        if (project == null)
+            throw new ArgumentNullException(nameof(project));
+
+        if (peekResultFactory == null)
+            throw new ArgumentNullException(nameof(peekResultFactory));
+
+        var solution = project.Solution;
+        symbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false) ?? symbol;
+        symbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+        if (symbol is null)
+            return [];
+
+        // if we mapped the symbol, then get the new project it is contained in.
+        var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
+        project = originatingProject ?? project;
+
+        var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+
+        var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
+        var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<IPeekableItem>.GetInstance(out var results);
+        if (result is var (filePath, linePosition))
         {
-            _metadataAsSourceFileService = metadataAsSourceFileService;
-            _globalOptions = globalOptions;
-            _threadingContext = threadingContext;
+            results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, linePosition, linePosition), PredefinedPeekRelationships.Definitions, peekResultFactory));
         }
-
-        public async Task<IEnumerable<IPeekableItem>> GetPeekableItemsAsync(
-            ISymbol symbol,
-            Project project,
-            IPeekResultFactory peekResultFactory,
-            CancellationToken cancellationToken)
+        else
         {
-            if (symbol == null)
-                throw new ArgumentNullException(nameof(symbol));
+            var symbolKey = SymbolKey.Create(symbol, cancellationToken);
 
-            if (project == null)
-                throw new ArgumentNullException(nameof(project));
-
-            if (peekResultFactory == null)
-                throw new ArgumentNullException(nameof(peekResultFactory));
-
-            var solution = project.Solution;
-            symbol = SymbolFinder.FindSourceDefinition(symbol, solution, cancellationToken) ?? symbol;
-            symbol = GoToDefinitionFeatureHelpers.TryGetPreferredSymbol(solution, symbol, cancellationToken);
-            if (symbol is null)
-                return [];
-
-            // if we mapped the symbol, then get the new project it is contained in.
-            var originatingProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            project = originatingProject ?? project;
-
-            var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
-
-            var symbolNavigationService = solution.Services.GetService<ISymbolNavigationService>();
-            var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-
-            using var _ = ArrayBuilder<IPeekableItem>.GetInstance(out var results);
-            if (result is var (filePath, linePosition))
+            var firstLocation = symbol.Locations.FirstOrDefault();
+            if (firstLocation != null)
             {
-                results.Add(new ExternalFilePeekableItem(new FileLinePositionSpan(filePath, linePosition, linePosition), PredefinedPeekRelationships.Definitions, peekResultFactory));
-            }
-            else
-            {
-                var symbolKey = SymbolKey.Create(symbol, cancellationToken);
-
-                var firstLocation = symbol.Locations.FirstOrDefault();
-                if (firstLocation != null)
+                if (firstLocation.IsInSource || _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
-                    if (firstLocation.IsInSource || _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
-                    {
-                        results.Add(new DefinitionPeekableItem(
-                            solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService, _globalOptions, _threadingContext));
-                    }
+                    results.Add(new DefinitionPeekableItem(
+                        solution.Workspace, project.Id, symbolKey, peekResultFactory, _metadataAsSourceFileService, _globalOptions, _threadingContext));
                 }
             }
-
-            return results.ToImmutableAndClear();
         }
+
+        return results.ToImmutableAndClear();
     }
 }

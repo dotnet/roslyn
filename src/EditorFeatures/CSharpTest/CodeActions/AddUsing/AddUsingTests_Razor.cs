@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public partial class AddUsingTests_Razor : AbstractAddUsingTests
+public sealed partial class AddUsingTests_Razor : AbstractAddUsingTests
 {
     [Theory, CombinatorialData]
     public async Task TestAddIntoHiddenRegionWithModernSpanMapper(TestHost host)

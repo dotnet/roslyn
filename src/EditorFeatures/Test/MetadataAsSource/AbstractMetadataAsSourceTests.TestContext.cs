@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -30,7 +28,7 @@ public abstract partial class AbstractMetadataAsSourceTests
     public const string DefaultMetadataSource = "public class C {}";
     public const string DefaultSymbolMetadataName = "C";
 
-    internal class TestContext : IDisposable
+    internal sealed class TestContext : IDisposable
     {
         public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;

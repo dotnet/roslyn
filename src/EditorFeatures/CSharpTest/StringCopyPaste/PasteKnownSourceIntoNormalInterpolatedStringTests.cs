@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteKnownSourceIntoNormalInterpolatedStringTests : StringCopyPasteCommandHandlerKnownSourceTests
+public sealed class PasteKnownSourceIntoNormalInterpolatedStringTests : StringCopyPasteCommandHandlerKnownSourceTests
 {
     [WpfFact]
     public void TestPasteSimpleNormalLiteralContent()

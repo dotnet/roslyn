@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNullable;
 
-public class EnableNullableFixAllTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class EnableNullableFixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new EnableNullableCodeRefactoringProvider();

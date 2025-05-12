@@ -12,7 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <para>
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#didChangeWatchedFilesClientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
-internal class DidChangeWatchedFilesClientCapabilities : DynamicRegistrationSetting
+internal sealed class DidChangeWatchedFilesClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Whether the client has support for relative patterns.

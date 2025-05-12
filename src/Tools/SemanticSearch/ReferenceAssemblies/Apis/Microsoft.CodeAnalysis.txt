@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 Microsoft.CodeAnalysis.Accessibility
 Microsoft.CodeAnalysis.Accessibility.Friend
 Microsoft.CodeAnalysis.Accessibility.Internal
@@ -1169,10 +1169,13 @@ Microsoft.CodeAnalysis.IErrorTypeSymbol.get_CandidateSymbols
 Microsoft.CodeAnalysis.IEventSymbol
 Microsoft.CodeAnalysis.IEventSymbol.get_AddMethod
 Microsoft.CodeAnalysis.IEventSymbol.get_ExplicitInterfaceImplementations
+Microsoft.CodeAnalysis.IEventSymbol.get_IsPartialDefinition
 Microsoft.CodeAnalysis.IEventSymbol.get_IsWindowsRuntimeEvent
 Microsoft.CodeAnalysis.IEventSymbol.get_NullableAnnotation
 Microsoft.CodeAnalysis.IEventSymbol.get_OriginalDefinition
 Microsoft.CodeAnalysis.IEventSymbol.get_OverriddenEvent
+Microsoft.CodeAnalysis.IEventSymbol.get_PartialDefinitionPart
+Microsoft.CodeAnalysis.IEventSymbol.get_PartialImplementationPart
 Microsoft.CodeAnalysis.IEventSymbol.get_RaiseMethod
 Microsoft.CodeAnalysis.IEventSymbol.get_RemoveMethod
 Microsoft.CodeAnalysis.IEventSymbol.get_Type
@@ -1468,8 +1471,10 @@ Microsoft.CodeAnalysis.ITypeSymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.ITypeSymbol.WithNullableAnnotation(Microsoft.CodeAnalysis.NullableAnnotation)
 Microsoft.CodeAnalysis.ITypeSymbol.get_AllInterfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_BaseType
+Microsoft.CodeAnalysis.ITypeSymbol.get_ExtensionParameter
 Microsoft.CodeAnalysis.ITypeSymbol.get_Interfaces
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsAnonymousType
+Microsoft.CodeAnalysis.ITypeSymbol.get_IsExtension
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsNativeIntegerType
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsReadOnly
 Microsoft.CodeAnalysis.ITypeSymbol.get_IsRecord
@@ -3954,6 +3959,7 @@ Microsoft.CodeAnalysis.TypeKind.Delegate
 Microsoft.CodeAnalysis.TypeKind.Dynamic
 Microsoft.CodeAnalysis.TypeKind.Enum
 Microsoft.CodeAnalysis.TypeKind.Error
+Microsoft.CodeAnalysis.TypeKind.Extension
 Microsoft.CodeAnalysis.TypeKind.FunctionPointer
 Microsoft.CodeAnalysis.TypeKind.Interface
 Microsoft.CodeAnalysis.TypeKind.Module

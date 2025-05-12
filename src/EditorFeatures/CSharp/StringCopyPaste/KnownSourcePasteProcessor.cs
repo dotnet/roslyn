@@ -23,7 +23,7 @@ using static StringCopyPasteHelpers;
 /// characters being pasted meant in the original context and we can attempt to preserve that as closely as
 /// possible.
 /// </summary>
-internal class KnownSourcePasteProcessor(
+internal sealed class KnownSourcePasteProcessor(
     string newLine,
     string indentationWhitespace,
     ITextSnapshot snapshotBeforePaste,

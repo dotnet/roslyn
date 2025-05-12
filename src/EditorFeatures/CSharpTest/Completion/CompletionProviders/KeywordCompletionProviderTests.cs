@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.CompletionSetSources;
 
-public class KeywordCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class KeywordCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(KeywordCompletionProvider);

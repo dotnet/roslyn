@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeFixVerifier<CSharpConvertTypeOfToNameOfDiagnosticAnal
     CSharpConvertTypeOfToNameOfCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.ConvertTypeOfToNameOf)]
-public partial class ConvertTypeOfToNameOfTests
+public sealed partial class ConvertTypeOfToNameOfTests
 {
     private static readonly LanguageVersion CSharp14 = LanguageVersion.Preview;
 

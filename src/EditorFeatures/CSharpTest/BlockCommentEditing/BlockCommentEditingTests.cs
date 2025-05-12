@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing;
 
 [Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
-public class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
+public sealed class BlockCommentEditingTests : AbstractTypingCommandHandlerTest<ReturnKeyCommandArgs>
 {
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/11057")]
     public void EdgeCase0()

@@ -10,32 +10,31 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Workspaces
+namespace Microsoft.CodeAnalysis.Workspaces;
+
+[Export(typeof(ITextBufferVisibilityTracker))]
+internal sealed class WpfTextBufferVisibilityTracker
+    : AbstractTextBufferVisibilityTracker<IWpfTextView, DependencyPropertyChangedEventHandler>
 {
-    [Export(typeof(ITextBufferVisibilityTracker))]
-    internal sealed class WpfTextBufferVisibilityTracker
-        : AbstractTextBufferVisibilityTracker<IWpfTextView, DependencyPropertyChangedEventHandler>
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public WpfTextBufferVisibilityTracker(
+        ITextBufferAssociatedViewService associatedViewService,
+        IThreadingContext threadingContext)
+        : base(associatedViewService, threadingContext)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WpfTextBufferVisibilityTracker(
-            ITextBufferAssociatedViewService associatedViewService,
-            IThreadingContext threadingContext)
-            : base(associatedViewService, threadingContext)
-        {
-        }
-
-        protected override bool IsVisible(IWpfTextView view)
-            => view.VisualElement.IsVisible;
-
-        protected override DependencyPropertyChangedEventHandler GetVisiblityChangeCallback(VisibleTrackerData visibleTrackerData)
-            => (sender, args) => visibleTrackerData.TriggerCallbacks();
-
-        protected override void AddVisibilityChangedCallback(IWpfTextView view, DependencyPropertyChangedEventHandler visibilityChangedCallback)
-            => view.VisualElement.IsVisibleChanged += visibilityChangedCallback;
-
-        protected override void RemoveVisibilityChangedCallback(IWpfTextView view, DependencyPropertyChangedEventHandler visibilityChangedCallback)
-            => view.VisualElement.IsVisibleChanged -= visibilityChangedCallback;
-
     }
+
+    protected override bool IsVisible(IWpfTextView view)
+        => view.VisualElement.IsVisible;
+
+    protected override DependencyPropertyChangedEventHandler GetVisiblityChangeCallback(VisibleTrackerData visibleTrackerData)
+        => (sender, args) => visibleTrackerData.TriggerCallbacks();
+
+    protected override void AddVisibilityChangedCallback(IWpfTextView view, DependencyPropertyChangedEventHandler visibilityChangedCallback)
+        => view.VisualElement.IsVisibleChanged += visibilityChangedCallback;
+
+    protected override void RemoveVisibilityChangedCallback(IWpfTextView view, DependencyPropertyChangedEventHandler visibilityChangedCallback)
+        => view.VisualElement.IsVisibleChanged -= visibilityChangedCallback;
+
 }

@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseExplicitTupleNameCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitTupleName)]
-public class UseExplicitTupleNameTests
+public sealed class UseExplicitTupleNameTests
 {
     [Fact]
     public async Task TestNamedTuple1()

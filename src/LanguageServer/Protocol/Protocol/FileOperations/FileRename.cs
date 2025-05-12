@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileRename
+internal sealed class FileRename
 {
     /// <summary>
     /// A <c>file://</c> URI for the original location of the file/folder being renamed
