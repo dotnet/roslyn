@@ -287,7 +287,6 @@ function BuildSolution() {
       /p:DotNetBuildRepo=$productBuild `
       $suppressExtensionDeployment `
       $msbuildWarnAsError `
-      $buildFromSource `
       $generateDocumentationFile `
       $roslynUseHardLinks `
       @properties
