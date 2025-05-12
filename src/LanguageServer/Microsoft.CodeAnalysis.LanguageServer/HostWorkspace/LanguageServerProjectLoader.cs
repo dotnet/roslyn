@@ -365,7 +365,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask BeginLoadingProjectAsync(string projectPath, ProjectId primordialProjectId)
+    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectId primordialProjectId)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -380,24 +380,22 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async Task LoadProjectsAsync(ImmutableArray<(string ProjectPath, string? ProjectGuid)> projectPaths, CancellationToken cancellationToken)
+    protected async Task BeginLoadingProjectAsync(string projectPath, string? projectGuid)
     {
-        using (await _gate.DisposableWaitAsync(cancellationToken))
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            foreach (var (path, guid) in projectPaths)
+            // If project has already begun loading, no need to do any further work.
+            if (_loadedProjects.ContainsKey(projectPath))
             {
-                if (_loadedProjects.ContainsKey(path))
-                {
-                    continue;
-                }
-
-                _loadedProjects.Add(path, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
-                _projectsToReload.AddWork(new ProjectToLoad(Path: path, ProjectGuid: guid, ReportTelemetry: true));
+                return;
             }
-        }
 
-        await _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
+            _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
+            _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
+        }
     }
+
+    protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
     protected async ValueTask UnloadProjectAsync(string projectPath)
     {

@@ -832,7 +832,7 @@ internal static partial class ProtocolConversions
         {
             Id = ProjectIdToProjectContextId(project.Id),
             Label = project.Name,
-            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
+            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles && !project.State.HasAllInformation,
         };
 
         if (project.Language == LanguageNames.CSharp)

@@ -24,6 +24,7 @@ using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
+/// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
 {
     private readonly ILspServices _lspServices;
@@ -80,7 +81,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             && primordialDoc.Project.Language == LanguageNames.CSharp
             && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            await BeginLoadingProjectAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id);
+            await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id);
         }
         else
         {

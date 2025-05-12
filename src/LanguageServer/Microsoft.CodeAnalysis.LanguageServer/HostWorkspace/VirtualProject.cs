@@ -35,7 +35,7 @@ internal static class VirtualProject
 
                 <PropertyGroup>
                     <OutputType>Exe</OutputType>
-                    <TargetFramework>net9.0</TargetFramework>
+                    <TargetFramework>net8.0</TargetFramework>
                     <ImplicitUsings>enable</ImplicitUsings>
                     <Nullable>enable</Nullable>
                     <Features>$(Features);FileBasedProgram</Features>
