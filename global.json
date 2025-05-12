@@ -2,7 +2,7 @@
   "sdk": {
     "version": "9.0.105",
     "allowPrerelease": false,
-    "rollForward": "patch"
+    "rollForward": "Major"
   },
   "tools": {
     "dotnet": "9.0.105",
