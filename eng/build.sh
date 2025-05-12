@@ -309,7 +309,7 @@ function BuildSolution {
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
-    /p:DotNetBuildRepo=$product_build" \
+    /p:DotNetBuildRepo=$product_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
