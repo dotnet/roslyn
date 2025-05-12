@@ -38,13 +38,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(type is { SpecialType: SpecialType.System_DateTime });
                 return MakeDateTimeLiteral(syntax, constantValue);
             }
-            else if (oldNodeOpt != null)
-            {
-                return oldNodeOpt.Update(constantValue, type);
-            }
             else
             {
-                return new BoundLiteral(syntax, constantValue, type, hasErrors: constantValue.IsBad);
+                if (constantValue.IsString && constantValue.StringValue.Length > _compilation.DataSectionStringLiteralThreshold)
+                {
+                    _ = Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Text_Encoding__get_UTF8, _diagnostics, syntax: syntax);
+                    _ = Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Text_Encoding__GetString, _diagnostics, syntax: syntax);
+                }
+
+                if (oldNodeOpt != null)
+                {
+                    return oldNodeOpt.Update(constantValue, type);
+                }
+                else
+                {
+                    return new BoundLiteral(syntax, constantValue, type, hasErrors: constantValue.IsBad);
+                }
             }
         }
 

@@ -3203,6 +3203,68 @@ public class Child : Parent, IParent
                 """);
         }
 
+        [Theory]
+        [InlineData("""public static string M() => "abc";""")]
+        [InlineData("""public static void M(string s) { switch (s) { case "abc": break; } }""")]
+        public void DataSectionStringLiterals_UsedAssemblyReferences(string code)
+        {
+            var source1 = """
+                namespace System
+                {
+                    public class Object;
+                    public class String
+                    {
+                        public static bool op_Equality(string a, string b) => false;
+                    }
+                    public class ValueType;
+                    public struct Void;
+                    public struct Byte;
+                    public struct Int16;
+                    public struct Int32;
+                    public struct Int64;
+                    public struct Boolean;
+                    public class Attribute;
+                    public class Enum;
+                    public enum AttributeTargets;
+                    public class AttributeUsageAttribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets validOn) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                }
+                """;
+            var ref1 = CreateEmptyCompilation(source1, assemblyName: "MinimalCoreLib").VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                namespace System.Text
+                {
+                    public class Encoding
+                    {
+                        public static Encoding UTF8 => null;
+                        public unsafe string GetString(byte* bytes, int byteCount) => null;
+                    }
+                }
+                """;
+            var ref2 = CreateEmptyCompilation(source2, [ref1], options: TestOptions.UnsafeDebugDll, assemblyName: "Encoding")
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source3 = $$"""
+                public static class C
+                {
+                    {{code}}
+                }
+                """;
+            var comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib1")
+                .VerifyEmitDiagnostics();
+            AssertEx.SetEqual([ref1], comp.GetUsedAssemblyReferences());
+
+            comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib2",
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyEmitDiagnostics();
+            AssertEx.SetEqual([ref1, ref2], comp.GetUsedAssemblyReferences());
+        }
+
         [Fact]
         public void DataSectionStringLiterals_InvalidUtf8()
         {
