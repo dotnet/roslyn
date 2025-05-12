@@ -139,7 +139,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
 
         var loader = ProjectFactory.CreateFileTextLoader(documentPath);
-        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken: default);
+        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
         var (virtualProjectContent, isFileBasedProgram) = VirtualProject.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
 
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.

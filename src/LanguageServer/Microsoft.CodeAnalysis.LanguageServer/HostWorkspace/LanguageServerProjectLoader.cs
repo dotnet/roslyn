@@ -183,9 +183,8 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    /// <summary>
-    /// Loads a project in the MSBuild host.
-    /// </summary>
+    /// <summary>Loads a project in the MSBuild host.</summary>
+    /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 

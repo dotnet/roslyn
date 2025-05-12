@@ -154,7 +154,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         // Also remove it from our loose files or metadata workspace if it is still there.
         if (_lspMiscellaneousFilesWorkspaceProvider is not null)
-            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
+        {
+            try
+            {
+                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogException(ex);
+            }
+        }
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
@@ -256,7 +265,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 {
                     // Do not attempt to remove the file from the metadata workspace (the document is still open).
                     if (_lspMiscellaneousFilesWorkspaceProvider is not null)
-                        await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
+                    {
+                        try
+                        {
+                            await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogException(ex);
+                        }
+                    }
                 }
 
                 return (workspace, document.Project.Solution, document);
@@ -272,9 +290,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Add the document to our loose files workspace (if we have one) if it is open.
         if (_trackedDocuments.TryGetValue(uri, out var trackedDocument) && _lspMiscellaneousFilesWorkspaceProvider is not null)
         {
-            var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
-            if (miscDocument is not null)
-                return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+            try
+            {
+                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                if (miscDocument is not null)
+                    return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(ex);
+            }
         }
 
         return default;
