@@ -48,14 +48,6 @@ There is a long-standing backlog item to enhance the experience of working with 
 - Syntax diagnostics.
 - Intellisense for the "default" set of references. e.g. those references which are included in the project created by `dotnet new console` with the current SDK.
 
-## High-level IDE layer changes
-
-The following outline is for "single-file" scenarios. We are interested in expanding to multi-file as well, and this document will be expanded in the future with additional explanation of how to handle that scenario.
-
-### Prerequisite work
-- MSBuildHost is updated to allow passing project content along with a file path. (https://github.com/dotnet/roslyn/pull/78303)
-- LanguageServerProjectSystem has a base type extracted so that a FileBasedProgramProjectSystem can be added. The latter handles loading file-based program projects, and makes the appropriate call to obtain the file-based program project XML. (https://github.com/dotnet/roslyn/pull/78329)
-
 ### Heuristic
 The IDE considers a file to be a file-based program, if:
 - It has any `#:` directives which configure the file-based program project, or,
