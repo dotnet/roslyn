@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExtensionKeyword = 8451,
 
         /// <summary>Represents <see langword="async"/>.</summary>
-        Async2Keyword = 8451,
+        Async2Keyword = 8452,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
