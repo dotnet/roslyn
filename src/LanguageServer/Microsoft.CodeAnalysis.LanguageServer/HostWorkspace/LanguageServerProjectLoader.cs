@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -85,7 +86,7 @@ internal abstract class LanguageServerProjectLoader
         /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
         /// </summary>
         /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
-        public sealed record LoadedTargets(List<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
+        public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
     protected LanguageServerProjectLoader(
@@ -246,56 +247,27 @@ internal abstract class LanguageServerProjectLoader
                     return false;
                 }
 
-                var existingProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
-                // We want to remove projects for targets that don't exist anymore; if we update projects we'll remove them from  
-                // this list -- what's left we can then remove.
-                var projectTargetsToUnload = new HashSet<LoadedProject>(existingProjectTargets);
+                var previousProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
+                var newProjectTargetsBuilder = ArrayBuilder<LoadedProject>.GetInstance(loadedProjectInfos.Length);
                 foreach (var loadedProjectInfo in loadedProjectInfos)
                 {
-                    var existingProjectTarget = existingProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework);
-                    bool targetNeedsRestore;
-                    ProjectLoadTelemetryReporter.TelemetryInfo targetTelemetryInfo;
+                    LoadedProject target = previousProjectTargets.FirstOrDefault(p => p.GetTargetFramework() == loadedProjectInfo.TargetFramework)
+                        ?? await CreateNewProjectTargetAsync(loadedProjectInfo);
+                    newProjectTargetsBuilder.Add(target);
 
-                    if (existingProjectTarget != null)
-                    {
-                        projectTargetsToUnload.Remove(existingProjectTarget);
-                        (targetTelemetryInfo, targetNeedsRestore) = await existingProjectTarget.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                    }
-                    else
-                    {
-                        // We haven't seen this target for this project before, so add it.
-                        var targetFramework = loadedProjectInfo.TargetFramework;
-                        var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
-
-                        var projectCreationInfo = new ProjectSystemProjectCreationInfo
-                        {
-                            AssemblyName = projectSystemName,
-                            FilePath = projectPath,
-                            CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
-                        };
-
-                        var projectSystemProject = await ProjectFactory.CreateAndAddToWorkspaceAsync(
-                            projectSystemName,
-                            loadedProjectInfo.Language,
-                            projectCreationInfo,
-                            _projectSystemHostInfo);
-
-                        var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
-                        existingProjectTargets.Add(loadedProject);
-
-                        loadedProject.NeedsReload += (_, _) => _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
-
-                        (targetTelemetryInfo, targetNeedsRestore) = await loadedProject.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-
-                        needsRestore |= targetNeedsRestore;
-                        telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
-                    }
+                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                    needsRestore |= targetNeedsRestore;
+                    telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
                 }
 
-                foreach (var project in projectTargetsToUnload)
+                var newProjectTargets = newProjectTargetsBuilder.ToImmutableAndFree();
+                foreach (var target in previousProjectTargets)
                 {
-                    project.Dispose();
-                    existingProjectTargets.Remove(project);
+                    // Unload targets which were present in a past design-time build, but absent in the current one.
+                    if (!newProjectTargets.Contains(target))
+                    {
+                        target.Dispose();
+                    }
                 }
 
                 if (projectToLoad.ReportTelemetry)
@@ -309,11 +281,7 @@ internal abstract class LanguageServerProjectLoader
                     await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
                 }
 
-                // Transition state machine
-                if (currentLoadState is ProjectLoadState.Primordial)
-                {
-                    _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(existingProjectTargets);
-                }
+                _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
             }
 
             diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
@@ -336,6 +304,29 @@ internal abstract class LanguageServerProjectLoader
             await LogDiagnosticsAsync([diagnosticLogItem]);
 
             return false;
+        }
+
+        async Task<LoadedProject> CreateNewProjectTargetAsync(ProjectFileInfo loadedProjectInfo)
+        {
+            var targetFramework = loadedProjectInfo.TargetFramework;
+            var projectSystemName = targetFramework is null ? projectPath : $"{projectPath} (${targetFramework})";
+
+            var projectCreationInfo = new ProjectSystemProjectCreationInfo
+            {
+                AssemblyName = projectSystemName,
+                FilePath = projectPath,
+                CompilationOutputAssemblyFilePath = loadedProjectInfo.IntermediateOutputFilePath,
+            };
+
+            var projectSystemProject = await ProjectFactory.CreateAndAddToWorkspaceAsync(
+                projectSystemName,
+                loadedProjectInfo.Language,
+                projectCreationInfo,
+                _projectSystemHostInfo);
+
+            var loadedProject = new LoadedProject(projectSystemProject, ProjectFactory.Workspace.Services.SolutionServices, _fileChangeWatcher, _targetFrameworkManager);
+            loadedProject.NeedsReload += (_, _) => _projectsToReload.AddWork(projectToLoad with { ReportTelemetry = false });
+            return loadedProject;
         }
 
         async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
@@ -415,7 +406,8 @@ internal abstract class LanguageServerProjectLoader
         {
             if (!_loadedProjects.Remove(projectPath, out var loadState))
             {
-                // Project was already unloaded. Nothing to do.
+                // It is common to be called with a path to a project which is already not loaded.
+                // In this case, we should do nothing.
                 return;
             }
 
@@ -427,6 +419,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 foreach (var existingProject in existingProjects)
                 {
+                    // Disposing a LoadedProject unloads it and removes it from the workspace.
                     existingProject.Dispose();
                 }
             }
