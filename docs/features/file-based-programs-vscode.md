@@ -60,7 +60,7 @@ The following outline is for "single-file" scenarios. We are interested in expan
 The IDE considers a file to be a file-based program, if:
 - It has any `#:` directives which configure the file-based program project, or,
 - It has any top-level statements.
-- Any of the above is met, and, the file is not included in an ordinary `.csproj` project (i.e. it is not part of any ordinary project's list of `Compile` items).
+Any of the above is met, and, the file is not included in an ordinary `.csproj` project (i.e. it is not part of any ordinary project's list of `Compile` items).
 
 ### Opt-out
 
