@@ -10,16 +10,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 internal sealed class LanguageServerTestComposition
 {
-    public static Task<ExportProvider> CreateExportProviderAsync(
+    public static async Task<(ExportProvider exportProvider, IAssemblyLoader assemblyLoader)> CreateExportProviderAsync(
         ILoggerFactory loggerFactory,
         bool includeDevKitComponents,
         string cacheDirectory,
-        string[]? extensionPaths,
-        out ServerConfiguration serverConfiguration,
-        out IAssemblyLoader assemblyLoader)
+        string[]? extensionPaths)
     {
         var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
-        serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
+        var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             LogConfiguration: new LogConfiguration(LogLevel.Trace),
             StarredCompletionsPath: null,
             TelemetryLevel: null,
@@ -32,8 +30,10 @@ internal sealed class LanguageServerTestComposition
             ServerPipeName: null,
             UseStdIo: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
-        assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
+        var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
-        return LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
+        return (exportProvider, assemblyLoader);
     }
 }

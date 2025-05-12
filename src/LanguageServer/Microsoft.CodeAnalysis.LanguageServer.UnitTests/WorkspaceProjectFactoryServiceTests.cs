@@ -18,11 +18,10 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
     public async Task CreateProjectAndBatch()
     {
         var loggerFactory = new LoggerFactory();
-        using var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, [], out var serverConfiguration, out var _);
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            loggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var _ = exportProvider;
 
-        exportProvider.GetExportedValue<ServerConfigurationFactory>()
-            .InitializeConfiguration(serverConfiguration);
         await exportProvider.GetExportedValue<ServiceBrokerFactory>().CreateAsync();
 
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
