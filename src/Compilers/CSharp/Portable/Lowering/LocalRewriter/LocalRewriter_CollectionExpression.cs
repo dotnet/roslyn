@@ -410,7 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
-            Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is null);
 
             if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor } })
@@ -1123,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create a temp for the knownLength
             BoundLocal? knownLengthTemp = null;
 
-            // If explicit collection creation was generated in initial binding, and collection
+            // If an explicit collection creation was generated in initial binding, and the collection
             // creation does not use the parameterless List<T> constructor, use the collection
             // creation as is. Otherwise, consider optimizations.
             if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor } } &&

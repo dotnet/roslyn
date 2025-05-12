@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<(string Name, TypeWithAnnotations Type)> parameters,
             TypeWithAnnotations returnType)
         {
-            Debug.Assert(wellKnownConstructor is { });
+            Debug.Assert(wellKnownConstructor is { IsDefinition: true });
             Debug.Assert(containingSymbol is { });
 
             WellKnownConstructor = wellKnownConstructor;

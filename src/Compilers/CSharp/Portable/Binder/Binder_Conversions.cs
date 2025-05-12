@@ -1313,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ContainingType is { });
             const string methodName = "<signature>"; // Arbitrary name.
             var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-            addSignatures(builder, syntax, ContainingType, methodName, targetType, diagnostics);
+            AddInterfaceTargetCollectionSignatures(builder, syntax, collectionTypeKind, ContainingType, methodName, targetType, diagnostics);
             if (builder.IsEmpty)
             {
                 return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: CreateErrorType());
@@ -1329,104 +1329,105 @@ namespace Microsoft.CodeAnalysis.CSharp
                 functionType: null,
                 receiverOpt: null,
                 resultKind: LookupResultKind.Viable);
+        }
 
-            void addSignatures(
-                ArrayBuilder<MethodSymbol> builder,
-                SyntaxNode syntax,
-                NamedTypeSymbol containingType,
-                string methodName,
-                NamedTypeSymbol targetType,
-                BindingDiagnosticBag diagnostics)
+        private void AddInterfaceTargetCollectionSignatures(
+            ArrayBuilder<MethodSymbol> builder,
+            SyntaxNode syntax,
+            CollectionExpressionTypeKind collectionTypeKind,
+            NamedTypeSymbol containingType,
+            string methodName,
+            NamedTypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            var returnType = TypeWithAnnotations.Create(targetType);
+            switch (collectionTypeKind)
             {
-                var returnType = TypeWithAnnotations.Create(targetType);
-                switch (collectionTypeKind)
-                {
-                    case CollectionExpressionTypeKind.ArrayInterface:
+                case CollectionExpressionTypeKind.ArrayInterface:
+                    {
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_List_T__ctor,
+                            containingType,
+                            methodName,
+                            parameters: [],
+                            returnType,
+                            diagnostics);
+                        if (targetType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T or SpecialType.System_Collections_Generic_IList_T)
                         {
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
                             addSignature(
                                 builder,
                                 Compilation,
                                 syntax,
-                                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
                                 containingType,
                                 methodName,
-                                parameters: [],
+                                parameters: [("capacity", intType)],
                                 returnType,
                                 diagnostics);
-                            if (targetType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T or SpecialType.System_Collections_Generic_IList_T)
-                            {
-                                var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
-                                addSignature(
-                                    builder,
-                                    Compilation,
-                                    syntax,
-                                    WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
-                                    containingType,
-                                    methodName,
-                                    parameters: [("capacity", intType)],
-                                    returnType,
-                                    diagnostics);
-                            }
                         }
-                        break;
-                    case CollectionExpressionTypeKind.DictionaryInterface:
+                    }
+                    break;
+                case CollectionExpressionTypeKind.DictionaryInterface:
+                    {
+                        // PROTOTYPE: If the target type has type arguments that are type parameters from the current method,
+                        // then the signature method will reference type parameters that are not in scope. Does that break any
+                        // compiler invariant? If so, we could create a synthesized generic type for the signature methods where
+                        // the synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>.
+                        var comparerType = TypeWithAnnotations.Create(
+                            GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]),
+                            NullableAnnotation.Annotated);
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                            containingType,
+                            methodName,
+                            parameters: [],
+                            returnType,
+                            diagnostics);
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                            containingType,
+                            methodName,
+                            parameters: [("comparer", comparerType)],
+                            returnType,
+                            diagnostics);
+                        if ((object)targetType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV))
                         {
-                            // PROTOTYPE: If the target type has type arguments that are type parameters from the current method,
-                            // then the signature method will reference type parameters that are not in scope. Does that break any
-                            // compiler invariant? If so, we could create a synthesized generic type for the signature methods where
-                            // the synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>.
-                            var comparerType = TypeWithAnnotations.Create(
-                                GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]),
-                                NullableAnnotation.Annotated);
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
                             addSignature(
                                 builder,
                                 Compilation,
                                 syntax,
-                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
                                 containingType,
                                 methodName,
-                                parameters: [],
+                                parameters: [("capacity", intType)],
                                 returnType,
                                 diagnostics);
                             addSignature(
                                 builder,
                                 Compilation,
                                 syntax,
-                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
                                 containingType,
                                 methodName,
-                                parameters: [("comparer", comparerType)],
+                                parameters: [("capacity", intType), ("comparer", comparerType)],
                                 returnType,
                                 diagnostics);
-                            if ((object)targetType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV))
-                            {
-                                var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
-                                addSignature(
-                                    builder,
-                                    Compilation,
-                                    syntax,
-                                    WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
-                                    containingType,
-                                    methodName,
-                                    parameters: [("capacity", intType)],
-                                    returnType,
-                                    diagnostics);
-                                addSignature(
-                                    builder,
-                                    Compilation,
-                                    syntax,
-                                    WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
-                                    containingType,
-                                    methodName,
-                                    parameters: [("capacity", intType), ("comparer", comparerType)],
-                                    returnType,
-                                    diagnostics);
-                            }
                         }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
-                }
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
             }
 
             static void addSignature(
@@ -1456,7 +1457,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol targetType,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(methodGroup.Kind is BoundKind.MethodGroup or BoundKind.BadExpression);
             if (methodGroup is BoundMethodGroup group)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
@@ -1480,7 +1480,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [methodGroup], targetType);
+                Debug.Assert(methodGroup.Kind == BoundKind.BadExpression);
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: withElement is null ? [] : withElement.Arguments, targetType);
             }
         }
 
