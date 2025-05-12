@@ -435,6 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (member.GetIsNewExtensionMember())
             {
+                Debug.Assert(!member.IsStatic);
                 ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
                 Debug.Assert(extensionParameter is not null);
 #if DEBUG

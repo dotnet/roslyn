@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
             // where "safe-context inference of declaration expressions" would have the same effect.
             if (node.DeconstructMethod is { } m &&
-                tryGetThisParameter(m)?.EffectiveScope == ScopedKind.None)
+                tryGetReceiverParameter(m)?.EffectiveScope == ScopedKind.None)
             {
                 using (new PatternInput(this, _localScopeDepth))
                 {
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitRecursivePattern(node);
 
-            static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
+            static ParameterSymbol? tryGetReceiverParameter(MethodSymbol method)
             {
                 if (method.IsExtensionMethod)
                 {

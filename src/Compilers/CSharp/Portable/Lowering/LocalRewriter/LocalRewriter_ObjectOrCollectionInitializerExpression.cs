@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit ||
-                         (memberSymbol.GetIsNewExtensionMember() && _compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType.ExtensionParameter!.Type, isChecked: false, ref discardedUseSiteInfo).IsImplicit) ||
+                         (memberSymbol.GetIsNewExtensionMember() && !memberSymbol.IsStatic && ConversionsBase.IsValidExtensionMethodThisArgConversion(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType.ExtensionParameter!.Type, isChecked: false, ref discardedUseSiteInfo))) ||
                          _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
