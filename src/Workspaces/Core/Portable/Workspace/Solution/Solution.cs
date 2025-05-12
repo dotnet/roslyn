@@ -985,7 +985,10 @@ public partial class Solution
         if (syntaxRoot == null)
             throw new ArgumentNullException(nameof(syntaxRoot));
 
+
         var project = GetRequiredProjectState(documentId.ProjectId);
+
+        // The empty text is replaced in WithDocumentSyntaxRoot with the actual text that matches the syntax tree.
         var sourceText = SourceText.From(string.Empty, encoding: null, project.ChecksumAlgorithm);
 
         return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated).
