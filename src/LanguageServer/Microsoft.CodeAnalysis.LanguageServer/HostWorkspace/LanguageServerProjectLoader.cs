@@ -61,8 +61,7 @@ internal abstract class LanguageServerProjectLoader
 
     /// <summary>
     /// State transitions:
-    /// <see cref="BeginLoading"/> -> <see cref="Loaded"/>
-    /// <see cref="BeginLoadingWithPrimordial"/> -> <see cref="Loaded"/>
+    /// <see cref="Primordial"/> -> <see cref="LoadedTargets"/>
     /// Any state -> unloaded (which is denoted by removing the <see cref="_loadedProjects"/> entry for the project)
     /// </summary>
     private abstract record ProjectLoadState
@@ -70,31 +69,23 @@ internal abstract class LanguageServerProjectLoader
         private ProjectLoadState() { }
 
         /// <summary>
-        /// The initial state used when we are asked to design-time build a project for the first time.
-        /// </summary>
-        public sealed record BeginLoading : ProjectLoadState;
-
-        /// <summary>
-        /// Similar to <see cref="BeginLoading"/>, except including a <see cref="ProjectId"/> for a "primordial project".
+        /// Represents a project which has not yet had a design-time build performed for it,
+        /// and which has an associated "primordial project" in the workspace.
         /// </summary>
         /// <param name="PrimordialProjectId">
         /// ID of the project which LSP uses to fulfill requests until the first design-time build is complete.
-        /// The project with this ID is removed from the workspace when unloading or when transitioning to <see cref="Loaded"/> state.
+        /// The project with this ID is removed from the workspace when unloading or when transitioning to <see cref="LoadedTargets"/> state.
         /// </param>
-        public sealed record BeginLoadingWithPrimordial(ProjectId PrimordialProjectId) : ProjectLoadState;
+        public sealed record Primordial(ProjectId PrimordialProjectId) : ProjectLoadState;
 
         /// <summary>
-        /// The state after the first design-time build is finished.
+        /// Represents a project for which we have loaded zero or more targets.
+        /// Generally a project which has zero loaded targets has not had a design-time build completed for it yet.
         /// Incrementally updated upon subsequent design-time builds.
         /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
         /// </summary>
         /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
-        public sealed record Loaded(List<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
-
-        /// <summary>
-        /// Tracks a primordial project for which we never intend to do a design-time build, for example, due to it not being on disk.
-        /// </summary>
-        public sealed record PrimordialOnly(ProjectId PrimordialProjectId) : ProjectLoadState;
+        public sealed record LoadedTargets(List<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
     }
 
     protected LanguageServerProjectLoader(
@@ -255,8 +246,7 @@ internal abstract class LanguageServerProjectLoader
                     return false;
                 }
 
-                Contract.ThrowIfTrue(currentLoadState is ProjectLoadState.PrimordialOnly);
-                var existingProjectTargets = currentLoadState is ProjectLoadState.Loaded loaded ? loaded.LoadedProjectTargets : [];
+                var existingProjectTargets = currentLoadState is ProjectLoadState.LoadedTargets loaded ? loaded.LoadedProjectTargets : [];
                 // We want to remove projects for targets that don't exist anymore; if we update projects we'll remove them from  
                 // this list -- what's left we can then remove.
                 var projectTargetsToUnload = new HashSet<LoadedProject>(existingProjectTargets);
@@ -313,16 +303,16 @@ internal abstract class LanguageServerProjectLoader
                     await _projectLoadTelemetryReporter.ReportProjectLoadTelemetryAsync(telemetryInfos, projectToLoad, cancellationToken);
                 }
 
-                if (currentLoadState is ProjectLoadState.BeginLoadingWithPrimordial(var projectId))
+                if (currentLoadState is ProjectLoadState.Primordial(var projectId))
                 {
                     // Remove the primordial project now that the design-time build pass is finished.
                     await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
                 }
 
                 // Transition state machine
-                if (currentLoadState is ProjectLoadState.BeginLoadingWithPrimordial or ProjectLoadState.BeginLoading)
+                if (currentLoadState is ProjectLoadState.Primordial)
                 {
-                    _loadedProjects[projectPath] = new ProjectLoadState.Loaded(existingProjectTargets);
+                    _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(existingProjectTargets);
                 }
             }
 
@@ -381,7 +371,7 @@ internal abstract class LanguageServerProjectLoader
                 return;
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.PrimordialOnly(primordialProjectId));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectId));
         }
     }
 
@@ -395,7 +385,7 @@ internal abstract class LanguageServerProjectLoader
                 return;
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.BeginLoadingWithPrimordial(primordialProjectId));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectId));
             _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
         }
     }
@@ -411,7 +401,7 @@ internal abstract class LanguageServerProjectLoader
                     continue;
                 }
 
-                _loadedProjects.Add(path, new ProjectLoadState.BeginLoading());
+                _loadedProjects.Add(path, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
                 _projectsToReload.AddWork(new ProjectToLoad(Path: path, ProjectGuid: guid, ReportTelemetry: true));
             }
         }
@@ -429,24 +419,16 @@ internal abstract class LanguageServerProjectLoader
                 return;
             }
 
-            if (loadState is ProjectLoadState.BeginLoading)
-            {
-                // no work needed to unload this.
-            }
-            else if (loadState is ProjectLoadState.BeginLoadingWithPrimordial(var projectId))
+            if (loadState is ProjectLoadState.Primordial(var projectId))
             {
                 ProjectFactory.Workspace.OnProjectRemoved(projectId);
             }
-            else if (loadState is ProjectLoadState.Loaded(var existingProjects))
+            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
             {
                 foreach (var existingProject in existingProjects)
                 {
                     existingProject.Dispose();
                 }
-            }
-            else if (loadState is ProjectLoadState.PrimordialOnly(var primordialOnlyProjectId))
-            {
-                ProjectFactory.Workspace.OnProjectRemoved(primordialOnlyProjectId);
             }
             else
             {
