@@ -1726,10 +1726,12 @@ class C
         public void LanguageVersionAdded_Canary()
         {
             // When a new version is added, this test will break. This list must be checked:
-            // - update the "UpgradeProject" codefixer
-            // - update all the tests that call this canary
-            // - update _MaxAvailableLangVersion (a relevant test should break when new version is introduced)
-            // - email release management to add to the release notes (see csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493)
+            // 1. update the "UpgradeProject" codefixer
+            // 2. update all the tests that call this canary
+            // 3. update _MaxAvailableLangVersion (a relevant test should break when new version is introduced)
+            // 4. email release management to add to the release notes (see csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493)
+            // 5. make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
+            // 6. push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
             AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
@@ -10039,7 +10041,7 @@ public class Program
                 var outWriter = new StringWriter(CultureInfo.InvariantCulture);
                 int exitCode = compiler.Run(outWriter);
                 return (exitCode, outWriter.ToString());
-            };
+            }
         }
 
         // See also NullableContextTests.NullableAnalysisFlags_01().
@@ -10081,7 +10083,7 @@ public class Program
                 var outWriter = new StringWriter(CultureInfo.InvariantCulture);
                 int exitCode = compiler.Run(outWriter);
                 return outWriter.ToString().Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            };
+            }
         }
 
         [Fact]
