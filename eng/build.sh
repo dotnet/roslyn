@@ -175,11 +175,11 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild|-sb)
+    --sourcebuild|--source-build|-sb)
       source_build=true
       product_build=true
       ;;
-    --productbuild)
+    --productbuild|--product-build|-pb)
       product_build=true
       ;;
     --solution)
