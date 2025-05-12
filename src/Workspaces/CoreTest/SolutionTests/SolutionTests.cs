@@ -2436,6 +2436,29 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    public async Task GetFirstRelatedDocumentIdWithDuplicatedDocuments()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var origSolution = workspace.CurrentSolution;
+        var project = origSolution.Projects.Single();
+
+        var origDocumentId = project.DocumentIds.Single();
+        var newDocumentId = DocumentId.CreateNewId(project.Id);
+
+        var document = project.GetRequiredDocument(origDocumentId);
+        var sourceText = await document.GetTextAsync();
+
+        var newSolution = origSolution.AddDocument(newDocumentId, document.Name, sourceText, filePath: document.FilePath!);
+
+        // Populate the SolutionState cache for this document id
+        _ = newSolution.GetRelatedDocumentIds(origDocumentId);
+
+        // Ensure a GetFirstRelatedDocumentId call with a poulated cache doesn't return newDocumentId
+        var relatedDocument = newSolution.GetFirstRelatedDocumentId(origDocumentId, relatedProjectIdHint: null);
+        Assert.Null(relatedDocument);
+    }
+
+    [Fact]
     public void AddDocument_SyntaxRoot()
     {
         var projectId = ProjectId.CreateNewId();
