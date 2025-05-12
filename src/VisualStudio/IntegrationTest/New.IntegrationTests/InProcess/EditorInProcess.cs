@@ -566,7 +566,7 @@ internal sealed partial class EditorInProcess : ITextViewWindowInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
-        return margin.GetFieldValue<List<ComboBox>>("_combos");
+        return margin.GetFieldValue<List<ComboBox>>("Combos");
     }
 
     private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)
