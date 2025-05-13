@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 
-internal class AbstractLegacyProjectSystemProjectOptionsProcessor : ProjectSystemProjectOptionsProcessor
+internal abstract class AbstractLegacyProjectSystemProjectOptionsProcessor : ProjectSystemProjectOptionsProcessor
 {
     private string? _explicitRuleSetFilePath;
 
