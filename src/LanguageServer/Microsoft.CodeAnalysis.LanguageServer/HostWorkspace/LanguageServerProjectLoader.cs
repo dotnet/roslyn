@@ -253,6 +253,7 @@ internal abstract class LanguageServerProjectLoader
 
                     if (targetAlreadyExists)
                     {
+                        // https://github.com/dotnet/roslyn/issues/78561: Automatic restore should run even when the target is already loaded
                         _ = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
                     }
                     else
