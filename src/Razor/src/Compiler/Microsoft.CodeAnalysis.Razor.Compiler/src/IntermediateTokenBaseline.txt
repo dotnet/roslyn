@@ -1,5 +1,5 @@
 Mvc/PagesPropertyInjectionPass.cs:32:34
-Mvc/PagesPropertyInjectionPass.cs:42:40
+Mvc/PagesPropertyInjectionPass.cs:40:36
 Language/Intermediate/IntermediateToken.cs:22:103
 Language/Components/ComponentBindLoweringPass.cs:404:22
 Language/Components/ComponentBindLoweringPass.cs:421:23
