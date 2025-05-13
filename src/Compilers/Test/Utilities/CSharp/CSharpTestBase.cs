@@ -725,7 +725,7 @@ namespace System.Diagnostics.CodeAnalysis
             #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
             """;
 
-        internal const string CompilerFeatureRequiredAttributeIL = @"
+        internal static readonly string CompilerFeatureRequiredAttributeIL = @"
 .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
      extends [mscorlib]System.Attribute
  {
@@ -813,7 +813,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
             [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -823,7 +823,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeILDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeILDefinition = """
             .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute
                 extends [mscorlib]System.Attribute
             {
@@ -865,7 +865,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <summary>
         /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
         /// </summary>
-        internal const string CompilerLoweringPreserveAttributeDefinition = """
+        internal static readonly string CompilerLoweringPreserveAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
@@ -877,7 +877,7 @@ namespace System.Diagnostics.CodeAnalysis
             """;
 
         #region A string containing expression-tree dumping utilities
-        protected const string ExpressionTestLibrary = """
+        protected static readonly string ExpressionTestLibrary = """
 using System;
 using System.Globalization;
 using System.Linq.Expressions;
