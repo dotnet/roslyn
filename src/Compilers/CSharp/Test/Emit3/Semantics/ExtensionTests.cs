@@ -20897,7 +20897,7 @@ ref struct S1
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Fixed_01()
     {
         var text = """
 unsafe class C
@@ -20926,7 +20926,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion()
+    public void ExtensionMemberLookup_PatternBased_Fixed_02_Conversion()
     {
         var text = """
 unsafe class C
@@ -20955,7 +20955,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod_DelegateTypeProperty()
+    public void ExtensionMemberLookup_PatternBased_Fixed_03_DelegateTypeProperty()
     {
         var text = @"
 unsafe class C
@@ -21003,7 +21003,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod_DynamicTypeProperty()
+    public void ExtensionMemberLookup_PatternBased_Fixed_04_DynamicTypeProperty()
     {
         var text = @"
 unsafe class C
@@ -21060,7 +21060,7 @@ delegate ref int MyDelegate();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_Fixed_05()
     {
         var src = """
 unsafe class C
@@ -21132,7 +21132,7 @@ IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_Static()
+    public void ExtensionMemberLookup_PatternBased_Fixed_06()
     {
         var text = @"
 unsafe class C
@@ -40073,4 +40073,5 @@ static class E
 """;
         var comp = CreateCompilation(source);
         CompileAndVerify(comp, expectedOutput: "True ran ran2").VerifyDiagnostics();
-    }}
+    }
+}
