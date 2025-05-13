@@ -72,8 +72,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
             Contract.ThrowIfNull(metadataWorkspace);
-            var document = metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-            return document;
+            return metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
         }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
