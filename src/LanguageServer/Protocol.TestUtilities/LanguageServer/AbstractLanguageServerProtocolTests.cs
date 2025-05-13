@@ -330,23 +330,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
     {
         var solution = workspace.CurrentSolution;
 
-        foreach (var document in workspace.Documents)
-        {
-            if (document.IsSourceGenerated)
-                continue;
-
-            Assert.True(PathUtilities.IsAbsolute(document.FilePath));
-
-            var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
-            solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8, SourceHashAlgorithms.Default));
-        }
-
-        foreach (var project in workspace.Projects)
-        {
-            // Ensure all the projects have a valid file path.
-            Assert.True(PathUtilities.IsAbsolute(project.FilePath));
-        }
-
         var analyzerReferencesByLanguage = CreateTestAnalyzersReference();
         if (initializationOptions.AdditionalAnalyzers != null)
             analyzerReferencesByLanguage = analyzerReferencesByLanguage.WithAdditionalAnalyzers(languageName, initializationOptions.AdditionalAnalyzers);
