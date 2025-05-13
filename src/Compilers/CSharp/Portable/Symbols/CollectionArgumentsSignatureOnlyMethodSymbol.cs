@@ -10,7 +10,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A method symbol that represents a signature for collection expression arguments.
+    /// A method symbol that represents a signature for arguments in a collection expression
+    /// that target an interface type. The signature is intended to represent a static factory
+    /// method that returns an instance of the interface type, rather than any specific
+    /// implementation (such as a constructor of a concrete type).
     /// The compiler is free to emit any equivalent method call or initialization.
     /// </summary>
     internal sealed class CollectionArgumentsSignatureOnlyMethodSymbol : MethodSymbol
