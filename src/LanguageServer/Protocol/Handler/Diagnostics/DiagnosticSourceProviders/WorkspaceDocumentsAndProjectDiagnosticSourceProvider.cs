@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
-    [Import] IDiagnosticAnalyzerService diagnosticAnalyzerService,
     [Import] IGlobalOptionService globalOptions)
     : IDiagnosticSourceProvider
 {
@@ -59,11 +58,11 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
-            await AddDocumentsAndProjectAsync(project, diagnosticAnalyzerService, cancellationToken).ConfigureAwait(false);
+            await AddDocumentsAndProjectAsync(project, cancellationToken).ConfigureAwait(false);
 
         return result.ToImmutableAndClear();
 
-        async Task AddDocumentsAndProjectAsync(Project project, IDiagnosticAnalyzerService diagnosticAnalyzerService, CancellationToken cancellationToken)
+        async Task AddDocumentsAndProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var fullSolutionAnalysisEnabled = globalOptions.IsFullSolutionAnalysisEnabled(project.Language, out var compilerFullSolutionAnalysisEnabled, out var analyzersFullSolutionAnalysisEnabled);
             if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
@@ -95,7 +94,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
                             : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
                         result.Add(documentDiagnosticSource);
                     }
@@ -105,7 +104,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             void AddProjectSource()
             {
                 var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, diagnosticAnalyzerService, shouldIncludeAnalyzer)
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
                     : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
                 result.Add(projectDiagnosticSource);
             }

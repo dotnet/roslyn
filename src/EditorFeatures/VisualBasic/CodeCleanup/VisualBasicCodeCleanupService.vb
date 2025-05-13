@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(codeFixService As ICodeFixService, diagnosticAnalyzerService As IDiagnosticAnalyzerService)
-            MyBase.New(codeFixService, diagnosticAnalyzerService)
+        Public Sub New(codeFixService As ICodeFixService)
+            MyBase.New(codeFixService)
         End Sub
 
         Protected Overrides ReadOnly Property OrganizeImportsDescription As String = VBFeaturesResources.Organize_Imports

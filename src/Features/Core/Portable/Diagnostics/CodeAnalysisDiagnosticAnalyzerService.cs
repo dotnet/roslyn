@@ -22,10 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-    {
-        var diagnosticAnalyzerService = workspaceServices.SolutionServices.ExportProvider.GetExports<IDiagnosticAnalyzerService>().Single().Value;
-        return new CodeAnalysisDiagnosticAnalyzerService(diagnosticAnalyzerService, workspaceServices.Workspace);
-    }
+        => new CodeAnalysisDiagnosticAnalyzerService(workspaceServices.Workspace);
 
     private sealed class CodeAnalysisDiagnosticAnalyzerService : ICodeAnalysisDiagnosticAnalyzerService
     {
@@ -49,11 +46,10 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             Workspace workspace)
         {
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _workspace = workspace;
+            _diagnosticAnalyzerService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }

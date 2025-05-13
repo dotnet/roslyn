@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Dim analyzerService = workspace.GetService(Of IDiagnosticAnalyzerService)()
+            Dim analyzerService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
 
             Return analyzerService
         End Function
