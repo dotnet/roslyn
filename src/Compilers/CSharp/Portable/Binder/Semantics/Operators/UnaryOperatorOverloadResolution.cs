@@ -245,10 +245,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Equals(UnaryOperatorSignature x, UnaryOperatorSignature y)
             {
-                return x.Method.OriginalDefinition.ContainingType.ContainingType == (object)x.Method.OriginalDefinition.ContainingType.ContainingType &&
-                       new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(x.Method.OriginalDefinition.ContainingType).Equals(
-                           new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(y.Method.OriginalDefinition.ContainingType)) &&
-                       SourceMemberContainerTypeSymbol.DoOperatorsPair(x.Method.OriginalDefinition, y.Method.OriginalDefinition);
+                if (x.Method.OriginalDefinition.ContainingType.ContainingType != (object)x.Method.OriginalDefinition.ContainingType.ContainingType)
+                {
+                    return false;
+                }
+
+                var xGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(x.Method.OriginalDefinition.ContainingType);
+                var yGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(y.Method.OriginalDefinition.ContainingType);
+
+                if (!xGroupingKey.Equals(yGroupingKey))
+                {
+                    return false;
+                }
+
+                return SourceMemberContainerTypeSymbol.DoOperatorsPair(
+                           x.Method.OriginalDefinition.AsMember(xGroupingKey.NormalizedExtension),
+                           y.Method.OriginalDefinition.AsMember(yGroupingKey.NormalizedExtension));
             }
 
             public int GetHashCode(UnaryOperatorSignature op)
@@ -256,11 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
 
                 int result = typeComparer.GetHashCode(op.Method.OriginalDefinition.ContainingType.ContainingType);
-                result = Hash.Combine(result, new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.Method.OriginalDefinition.ContainingType).GetHashCode());
 
-                foreach (var typeWithAnnotations in op.Method.OriginalDefinition.ParameterTypesWithAnnotations)
+                var groupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.Method.OriginalDefinition.ContainingType);
+                result = Hash.Combine(result, groupingKey.GetHashCode());
+
+                foreach (var parameter in op.Method.OriginalDefinition.AsMember(groupingKey.NormalizedExtension).Parameters)
                 {
-                    result = Hash.Combine(result, typeComparer.GetHashCode(typeWithAnnotations.Type));
+                    result = Hash.Combine(result, typeComparer.GetHashCode(parameter.Type));
                 }
 
                 return result;
