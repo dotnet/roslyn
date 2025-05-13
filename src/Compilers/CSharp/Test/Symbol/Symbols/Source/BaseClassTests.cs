@@ -1802,7 +1802,7 @@ public interface I2 : I<int> {}";
         I<dynamic> t = C.x;
     }
 }";
-            CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false, targetFramework: TargetFramework.Standard).VerifyDiagnostics(
+            CreateCompilationWithILAndStandard(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
                 // (4,30): error CS0648: 'I<dynamic>' is a type not supported by the language
                 //     static void F(I<dynamic> x)
                 Diagnostic(ErrorCode.ERR_BogusType, "x").WithArguments("I<dynamic>").WithLocation(4, 30),

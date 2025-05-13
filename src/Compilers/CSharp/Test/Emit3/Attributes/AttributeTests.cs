@@ -986,15 +986,15 @@ class Program
         C.M(""a"").ToString();
     }
 }";
-            CreateCompilation(new[] { definitionSource, usageSource }, options: WithNullableEnable())
+            CreateCompilation(new[] { definitionSource, usageSource }, options: WithNullableEnable(), targetFramework: TargetFramework.Standard)
                 .VerifyDiagnostics();
 
-            var definitionComp = CreateCompilation(definitionSource, options: WithNullableEnable());
+            var definitionComp = CreateCompilation(definitionSource, options: WithNullableEnable(), targetFramework: TargetFramework.Standard);
 
-            CreateCompilation(usageSource, references: new[] { definitionComp.ToMetadataReference() }, options: WithNullableEnable())
+            CreateCompilation(usageSource, references: new[] { definitionComp.ToMetadataReference() }, options: WithNullableEnable(), targetFramework: TargetFramework.Standard)
                 .VerifyDiagnostics();
 
-            CreateCompilation(usageSource, references: new[] { definitionComp.EmitToImageReference() }, options: WithNullableEnable())
+            CreateCompilation(usageSource, references: new[] { definitionComp.EmitToImageReference() }, options: WithNullableEnable(), targetFramework: TargetFramework.Standard)
                 .VerifyDiagnostics();
         }
 
@@ -2146,7 +2146,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsReadOnlyAttribute()]
@@ -2168,7 +2168,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsByRefLikeAttribute()]
@@ -10210,7 +10210,7 @@ namespace System.Runtime.InteropServices
         public string EntryPoint;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //     unsafe static D M1() => new D(F);
@@ -10786,7 +10786,7 @@ class Attr<T> : Attribute { }
 [Attr<ValueTuple<int, int>>] // ok
 class C { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (10,2): error CS8970: Type 'dynamic' cannot be used in this context because it cannot be represented in metadata.
                 // [Attr<dynamic>] // 1
@@ -11097,7 +11097,7 @@ class C1 { }
 [Attr2<I2>]
 class C2 { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics(
                 // (8,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
                 //     static abstract void M();
@@ -11216,7 +11216,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "a");
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), sourceSymbolValidator: verify, symbolValidator: verify, expectedOutput: "a", targetFramework: TargetFramework.Standard);
 
             verifier.VerifyTypeIL("Holder", @"
 .class private auto ansi beforefieldinit Holder

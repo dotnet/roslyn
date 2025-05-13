@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public sealed class LambdaTests : SemanticModelTestBase
+    public sealed class LambdaTests() : SemanticModelTestBase(TargetFramework.Standard)
     {
         [Fact, WorkItem(37456, "https://github.com/dotnet/roslyn/issues/37456")]
         public void Verify37456()

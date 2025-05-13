@@ -1264,7 +1264,7 @@ class C : IEnumerable
         {
             // "System.Core.dll"
             var source0 = "";
-            var compilation0 = CSharpTestBase.CreateCompilation(source0, assemblyName: "system.core");
+            var compilation0 = CSharpTestBase.CreateCompilationWithNetLatest(source0, assemblyName: "system.core");
             var assembly0 = ReflectionUtilities.Load(compilation0.EmitToArray());
             var source =
 @"using System.Collections;

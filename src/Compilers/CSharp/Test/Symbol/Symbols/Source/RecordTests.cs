@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class RecordTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilation(CSharpTestSource source)
-            => CSharpTestBase.CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
+            => CSharpTestBase.CreateCompilationWithStandard(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
 
         private CompilationVerifier CompileAndVerify(CSharpTestSource src, string? expectedOutput = null)
             => base.CompileAndVerify(new[] { src, IsExternalInitTypeDefinition },
@@ -1339,7 +1339,7 @@ enum G : C { }";
 public class A { }
 public record B { }
 public record C : B { }";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilationWithNetStandard(src);
 
             var src2 = @"
 record D : C { }
@@ -1349,7 +1349,7 @@ struct G : C { }
 enum H : C { }
 ";
 
-            var comp2 = CreateCompilation(src2,
+            var comp2 = CreateCompilationWithNetStandard(src2,
                 parseOptions: TestOptions.Regular9,
                 references: new[] {
                 emitReference ? comp.EmitToImageReference() : comp.ToMetadataReference()
