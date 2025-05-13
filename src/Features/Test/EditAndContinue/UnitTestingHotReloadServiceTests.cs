@@ -29,13 +29,14 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
 
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
-        var moduleId = EmitLibrary(source1, sourceFileA.Path, assemblyName: "Proj");
 
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
         var projectP = solution.
             AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
+
+        var moduleId = EmitLibrary(projectP.Id, source1, sourceFileA.Path, assemblyName: "Proj");
 
         solution = projectP.Solution;
 

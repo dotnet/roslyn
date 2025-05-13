@@ -42,16 +42,16 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
 
         var dir = Temp.CreateDirectory();
         var sourceFileA = dir.CreateFile("A.cs").WriteAllText(source1, Encoding.UTF8);
-        var moduleId = EmitLibrary(source1, sourceFileA.Path, assemblyName: "Proj");
 
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
-        var projectId = ProjectId.CreateNewId();
         var projectP = solution.
             AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
         solution = projectP.Solution;
+
+        var moduleId = EmitLibrary(projectP.Id, source1, sourceFileA.Path, assemblyName: "Proj");
 
         var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
         solution = solution.AddDocument(DocumentInfo.Create(
