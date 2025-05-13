@@ -116,6 +116,9 @@ internal static class ICompilationExtensions
     public static INamedTypeSymbol? DesignerGeneratedAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
 
+    public static INamedTypeSymbol? DictionaryOfTKeyTValueType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Dictionary<,>).FullName!);
+
     public static INamedTypeSymbol? HideModuleNameAttribute(this Compilation compilation)
         => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
@@ -160,6 +163,9 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? ICollectionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName!);
+
+    public static INamedTypeSymbol? IDictionaryOfTKeyTValueType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName!);
 
     public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);

@@ -27,6 +27,8 @@ internal static class WithElementSyntaxExtensions
         if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).ConvertedType is not INamedTypeSymbol collectionExpressionType)
             return [];
 
+        var collectionExpressionOriginalType = collectionExpressionType.OriginalDefinition;
+        var compilation = semanticModel.Compilation;
         var result = TryGetInterfaceItems() ??
             TryGetCollectionBuilderItems() ??
             collectionExpressionType.InstanceConstructors;
@@ -36,26 +38,28 @@ internal static class WithElementSyntaxExtensions
         ImmutableArray<IMethodSymbol>? TryGetInterfaceItems()
         {
             // When the type is IList<T> or ICollection<T>, we can provide a signature help item for the `(int capacity)`
-            // constructor of List<T>, as that's what the compiler will call into.
+            // constructor of List<T>, as that's what the compiler will call into.  When the type is IDictionary<,> we
+            // provide signature help for the overloads of Dictionary<,> that take a capacity or IEqualityComparer.
 
-            var ilistOfTType = semanticModel.Compilation.IListOfTType();
-            var icollectionOfTType = semanticModel.Compilation.ICollectionOfTType();
-
-            if (!Equals(ilistOfTType, collectionExpressionType.OriginalDefinition) &&
-                !Equals(icollectionOfTType, collectionExpressionType.OriginalDefinition))
+            if (Equals(compilation.IListOfTType(), collectionExpressionOriginalType) ||
+                Equals(compilation.ICollectionOfTType(), collectionExpressionOriginalType))
+            {
+                var constructedType = compilation.ListOfTType()?.Construct([.. collectionExpressionType.TypeArguments]);
+                return constructedType is not null
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.All(p => p.Name is "capacity"))
+                    : [];
+            }
+            else if (Equals(compilation.IDictionaryOfTKeyTValueType(), collectionExpressionOriginalType))
+            {
+                var constructedType = compilation.DictionaryOfTKeyTValueType()?.Construct([.. collectionExpressionType.TypeArguments]);
+                return constructedType is not null
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.All(p => p.Name is "capacity" or "comparer"))
+                    : [];
+            }
+            else
             {
                 return null;
             }
-
-            var listOfTType = semanticModel.Compilation.ListOfTType();
-            if (listOfTType is null)
-                return [];
-
-            var constructedListType = listOfTType.Construct(collectionExpressionType.TypeArguments.Single());
-            var constructor = constructedListType.InstanceConstructors.FirstOrDefault(
-                static m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
-
-            return constructor is null ? [] : [constructor];
         }
 
         ImmutableArray<IMethodSymbol>? TryGetCollectionBuilderItems()
@@ -72,13 +76,9 @@ internal static class WithElementSyntaxExtensions
             {
                 // Create a synthesized method with the ReadOnlySpan<T> parameter removed.  This corresponds to the parameters
                 // that actually have to be passed to the with element.
-                var slicedParameters = Equals(constructedMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
-                    ? constructedMethod.Parameters[1..]
-                    : constructedMethod.Parameters[..^1];
-
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     constructedMethod,
-                    parameters: slicedParameters,
+                    parameters: constructedMethod.Parameters[..^1],
                     containingType: constructedMethod.ContainingType);
             });
         }
