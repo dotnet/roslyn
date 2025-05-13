@@ -58,6 +58,7 @@ public partial class ProjectDependencyGraph
     {
         var builder = existingForwardReferencesMap.ToBuilder();
 
+        // TODO: Consider optimizing when a large number of projects are being removed simultaneously
         if (existingReverseReferencesMap is not null)
         {
             foreach (var removedProjectId in removedProjectIds)
@@ -82,7 +83,7 @@ public partial class ProjectDependencyGraph
             }
         }
 
-        // Finally, remove 'projectId' itself.
+        // Finally, remove each item in removedProjectIds
         foreach (var removedProjectId in removedProjectIds)
             builder.Remove(removedProjectId);
 
@@ -103,6 +104,7 @@ public partial class ProjectDependencyGraph
         if (existingReverseReferencesMap is null)
             return null;
 
+        // TODO: Consider optimizing when a large number of projects are being removed simultaneously
         var builder = existingReverseReferencesMap.ToBuilder();
         foreach (var removedProjectId in removedProjectIds)
         {
@@ -116,7 +118,7 @@ public partial class ProjectDependencyGraph
                 builder.MultiRemove(referencedProjectId, removedProjectId);
         }
 
-        // Finally, remove 'removedProjectId' itself.
+        // Finally, remove each item in removedProjectIds
         foreach (var removedProjectId in removedProjectIds)
             builder.Remove(removedProjectId);
 
@@ -150,7 +152,7 @@ public partial class ProjectDependencyGraph
             }
         }
 
-        // Finally, remove 'projectId' itself.
+        // Finally, remove each item in removedProjectIds
         foreach (var removedProjectId in removedProjectIds)
             builder.Remove(removedProjectId);
 
