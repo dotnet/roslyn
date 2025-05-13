@@ -53,7 +53,6 @@ internal abstract class LanguageServerProjectLoader
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
-    /// Guarded by <see cref="_gate"/>.
     /// Maps the file path of a tracked project to the load state for the project.
     /// Absence of an entry indicates the project is not tracked, e.g. it was never loaded, or it was unloaded.
     /// <see cref="_gate"/> must be held when modifying the dictionary or objects contained in it.
