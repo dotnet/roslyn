@@ -11,8 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 
 internal abstract class AbstractLegacyProjectSystemProjectOptionsProcessor : ProjectSystemProjectOptionsProcessor
 {
-    private string? _explicitRuleSetFilePath;
-
     public AbstractLegacyProjectSystemProjectOptionsProcessor(
         ProjectSystemProject project,
         SolutionServices workspaceServices)
@@ -22,18 +20,17 @@ internal abstract class AbstractLegacyProjectSystemProjectOptionsProcessor : Pro
 
     public string? ExplicitRuleSetFilePath
     {
-        get => _explicitRuleSetFilePath;
-
+        get;
         set
         {
             lock (_gate)
             {
-                if (_explicitRuleSetFilePath == value)
+                if (field == value)
                 {
                     return;
                 }
 
-                _explicitRuleSetFilePath = value;
+                field = value;
 
                 UpdateProjectOptions_NoLock();
             }
@@ -43,10 +40,10 @@ internal abstract class AbstractLegacyProjectSystemProjectOptionsProcessor : Pro
     protected override string? GetEffectiveRulesetFilePath()
         => ExplicitRuleSetFilePath ?? base.GetEffectiveRulesetFilePath();
 
-    protected override void UpdateCommandLine(ImmutableArray<string> arguments)
+    protected override bool ShouldSaveCommandLine(ImmutableArray<string> arguments)
     {
         // Legacy projects require this to be kept as it may be needed if ExplicitRuleSetFilePath is changed
-        _commandLine = arguments;
+        return true;
     }
 
     /// <summary>

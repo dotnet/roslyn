@@ -28,15 +28,15 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
 
     /// <summary>
+    /// To save space in the managed heap, we only cache the command line if we have a ruleset or if we are in a legacy project.
+    /// </summary>
+    private ImmutableArray<string> _commandLine;
+
+    /// <summary>
     /// Gate to guard all mutable fields in this class.
     /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
     /// </summary>
     protected readonly object _gate = new();
-
-    /// <summary>
-    /// To save space in the managed heap, we only cache the command line if we have a ruleset or if we are in a legacy project.
-    /// </summary>
-    protected ImmutableArray<string> _commandLine;
 
     public ProjectSystemProjectOptionsProcessor(
         ProjectSystemProject project,
@@ -64,19 +64,16 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         _commandLineChecksum = checksum;
 
         ReparseCommandLine_NoLock(arguments);
-
-        // Only bother storing the command line if there is an effective ruleset, as that may
-        // require a later reparse using it.
-        UpdateCommandLine(arguments);
+        _commandLine = ShouldSaveCommandLine(arguments) ? arguments : default;
 
         return true;
     }
 
-    protected virtual void UpdateCommandLine(ImmutableArray<string> arguments)
+    protected virtual bool ShouldSaveCommandLine(ImmutableArray<string> arguments)
     {
         // Only bother storing the command line if there is an effective ruleset, as that may
         // require a later reparse using it.
-        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : default;
+        return GetEffectiveRulesetFilePath() != null;
     }
 
     public void SetCommandLine(string commandLine)
