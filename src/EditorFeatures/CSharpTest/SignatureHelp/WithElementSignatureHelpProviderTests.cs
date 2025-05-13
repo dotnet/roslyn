@@ -74,6 +74,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     [Theory]
     [InlineData("IReadOnlyList<int>")]
     [InlineData("IReadOnlyCollection<int>")]
+    [InlineData("IReadOnlyDictionary<int, string>")]
     [InlineData("IEnumerable<int>")]
     [InlineData("IEnumerable")]
     public async Task TestReadOnlyInterfaces(string type)
