@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -271,6 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var loweredBody = LowerBodyOrInitializer(
                     synthesizedEntryPoint,
+                    extensionImplementationMethod: null,
                     methodOrdinal,
                     body,
                     previousSubmissionFields: null,
@@ -535,7 +535,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
-                            CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+                            // Compile extension methods without implementation normally, to bind the body and get errors.
+                            // Also, extension marker method should always be compiled normally. 
+                            if (containingType.IsExtension &&
+                                method.TryGetCorrespondingExtensionImplementationMethod() is not null)
+                            {
+                                EmitSkeletonMethodInExtension(method);
+                            }
+                            else
+                            {
+                                CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+                            }
                             break;
                         }
 
@@ -893,6 +903,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState)
         {
+            var extensionImplementation = methodSymbol as SourceExtensionImplementationMethodSymbol;
+
+            if (extensionImplementation is not null)
+            {
+                // Binding and analysis is performed on the user declared method
+                methodSymbol = extensionImplementation.UnderlyingMethod;
+
+                Debug.Assert(!methodSymbol.SynthesizesLoweredBoundBody);
+            }
+
             _cancellationToken.ThrowIfCancellationRequested();
             SourceMemberMethodSymbol sourceMethod = methodSymbol as SourceMemberMethodSymbol;
 
@@ -1140,6 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             });
                             }
 
+                            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Ensure we are not messing up relative order of events for extension members (with relation to events for enclosing types, etc.)
                             _compilation.EventQueue.TryEnqueue(new SymbolDeclaredCompilationEvent(
                                 _compilation, methodSymbol, semanticModelWithCachedBoundNodes));
                         }
@@ -1179,6 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         loweredBodyOpt = LowerBodyOrInitializer(
                             methodSymbol,
+                            extensionImplementation,
                             methodOrdinal,
                             flowAnalyzedBody,
                             previousSubmissionFields,
@@ -1255,6 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 BoundStatement lowered = LowerBodyOrInitializer(
                                     methodSymbol,
+                                    extensionImplementation,
                                     methodOrdinal,
                                     analyzedInitializers,
                                     previousSubmissionFields,
@@ -1325,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
-                                methodSymbol,
+                                extensionImplementation ?? methodSymbol,
                                 methodOrdinal,
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),
@@ -1341,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 codeCoverageSpans,
                                 entryPointOpt: null);
 
-                            _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                            _moduleBeingBuiltOpt.SetMethodBody(GetSymbolForEmittedBody(extensionImplementation ?? methodSymbol), emittedBody);
                         }
                     }
 
@@ -1362,9 +1385,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void EmitSkeletonMethodInExtension(MethodSymbol methodSymbol)
+        {
+            if (!_emitMethodBodies)
+            {
+                return;
+            }
+
+            ILBuilder builder = new ILBuilder(_moduleBeingBuiltOpt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+            // Emit methods in extensions as skeletons:
+            // => throw null;
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we throw NotSupportedException instead?
+            builder.EmitOpCode(System.Reflection.Metadata.ILOpCode.Ldnull);
+            builder.EmitThrow(isRethrow: false);
+            builder.Realize();
+
+            _moduleBeingBuiltOpt.TestData?.SetMethodILBuilder(methodSymbol, builder);
+
+            _moduleBeingBuiltOpt.SetMethodBody(
+                methodSymbol,
+                new MethodBody(
+                    builder.RealizedIL,
+                    maxStack: 1,
+                    methodSymbol.GetCciAdapter(),
+                    new DebugId(ordinal: -1, _moduleBeingBuiltOpt.CurrentGenerationOrdinal),
+                    locals: [],
+                    SequencePointList.Empty,
+                    debugDocumentProvider: null,
+                    exceptionHandlers: ImmutableArray<Cci.ExceptionHandlerRegion>.Empty,
+                    areLocalsZeroed: false,
+                    hasStackalloc: false,
+                    localScopes: ImmutableArray<Cci.LocalScope>.Empty,
+                    hasDynamicLocalVariables: false,
+                    importScopeOpt: null,
+                    lambdaDebugInfo: ImmutableArray<EncLambdaInfo>.Empty,
+                    orderedLambdaRuntimeRudeEdits: ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
+                    closureDebugInfo: ImmutableArray<EncClosureInfo>.Empty,
+                    stateMachineTypeNameOpt: null,
+                    stateMachineHoistedLocalScopes: default(ImmutableArray<StateMachineHoistedLocalScope>),
+                    stateMachineHoistedLocalSlots: default(ImmutableArray<EncHoistedLocalInfo>),
+                    stateMachineAwaiterSlots: default(ImmutableArray<Cci.ITypeReference>),
+                    StateMachineStatesDebugInfo.Create(variableSlotAllocator: null, ImmutableArray<StateMachineStateDebugInfo>.Empty),
+                    stateMachineMoveNextDebugInfoOpt: null,
+                    codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
+                    isPrimaryConstructor: false)
+                    );
+        }
+
+        private static MethodSymbol GetSymbolForEmittedBody(MethodSymbol methodSymbol)
+        {
+            return methodSymbol.PartialDefinitionPart ?? methodSymbol;
+        }
+
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
             MethodSymbol method,
+            SourceExtensionImplementationMethodSymbol extensionImplementationMethod,
             int methodOrdinal,
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
@@ -1407,6 +1484,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sawLambdas: out bool sawLambdas,
                     sawLocalFunctions: out bool sawLocalFunctions,
                     sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+
+                if (loweredBody.HasErrors)
+                {
+                    return loweredBody;
+                }
+
+                if (extensionImplementationMethod is not null)
+                {
+                    var extensionRewriter = new ExtensionMethodBodyRewriter(method, extensionImplementationMethod);
+                    loweredBody = (BoundStatement)extensionRewriter.Visit(loweredBody);
+                    method = extensionImplementationMethod;
+                }
+                else
+                {
+                    loweredBody = ExtensionMethodReferenceRewriter.Rewrite(loweredBody);
+                }
 
                 if (loweredBody.HasErrors)
                 {
@@ -1601,9 +1694,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                // We will only save the IL builders when running tests.
-                moduleBuilder.TestData?.SetMethodILBuilder(method, builder.GetSnapshot());
-
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);
                 var stateMachineAwaiterSlots = default(ImmutableArray<Cci.ITypeReference>);
                 if (optimizations == OptimizationLevel.Debug && (object)stateMachineTypeOpt != null)
@@ -1613,10 +1703,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                MethodSymbol methodBodyParentSymbol = GetSymbolForEmittedBody(method);
+
+                // We will only save the IL builders when running tests.
+                moduleBuilder.TestData?.SetMethodILBuilder(methodBodyParentSymbol, builder.GetSnapshot());
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
-                    (method.PartialDefinitionPart ?? method).GetCciAdapter(),
+                    methodBodyParentSymbol.GetCciAdapter(),
                     variableSlotAllocatorOpt?.MethodId ?? new DebugId(methodOrdinal, moduleBuilder.CurrentGenerationOrdinal),
                     localVariables,
                     builder.RealizedSequencePoints,

@@ -139,6 +139,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsRefLikeType => false;
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public override bool IsReadOnly => false;
 
         public override Symbol ContainingSymbol => _containingType;
@@ -172,6 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
         internal override bool IsInterpolatedStringHandlerType => false;
+
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
 
         internal override bool HasSpecialName => false;
 

@@ -228,6 +228,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
+        internal virtual EventSymbol? PartialImplementationPart => null;
+        internal virtual EventSymbol? PartialDefinitionPart => null;
+        internal virtual bool IsPartialDefinition => false;
+
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>

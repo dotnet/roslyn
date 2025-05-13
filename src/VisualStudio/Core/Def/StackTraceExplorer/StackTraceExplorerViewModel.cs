@@ -5,15 +5,14 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 
-internal class StackTraceExplorerViewModel : ViewModelBase
+internal sealed class StackTraceExplorerViewModel : ViewModelBase
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Workspace _workspace;
@@ -54,7 +53,9 @@ internal class StackTraceExplorerViewModel : ViewModelBase
         _threadingContext = threadingContext;
         _workspace = workspace;
 
-        workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        // Main thread dependency as Workspace_WorkspaceChanged modifies an ObservableCollection
+        _ = workspace.RegisterWorkspaceChangedHandler(Workspace_WorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
+
         _classificationTypeMap = classificationTypeMap;
         _formatMap = formatMap;
 
@@ -105,7 +106,7 @@ internal class StackTraceExplorerViewModel : ViewModelBase
         NotifyPropertyChanged(nameof(IsInstructionTextVisible));
     }
 
-    private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void Workspace_WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         if (e.Kind == WorkspaceChangeKind.SolutionChanged)
         {

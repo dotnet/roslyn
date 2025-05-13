@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseDeconstructionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseDeconstruction)]
-public class UseDeconstructionTests
+public sealed class UseDeconstructionTests
 {
     [Fact]
     public async Task TestVar()

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FindUsages;
 using PartDescription = (string tag, string text, TaggedTextStyle style, string? target, string? hint);
 
 [UseExportProvider]
-public class DefinitionItemFactoryTests
+public sealed class DefinitionItemFactoryTests
 {
     private static string Inspect(DocumentSpan span)
         => $"{span.Document.Name} {span.SourceSpan}";

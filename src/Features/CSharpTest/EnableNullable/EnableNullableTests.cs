@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.EnableNulla
 using VerifyCS = CSharpCodeRefactoringVerifier<EnableNullableCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class EnableNullableTests
+public sealed class EnableNullableTests
 {
     private static readonly Func<Solution, ProjectId, Solution> s_enableNullableInFixedSolution =
         (solution, projectId) =>

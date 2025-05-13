@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
@@ -21,13 +21,14 @@ internal interface IRemoteSemanticSearchService
     {
         ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
         ValueTask OnUserCodeExceptionAsync(RemoteServiceCallbackId callbackId, UserCodeExceptionInfo exception, CancellationToken cancellationToken);
-        ValueTask OnCompilationFailureAsync(RemoteServiceCallbackId callbackId, ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken);
         ValueTask<ClassificationOptions> GetClassificationOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
         ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
         ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
     }
 
-    ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, string language, string query, string referenceAssembliesDir, CancellationToken cancellationToken);
+    ValueTask<CompileQueryResult> CompileQueryAsync(string query, string language, string referenceAssembliesDir, CancellationToken cancellationToken);
+    ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Checksum solutionChecksum, RemoteServiceCallbackId callbackId, CompiledQueryId queryId, CancellationToken cancellationToken);
+    ValueTask DiscardQueryAsync(CompiledQueryId queryId, CancellationToken cancellationToken);
 }
 
 internal static class RemoteSemanticSearchServiceProxy
@@ -42,9 +43,6 @@ internal static class RemoteSemanticSearchServiceProxy
 
         public ValueTask OnUserCodeExceptionAsync(RemoteServiceCallbackId callbackId, UserCodeExceptionInfo exception, CancellationToken cancellationToken)
             => ((ServerCallback)GetCallback(callbackId)).OnUserCodeExceptionAsync(exception, cancellationToken);
-
-        public ValueTask OnCompilationFailureAsync(RemoteServiceCallbackId callbackId, ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-            => ((ServerCallback)GetCallback(callbackId)).OnCompilationFailureAsync(errors, cancellationToken);
 
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken)
             => ((ServerCallback)GetCallback(callbackId)).AddItemsAsync(itemCount, cancellationToken);
@@ -75,17 +73,6 @@ internal static class RemoteSemanticSearchServiceProxy
             try
             {
                 await observer.OnUserCodeExceptionAsync(exception, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-            {
-            }
-        }
-
-        public async ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await observer.OnCompilationFailureAsync(errors, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -127,19 +114,41 @@ internal static class RemoteSemanticSearchServiceProxy
         }
     }
 
-    public static async ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Solution solution, string language, string query, string referenceAssembliesDir, ISemanticSearchResultsObserver results, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CompileQueryResult?> CompileQueryAsync(SolutionServices services, string query, string language, string referenceAssembliesDir, CancellationToken cancellationToken)
     {
-        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
-            return new ExecuteQueryResult(FeaturesResources.Semantic_search_only_supported_on_net_core);
+            return null;
         }
+
+        var result = await client.TryInvokeAsync<IRemoteSemanticSearchService, CompileQueryResult>(
+            (service, cancellationToken) => service.CompileQueryAsync(query, language, referenceAssembliesDir, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+
+        return result.Value;
+    }
+
+    public static async ValueTask DiscardQueryAsync(SolutionServices services, CompiledQueryId queryId, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(client);
+
+        await client.TryInvokeAsync<IRemoteSemanticSearchService>(
+            (service, cancellationToken) => service.DiscardQueryAsync(queryId, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async ValueTask<ExecuteQueryResult> ExecuteQueryAsync(Solution solution, CompiledQueryId queryId, ISemanticSearchResultsObserver results, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(client);
 
         var serverCallback = new ServerCallback(solution, results, classificationOptions);
 
         var result = await client.TryInvokeAsync<IRemoteSemanticSearchService, ExecuteQueryResult>(
             solution,
-            (service, solutionInfo, callbackId, cancellationToken) => service.ExecuteQueryAsync(solutionInfo, callbackId, language, query, referenceAssembliesDir, cancellationToken),
+            (service, solutionInfo, callbackId, cancellationToken) => service.ExecuteQueryAsync(solutionInfo, callbackId, queryId, cancellationToken),
             callbackTarget: serverCallback,
             cancellationToken).ConfigureAwait(false);
 

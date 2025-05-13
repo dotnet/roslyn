@@ -15,7 +15,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpDisambiguateSameVariableCodeFixProvider>;
 
-public class DisambiguateSameVariableTests
+public sealed class DisambiguateSameVariableTests
 {
     [Fact]
     public async Task TestParamToParamWithNoMatch()

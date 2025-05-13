@@ -14,7 +14,7 @@ using SyntaxUtilities = Microsoft.CodeAnalysis.CSharp.EditAndContinue.SyntaxUtil
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 
-public class SyntaxUtilitiesTests
+public sealed class SyntaxUtilitiesTests
 {
     private static void VerifySyntaxMap(string oldSource, string newSource)
     {

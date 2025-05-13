@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.EmbeddedLanguages.Json.LanguageServices;
 
-public class JsonLanguageDetectorTests
+public sealed class JsonLanguageDetectorTests
 {
     private static void Match(string value, JsonOptions? expectedOptions = null)
     {

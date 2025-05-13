@@ -98,7 +98,7 @@ internal static class CompletionProvidersLogger
 
     internal static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.Intellisense_CompletionProviders_Data, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Intellisense_CompletionProviders_Data, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_statisticLogAggregator)
             {

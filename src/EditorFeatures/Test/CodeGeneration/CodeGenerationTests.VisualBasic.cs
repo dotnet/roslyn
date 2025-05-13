@@ -21,7 +21,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration;
 
-public partial class CodeGenerationTests
+public sealed partial class CodeGenerationTests
 {
     [UseExportProvider]
     public class VisualBasic

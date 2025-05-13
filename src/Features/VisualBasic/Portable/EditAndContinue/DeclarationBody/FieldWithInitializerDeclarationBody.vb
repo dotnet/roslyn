@@ -27,6 +27,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Get
         End Property
 
+        Private ReadOnly Property InitializerExpression As SyntaxNode
+            Get
+                Return _variableDeclarator.Initializer.Value
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property InitializerActiveStatement As SyntaxNode
             Get
                 Return _variableDeclarator
@@ -35,8 +41,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Public Overrides ReadOnly Property OtherActiveStatementContainer As SyntaxNode
             Get
-                Return _variableDeclarator.Initializer.Value
+                Return InitializerExpression
             End Get
         End Property
+
+        Public Overrides Function GetUserCodeTokens(getDescendantTokens As Func(Of SyntaxNode, IEnumerable(Of SyntaxToken))) As IEnumerable(Of SyntaxToken)
+            Return getDescendantTokens(InitializerExpression)
+        End Function
     End Class
 End Namespace

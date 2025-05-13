@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
+public sealed class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
     [WpfFact]
     public void AddComment_CommentMarkerStringBeforeSelection()

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 // OverrideCompletionProviderTests overrides SetWorkspaceOptions to disable
 // expression-body members. This class does the opposite.
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class OverrideCompletionProviderTests_ExpressionBody : AbstractCSharpCompletionProviderTests
+public sealed class OverrideCompletionProviderTests_ExpressionBody : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(OverrideCompletionProvider);

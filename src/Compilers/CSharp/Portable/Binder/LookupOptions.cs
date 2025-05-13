@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         UseBaseReferenceAccessibility = 1 << 9,
 
         /// <summary>
-        /// Include extension methods.
+        /// Include extension members.
         /// </summary>
-        IncludeExtensionMethods = 1 << 10,
+        IncludeExtensionMembers = 1 << 10,
 
         /// <summary>
         /// Consider only attribute types.

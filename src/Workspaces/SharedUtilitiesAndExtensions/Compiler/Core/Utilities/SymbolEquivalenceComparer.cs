@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -232,10 +231,16 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
-    private static bool IsPartialMethodDefinitionPart(IPropertySymbol symbol)
+    private static bool IsPartialPropertyDefinitionPart(IPropertySymbol symbol)
         => symbol.PartialImplementationPart != null;
 
-    private static bool IsPartialMethodImplementationPart(IPropertySymbol symbol)
+    private static bool IsPartialPropertyImplementationPart(IPropertySymbol symbol)
+        => symbol.PartialDefinitionPart != null;
+
+    private static bool IsPartialEventDefinitionPart(IEventSymbol symbol)
+        => symbol.PartialImplementationPart != null;
+
+    private static bool IsPartialEventImplementationPart(IEventSymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)

@@ -487,6 +487,27 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
         }
 
+        public string? CompilerType
+        {
+            set { _store[nameof(CompilerType)] = value; }
+            get { return (string?)_store[nameof(CompilerType)]; }
+        }
+
+        protected override RoslynCompilerType GetCompilerType()
+        {
+            if (string.IsNullOrWhiteSpace(CompilerType))
+            {
+                return DefaultCompilerType;
+            }
+
+            if (Enum.TryParse<RoslynCompilerType>(CompilerType, ignoreCase: true, out var compilerType))
+            {
+                return compilerType;
+            }
+
+            throw new ArgumentException($"Invalid {nameof(CompilerType)} '{CompilerType}' specified. Valid values are {string.Join(", ", Enum.GetNames(typeof(RoslynCompilerType)))}.");
+        }
+
         #endregion
 
         /// <summary>
@@ -1225,5 +1246,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             return win32Manifest;
         }
+    }
+
+    public enum RoslynCompilerType
+    {
+        Core,
+        Framework,
+        FrameworkPackage,
     }
 }

@@ -35,7 +35,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal partial class InlineRenameSession : IInlineRenameSession, IFeatureController
+internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatureController
 {
     private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
@@ -51,6 +51,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private readonly ITextView _triggerView;
     private readonly IDisposable _inlineRenameSessionDurationLogBlock;
     private readonly IThreadingContext _threadingContext;
+    private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
+
     public readonly InlineRenameService RenameService;
 
     private bool _dismissed;
@@ -161,7 +163,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _inlineRenameSessionDurationLogBlock = Logger.LogBlock(FunctionId.Rename_InlineSession, CancellationToken.None);
 
         Workspace = workspace;
-        Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Requires the main thread due to OnWorkspaceChanged calling the Cancel method
+        _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged, WorkspaceEventOptions.RequiresMainThreadOptions);
 
         _textBufferFactoryService = textBufferFactoryService;
         _textBufferCloneService = textBufferCloneService;
@@ -198,7 +202,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public string OriginalSymbolName => RenameInfo.DisplayName;
 
     // Used to aid the investigation of https://github.com/dotnet/roslyn/issues/7364
-    private class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
+    private sealed class NullTextBufferException(Document document, SourceText text) : Exception("Cannot retrieve textbuffer from document.")
     {
 #pragma warning disable IDE0052 // Remove unread private members
         private readonly Document _document = document;
@@ -383,7 +387,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs args)
     {
         if (args.Kind != WorkspaceChangeKind.DocumentChanged)
         {
@@ -393,10 +397,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             var changedDocuments = args.NewSolution.GetChangedDocuments(args.OldSolution);
             if (changedDocuments.Any())
             {
-                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(static (m, args) =>
                 {
                     m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
-                }));
+                }, args));
 
                 Cancel();
             }
@@ -701,7 +705,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         void DismissUIAndRollbackEdits()
         {
-            Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _workspaceChangedDisposer.Dispose();
+
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
 
             // Reenable completion now that the inline rename session is done

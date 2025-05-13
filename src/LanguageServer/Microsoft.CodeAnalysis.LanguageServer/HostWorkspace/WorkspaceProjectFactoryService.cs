@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// An implementation of the brokered service <see cref="IWorkspaceProjectFactoryService"/> that just maps calls to the underlying project system.
 /// </summary>
 [ExportBrokeredService("Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService", null, Audience = ServiceAudience.Local)]
-internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
+internal sealed class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService, IExportedBrokeredService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler;

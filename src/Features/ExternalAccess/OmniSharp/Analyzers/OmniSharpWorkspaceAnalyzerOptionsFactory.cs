@@ -4,13 +4,12 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers;
+
+internal static class OmniSharpWorkspaceAnalyzerOptionsFactory
 {
-    internal static class OmniSharpWorkspaceAnalyzerOptionsFactory
-    {
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static AnalyzerOptions Create(Solution solution, AnalyzerOptions options)
-            => options;
+    public static AnalyzerOptions Create(Solution solution, AnalyzerOptions options)
+        => options;
 #pragma warning restore IDE0060 // Remove unused parameter
-    }
 }

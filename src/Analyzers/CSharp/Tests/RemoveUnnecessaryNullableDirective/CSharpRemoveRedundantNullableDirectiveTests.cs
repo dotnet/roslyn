@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryNullableDirective
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.RemoveUnnecessaryNullableDirective;
@@ -18,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryNullableDirective)]
-public class CSharpRemoveRedundantNullableDirectiveTests
+public sealed class CSharpRemoveRedundantNullableDirectiveTests
 {
     [Theory]
     [InlineData(NullableContextOptions.Disable, NullableContextOptions.Annotations)]

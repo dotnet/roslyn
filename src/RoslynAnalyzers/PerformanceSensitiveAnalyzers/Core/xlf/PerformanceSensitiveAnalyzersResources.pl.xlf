@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pl" original="../PerformanceSensitiveAnalyzersResources.resx">
+    <body>
+      <trans-unit id="AnonymousNewObjectRuleTitleAndMessage">
+        <source>Explicit new anonymous object allocation</source>
+        <target state="translated">Jawna alokacja nowego obiektu anonimowego</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LetCauseRuleTitleAndMessage">
+        <source>Let clause induced allocation</source>
+        <target state="translated">Alokacja wywołana przez klauzulę let</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NewArrayRuleTitleAndMessage">
+        <source>Explicit new array type allocation</source>
+        <target state="translated">Jawna alokacja nowego typu tablicy</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NewObjectRuleTitleAndMessage">
+        <source>Explicit new reference type allocation</source>
+        <target state="translated">Jawna alokacja nowego typu referencyjnego</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-internal class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> providers) : ISettingsProvider<T>
+internal sealed class CombinedProvider<T>(ImmutableArray<ISettingsProvider<T>> providers) : ISettingsProvider<T>
 {
     private readonly ImmutableArray<ISettingsProvider<T>> _providers = providers;
 

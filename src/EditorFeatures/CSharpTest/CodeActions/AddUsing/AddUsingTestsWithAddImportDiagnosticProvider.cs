@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public sealed partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
     public AddUsingTestsWithAddImportDiagnosticProvider(ITestOutputHelper logger)
        : base(logger)

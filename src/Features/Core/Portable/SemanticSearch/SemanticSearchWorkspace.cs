@@ -48,7 +48,7 @@ internal abstract class SemanticSearchWorkspace(HostServices services, SemanticS
                     .WithParseOptions(config.ParseOptions)
                     .AddMetadataReferences(SemanticSearchUtilities.GetMetadataReferences(metadataService, SemanticSearchUtilities.ReferenceAssembliesDirectory))
                     .AddDocument(name: SemanticSearchUtilities.QueryDocumentName, newText, filePath: SemanticSearchUtilities.GetDocumentFilePath(config.Language)).Project
-                    .AddDocument(name: SemanticSearchUtilities.GlobalUsingsDocumentName, SemanticSearchUtilities.CreateSourceText(config.GlobalUsings), filePath: null).Project
+                    .AddDocument(name: SemanticSearchUtilities.GlobalUsingsAndToolsDocumentName, SemanticSearchUtilities.CreateSourceText(config.GlobalUsingsAndTools), filePath: null).Project
                     .AddAnalyzerConfigDocument(name: SemanticSearchUtilities.ConfigDocumentName, SemanticSearchUtilities.CreateSourceText(config.EditorConfig), filePath: SemanticSearchUtilities.GetConfigDocumentFilePath()).Project.Solution;
             },
             changeKind: (oldSolution, newSolution) =>

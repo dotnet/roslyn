@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.NavigationBar;

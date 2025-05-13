@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
-internal partial class VisualStudioDiagnosticAnalyzerProvider
+internal sealed partial class VisualStudioDiagnosticAnalyzerProvider
 {
     [Export(typeof(IVisualStudioDiagnosticAnalyzerProviderFactory)), Shared]
     internal sealed class Factory : IVisualStudioDiagnosticAnalyzerProviderFactory

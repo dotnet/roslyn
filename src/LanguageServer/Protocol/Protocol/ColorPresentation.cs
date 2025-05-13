@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.6</remarks>
-internal class ColorPresentation
+internal sealed class ColorPresentation
 {
     /// <summary>
     /// The label of this color presentation. It will be shown on the color picker header.

@@ -937,7 +937,7 @@ internal static class CastSimplifier
         => IsNullOrErrorType(info.Type) || IsNullOrErrorType(info.ConvertedType);
 
     private static bool IsNullOrErrorType([NotNullWhen(false)] ITypeSymbol? type)
-        => type is null || type is IErrorTypeSymbol;
+        => type is null or IErrorTypeSymbol;
 
     private static bool CastRemovalWouldCauseUnintendedReferenceComparisonWarning(
         ExpressionSyntax expression,

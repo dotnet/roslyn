@@ -15,7 +15,7 @@ using Verify = CSharpCodeFixVerifier<
     ConstructorInitializerPlacementDiagnosticAnalyzer,
     ConstructorInitializerPlacementCodeFixProvider>;
 
-public class ConstructorInitializerPlacementTests
+public sealed class ConstructorInitializerPlacementTests
 {
     [Fact]
     public async Task TestNotWithOptionOff()

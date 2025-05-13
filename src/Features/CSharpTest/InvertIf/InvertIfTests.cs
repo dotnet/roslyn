@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf;
 
 [UseExportProvider, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-public partial class InvertIfTests
+public sealed partial class InvertIfTests
 {
     private static Task TestInsideMethodAsync(
         string initial,

@@ -1440,7 +1440,7 @@
       </PropertyComment>
     </Field>
   </AbstractNode>
-  <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
+  <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax" SkipConvenienceFactories="true">
     <Kind Name="SimpleLambdaExpression"/>
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
@@ -3367,7 +3367,7 @@
     <TypeComment>
       <summary>Base class for type declaration syntax.</summary>
     </TypeComment>
-    <Field Name="Identifier" Type="SyntaxToken">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
@@ -3399,11 +3399,11 @@
   </AbstractNode>
   <AbstractNode Name="TypeDeclarationSyntax" Base="BaseTypeDeclarationSyntax">
     <TypeComment>
-      <summary>Base class for type declaration syntax (class, struct, interface, record).</summary>
+      <summary>Base class for type declaration syntax (class, struct, interface, record, extension).</summary>
     </TypeComment>
     <Field Name="Keyword" Type="SyntaxToken">
       <PropertyComment>
-        <summary>Gets the type keyword token ("class", "struct", "interface", "record").</summary>
+        <summary>Gets the type keyword token ("class", "struct", "interface", "record", "extension").</summary>
       </PropertyComment>
     </Field>
     <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true"/>
@@ -3631,6 +3631,30 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="EqualsValue" Type="EqualsValueClauseSyntax" Optional="true"/>
+  </Node>
+  <Node Name="ExtensionDeclarationSyntax" Base="TypeDeclarationSyntax">
+    <TypeComment>
+      <summary>Extension container syntax.</summary>
+    </TypeComment>
+    <Kind Name="ExtensionDeclaration" />
+    <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;" Override="true"/>
+    <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
+    <Field Name="Keyword" Type="SyntaxToken" Override="true">
+      <Kind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeParameterList" Type="TypeParameterListSyntax" Optional="true" Override="true"/>
+    <Field Name="ParameterList" Type="ParameterListSyntax" Optional="true" Override="true" />
+    <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true" Optional="true">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true" Optional="true">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="SemicolonToken"/>
+    </Field>
   </Node>
   <Node Name="BaseListSyntax" Base="CSharpSyntaxNode">
     <TypeComment>
@@ -4322,7 +4346,7 @@
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
   </AbstractNode>
-  <Node Name="ParameterSyntax" Base="BaseParameterSyntax">
+  <Node Name="ParameterSyntax" Base="BaseParameterSyntax" SkipConvenienceFactories="true">
     <TypeComment>
       <summary>Parameter syntax.</summary>
     </TypeComment>
@@ -4338,7 +4362,8 @@
       </PropertyComment>
     </Field>
     <Field Name="Type" Type="TypeSyntax" Optional="true" Override="true"/>
-    <Field Name="Identifier" Type="SyntaxToken">
+    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
+      <!-- Tracked by https://github.com/dotnet/roslyn/issues/76130 : enforce that a ParameterSyntax cannot be created with both Type and Identifier missing -->
       <PropertyComment>
         <summary>Gets the identifier.</summary>
       </PropertyComment>
@@ -5090,6 +5115,7 @@
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
   </Node>
+  <!-- The text following '!' up to end of line is attached as leading trivia of kind PreprocessingMessageTrivia on the EndOfDirectiveToken. -->
   <Node Name="ShebangDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
     <Kind Name="ShebangDirectiveTrivia"/>
     <Field Name="HashToken" Type="SyntaxToken" Override="true">
@@ -5097,6 +5123,22 @@
     </Field>
     <Field Name="ExclamationToken" Type="SyntaxToken">
       <Kind Name="ExclamationToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="IgnoredDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="IgnoredDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Content" Type="SyntaxToken" Optional="true">
+      <Kind Name="StringLiteralToken"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

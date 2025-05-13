@@ -40,8 +40,8 @@ internal sealed class ObjectKeywordRecommender() : AbstractSpecialTypePreselecti
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

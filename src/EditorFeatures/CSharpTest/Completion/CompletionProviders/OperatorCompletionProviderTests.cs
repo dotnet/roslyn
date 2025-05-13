@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(UnnamedSymbolCompletionProvider);
@@ -105,7 +105,7 @@ public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderT
                     c.$$;
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -711,7 +711,7 @@ public class Program
                     d.$$
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -729,7 +729,7 @@ public class Program
                     r.$$
                 }
             }
-            """, "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "==", inlineDescription: "x == y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

@@ -1083,29 +1083,14 @@ class Bad : Bad
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),// add new row
                         ]);
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
-                            ]);
-                        }
-                        else
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
-                            ]);
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
+                        ]);
                     })
                 .Verify();
         }
@@ -1484,32 +1469,15 @@ class Bad : Bad
                             Handle(9, TableIndex.CustomAttribute),
                         ]);
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
-                                new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
-                            ]);
-                        }
-                        else
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
-                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
-                            ]);
-
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
+                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
+                        ]);
                     })
                 .AddGeneration(
                     source: common + """
@@ -1551,32 +1519,15 @@ class Bad : Bad
                             Handle(11, TableIndex.CustomAttribute),
                         ]);
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
-                            ]);
-                        }
-                        else
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
-                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
-                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
-                            ]);
-
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
+                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
+                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
+                        ]);
                     })
                 .AddGeneration(
                     source: common + """
@@ -1744,23 +1695,11 @@ class Bad : Bad
                             Handle(5, TableIndex.CustomAttribute),
                         ]);
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
-                                new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
-                            ]);
-                        }
-                        else
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
-                                new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
-                            ]);
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
+                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
+                        ]);
                     })
                 .Verify();
         }
@@ -3251,23 +3190,15 @@ delegate void D([A]int x);
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef)), // X
-                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
-                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
-                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
-                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
-                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
-                            ]);
-                        }
-                        else
-                        {
-
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef)), // X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
+                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
+                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
+                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
+                        ]);
 
                         g.VerifyEncLogDefinitions(
                         [
@@ -3340,31 +3271,15 @@ delegate void D([A]int x);
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
 
-                        // https://github.com/dotnet/roslyn/issues/73513
-                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
-                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
-                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
-                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
-                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
-                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
-                            ]);
-                        }
-                        else
-                        {
-                            g.VerifyCustomAttributes(
-                            [
-                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
-                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
-                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
-                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
-                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
-                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
-                            ]);
-                        }
+                        g.VerifyCustomAttributes(
+                        [
+                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
+                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
+                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
+                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
+                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
+                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
+                        ]);
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -4213,6 +4128,7 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
                     })
 
@@ -4222,15 +4138,16 @@ class C
                         {
                         }
                         """,
-                    edits: new[]
-                    {
+                    edits:
+                    [
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyFieldDefNames("Code");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
 
                         // Set the property name to "_deleted"
@@ -4287,16 +4204,17 @@ class C
                             public string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
                         g.VerifyMethodDefNames("get_P", "set_P");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
+                        g.VerifyEncLogDefinitions(
+                        [
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -4309,9 +4227,9 @@ class C
                             Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
                             Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
@@ -4323,7 +4241,7 @@ class C
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
-                        });
+                        ]);
 
                         var expectedIL = """
                             {
@@ -4620,6 +4538,258 @@ class C
                               IL_0001:  ret
                             }
                             """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeToAutoProp()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeToAutoProp_FieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_AutoProp_AddFieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
                     })
                 .Verify();
         }
@@ -7459,33 +7629,16 @@ delegate void D();
                 Handle(6, TableIndex.MethodSemantics),
                 Handle(2, TableIndex.GenericParam));
 
-            // https://github.com/dotnet/roslyn/issues/73513
-            if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
-            {
-                CheckAttributes(reader1,
-                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
-            }
-            else
-            {
-                CheckAttributes(reader1,
-                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                    new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
-                    new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)));
-            }
+            CheckAttributes(reader1,
+                new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
+                new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class AnonymousObjectCreationExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<AnonymousObjectCreationExpressionSyntax>
+public sealed class AnonymousObjectCreationExpressionStructureTests : AbstractCSharpSyntaxNodeStructureTests<AnonymousObjectCreationExpressionSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider()
         => new AnonymousObjectCreationExpressionStructureProvider();

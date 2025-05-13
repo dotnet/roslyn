@@ -60,9 +60,6 @@ internal static partial class ExtensionMethodImportCompletionHelper
         private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
             => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
 
-        private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
-            => peReference.FilePath ?? peReference.Display;
-
         /// <summary>
         /// Force create/update all relevant indices
         /// </summary>
@@ -126,7 +123,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
                 var browsableSymbols = symbols
                     .ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
+                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation, inclusionFilter: static s => true);
 
                 return (browsableSymbols, isPartialResult);
             }
@@ -156,12 +153,12 @@ internal static partial class ExtensionMethodImportCompletionHelper
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            ExtensionMethodImportCompletionCacheEntry cacheEntry;
+            ExtensionMethodImportCompletionCacheEntry? cacheEntry;
             if (forceCacheCreation)
             {
                 cacheEntry = await GetUpToDateCacheEntryAsync(project, _cacheService, cancellationToken).ConfigureAwait(false);
             }
-            else if (!_cacheService.ProjectItemsCache.TryGetValue(project.Id, out cacheEntry))
+            else if (!s_projectItemsCache.TryGetValue(project.State, out cacheEntry))
             {
                 // Use cached data if available, even checksum doesn't match. otherwise, returns null indicating cache not ready.
                 callback(null);

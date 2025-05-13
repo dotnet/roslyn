@@ -27,12 +27,12 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
             SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions & ~SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
+    public abstract ImmutableArray<char> TriggerCharacters { get; }
+    public abstract ImmutableArray<char> RetriggerCharacters { get; }
+
     protected AbstractSignatureHelpProvider()
     {
     }
-
-    public abstract bool IsTriggerCharacter(char ch);
-    public abstract bool IsRetriggerCharacter(char ch);
 
     protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 

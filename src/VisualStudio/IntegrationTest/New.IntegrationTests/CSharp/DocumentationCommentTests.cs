@@ -12,7 +12,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-public class DocumentationCommentTests : AbstractEditorTest
+public sealed class DocumentationCommentTests : AbstractEditorTest
 {
     public DocumentationCommentTests()
         : base(nameof(DocumentationCommentTests))

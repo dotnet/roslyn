@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,19): error CS9275: Collection argument element must be the first element.
+                    // (2,19): error CS9501: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
-                    // (2,30): error CS9275: Collection argument element must be the first element.
+                    // (2,30): error CS9501: Collection argument element must be the first element.
                     // List<int> l = [1, with(), 3, with(capacity: 4)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30));
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (2,21): error CS1739: The best overload for 'List' does not have a parameter named 'x'
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_BadNamedArgument, "x").WithArguments("List", "x").WithLocation(2, 21),
-                    // (2,28): error CS9275: Collection argument element must be the first element.
+                    // (2,28): error CS9501: Collection argument element must be the first element.
                     // List<int> l = [with(x: 1), with(y: 2)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28),
                     // (2,33): error CS1739: The best overload for 'List' does not have a parameter named 'y'
@@ -159,10 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     with(),
     with(arg: 0),
     with(unknown: 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(1, 23),
-                    // (3,5): error CS9276: Collection argument element must be the first element.
+                    // (3,5): error CS9501: Collection argument element must be the first element.
                     //     with(arg: 0),
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(3, 5),
-                    // (4,5): error CS9276: Collection argument element must be the first element.
+                    // (4,5): error CS9501: Collection argument element must be the first element.
                     //     with(unknown: 1)];
                     Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(4, 5));
             }
@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS9276: Collection arguments are not supported for type 'T[]'.
+                // (6,14): error CS9502: Collection arguments are not supported for type 'T[]'.
                 //         a = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(6, 14),
-                // (7,17): error CS9275: Collection argument element must be the first element.
+                // (7,17): error CS9501: Collection argument element must be the first element.
                 //         a = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(7, 17),
-                // (7,17): error CS9276: Collection arguments are not supported for type 'T[]'.
+                // (7,17): error CS9502: Collection arguments are not supported for type 'T[]'.
                 //         a = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("T[]").WithLocation(7, 17));
 
@@ -330,13 +330,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9276: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
                 //             [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(7, 14),
-                // (9,17): error CS9275: Collection argument element must be the first element.
+                // (9,17): error CS9501: Collection argument element must be the first element.
                 //             [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(9, 17),
-                // (9,17): error CS9276: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
+                // (9,17): error CS9502: Collection arguments are not supported for type 'ReadOnlySpan<T>'.
                 //             [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.{spanType}<T>").WithLocation(9, 17));
         }
@@ -547,13 +547,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9276: Collection arguments are not supported for type 'IEnumerable<T>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
                 //         i = [with(default), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(7, 14),
-                // (8,17): error CS9275: Collection argument element must be the first element.
+                // (8,17): error CS9501: Collection argument element must be the first element.
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
-                // (8,17): error CS9276: Collection arguments are not supported for type 'IEnumerable<T>'.
+                // (8,17): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
                 //         i = [t, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(8, 17));
 
@@ -589,7 +589,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("[], [], "));
             verifier.VerifyDiagnostics();
-            string expectedIL = """
+            string expectedIL = (interfaceType == "IReadOnlyDictionary") ?
+                """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_000a:  ret
+                }
+                """ :
+                """
                 {
                   // Code size        6 (0x6)
                   .maxstack  1
@@ -620,13 +630,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9276: Collection arguments are not supported for type 'IDictionary<K, V>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
                 //         i = [with(default), k:v];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(7, 14),
-                // (8,19): error CS9275: Collection argument element must be the first element.
+                // (8,19): error CS9501: Collection argument element must be the first element.
                 //         i = [k:v, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 19),
-                // (8,19): error CS9276: Collection arguments are not supported for type 'IDictionary<K, V>'.
+                // (8,19): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
                 //         i = [k:v, with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(8, 19));
         }
@@ -975,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (15,53): error CS9277: Collection arguments are not supported for type 'MyCollection<T>'.
+                // (15,53): error CS9502: Collection arguments are not supported for type 'MyCollection<T>'.
                 //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<T>").WithLocation(15, 53));
         }
@@ -1200,10 +1210,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         c = [with(1)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 14),
-                // (7,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         c = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 14));
         }
@@ -1270,10 +1280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         c = [with(1)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 14),
-                // (7,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         c = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 14));
         }
@@ -1325,10 +1335,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // result in errors since x should not be included in the params argument. Should
             // be fixed when the last parameter of the builder method is the items parameter.
             comp.VerifyEmitDiagnostics(
-                // (15,14): error CS9277: Collection arguments are not supported for type 'MyCollection<MyItem>'.
+                // (15,14): error CS9502: Collection arguments are not supported for type 'MyCollection<MyItem>'.
                 //         c = [with(x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<MyItem>").WithLocation(15, 14),
-                // (16,14): error CS9277: Collection arguments are not supported for type 'MyCollection<MyItem>'.
+                // (16,14): error CS9502: Collection arguments are not supported for type 'MyCollection<MyItem>'.
                 //         c = [with(x), y];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<MyItem>").WithLocation(16, 14));
         }
@@ -1696,13 +1706,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (2,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (2,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x: 1), 2, 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(2, 6),
-                // (4,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(y: 4), 5];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-                // (6,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(y: 6, x: 7), 8];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6));
         }
@@ -1745,10 +1755,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-                // (8,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref r)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
 
@@ -1765,19 +1775,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(0)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-                // (6,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-                // (7,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6),
                 // (8,15): error CS1510: A ref or out value must be an assignable variable
                 // c = [with(ref ro)];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(8, 15),
-                // (9,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (9,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(out x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(9, 6));
         }
@@ -1829,19 +1839,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(0)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-                // (8,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6),
-                // (11,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (11,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(11, 6),
-                // (14,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (14,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref r)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(14, 6),
-                // (17,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (17,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in ro)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(17, 6));
 
@@ -1856,13 +1866,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
                 // (6,15): error CS1510: A ref or out value must be an assignable variable
                 // c = [with(ref ro)];
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "ro").WithLocation(6, 15),
-                // (7,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(out x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
         }
@@ -1915,22 +1925,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB1, s_collectionExtensions], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(0)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-                // (8,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6),
-                // (11,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (11,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(11, 6),
-                // (14,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (14,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(14, 6),
-                // (17,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (17,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in r)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(17, 6),
-                // (20,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (20,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in ro)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(20, 6));
 
@@ -1986,10 +1996,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(out x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-                // (8,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (8,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(out r), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 6));
 
@@ -2004,16 +2014,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (4,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (4,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(1)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(4, 6),
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-                // (6,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (6,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(ref x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(6, 6),
-                // (7,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6));
         }
@@ -2066,16 +2076,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (5,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(in x)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(5, 6),
-                // (7,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (7,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(1), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(7, 6),
-                // (9,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (9,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(x, ref y)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(9, 6),
-                // (11,6): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (11,6): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 // c = [with(out x, y), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(11, 6));
         }
@@ -2206,7 +2216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (5,51): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
                 //     static MyCollection<T> WithArg<T>(int arg) => [with(arg)];
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "[with(arg)]").WithArguments("System.ReadOnlySpan<T>", "T", "T").WithLocation(5, 51),
-                // (5,52): error CS9277: Collection arguments are not supported for type 'MyCollection<T>'.
+                // (5,52): error CS9502: Collection arguments are not supported for type 'MyCollection<T>'.
                 //     static MyCollection<T> WithArg<T>(int arg) => [with(arg)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<T>").WithLocation(5, 52),
                 // (13,61): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'ReadOnlySpan<T>'
@@ -2262,7 +2272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (12,69): error CS9277: Collection arguments are not supported for type 'IMyCollection<T?>'.
+                // (12,69): error CS9502: Collection arguments are not supported for type 'IMyCollection<T?>'.
                 //     static IMyCollection<T?> F<T>(ReadOnlySpan<T> items, T arg) => [with(arg), ..items];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("IMyCollection<T?>").WithLocation(12, 69));
         }
@@ -2373,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (8,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (8,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         c = [with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(8, 14));
         }
@@ -2548,7 +2558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB1, s_collectionExtensions],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (9,14): error CS9277: Collection arguments are not supported for type 'MyCollection<int>'.
+                // (9,14): error CS9502: Collection arguments are not supported for type 'MyCollection<int>'.
                 //         y = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<int>").WithLocation(9, 14));
 
@@ -2567,10 +2577,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB2],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,14): error CS9277: Collection arguments are not supported for type 'MyCollection<object>'.
+                // (6,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
                 //         x = [with(default)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(6, 14),
-                // (7,14): error CS9277: Collection arguments are not supported for type 'MyCollection<object>'.
+                // (7,14): error CS9502: Collection arguments are not supported for type 'MyCollection<object>'.
                 //         x = [with(2), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("MyCollection<object>").WithLocation(7, 14));
         }
@@ -3363,7 +3373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
                 //         x = [t, with(t)];
                 Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[t, with(t)]").WithArguments("U").WithLocation(8, 13),
-                // (8,17): error CS9275: Collection argument element must be the first element.
+                // (8,17): error CS9501: Collection argument element must be the first element.
                 //         x = [t, with(t)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
                 // (14,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
@@ -3372,7 +3382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (15,13): error CS0417: 'U': cannot provide arguments when creating an instance of a variable type
                 //         y = [t, with(t)];
                 Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "[t, with(t)]").WithArguments("U").WithLocation(15, 13),
-                // (15,17): error CS9275: Collection argument element must be the first element.
+                // (15,17): error CS9501: Collection argument element must be the first element.
                 //         y = [t, with(t)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(15, 17));
         }
@@ -3695,7 +3705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,29): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (9,29): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         l = [with(capacity: (dynamic)1)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(9, 29));
         }
@@ -3734,19 +3744,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB]);
             comp.VerifyEmitDiagnostics(
-                // (10,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (10,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)1)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(10, 19),
-                // (11,22): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with(y: (dynamic)"2")];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(11, 22),
-                // (12,17): error CS9275: Collection argument element must be the first element.
+                // (12,17): error CS9501: Collection argument element must be the first element.
                 //         c = [3, with(1, (dynamic)"2")];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(12, 17),
-                // (12,25): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (12,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [3, with(1, (dynamic)"2")];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(12, 25),
-                // (13,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (13,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)1, (dynamic)"2"), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(13, 19),
                 // (14,21): error CS8917: The delegate type could not be inferred.
@@ -3785,7 +3795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (19,23): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (19,23): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with(in  d)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(19, 23));
         }
@@ -3824,13 +3834,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation([sourceA, sourceB]);
             comp.VerifyEmitDiagnostics(
-                // (12,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (12,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)null)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)null").WithLocation(12, 19),
-                // (13,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (13,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)0)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)0").WithLocation(13, 19),
-                // (15,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (15,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with(d)];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(15, 19));
         }
@@ -3854,7 +3864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (5,9): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //         A a;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(5, 9),
-                // (7,19): error CS9277: Collection arguments cannot be dynamic; compile-time binding is required.
+                // (7,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         a = [with((dynamic)null), null];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)null").WithLocation(7, 19));
         }

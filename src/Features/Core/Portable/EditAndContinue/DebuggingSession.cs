@@ -46,15 +46,32 @@ internal sealed class DebuggingSession : IDisposable
     internal readonly TraceLog AnalysisLog;
 
     /// <summary>
-    /// The current baseline for given project id.
-    /// The baseline is updated when changes are committed at the end of edit session.
-    /// The backing module readers of initial baselines need to be kept alive -- store them in
-    /// <see cref="_initialBaselineModuleReaders"/> and dispose them at the end of the debugging session.
+    /// Current baselines for given project id.
+    /// The baselines are updated when changes are committed at the end of edit session.
     /// </summary>
     /// <remarks>
+    /// The backing module readers of initial baselines need to be kept alive -- store them in
+    /// <see cref="_initialBaselineModuleReaders"/> and dispose them at the end of the debugging session.
+    /// 
     /// The baseline of each updated project is linked to its initial baseline that reads from the on-disk metadata and PDB.
     /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
     /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
+    /// 
+    /// One project may have multiple baselines. Deltas emitted for the project when source changes are applied are based 
+    /// on the same source changes for all the baselines, however they differ in the baseline they are chained to (MVID and relative tokens).
+    /// 
+    /// For example, in the following scenario:
+    /// 
+    ///   A shared library Lib is referenced by two executable projects A and B and Lib.dll is copied to their respective output directories and the following events occur:
+    ///   1) A is launched, modules A.exe and Lib.dll [1] are loaded.
+    ///   2) Change is made to Lib.cs and applied.
+    ///   3) B is launched, which builds new version of Lib.dll [2], and modules B.exe and Lib.dll [2] are loaded.
+    ///   4) Another change is made to Lib.cs and applied.
+    ///     
+    ///   At this point we have two baselines for Lib: Lib.dll [1] and Lib.dll [2], each have different MVID.
+    ///   We need to emit 2 deltas for the change in step 4:
+    ///   - one that chains to the first delta applied to Lib.dll, which itself chains to the baseline of Lib.dll [1].
+    ///   - one that chains to the baseline Lib.dll [2]
     /// </remarks>
     private readonly Dictionary<ProjectId, ImmutableList<ProjectBaseline>> _projectBaselines = [];
     private readonly Dictionary<Guid, (IDisposable metadata, IDisposable pdb)> _initialBaselineModuleReaders = [];
@@ -455,7 +472,7 @@ internal sealed class DebuggingSession : IDisposable
                 return [];
             }
 
-            var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document.Id, document, cancellationToken).ConfigureAwait(false);
+            var (oldDocument, oldDocumentState) = await LastCommittedSolution.GetDocumentAndStateAsync(document, cancellationToken).ConfigureAwait(false);
             if (oldDocumentState is CommittedSolution.DocumentState.OutOfSync or
                 CommittedSolution.DocumentState.Indeterminate or
                 CommittedSolution.DocumentState.DesignTimeOnly)
@@ -495,7 +512,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
-        IImmutableSet<ProjectId> runningProjects,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -511,17 +528,32 @@ internal sealed class DebuggingSession : IDisposable
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
-        if (solutionUpdate.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        switch (solutionUpdate.ModuleUpdates.Status)
         {
-            StorePendingUpdate(new PendingSolutionUpdate(
-                solution,
-                solutionUpdate.ProjectBaselines,
-                solutionUpdate.ModuleUpdates.Updates,
-                solutionUpdate.NonRemappableRegions));
+            case ModuleUpdateStatus.Ready:
+                // We have updates to be applied. The debugger will call Commit/Discard on the solution
+                // based on whether the updates will be applied successfully or not.
+                StorePendingUpdate(new PendingSolutionUpdate(
+                    solution,
+                    solutionUpdate.ProjectsToStale,
+                    solutionUpdate.ProjectBaselines,
+                    solutionUpdate.ModuleUpdates.Updates,
+                    solutionUpdate.NonRemappableRegions));
+
+                break;
+
+            case ModuleUpdateStatus.None:
+                Contract.ThrowIfFalse(solutionUpdate.ModuleUpdates.Updates.IsEmpty);
+                Contract.ThrowIfFalse(solutionUpdate.NonRemappableRegions.IsEmpty);
+
+                // No significant changes have been made.
+                // Commit the solution to apply any insignificant changes that do not generate updates.
+                LastCommittedSolution.CommitChanges(solution, projectsToStale: solutionUpdate.ProjectsToStale, projectsToUnstale: []);
+                break;
         }
 
         using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);
-        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId))
+        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId).OrderBy(static id => id))
         {
             foreach (var (documentId, rudeEdits) in projectRudeEdits)
             {
@@ -573,7 +605,7 @@ internal sealed class DebuggingSession : IDisposable
             if (newNonRemappableRegions.IsEmpty)
                 newNonRemappableRegions = null;
 
-            LastCommittedSolution.CommitSolution(pendingSolutionUpdate.Solution);
+            LastCommittedSolution.CommitChanges(pendingSolutionUpdate.Solution, projectsToStale: pendingSolutionUpdate.ProjectsToStale, projectsToUnstale: []);
         }
 
         // update baselines:
@@ -604,7 +636,7 @@ internal sealed class DebuggingSession : IDisposable
         // Make sure the solution snapshot has all source-generated documents up-to-date.
         solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
-        LastCommittedSolution.CommitSolution(solution);
+        LastCommittedSolution.CommitChanges(solution, projectsToStale: [], projectsToUnstale: rebuiltProjects);
 
         // Wait for all operations on baseline to finish before we dispose the readers.
         _baselineAccessLock.EnterWriteLock();
@@ -712,7 +744,7 @@ internal sealed class DebuggingSession : IDisposable
 
                     var newDocument = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                    var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument.Id, newDocument, cancellationToken).ConfigureAwait(false);
+                    var (oldDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken).ConfigureAwait(false);
                     if (oldDocument == null)
                     {
                         // Document is out-of-sync, can't reason about its content with respect to the binaries loaded in the debuggee.
@@ -843,7 +875,7 @@ internal sealed class DebuggingSession : IDisposable
             {
                 var newUnmappedDocument = await newSolution.GetRequiredDocumentAsync(unmappedDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
-                var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument.Id, newUnmappedDocument, cancellationToken).ConfigureAwait(false);
+                var (oldUnmappedDocument, _) = await LastCommittedSolution.GetDocumentAndStateAsync(newUnmappedDocument, cancellationToken).ConfigureAwait(false);
                 if (oldUnmappedDocument == null)
                 {
                     // document out-of-date

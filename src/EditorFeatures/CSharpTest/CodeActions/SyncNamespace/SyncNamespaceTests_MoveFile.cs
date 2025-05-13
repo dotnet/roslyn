@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespace;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-public partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
+public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
 {
     [Fact]
     public async Task MoveFile_DeclarationNotContainedInDefaultNamespace()

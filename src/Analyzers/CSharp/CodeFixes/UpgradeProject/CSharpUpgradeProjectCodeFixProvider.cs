@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject;
 

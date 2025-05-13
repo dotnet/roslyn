@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -49,8 +48,8 @@ internal sealed class CSharpGenerateMethodService() :
         SyntaxNode node,
         CancellationToken cancellationToken,
         out SyntaxToken identifierToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         var methodDeclaration = (MethodDeclarationSyntax)node;
         identifierToken = methodDeclaration.Identifier;
@@ -60,7 +59,7 @@ internal sealed class CSharpGenerateMethodService() :
             !methodDeclaration.ParameterList.CloseParenToken.IsMissing)
         {
             var semanticModel = document.SemanticModel;
-            methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
+            methodSymbol = semanticModel.GetRequiredDeclaredSymbol(methodDeclaration, cancellationToken);
             if (methodSymbol != null && !methodSymbol.ExplicitInterfaceImplementations.Any())
             {
                 var semanticInfo = semanticModel.GetTypeInfo(methodDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);
@@ -80,22 +79,25 @@ internal sealed class CSharpGenerateMethodService() :
         SimpleNameSyntax simpleName,
         CancellationToken cancellationToken,
         out SyntaxToken identifierToken,
-        out ExpressionSyntax simpleNameOrMemberAccessExpression,
-        out InvocationExpressionSyntax invocationExpressionOpt,
+        [NotNullWhen(true)] out ExpressionSyntax? simpleNameOrMemberAccessExpression,
+        out InvocationExpressionSyntax? invocationExpressionOpt,
         out bool isInConditionalAccessExpression)
     {
         identifierToken = simpleName.Identifier;
 
-        var memberAccess = simpleName?.Parent as MemberAccessExpressionSyntax;
-        var conditionalMemberAccess = simpleName?.Parent?.Parent?.Parent as ConditionalAccessExpressionSyntax;
-        var inConditionalMemberAccess = conditionalMemberAccess != null;
+        var memberAccess = simpleName.GetRequiredParent() as MemberAccessExpressionSyntax;
+        var (conditionalAccessExpression, invocation) =
+            simpleName is { Parent: MemberBindingExpressionSyntax { Parent: InvocationExpressionSyntax { Parent: ConditionalAccessExpressionSyntax conditionalAccessExpression1 } invocation1 } memberBinding } &&
+            conditionalAccessExpression1.WhenNotNull == invocation1 &&
+            invocation1.Expression == memberBinding &&
+            memberBinding.Name == simpleName ? (conditionalAccessExpression1, invocation1) : default;
         if (memberAccess != null)
         {
             simpleNameOrMemberAccessExpression = memberAccess;
         }
-        else if (inConditionalMemberAccess)
+        else if (conditionalAccessExpression != null)
         {
-            simpleNameOrMemberAccessExpression = conditionalMemberAccess;
+            simpleNameOrMemberAccessExpression = conditionalAccessExpression;
         }
         else
         {
@@ -106,37 +108,29 @@ internal sealed class CSharpGenerateMethodService() :
         {
             if (simpleNameOrMemberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression, out invocationExpressionOpt))
             {
-                isInConditionalAccessExpression = inConditionalMemberAccess;
+                // want to look for anything of the form:  a?.B()   a?.B.C()    a?.B.C.D()   etc
+                isInConditionalAccessExpression = invocationExpressionOpt.Parent is ConditionalAccessExpressionSyntax { WhenNotNull: var whenNotNull } &&
+                    whenNotNull == invocationExpressionOpt;
                 return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
             }
-            // We need to check that the tree is structured like so:
-            // ConditionalAccessExpressionSyntax
-            //    ->  InvocationExpressionSyntax
-            //          ->   MemberBindingExpressionSyntax
-            // and that the name at the end of this expression matches the simple name we were given
-            else if ((((simpleNameOrMemberAccessExpression as ConditionalAccessExpressionSyntax)
-                       ?.WhenNotNull as InvocationExpressionSyntax)
-                            ?.Expression as MemberBindingExpressionSyntax)
-                                ?.Name == simpleName)
-            {
-                invocationExpressionOpt = (InvocationExpressionSyntax)((ConditionalAccessExpressionSyntax)simpleNameOrMemberAccessExpression).WhenNotNull;
-                isInConditionalAccessExpression = inConditionalMemberAccess;
-                return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
-            }
-            else if (simpleName.IsKind(SyntaxKind.IdentifierName))
-            {
-                // If we don't have an invocation node, then see if we can infer a delegate in
-                // this location. Check if this is a place where a delegate can go.  Only do this
-                // for identifier names. for now.  It gets really funky if you have to deal with
-                // a generic name here.
 
-                // Can't assign into a method.
-                if (!simpleNameOrMemberAccessExpression.IsLeftSideOfAnyAssignExpression())
-                {
-                    invocationExpressionOpt = null;
-                    isInConditionalAccessExpression = inConditionalMemberAccess;
-                    return true;
-                }
+            if (conditionalAccessExpression != null)
+            {
+                invocationExpressionOpt = invocation;
+                isInConditionalAccessExpression = true;
+                return !invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing;
+            }
+
+            // If we don't have an invocation node, then see if we can infer a delegate in
+            // this location. Check if this is a place where a delegate can go.  Only do this
+            // for identifier names. for now.  It gets really funky if you have to deal with
+            // a generic name here.
+            if (simpleName is IdentifierNameSyntax &&
+                !simpleNameOrMemberAccessExpression.IsLeftSideOfAnyAssignExpression())
+            {
+                invocationExpressionOpt = null;
+                isInConditionalAccessExpression = conditionalAccessExpression != null;
+                return true;
             }
         }
 
@@ -147,7 +141,7 @@ internal sealed class CSharpGenerateMethodService() :
         return false;
     }
 
-    protected override ITypeSymbol DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
+    protected override ITypeSymbol? DetermineReturnTypeForSimpleNameOrMemberAccessExpression(
         ITypeInferenceService typeInferenceService,
         SemanticModel semanticModel,
         ExpressionSyntax expression,

@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-public class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
+public sealed class CSharpSuppressionAllCodeTests : AbstractSuppressionAllCodeTests
 {
     private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = FeaturesTestCompositions.Features
         .AddAssemblies(typeof(DiagnosticAnalyzerService).Assembly);

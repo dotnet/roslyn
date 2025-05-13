@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
@@ -27,7 +29,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
 [Trait(Traits.Feature, Traits.Features.Classification)]
-public partial class TotalClassifierTests : AbstractCSharpClassifierTests
+public sealed partial class TotalClassifierTests : AbstractCSharpClassifierTests
 {
     protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
     {
@@ -41,7 +43,7 @@ public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     public async Task VarAsUsingAliasForNamespace(TestHost testHost)
     {
         await TestAsync(
-@"using var = System;",
+            @"using var = System;",
             testHost,
             Keyword("using"),
             Namespace("var"),
@@ -3232,5 +3234,65 @@ Keyword("async"));
             Punctuation.CloseCurly,
             Punctuation.CloseCurly,
         ], actualFormatted);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestModernExtension1(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            static class C
+            {
+                extension(string s)
+                {
+                    public bool IsNullOrEmpty() => false;
+                }
+
+                void M(string s)
+                {
+                    var v = s.IsNullOrEmpty();
+                }
+            }
+            """,
+            testHost,
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext),
+            Keyword("static"),
+            Keyword("class"),
+            Class("C"),
+            Static("C"),
+            Punctuation.OpenCurly,
+            Keyword("extension"),
+            Punctuation.OpenParen,
+            Keyword("string"),
+            Parameter("s"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("public"),
+            Keyword("bool"),
+            ExtensionMethod("IsNullOrEmpty"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Operators.EqualsGreaterThan,
+            Keyword("false"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            Keyword("void"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Keyword("string"),
+            Parameter("s"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Keyword("var"),
+            Local("v"),
+            Operators.Equals,
+            Parameter("s"),
+            Operators.Dot,
+            ExtensionMethod("IsNullOrEmpty"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
     }
 }

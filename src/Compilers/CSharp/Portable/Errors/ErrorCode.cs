@@ -2332,8 +2332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyMissingAccessor = 9252,
         ERR_PartialPropertyUnexpectedAccessor = 9253,
         ERR_PartialPropertyInitMismatch = 9254,
-        ERR_PartialPropertyTypeDifference = 9255,
-        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialMemberTypeDifference = 9255,
+        WRN_PartialMemberSignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
         WRN_FieldIsAmbiguous = 9258,
@@ -2362,18 +2362,57 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_DataSectionStringLiteralHashCollision = 9274,
 
-        ERR_CollectionExpressionKeyValuePairNotSupported = 9275,
-        ERR_CollectionArgumentsMustBeFirst = 9276,
-        ERR_CollectionArgumentsNotSupportedForType = 9277,
-        ERR_CollectionArgumentsDynamicBinding = 9278,
+        ERR_PartialMemberMissingImplementation = 9275,
+        ERR_PartialMemberMissingDefinition = 9276,
+        ERR_PartialMemberDuplicateDefinition = 9277,
+        ERR_PartialMemberDuplicateImplementation = 9278,
+        ERR_PartialEventInitializer = 9279,
+        ERR_PartialConstructorInitializer = 9280,
+
+        ERR_ExtensionDisallowsName = 9281,
+        ERR_ExtensionDisallowsMember = 9282,
+        ERR_BadExtensionContainingType = 9283,
+        ERR_ExtensionParameterDisallowsDefaultValue = 9284,
+        ERR_ReceiverParameterOnlyOne = 9285,
+        ERR_ExtensionResolutionFailed = 9286,
+        ERR_ReceiverParameterSameNameAsTypeParameter = 9287,
+        ERR_LocalSameNameAsExtensionTypeParameter = 9288,
+        ERR_TypeParameterSameNameAsExtensionTypeParameter = 9289,
+        ERR_LocalSameNameAsExtensionParameter = 9290,
+        ERR_ValueParameterSameNameAsExtensionParameter = 9291,
+        ERR_TypeParameterSameNameAsExtensionParameter = 9292,
+        ERR_InvalidExtensionParameterReference = 9293,
+        ERR_ValueParameterSameNameAsExtensionTypeParameter = 9294,
+        ERR_UnderspecifiedExtension = 9295,
+        ERR_ExpressionTreeContainsExtensionPropertyAccess = 9296,
+
+        ERR_PPIgnoredFollowsToken = 9297,
+        ERR_PPIgnoredNeedsFileBasedProgram = 9298,
+        ERR_PPIgnoredFollowsIf = 9299,
+
+        ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne = 9300,
+        ERR_InExtensionParameterMustBeValueType = 9301,
+        ERR_ProtectedInExtension = 9302,
+        ERR_InstanceMemberWithUnnamedExtensionsParameter = 9303,
+        ERR_InitInExtension = 9304,
+        ERR_ModifierOnUnnamedReceiverParameter = 9305,
+        ERR_ExtensionTypeNameDisallowed = 9306,
+        ERR_ExpressionTreeContainsNamedArgumentOutOfPosition = 9307,
+
+        ERR_CollectionExpressionKeyValuePairNotSupported = 9500, // PROTOTYPE: Renumber.
+        ERR_CollectionArgumentsMustBeFirst = 9501,
+        ERR_CollectionArgumentsNotSupportedForType = 9502,
+        ERR_CollectionArgumentsDynamicBinding = 9503,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+        //  2) Add message to CSharpResources.resx
 
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
+        //  5) Add message and '_Title' to CSharpResources.resx
     }
 }

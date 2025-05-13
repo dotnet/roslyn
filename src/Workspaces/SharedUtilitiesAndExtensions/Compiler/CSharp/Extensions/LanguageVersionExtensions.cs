@@ -20,12 +20,17 @@ internal static class LanguageVersionExtensions
 
     public static bool HasConstantInterpolatedStrings(this LanguageVersion languageVersion)
         => languageVersion >= LanguageVersion.CSharp10;
-
     public static bool SupportsCollectionExpressions(this LanguageVersion languageVersion)
         => languageVersion.IsCSharp12OrAbove();
 
     public static bool SupportsPrimaryConstructors(this LanguageVersion languageVersion)
         => languageVersion.IsCSharp12OrAbove();
+
+    public static bool SupportsDictionaryExpressions(this LanguageVersion languageVersion)
+        => languageVersion.IsCSharp14OrAbove();
+
+    public static bool SupportsExtensions(this LanguageVersion languageVersion)
+        => languageVersion.IsCSharp14OrAbove();
 
     /// <remarks>
     /// Corresponds to Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.CSharpNext.

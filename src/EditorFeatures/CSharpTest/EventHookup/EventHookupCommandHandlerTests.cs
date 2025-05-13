@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.EventHookup)]
-public class EventHookupCommandHandlerTests
+public sealed class EventHookupCommandHandlerTests
 {
     private readonly NamingStylesTestOptionSets _namingOptions = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 

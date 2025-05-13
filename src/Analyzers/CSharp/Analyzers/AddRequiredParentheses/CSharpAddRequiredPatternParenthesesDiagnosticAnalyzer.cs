@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer :
+internal sealed class CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer :
     AbstractAddRequiredParenthesesDiagnosticAnalyzer<
         PatternSyntax, BinaryPatternSyntax, SyntaxKind>
 {

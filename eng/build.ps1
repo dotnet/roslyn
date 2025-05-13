@@ -46,6 +46,7 @@ param (
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
   [switch]$lspEditor = $false,
+  [string]$solution = "Roslyn.sln",
 
   # official build settings
   [string]$officialBuildId = "",
@@ -112,6 +113,7 @@ function Print-Usage() {
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -sourceBuild              Simulate building source-build"
+  Write-Host "  -solution                 Solution to build (default is Roslyn.sln)"
   Write-Host ""
   Write-Host "Official build settings:"
   Write-Host "  -officialBuildId                                  An official build id, e.g. 20190102.3"
@@ -230,8 +232,6 @@ function RestoreInternalTooling() {
 }
 
 function BuildSolution() {
-  $solution = "Roslyn.sln"
-
   Write-Host "$($solution):"
 
   $bl = ""

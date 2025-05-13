@@ -50,7 +50,10 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression, out int initializerElementCount);
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
+        CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
@@ -66,7 +69,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             return default;
 
         this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
-        var (preMatches, postMatches) = this.AnalyzeWorker(cancellationToken);
+        var (preMatches, postMatches, mayChangeSemantics) = this.AnalyzeWorker(cancellationToken);
 
         // If analysis failed entirely, immediately bail out.
         if (preMatches.IsDefault || postMatches.IsDefault)
@@ -81,17 +84,19 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
         // noise.  So convert empty results to an invalid result here.
         if (analyzeForCollectionExpression)
-            return new(preMatches, postMatches);
+            return new(preMatches, postMatches, mayChangeSemantics);
 
         // Downgrade an empty result to a failure for the normal collection-initializer case.
-        return postMatches.IsEmpty ? default : new(preMatches, postMatches);
+        return postMatches.IsEmpty ? default : new(preMatches, postMatches, mayChangeSemantics);
     }
 
     protected sealed override bool TryAddMatches(
         ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
         ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
+        out bool mayChangeSemantics,
         CancellationToken cancellationToken)
     {
+        mayChangeSemantics = false;
         var seenInvocation = false;
         var seenIndexAssignment = false;
 
@@ -134,7 +139,10 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         }
 
         if (_analyzeForCollectionExpression)
-            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(preMatches, postMatches, cancellationToken);
+        {
+            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                preMatches, postMatches, out mayChangeSemantics, cancellationToken);
+        }
 
         return true;
     }

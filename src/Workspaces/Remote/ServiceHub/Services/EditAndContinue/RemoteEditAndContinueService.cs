@@ -4,14 +4,15 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -141,7 +142,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -156,21 +157,21 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                 return new EmitSolutionUpdateResults.Data()
                 {
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
-                    Diagnostics = GetUnexpectedUpdateError(solution, e),
+                    Diagnostics = GetUnexpectedUpdateError(solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First(), e.Message),
                     RudeEdits = [],
                     SyntaxError = null,
                     ProjectsToRebuild = [],
-                    ProjectsToRestart = [],
+                    ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
                 };
             }
         }, cancellationToken);
-    }
 
-    private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
-    {
-        var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-        var diagnostic = Diagnostic.Create(descriptor, Location.None, [e.Message]);
-        return [DiagnosticData.Create(solution, diagnostic, project: null)];
+        static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Project project, string message)
+        {
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, [message]);
+            return [DiagnosticData.Create(diagnostic, project)];
+        }
     }
 
     /// <summary>

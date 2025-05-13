@@ -27,7 +27,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class CSharpEditAndContinueAnalyzerTests
+public sealed class CSharpEditAndContinueAnalyzerTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features;
 

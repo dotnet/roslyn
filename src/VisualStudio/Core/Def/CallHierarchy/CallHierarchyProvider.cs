@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -27,7 +26,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
 [Export(typeof(CallHierarchyProvider))]
-internal partial class CallHierarchyProvider
+internal sealed partial class CallHierarchyProvider
 {
     public readonly IAsynchronousOperationListener AsyncListener;
     public readonly IUIThreadOperationExecutor ThreadOperationExecutor;

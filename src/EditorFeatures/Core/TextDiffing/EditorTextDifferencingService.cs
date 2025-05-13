@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
+internal sealed class EditorTextDifferencingService(ITextDifferencingSelectorService differenceSelectorService) : IDocumentTextDifferencingService
 {
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 

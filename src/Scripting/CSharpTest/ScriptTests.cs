@@ -1067,6 +1067,38 @@ return reply;
             Assert.True(exceptionThrown);
         }
 
+        [Fact]
+        public void Function_ReturningPartialType()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.Preview))
+                .ContinueWith("partial M() => new();");
+            script.GetCompilation().VerifyDiagnostics(
+                // (1,9): error CS1520: Method must have a return type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(1, 9),
+                // (1,9): error CS0759: No defining declaration found for implementing declaration of partial method 'M()'
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "M").WithArguments("M()").WithLocation(1, 9),
+                // (1,9): error CS0751: A partial member must be declared within a partial type
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(1, 9),
+                // (1,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                // partial M() => new();
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new()").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public async Task Function_ReturningPartialType_CSharp13()
+        {
+            var script = CSharpScript.Create("class partial;", ScriptOptions.WithLanguageVersion(LanguageVersion.CSharp13))
+                .ContinueWith("partial M() => new();")
+                .ContinueWith("M()");
+            script.GetCompilation().VerifyDiagnostics();
+
+            var result = await script.EvaluateAsync();
+            Assert.Equal("partial", result.GetType().Name);
+        }
+
         private class StreamOffsetResolver : SourceReferenceResolver
         {
             public override bool Equals(object other) => ReferenceEquals(this, other);

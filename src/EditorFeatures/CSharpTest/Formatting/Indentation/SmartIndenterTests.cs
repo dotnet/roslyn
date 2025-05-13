@@ -22,7 +22,7 @@ using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentS
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
 [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-public partial class SmartIndenterTests : CSharpFormatterTestsBase
+public sealed partial class SmartIndenterTests : CSharpFormatterTestsBase
 {
     private static readonly TestComposition s_compositionWithTestFormattingRules = EditorTestCompositions.EditorFeatures
         .AddParts(typeof(TestFormattingRuleFactoryServiceFactory));

@@ -222,6 +222,11 @@
         <target state="translated">Zaman uyumsuz bir foreach içinde dinamik tür koleksiyonu oluşturulamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionContainingType">
+        <source>Extensions must be declared in a top-level, non-generic, static class</source>
+        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
         <target state="translated">'{0}' türü, kayıt alanı için kullanılamaz.</target>
@@ -737,6 +742,11 @@
         <target state="translated">İfade ağacı bir koleksiyon ifadesi içermeyebilir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
+        <source>An expression tree may not contain an extension property access</source>
+        <target state="new">An expression tree may not contain an extension property access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">İfade ağacı, sondan dizin ('^') ifadesi içeremez.</target>
@@ -750,6 +760,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">Bir ifade ağacı, düz metin arasına kod eklenmiş dize işleyicisi dönüşümü içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -780,6 +795,31 @@
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">İfade ağacı, with ifadesi içeremez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsMember">
+        <source>Extension declarations can include only methods or properties</source>
+        <target state="new">Extension declarations can include only methods or properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
+        <source>The receiver parameter of an extension cannot have a default value</source>
+        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionResolutionFailed">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -1012,6 +1052,11 @@
         <target state="translated">'in' değiştiricisine sahip bağımsız değişkenler dinamik olarak dağıtılan ifadelerde kullanılamaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Mühürlü bir 'Object.ToString' içeren bir kayıttan devralma işlemi C# {0} sürümünde desteklenmiyor. Lütfen '{1}' veya üstü bir dil sürümünü kullanın.</target>
@@ -1020,6 +1065,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' erişimcileri 'readonly' olarak işaretlenemez. Bunun yerine '{0}' öğesini salt okunur olarak işaretleyin.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1055,6 +1105,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">Satır içi dizi öğesi alanı gerekli, salt okunur, geçici veya sabit boyutlu arabellek olarak bildirilemez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1267,6 +1322,11 @@
         <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtensionParameterReference">
+        <source>Cannot use extension parameter '{0}' in this context.</source>
+        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}', geçerli bir işlev işaretçisi dönüş türü değiştiricisi değil. Geçerli değiştiriciler: 'ref' ve 'ref readonly'.</target>
@@ -1407,6 +1467,16 @@
         <target state="translated">Liste desenleri, '{0}' türündeki bir değer için kullanılamaz. Uygun 'Length' veya 'Count' özelliği bulunamadı.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">'{0}' için aşırı yüklemelerin hiçbiri '{1}' işlev işaretçisiyle eşleşmiyor</target>
@@ -1435,6 +1505,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Desen eksik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1657,6 +1732,21 @@
         <target state="translated">'{0}' yöntemi, '{1}' tür parametresi için bir 'struct' kısıtlaması belirtiyor, ancak geçersiz kılınan veya açıkça uygulanan '{3}' yönteminin karşılık gelen '{2}' tür parametresi boş değer atanamaz bir tip değil.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsIf">
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsToken">
+        <source>'#:' directives cannot be after first token in file</source>
+        <target state="new">'#:' directives cannot be after first token in file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Oluşturucu '{0}', gerekli '{1}' üyesinin başlatmasını geri alıyor.</target>
@@ -1692,6 +1782,16 @@
         <target state="translated">Params parametresi geçerli bir koleksiyon türüne sahip olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">Kısmi üye bildirimlerinin ikisi de aynı erişilebilirlik değiştiricilerine sahip olmalıdır.</target>
@@ -1702,9 +1802,29 @@
         <target state="translated">Kısmi üyede 'abstract' değiştiricisi olamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">Kısmi üye bildirimlerinin ikisi de ('{0}' ve '{1}') aynı tanımlama grubu adını kullanmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1730,6 +1850,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">Kısmi üye bildirimlerinde eşleşen başvuru dönüş değerleri olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1802,11 +1927,6 @@
         <target state="translated">Kısmi özellik bildirimlerinin ikisi de gerekli olmalı veya hiçbiri gerekli olmamalıdır</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">Kısmi özellik bildirimlerini ikisi de aynı dönüş türüne sahip olmalıdır.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
         <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
         <target state="translated">'{0}' özellik erişimcisi, tanım bölümünde bildirilen hiçbir erişimciyi uygulamaz</target>
@@ -1835,6 +1955,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Bir özellik alt deseni, özellik veya alan başvurusunun eşleşmesini gerektiriyor, ör. '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -1867,6 +1992,16 @@
         <target state="translated">'{0}': 'readonly' erişimcilerde yalnızca özellik veya dizin oluşturucusu hem alma hem ayarlama erişimcisine sahipse kullanılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterOnlyOne">
+        <source>An extension container can have only one receiver parameter</source>
+        <target state="new">An extension container can have only one receiver parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
+        <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Birincil oluşturucu, sentezlenmiş kopya oluşturucusuyla çakışıyor.</target>
@@ -1890,6 +2025,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">'{1}' değeri '{0}' değerinden daha geniş bir değer kaçış kapsamına sahip olduğundan '{1}' değerinden daha dar kaçış kapsamlarına sahip '{0}' değeri üzerinden atamaya izin verdiği için '{1}' başvuru değeri, '{0}' olarak atanamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2277,6 +2417,16 @@
         <target state="translated">'{0}' türünün bir çağırma kuralı olarak kullanılabilmesi için genel olması gerekir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
+        <source>Type parameter '{0}' has the same name as an extension parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
+        <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
         <target state="translated">Denetim çağırana döndürülmeden önce otomatik uygulanan '{0}' özelliği tam olarak atanmalıdır. Özelliği otomatik olarak varsayılan durumuna getirmek için '{1}' dil sürümüne güncelleştirmeyi düşünün.</target>
@@ -2285,6 +2435,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">Denetim çağırana döndürülmeden önce '{0}' alanı tam olarak atanmalıdır. Alanı otomatik olarak varsayılan durumuna getirmek için '{1}' dil sürümüne güncelleştirmeyi düşünün.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedExtension">
+        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
+        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2377,6 +2532,16 @@
         <target state="translated">'this' nesnesi, tüm alanları atanmadan önce kullanılamaz. Atanmamış alanları otomatik olarak varsayılan durumuna getirmek için '{0}' dil sürümüne güncelleştirmeyi düşünün.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
         <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
@@ -2405,6 +2570,11 @@
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">zaman uyumsuz yöntem oluşturucusunu geçersiz kılma</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2455,6 +2625,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">genişletilmiş özellik desenleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2552,6 +2727,11 @@
         <target state="translated">ilişkilendirmedeki yeni satırlar</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
         <source>overload resolution priority</source>
         <target state="translated">aşırı yükleme çözümlemesi önceliği</target>
@@ -2565,6 +2745,11 @@
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
         <target state="translated">params koleksiyonları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2753,13 +2938,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">Çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışandan daha yeni bir sürümüne başvurur.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3222,14 +3407,14 @@
         <target state="translated">Parametre, lambda içinde parametre değiştiricisi içeriyor ancak hedef temsilci türünde içermiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">'{0}' ve '{1}' kısmi özellik bildirimlerinde imza farklılıkları var.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">Kısmi özellik bildirimlerinde imza farklılıkları var.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -5389,12 +5574,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, {0} null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">Null atanamaz özelliği, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, özelliği null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
         <note />
       </trans-unit>
@@ -6739,8 +6924,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot ya da özellik dönüş türünden hemen önce gelebilir.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">'partial' değiştiricisi yalnızca 'class', 'record', 'struct', 'interface' ifadelerinden veya metot ya da özellik dönüş türünden hemen önce gelebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8817,8 +9002,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">Genişletme yönteminin ilk parametresi '{0}' türünde olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -8847,8 +9032,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Derleyicinin gerektirdiği '{0}' türü bulunamadığından yeni bir genişletme yöntemi tanımlanamıyor. Bir System.Core.dll başvurusu eksik olabilir mi?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -8942,8 +9127,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Sınıf, kayıt, yapı veya arabirim üye bildiriminde '{0}' belirteci geçersiz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

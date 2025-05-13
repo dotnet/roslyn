@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: inInterface,
-                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _);
+                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _, hasExplicitAccessModifier: out _);
 
             if (inInterface)
             {
@@ -763,14 +763,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _name;
-            }
-        }
-
-        public sealed override bool IsExtensionMethod
-        {
-            get
-            {
-                return false;
             }
         }
 

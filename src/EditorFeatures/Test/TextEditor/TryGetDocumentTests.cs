@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor;
 
 [UseExportProvider]
-public class TryGetDocumentTests
+public sealed class TryGetDocumentTests
 {
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/624315")]
     public void MultipleTextChangesTest()

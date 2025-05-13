@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -12,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.WarningDialog;
 
-internal class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
+internal sealed class PullMemberUpWarningViewModel : AbstractNotifyPropertyChanged
 {
     public ImmutableArray<string> WarningMessageContainer { get; set; }
     public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;

@@ -12,18 +12,17 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus
-{
-    [ExportLanguageService(typeof(IAdditionalFormattingRuleLanguageService), LanguageNames.CSharp), Shared]
-    internal class CSharpAdditionalFormattingRuleLanguageService : IAdditionalFormattingRuleLanguageService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAdditionalFormattingRuleLanguageService()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Venus;
 
-        public AbstractFormattingRule GetAdditionalCodeGenerationRule()
-            => BlankLineInGeneratedMethodFormattingRule.Instance;
+[ExportLanguageService(typeof(IAdditionalFormattingRuleLanguageService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpAdditionalFormattingRuleLanguageService : IAdditionalFormattingRuleLanguageService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAdditionalFormattingRuleLanguageService()
+    {
     }
+
+    public AbstractFormattingRule GetAdditionalCodeGenerationRule()
+        => BlankLineInGeneratedMethodFormattingRule.Instance;
 }

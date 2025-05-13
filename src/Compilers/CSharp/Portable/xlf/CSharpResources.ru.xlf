@@ -222,6 +222,11 @@
         <target state="translated">Не удается использовать коллекцию динамического типа в асинхронном операторе foreach</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadExtensionContainingType">
+        <source>Extensions must be declared in a top-level, non-generic, static class</source>
+        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
         <source>The type '{0}' may not be used for a field of a record.</source>
         <target state="translated">Тип "{0}" не может быть использован для поля записи.</target>
@@ -737,6 +742,11 @@
         <target state="translated">Дерево выражения не может содержать выражение коллекции.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
+        <source>An expression tree may not contain an extension property access</source>
+        <target state="new">An expression tree may not contain an extension property access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">Дерево выражений не может содержать выражение индекса, отсчитываемого с конца ("^").</target>
@@ -750,6 +760,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">Дерево выражения не может содержать преобразование обработчика интерполированных строк.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -780,6 +795,31 @@
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">Дерево выражения не может содержать выражение with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsMember">
+        <source>Extension declarations can include only methods or properties</source>
+        <target state="new">Extension declarations can include only methods or properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
+        <source>The receiver parameter of an extension cannot have a default value</source>
+        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionResolutionFailed">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -1012,6 +1052,11 @@
         <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически диспетчеризируемых выражениях.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">Наследование от записи с запечатанным Object. ToString не поддерживается в C# {0}. Используйте версию языка "{1}" или более позднюю.</target>
@@ -1020,6 +1065,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">Методы доступа "init" не могут быть помечены как доступные только для чтения. Вместо них пометьте "{0}" как доступные только для чтения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1055,6 +1105,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">Поле элемента встроенного массива нельзя объявить как обязательное, доступное только для чтения, переменное или как буфер фиксированного размера.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1267,6 +1322,11 @@
         <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtensionParameterReference">
+        <source>Cannot use extension parameter '{0}' in this context.</source>
+        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">"{0}" не является допустимым модификатором типа для возвращаемого значения указателя на функцию. Допустимые модификаторы: ref и ref readonly.</target>
@@ -1407,6 +1467,16 @@
         <target state="translated">Шаблоны списка не могут использоваться для значения типа {0}. Подходящее свойство \"Length\" или \"Count\" не найдено.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Нет перегруженного метода для "{0}", который соответствует указателю на функцию "{1}".</target>
@@ -1435,6 +1505,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">Отсутствует шаблон</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1657,6 +1732,21 @@
         <target state="translated">Метод "{0}" задает ограничение struct для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" не является типом значения, не допускающим значение NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsIf">
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsToken">
+        <source>'#:' directives cannot be after first token in file</source>
+        <target state="new">'#:' directives cannot be after first token in file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Конструктор "{0}" оставляет необходимый элемент "{1}" не инициализированным.</target>
@@ -1692,6 +1782,16 @@
         <target state="translated">Параметр params должен иметь допустимый тип коллекции.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialConstructorInitializer">
+        <source>'{0}': only the implementing declaration of a partial constructor can have an initializer</source>
+        <target state="new">'{0}': only the implementing declaration of a partial constructor can have an initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialEventInitializer">
+        <source>'{0}': partial event cannot have initializer</source>
+        <target state="new">'{0}': partial event cannot have initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
         <target state="translated">У обоих объявлений частичного члена должны быть идентичные модификаторы доступа.</target>
@@ -1702,9 +1802,29 @@
         <target state="translated">У частичного члена не может быть модификатора "abstract"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateDefinition">
+        <source>Partial member '{0}' may not have multiple defining declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple defining declarations.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberDuplicateImplementation">
+        <source>Partial member '{0}' may not have multiple implementing declarations.</source>
+        <target state="new">Partial member '{0}' may not have multiple implementing declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
         <target state="translated">Оба определения частичного члена "{0}" и "{1}" должны использовать одинаковые имена элементов кортежа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingDefinition">
+        <source>Partial member '{0}' must have a definition part.</source>
+        <target state="new">Partial member '{0}' must have a definition part.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberMissingImplementation">
+        <source>Partial member '{0}' must have an implementation part.</source>
+        <target state="new">Partial member '{0}' must have an implementation part.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
@@ -1730,6 +1850,11 @@
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
         <target state="translated">У объявлений частичного члена должны совпадать возвращаемые значения "ref".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberTypeDifference">
+        <source>Both partial member declarations must have the same type.</source>
+        <target state="new">Both partial member declarations must have the same type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
@@ -1802,11 +1927,6 @@
         <target state="translated">Оба объявления частичного члена должны быть обязательными или оба не должны быть обязательными</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialPropertyTypeDifference">
-        <source>Both partial property declarations must have the same type.</source>
-        <target state="translated">Оба объявления частичного свойства должны быть одинакового типа.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
         <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
         <target state="translated">Метод доступа "{0}" не реализует методы доступа, объявленные для части определения</target>
@@ -1835,6 +1955,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">Для вложенного шаблона свойств требуется ссылка на свойство или поле для сопоставления, например, "{{ Name: {0} }}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
@@ -1867,6 +1992,16 @@
         <target state="translated">"{0}": readonly можно использовать для методов доступа, только если свойство или индексатор имеет оба метода доступа, get и set.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterOnlyOne">
+        <source>An extension container can have only one receiver parameter</source>
+        <target state="new">An extension container can have only one receiver parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
+        <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">Первичный конструктор конфликтует с синтезированным конструктором копий.</target>
@@ -1890,6 +2025,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Невозможно присвоить ссылку "{1}" на "{0}", так как "{1}" имеет более широкую область экранирования значения, чем "{0}", что позволяет назначать через "{0}" значения с более узкой областью экранирования, чем "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2277,6 +2417,16 @@
         <target state="translated">Тип "{0}" должен быть открытым для использования в качестве соглашения о вызовах.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
+        <source>Type parameter '{0}' has the same name as an extension parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
+        <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
         <target state="translated">Автоматически реализуемое свойство "{0}" должно быть полностью назначено перед возвратом контроля вызывающему элементу. Попробуйте обновить до языковой версии "{1}", чтобы автоматически применить значение по умолчанию к этому свойству.</target>
@@ -2285,6 +2435,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">Поле '{0}' должно быть полностью назначенным перед возвратом контроля вызывающему элементу. Попробуйте обновить поле до языковой версии "{1}", чтобы автоматически применить значение по умолчанию.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedExtension">
+        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
+        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2377,6 +2532,16 @@
         <target state="translated">Нельзя использовать объект "this", пока не будут назначены все его поля. Попробуйте обновить до языковой версии "{0}", чтобы автоматически применить значения по умолчанию к неназначенным полям.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
         <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
@@ -2405,6 +2570,11 @@
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">переопределение построителя методов async</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2455,6 +2625,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">шаблоны расширенных свойств</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2552,6 +2727,11 @@
         <target state="translated">новые линии в интерполяции</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
         <source>overload resolution priority</source>
         <target state="translated">приоритет разрешения перегрузки</target>
@@ -2565,6 +2745,11 @@
       <trans-unit id="IDS_FeatureParamsCollections">
         <source>params collections</source>
         <target state="translated">коллекции params</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeaturePartialEventsAndConstructors">
+        <source>partial events and constructors</source>
+        <target state="new">partial events and constructors</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2753,13 +2938,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">Сборка анализатора "{0}" ссылается на версию "{1}" компилятора, являющуюся более новой, чем версия "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">Сборка анализатора ссылается на более новую версию компилятора, чем установленная сейчас.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">Сборка анализатора ссылается на более новую версию компилятора, чем установленная сейчас.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -3222,14 +3407,14 @@
         <target state="translated">У параметра есть модификатор params в лямбде, но не в типе целевого делегата.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference">
-        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="translated">У объявлений частичного свойства "{0}" и "{1}" разные сигнатуры.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference">
+        <source>Partial member declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="new">Partial member declarations '{0}' and '{1}' have signature differences.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
-        <source>Partial property declarations have signature differences.</source>
-        <target state="translated">У объявлений частичного свойств и разные сигнатуры.</target>
+      <trans-unit id="WRN_PartialMemberSignatureDifference_Title">
+        <source>Partial member declarations have signature differences.</source>
+        <target state="new">Partial member declarations have signature differences.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -5390,12 +5575,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">{0} "{1}", не допускающий значения NULL, должен содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавить модификатор "required", объявить {0} как допускающее значение NULL или добавить атрибуты "[field: MaybeNull, AllowNull]".</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">Свойство, не допускающее значения NULL, должно содержать значение, отличное от NULL, при выходе из конструктора. Рассмотрите возможность добавить модификатор "required", объявить свойство как допускающее значение NULL или добавить атрибуты "[field: MaybeNull, AllowNull]".</target>
         <note />
       </trans-unit>
@@ -6740,8 +6925,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="translated">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface", а также перед возвращаемым типом метода или свойства.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <target state="needs-review-translation">Модификатор "partial" может использоваться только перед ключевыми словами "class", "record", "struct" и "interface", а также перед возвращаемым типом метода или свойства.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8818,8 +9003,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">Первый параметр метода расширения не может иметь тип "{0}".</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">Первый параметр метода расширения не может иметь тип "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -8848,8 +9033,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">Не удается определить новый метод расширения, так как не найден требуемый компилятором тип "{0}". Возможно, отсутствует ссылка на System.Core.dll</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">Не удается определить новый метод расширения, так как не найден требуемый компилятором тип "{0}". Возможно, отсутствует ссылка на System.Core.dll</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -8943,8 +9128,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">Недопустимый токен "{0}" в объявлении класса, записи, структуры или элемента интерфейса</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

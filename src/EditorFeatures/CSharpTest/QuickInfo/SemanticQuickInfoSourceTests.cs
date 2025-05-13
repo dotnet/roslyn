@@ -5544,6 +5544,31 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78171")]
+    public async Task TestPreprocessingSymbol()
+    {
+        var markup = """
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task Process(CancellationToken cancellationToken = default)
+                {
+            #if N$$ET
+                    // .NET requires 100ms delay in this fictional example
+                    await Task.Delay(100, cancellationToken);
+            #else
+                    // .NET Framework requires 200ms delay in this fictional example, and we can't pass a CT on it
+                    await Task.Delay(200);
+            #endif
+                }
+            }
+            """;
+
+        await TestAsync(markup, MainDescription("NET"));
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
     public async Task TestIndexedProperty()
     {
@@ -6270,8 +6295,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6306,8 +6331,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6346,9 +6371,9 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
         var expectedDescription = Usage(
             $"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """,
@@ -6390,8 +6415,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """;
         var expectedDescription = Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true);
@@ -6482,8 +6507,8 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
 
         await VerifyWithReferenceWorkerAsync(markup, [MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, expectsWarningGlyph: true)]);
@@ -10700,5 +10725,182 @@ AnonymousTypes(
             }
             """,
             MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
+    }
+
+    [Fact]
+    public async Task NullConditionalAssignment()
+    {
+        await VerifyWithNet8Async("""
+            class C
+            {
+                string s;
+
+                void M(C c)
+                {
+                    c?.$$s = "";
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.field}) string C.s"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension1()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo()"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension2()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo();
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo() (+ 1 {FeaturesResources.overload})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension3()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo() { }
+                    public void Goo(int i) { }
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    s.$$Goo(0);
+                }
+            }
+            """,
+            MainDescription($"void Extensions.extension(string).Goo(int i) (+ 1 {FeaturesResources.overload})"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension4()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public int Prop => 0;
+                }
+            }
+
+            class C
+            {
+                void M(string s)
+                {
+                    var v = s.$$Prop;
+                }
+            }
+            """,
+            MainDescription($$"""int Extensions.extension(string).Prop { get; }"""));
+    }
+
+    [Fact]
+    public async Task TestModernExtension5()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                extension(string s)
+                {
+                    public void Goo()
+                    {
+                        Console.WriteLine($$s);
+                    }
+                }
+            }
+            """,
+            MainDescription($"({FeaturesResources.parameter}) string s"));
+    }
+
+    [Fact]
+    public async Task TestModernExtension6()
+    {
+        await TestWithOptionsAsync(
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            static class Extensions
+            {
+                $$extension(string s)
+                {
+                    public void Goo()
+                    {
+                        Console.WriteLine(s);
+                    }
+                }
+            }
+            """,
+            MainDescription($"Extensions.extension(System.String)"));
     }
 }

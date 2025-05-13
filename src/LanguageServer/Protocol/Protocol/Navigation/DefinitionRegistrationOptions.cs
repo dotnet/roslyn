@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 ///
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#definitionRegistrationOptions">Language Server Protocol specification</see> for additional information.
 /// </summary>
-internal class DefinitionRegistrationOptions : DefinitionOptions, ITextDocumentRegistrationOptions
+internal sealed class DefinitionRegistrationOptions : DefinitionOptions, ITextDocumentRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to

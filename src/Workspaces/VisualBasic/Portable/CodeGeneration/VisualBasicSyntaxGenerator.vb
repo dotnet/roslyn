@@ -2368,8 +2368,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return VisualBasicAccessibilityFacts.GetModifierTokens(declaration)
         End Function
 
-        Public Overrides Function WithModifiers(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode
-            Return Isolate(declaration, Function(d) Me.WithModifiersInternal(d, modifiers))
+        Friend Overrides Function WithModifiers(Of TSyntaxNode As SyntaxNode)(declaration As TSyntaxNode, modifiers As DeclarationModifiers) As TSyntaxNode
+            Return DirectCast(Isolate(declaration, Function(d) Me.WithModifiersInternal(d, modifiers)), TSyntaxNode)
         End Function
 
         Private Function WithModifiersInternal(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode

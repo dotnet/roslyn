@@ -51,7 +51,7 @@ internal sealed class ExternKeywordRecommender() : AbstractSyntacticSingleKeywor
             syntaxTree.IsGlobalMemberDeclarationContext(position, s_validGlobalModifiers, cancellationToken) ||
             context.IsMemberDeclarationContext(
                 validModifiers: s_validModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: false,
                 cancellationToken: cancellationToken) ||
             context.SyntaxTree.IsLocalFunctionDeclarationContext(position, s_validLocalFunctionModifiers, cancellationToken);

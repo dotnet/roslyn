@@ -1,4 +1,4 @@
-# Generated, do not update manually
+﻿# Generated, do not update manually
 System.Collections.BitArray
 System.Collections.BitArray.#ctor(System.Boolean[])
 System.Collections.BitArray.#ctor(System.Byte[])

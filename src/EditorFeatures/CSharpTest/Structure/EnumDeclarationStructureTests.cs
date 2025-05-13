@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
+public sealed class EnumDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<EnumDeclarationSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new EnumDeclarationStructureProvider();
 

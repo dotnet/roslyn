@@ -16,7 +16,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRawString)]
-public class ConvertRegularStringToRawStringTests
+public sealed class ConvertRegularStringToRawStringTests
 {
     private static async Task VerifyRefactoringAsync(string testCode, string fixedCode, int index = 0, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {

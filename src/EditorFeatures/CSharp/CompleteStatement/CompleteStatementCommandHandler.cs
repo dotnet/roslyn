@@ -172,7 +172,7 @@ internal sealed class CompleteStatementCommandHandler(
 
         startingNode = tokenOnLeft.GetRequiredParent();
 
-        // If the caret is before an opening delimiter or after a closing delimeter,
+        // If the caret is before an opening delimiter or after a closing delimiter,
         // start analysis with node outside of delimiters.
         //
         // Examples, 
@@ -333,11 +333,12 @@ internal sealed class CompleteStatementCommandHandler(
             // actually move it.
             if (!speculative)
             {
-                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, m =>
+                Logger.Log(FunctionId.CommandHandler_CompleteStatement, KeyValueLogMessage.Create(LogType.UserAction, static (m, args) =>
                 {
+                    var (isInsideDelimiters, statementNode) = args;
                     m[nameof(isInsideDelimiters)] = isInsideDelimiters;
                     m[nameof(statementNode)] = statementNode.Kind();
-                }));
+                }, (isInsideDelimiters, statementNode)));
 
                 if (!args.TextView.TryMoveCaretToAndEnsureVisible(targetPosition))
                     return SemicolonBehavior.None;

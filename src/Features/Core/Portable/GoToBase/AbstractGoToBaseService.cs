@@ -61,8 +61,8 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
         // If not found but the symbol is from metadata, create it's definition item from metadata and add to the context.
         foreach (var baseSymbol in bases)
         {
-            var sourceDefinition = SymbolFinder.FindSourceDefinition(
-               baseSymbol, solution, cancellationToken);
+            var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(
+               baseSymbol, solution, cancellationToken).ConfigureAwait(false);
             if (sourceDefinition != null)
             {
                 var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(

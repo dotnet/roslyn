@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -31,7 +28,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
     private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
 
@@ -340,7 +337,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         out IList<object> projectionBufferSpans,
         out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
     {
-        projectionBufferSpans = new List<object>();
+        projectionBufferSpans = [];
         var projectionBufferSpanStartingPositions = new List<int>();
         mappedCaretLocation = null;
 

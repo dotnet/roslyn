@@ -33,7 +33,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
                 new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
         }
 
-        private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+        private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor Decsciptor1 =
                 new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
@@ -56,7 +56,7 @@ public partial class CSharpSuppressionTests : AbstractSuppressionDiagnosticTest_
 
         #region "Pragma disable tests"
 
-        public class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
+        public sealed class CSharpFixMultiplePragmaWarningSuppressionTests : CSharpFixMultipleSuppressionTests
         {
             [Fact]
             [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]

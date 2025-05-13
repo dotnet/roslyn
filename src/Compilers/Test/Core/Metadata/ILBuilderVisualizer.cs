@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,10 +23,12 @@ namespace Roslyn.Test.Utilities
     internal sealed class ILBuilderVisualizer : ILVisualizer
     {
         private readonly ITokenDeferral _tokenDeferral;
+        private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
-        public ILBuilderVisualizer(ITokenDeferral tokenDeferral)
+        public ILBuilderVisualizer(ITokenDeferral tokenDeferral, SymbolDisplayFormat? symbolDisplayFormat = null)
         {
             _tokenDeferral = tokenDeferral;
+            _symbolDisplayFormat = symbolDisplayFormat ?? SymbolDisplayFormat.ILVisualizationFormat;
         }
 
         public override string VisualizeUserString(uint token)
@@ -59,22 +59,22 @@ namespace Roslyn.Test.Utilities
             }
 
             object reference = _tokenDeferral.GetReferenceFromToken(token);
-            ISymbol symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
-            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
+            ISymbol? symbol = ((reference as ISymbolInternal) ?? (reference as Cci.IReference)?.GetInternalSymbol())?.GetISymbol();
+            return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(_symbolDisplayFormat));
         }
 
-        public override string VisualizeLocalType(object type)
+        public override string? VisualizeLocalType(object type)
         {
-            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+            return (((type as ISymbolInternal) ?? (type as Cci.IReference)?.GetInternalSymbol()) is ISymbolInternal symbol) ? symbol.GetISymbol().ToDisplayString(_symbolDisplayFormat) : type.ToString();
         }
 
         /// <summary>
         /// Determine the list of spans ordered by handler
         /// block start, with outer handlers before inner.
         /// </summary>
-        private static List<HandlerSpan> GetHandlerSpans(ImmutableArray<Cci.ExceptionHandlerRegion> regions)
+        private static List<HandlerSpan>? GetHandlerSpans(ImmutableArray<Cci.ExceptionHandlerRegion> regions)
         {
-            if (regions.Length == 0)
+            if (regions.IsDefaultOrEmpty)
             {
                 return null;
             }
@@ -136,8 +136,9 @@ namespace Roslyn.Test.Utilities
         /// </remarks>
         internal static string ILBuilderToString(
             ILBuilder builder,
-            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null,
-            IReadOnlyDictionary<int, string> markers = null)
+            Func<Cci.ILocalDefinition, LocalInfo>? mapLocal = null,
+            IReadOnlyDictionary<int, string>? markers = null,
+            SymbolDisplayFormat? ilFormat = null)
         {
             var sb = new StringBuilder();
 
@@ -148,7 +149,7 @@ namespace Roslyn.Test.Utilities
             }
 
             var locals = builder.LocalSlotManager.LocalsInOrder().SelectAsArray(mapLocal);
-            var visualizer = new ILBuilderVisualizer(builder.module);
+            var visualizer = new ILBuilderVisualizer(builder.module, ilFormat);
 
             if (!ilStream.IsDefault)
             {
@@ -175,7 +176,7 @@ namespace Roslyn.Test.Utilities
 
         internal static string LocalSignatureToString(
             ILBuilder builder,
-            Func<Cci.ILocalDefinition, LocalInfo> mapLocal = null)
+            Func<Cci.ILocalDefinition, LocalInfo>? mapLocal = null)
         {
             var sb = new StringBuilder();
 

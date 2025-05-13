@@ -14,14 +14,13 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     public ExtensionMethodImportCompletionProviderTests()
     {
@@ -125,7 +124,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -165,7 +164,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -205,7 +204,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -245,7 +244,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -285,7 +284,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -324,7 +323,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -365,7 +364,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              displayTextSuffix: "<>",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -405,7 +404,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -444,7 +443,7 @@ namespace Foo
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -483,7 +482,7 @@ namespace Foo
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -527,7 +526,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -571,7 +570,7 @@ namespace Foo
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -618,7 +617,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
     public static IEnumerable<object[]> TypeParameterWithRefTypeData => CombineWithReferenceTypeData(
@@ -667,7 +666,7 @@ namespace Baz
              markup,
              "ExtentionMethod",
              displayTextSuffix: "<>",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -744,7 +743,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
+             glyph: Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
              inlineDescription: "Foo");
     }
 
@@ -783,7 +782,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodInternal,
+             glyph: Glyph.ExtensionMethodInternal,
              inlineDescription: "Foo");
     }
 
@@ -826,7 +825,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -865,7 +864,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -932,7 +931,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "NS");
     }
 
@@ -969,7 +968,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Root");
     }
 
@@ -1044,7 +1043,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod",
-             glyph: (int)Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
+             glyph: Glyph.ExtensionMethodInternal,     // This is based on declared accessibility
              inlineDescription: "Foo");
     }
 
@@ -1094,7 +1093,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              expectedMethodname,
-             glyph: (int)Glyph.ExtensionMethodInternal,
+             glyph: Glyph.ExtensionMethodInternal,
              inlineDescription: expectedNamespace);
     }
 
@@ -1136,7 +1135,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtMethod",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1220,13 +1219,13 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod1",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1281,13 +1280,13 @@ namespace Foo
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod1",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1338,13 +1337,13 @@ namespace Foo
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod1",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
 
         await VerifyImportItemExistsAsync(
              markup,
              "ExtentionMethod2",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1388,7 +1387,7 @@ namespace Baz
             await VerifyImportItemExistsAsync(
                  markup,
                  "ExtentionMethod",
-                 glyph: (int)Glyph.ExtensionMethodPublic,
+                 glyph: Glyph.ExtensionMethodPublic,
                  inlineDescription: "Foo");
         }
         else
@@ -1456,7 +1455,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
              markup,
              expectedName,
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1517,7 +1516,7 @@ namespace Baz
              markup,
              expectedName,
              displayTextSuffix: "<>",
-             glyph: (int)Glyph.ExtensionMethodPublic,
+             glyph: Glyph.ExtensionMethodPublic,
              inlineDescription: "Foo");
     }
 
@@ -1565,7 +1564,7 @@ namespace Baz
         await VerifyImportItemExistsAsync(
             markup,
             "ExtentionMethod",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
 
@@ -1608,7 +1607,7 @@ namespace NS1
         await VerifyImportItemExistsAsync(
             markup,
             "ExtentionMethod",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
 
@@ -1651,7 +1650,7 @@ namespace NS1
         await VerifyImportItemExistsAsync(
             markup,
             "ExtentionMethod",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2");
     }
 
@@ -1695,7 +1694,7 @@ namespace NS1
             markup,
             "ExtentionMethod",
             displayTextSuffix: "<>",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
             expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<int>()");
     }
@@ -1744,7 +1743,7 @@ namespace NS1
         await VerifyImportItemExistsAsync(
             markup,
             "ExtentionMethod",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
             expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod() (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.overloads_})");
 
@@ -1752,7 +1751,7 @@ namespace NS1
             markup,
             "ExtentionMethod",
             displayTextSuffix: "<>",
-            glyph: (int)Glyph.ExtensionMethodPublic,
+            glyph: Glyph.ExtensionMethodPublic,
             inlineDescription: "NS2",
             expectedDescriptionOrNull: $"({CSharpFeaturesResources.extension}) bool int.ExtentionMethod<T>(T a) (+{NonBreakingSpaceString}2{NonBreakingSpaceString}{FeaturesResources.generic_overloads})");
     }
@@ -1799,7 +1798,7 @@ namespace NS1
         await VerifyImportItemExistsAsync(
                 markup,
                 "Bar",
-                glyph: (int)Glyph.ExtensionMethodPublic,
+                glyph: Glyph.ExtensionMethodPublic,
                 inlineDescription: "Foo");
     }
 
@@ -1847,7 +1846,7 @@ namespace NS1
             await VerifyImportItemExistsAsync(
                     markup,
                     "Bar",
-                    glyph: (int)Glyph.ExtensionMethodPublic,
+                    glyph: Glyph.ExtensionMethodPublic,
                     inlineDescription: "Foo");
         }
         else
@@ -1908,7 +1907,7 @@ namespace NS1
             await VerifyImportItemExistsAsync(
                     markup,
                     "Bar",
-                    glyph: (int)Glyph.ExtensionMethodPublic,
+                    glyph: Glyph.ExtensionMethodPublic,
                     inlineDescription: "Foo");
         }
         else
@@ -2035,7 +2034,7 @@ namespace NS1
             expectedDescriptionOrNull: expectedDescription);
     }
 
-    private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, int? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
+    private Task VerifyImportItemExistsAsync(string markup, string expectedItem, string inlineDescription, Glyph? glyph = null, string displayTextSuffix = null, string expectedDescriptionOrNull = null, List<CompletionFilter> expectedFilters = null)
         => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, matchingFilters: expectedFilters);
 
     private Task VerifyImportItemIsAbsentAsync(string markup, string expectedItem, string inlineDescription, string displayTextSuffix = null)

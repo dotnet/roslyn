@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/8333")]
     public async Task TestNotInExpressionBody()
@@ -64,6 +64,74 @@ public partial class ChangeSignatureTests : AbstractChangeSignatureTests
             LanguageNames.CSharp,
             markup: markup,
             updatedSignature: [1, 0],
+            expectedUpdatedInvocationDocumentCode: expectedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75676")]
+    public async Task TestForPrimaryConstructor_ViaCommand()
+    {
+        var markup = """
+            public class Base {
+                public $$Base(string Item2, string Item1)
+                {
+                }
+            }
+
+            public class Derived() : Base("Item2", "Item1")
+            {
+            }
+            """;
+        var expectedCode = """
+            public class Base {
+                public Base(string Item1, string Item2)
+                {
+                }
+            }
+            
+            public class Derived() : Base("Item1", "Item2")
+            {
+            }
+            """;
+
+        await TestChangeSignatureViaCommandAsync(
+            LanguageNames.CSharp,
+            markup: markup,
+            updatedSignature: [1, 0],
+            expectedUpdatedInvocationDocumentCode: expectedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75676")]
+    public async Task TestForPrimaryConstructorParamsArray_ViaCommand()
+    {
+        var markup = """
+        public class Base {
+            public $$Base(string Item2, string Item1, params object[] items)
+            {
+                Console.WriteLine(items.Length);
+            }
+        }
+
+        public class Derived() : Base("Item2", "Item1", 1, "test", true)
+        {
+        }
+        """;
+        var expectedCode = """
+        public class Base {
+            public Base(string Item1, string Item2, params object[] items)
+            {
+                Console.WriteLine(items.Length);
+            }
+        }
+        
+        public class Derived() : Base("Item1", "Item2", 1, "test", true)
+        {
+        }
+        """;
+
+        await TestChangeSignatureViaCommandAsync(
+            LanguageNames.CSharp,
+            markup: markup,
+            updatedSignature: [1, 0, 2],
             expectedUpdatedInvocationDocumentCode: expectedCode);
     }
 

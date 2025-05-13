@@ -27,6 +27,8 @@
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
     <_MsbuildVersion>17.3.4</_MsbuildVersion>
+    <!-- S.C.I 9.0 no longer supports .NET 6 -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
@@ -57,8 +59,6 @@
     <Compile Remove="..\..\..\Compilers\Core\Portable\InternalUtilities\IncrementalHashExtensions.cs" />
 
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />

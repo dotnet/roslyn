@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractClass;
 
-internal class ExtractClassViewModel
+internal sealed class ExtractClassViewModel
 {
     private readonly INotificationService _notificationService;
     private readonly INamedTypeSymbol _selectedType;

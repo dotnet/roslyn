@@ -4,11 +4,10 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Workspace
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Workspace;
+
+internal static class OmniSharpDocumentId
 {
-    internal static class OmniSharpDocumentId
-    {
-        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, bool isSourceGenerated, string? debugName)
-                => DocumentId.CreateFromSerialized(projectId, id, isSourceGenerated, debugName);
-    }
+    public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, bool isSourceGenerated, string? debugName)
+            => DocumentId.CreateFromSerialized(projectId, id, isSourceGenerated, debugName);
 }

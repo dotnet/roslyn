@@ -4,7 +4,6 @@
 
 using System.Collections;
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Collections;
 

@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal abstract class UnitTestingRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
 {
-    internal abstract class UnitTestingRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
-    {
-        private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
+    private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
 
-        public object GetCallback(UnitTestingRemoteServiceCallbackIdWrapper callbackId)
-            => _dispatcher.GetCallback(callbackId.UnderlyingObject);
+    public object GetCallback(UnitTestingRemoteServiceCallbackIdWrapper callbackId)
+        => _dispatcher.GetCallback(callbackId.UnderlyingObject);
 
-        RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
-            => _dispatcher.CreateHandle(instance);
-    }
+    RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
+        => _dispatcher.CreateHandle(instance);
 }

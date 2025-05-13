@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Editor;
@@ -15,7 +13,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
 [Obsolete("This is a compatibility shim for LiveShare and TypeScript; please do not use it.")]
-internal class VenusCommandFilter<TPackage, TLanguageService> : VenusCommandFilter
+internal sealed class VenusCommandFilter<TPackage, TLanguageService> : VenusCommandFilter
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {

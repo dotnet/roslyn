@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-public class GenerateEqualsAndGetHashCodeFromMembersTests
+public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
 {
-    private class TestWithDialog : VerifyCS.Test
+    private sealed class TestWithDialog : VerifyCS.Test
     {
         private static readonly TestComposition s_composition =
             EditorTestCompositions.EditorFeatures.AddParts(typeof(TestPickMembersService));
@@ -544,7 +544,6 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -1333,7 +1332,6 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
             CodeActionEquivalenceKey = FeaturesResources.Generate_Equals_object,
             CodeActionVerifier = (codeAction, verifier) => verifier.Equal(FeaturesResources.Generate_Equals_object, codeAction.Title),
         }.RunAsync();
@@ -1490,7 +1488,6 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2540,7 +2537,6 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -2614,7 +2610,6 @@ public class GenerateEqualsAndGetHashCodeFromMembersTests
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp6,
             Options = { PreferImplicitTypeWithInfo() },
         }.RunAsync();
@@ -3949,7 +3944,6 @@ DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments(
         {
             TestCode = code,
             FixedCode = fixedCode,
-            CodeActionIndex = 0,
         }.RunAsync();
     }
 

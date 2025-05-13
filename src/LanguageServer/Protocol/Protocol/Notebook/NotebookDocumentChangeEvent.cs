@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentChangeEvent
+internal sealed class NotebookDocumentChangeEvent
 {
     /// <summary>
     /// The changed metadata, if any.

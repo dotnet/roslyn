@@ -98,7 +98,7 @@ public static class CodeStyleSettingsTest
             isEditorConfigOption: true);
     }
 
-    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    private sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         private readonly IDictionary<string, string> _dictionary;
         public TestAnalyzerConfigOptions((string, string)[]? options = null)

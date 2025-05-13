@@ -66,6 +66,11 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
     [Required]
     public string ApisDir { get; private set; } = null!;
 
+    /// <summary>
+    /// True to report an error if any changes in Semantic Search APIs are detected.
+    /// </summary>
+    public bool RequireNoApiChanges { get; private set; } = false;
+
     public override bool Execute()
     {
         try
@@ -123,12 +128,14 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
                 return;
             }
 
-            WriteApis(Path.Combine(ApisDir, assemblyName + ".txt"), peImageBuffer);
+            WriteApis(assemblyName, peImageBuffer);
         }
     }
 
-    internal void WriteApis(string outputFilePath, byte[] peImage)
+    internal void WriteApis(string assemblyName, byte[] peImage)
     {
+        string outputFilePath = Path.Combine(ApisDir, assemblyName + ".txt");
+
         using var readableStream = new MemoryStream(peImage, writable: false);
         var metadataRef = MetadataReference.CreateFromStream(readableStream);
         var compilation = CSharpCompilation.Create("Metadata", references: [metadataRef]);
@@ -149,9 +156,39 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         var newContent = $"# Generated, do not update manually{Environment.NewLine}" +
             string.Join(Environment.NewLine, apis);
 
+        if (RequireNoApiChanges)
+        {
+            var oldContent = "";
+
+            if (File.Exists(outputFilePath))
+            {
+                try
+                {
+                    oldContent = File.ReadAllText(outputFilePath, Encoding.UTF8);
+                }
+                catch (FileNotFoundException)
+                {
+                }
+                catch (Exception e)
+                {
+                    Log.LogError($"Unable to read '{outputFilePath}': {e.Message}");
+                    return;
+                }
+            }
+
+            if (oldContent != newContent)
+            {
+                Log.LogError(
+                    $"APIs listed in file '{outputFilePath}' do not match the public APIs exposed by '{assemblyName}'. " +
+                    $"Build SemanticSearch.ReferenceAssemblies project locally to update the file and review the changes.");
+
+                return;
+            }
+        }
+
         try
         {
-            File.WriteAllText(outputFilePath, newContent);
+            File.WriteAllText(outputFilePath, newContent, Encoding.UTF8);
             Log.LogMessage($"Baseline updated: '{outputFilePath}'");
         }
         catch (Exception e)

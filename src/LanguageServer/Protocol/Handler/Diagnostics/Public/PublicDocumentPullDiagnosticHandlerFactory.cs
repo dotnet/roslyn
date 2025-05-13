@@ -15,30 +15,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 [ExportCSharpVisualBasicLspServiceFactory(typeof(PublicDocumentPullDiagnosticsHandler)), Shared]
-internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class PublicDocumentPullDiagnosticHandlerFactory(
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions) : ILspServiceFactory
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly IDiagnosticSourceManager _diagnosticSourceManager;
-    private readonly IDiagnosticsRefresher _diagnosticRefresher;
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PublicDocumentPullDiagnosticHandlerFactory(
-        IDiagnosticAnalyzerService analyzerService,
-        IDiagnosticSourceManager diagnosticSourceManager,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions)
-    {
-        _analyzerService = analyzerService;
-        _diagnosticSourceManager = diagnosticSourceManager;
-        _diagnosticRefresher = diagnosticRefresher;
-        _globalOptions = globalOptions;
-    }
-
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _analyzerService, _diagnosticSourceManager, _diagnosticRefresher, _globalOptions);
+        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, diagnosticSourceManager, diagnosticRefresher, globalOptions);
     }
 }

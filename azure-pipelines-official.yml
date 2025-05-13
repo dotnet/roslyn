@@ -7,6 +7,7 @@ trigger:
     - release/dev17.*
     - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -42,6 +43,12 @@ parameters:
 - name: SkipTests
   type: boolean
   default: true
+
+# An optional VS commit SHA that will be automatically cherry-picked
+# to the insertion PR created by this build.
+- name: VisualStudioCherryPickSHA
+  type: string
+  default: '(default)'
 
 schedules:
   - cron: "0 8 23-29 * 0"
@@ -163,7 +170,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -304,7 +311,7 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
@@ -393,6 +400,7 @@ extends:
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&api-version=6.0"
             publishDataAccessToken: "$(System.AccessToken)"
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            cherryPick: ${{ parameters.VisualStudioCherryPickSHA }}
 
     - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
       - template: /eng/common/templates-official/post-build/post-build.yml@self

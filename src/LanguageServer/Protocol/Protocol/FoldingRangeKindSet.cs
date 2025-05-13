@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// A set of <see cref="FoldingRangeKind"/> values
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class FoldingRangeKindSet
+internal sealed class FoldingRangeKindSet
 {
     /// <summary>
     /// The folding range kind values the client supports.

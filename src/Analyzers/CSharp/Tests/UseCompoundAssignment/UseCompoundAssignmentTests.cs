@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCompoundAssignmentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
-public class UseCompoundAssignmentTests
+public sealed class UseCompoundAssignmentTests
 {
     [Fact]
     public async Task TestAddExpression()

@@ -11,7 +11,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -503,5 +505,60 @@ internal static partial class Extensions
 
             return Checksum.Create(tempChecksumArray);
         }
+    }
+
+    public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+    {
+        var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+        var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (remoteHostClient != null)
+        {
+            var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                project.Solution,
+                invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!result.HasValue)
+                return [];
+
+            return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+        }
+
+        return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
+    {
+        foreach (var diagnostic in diagnostics)
+        {
+            if (!IsReportedInDocument(diagnostic, targetTextDocument))
+            {
+                continue;
+            }
+
+            if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
+            {
+                continue;
+            }
+
+            yield return DiagnosticData.Create(diagnostic, targetTextDocument);
+        }
+    }
+
+    public static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
+    {
+        if (diagnostic.Location.SourceTree != null)
+        {
+            return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
+        }
+        else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+        {
+            var lineSpan = diagnostic.Location.GetLineSpan();
+
+            var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+            return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
+        }
+
+        return false;
     }
 }

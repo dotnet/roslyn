@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class ArgumentWrappingTests : AbstractWrappingTests
+public sealed class ArgumentWrappingTests : AbstractWrappingTests
 {
     [Fact]
     public async Task TestMissingWithSyntaxError()

@@ -9,18 +9,18 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
-{
-    public class VisualBasicInlayHintTests : AbstractInlayHintTests
-    {
-        public VisualBasicInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint;
 
-        [Theory, CombinatorialData]
-        public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+public sealed class VisualBasicInlayHintTests : AbstractInlayHintTests
+{
+    public VisualBasicInlayHintTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestOneInlayParameterHintAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"Class A
     Sub M(x As Integer)
     End Sub
@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.InlayHint
         M({|x:|}5)
     End Sub
 End Class";
-            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
-        }
+        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+    [Theory, CombinatorialData]
+    public async Task TestMultipleInlayParameterHintsAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"Class A
     Sub M(x As Integer, y As Boolean)
     End Sub
@@ -44,27 +44,26 @@ End Class";
         M({|x:|}5, {|y:|}True)
     End Sub
 End Class";
-            await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
-        }
+        await RunVerifyInlayHintAsync(markup, mutatingLspWorkspace);
+    }
 
-        private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace)
+    private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
-            await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+            ClientCapabilities = new LSP.VSInternalClientCapabilities
             {
-                ClientCapabilities = new LSP.VSInternalClientCapabilities
+                SupportsVisualStudioExtensions = true,
+                Workspace = new WorkspaceClientCapabilities
                 {
-                    SupportsVisualStudioExtensions = true,
-                    Workspace = new WorkspaceClientCapabilities
+                    InlayHint = new InlayHintWorkspaceSetting
                     {
-                        InlayHint = new InlayHintWorkspaceSetting
-                        {
-                            RefreshSupport = true
-                        }
+                        RefreshSupport = true
                     }
                 }
-            });
-            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, true);
-            await VerifyInlayHintAsync(testLspServer);
-        }
+            }
+        });
+        testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, true);
+        await VerifyInlayHintAsync(testLspServer);
     }
 }

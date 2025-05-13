@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
+public sealed class TypeDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<TypeDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new TypeDeclarationStructureProvider();

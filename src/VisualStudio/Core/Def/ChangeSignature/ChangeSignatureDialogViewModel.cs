@@ -15,14 +15,13 @@ using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 
-internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
+internal sealed partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyChanged
 {
     private readonly IClassificationFormatMap _classificationFormatMap;
     private readonly ClassificationTypeMap _classificationTypeMap;
@@ -113,7 +112,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
             if (!parameter.IsRemoved)
             {
                 parameterNameOverlapMap
-                    .GetOrAdd(parameter.ParameterName, _ => new List<ParameterViewModel>())
+                    .GetOrAdd(parameter.ParameterName, _ => [])
                     .Add(parameter);
             }
             else

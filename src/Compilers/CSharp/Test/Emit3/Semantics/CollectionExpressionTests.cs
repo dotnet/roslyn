@@ -3311,9 +3311,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (6,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var y = b ? [new int[0]] : [[1, 2, 3]];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expressions", "collection expressions").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [new int[0]] : [[1, 2, 3]]").WithArguments("collection expression", "collection expression").WithLocation(6, 17));
         }
 
         [Fact]
@@ -3436,9 +3436,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(new[] { source, s_collectionExtensions });
             comp.VerifyEmitDiagnostics(
-                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // 0.cs(9,29): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         var a = AsArray([.. b ? [x] : [y]]);
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expressions", "collection expressions").WithLocation(9, 29));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? [x] : [y]").WithArguments("collection expression", "collection expression").WithLocation(9, 29));
         }
 
         [Fact]
@@ -4531,15 +4531,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (9,31): warning CS8601: Possible null reference assignment.
+                // (9,29): warning CS8601: Possible null reference assignment.
                 //         object[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(9, 31),
-                // (10,26): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(9, 29),
+                // (10,24): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 26),
-                // (10,31): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 24),
+                // (10,29): warning CS8601: Possible null reference assignment.
                 //         object[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 31));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..b").WithLocation(10, 29));
         }
 
         [Fact]
@@ -4562,15 +4562,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                // (10,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] ab = [..a, ..b]; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 44),
-                // (11,39): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 42),
+                // (11,37): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 39),
-                // (11,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 37),
+                // (11,42): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
                 //         IEnumerable<object>[] bb = [..b, ..b]; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 44));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "..b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 42));
         }
 
         [Fact]
@@ -9460,7 +9460,7 @@ static class Program
                 // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[3:4]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                // (7,14): error CS9275: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
+                // (7,14): error CS9500: Collection expression type 'Dictionary<int, int>' does not support key-value pair elements.
                 //         d = [3:4];
                 Diagnostic(ErrorCode.ERR_CollectionExpressionKeyValuePairNotSupported, "3:4").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 14),
                 // (7,15): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -9868,9 +9868,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expressions' and 'collection expressions'
+                // (5,26): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'collection expression' and 'collection expression'
                 //         return [a, b, .. c ? [null] : []];
-                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expressions", "collection expressions").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_InvalidQM, "c ? [null] : []").WithArguments("collection expression", "collection expression").WithLocation(5, 26));
         }
 
         [Fact]
@@ -14233,9 +14233,9 @@ namespace System
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,21): warning CS8601: Possible null reference assignment.
+                // (5,19): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..a];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(5, 21));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..a").WithLocation(5, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -14278,9 +14278,9 @@ namespace System
                 bool m() => throw null!;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,22): warning CS8601: Possible null reference assignment.
+                // (6,19): warning CS8601: Possible null reference assignment.
                 //     object[] b = [..(m() ? a1 : a2)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..(m() ? a1 : a2)").WithLocation(6, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -25195,7 +25195,7 @@ partial class Program
                   IL_0008:  pop
                   IL_0009:  ldsfld     "C<T>.<>c C<T>.<>c.<>9"
                   IL_000e:  ldftn      "void C<T>.<>c.<.ctor>b__1_1(T)"
-                  IL_0014:  newobj     "System.Action<T>..ctor(object, nint)"
+                  IL_0014:  newobj     "System.Action<T>..ctor(object, System.IntPtr)"
                   IL_0019:  dup
                   IL_001a:  stsfld     "System.Action<T> C<T>.<>c.<>9__1_1"
                   IL_001f:  ldarg.2
@@ -25675,8 +25675,8 @@ partial class Program
                   .maxstack  1
                   .locals init (object V_0,
                                 string V_1,
-                                nint V_2,
-                                nuint V_3)
+                                System.IntPtr V_2,
+                                System.UIntPtr V_3)
                   IL_0000:  ldstr      "1"
                   IL_0005:  stloc.0
                   IL_0006:  ldloca.s   V_0
@@ -25691,14 +25691,14 @@ partial class Program
                   IL_0025:  conv.i
                   IL_0026:  stloc.2
                   IL_0027:  ldloca.s   V_2
-                  IL_0029:  newobj     "System.ReadOnlySpan<nint>..ctor(ref readonly nint)"
-                  IL_002e:  call       "void Program.Report<nint>(System.ReadOnlySpan<nint>)"
+                  IL_0029:  newobj     "System.ReadOnlySpan<System.IntPtr>..ctor(ref readonly System.IntPtr)"
+                  IL_002e:  call       "void Program.Report<System.IntPtr>(System.ReadOnlySpan<System.IntPtr>)"
                   IL_0033:  ldc.i4.4
                   IL_0034:  conv.i
                   IL_0035:  stloc.3
                   IL_0036:  ldloca.s   V_3
-                  IL_0038:  newobj     "System.ReadOnlySpan<nuint>..ctor(ref readonly nuint)"
-                  IL_003d:  call       "void Program.Report<nuint>(System.ReadOnlySpan<nuint>)"
+                  IL_0038:  newobj     "System.ReadOnlySpan<System.UIntPtr>..ctor(ref readonly System.UIntPtr)"
+                  IL_003d:  call       "void Program.Report<System.UIntPtr>(System.ReadOnlySpan<System.UIntPtr>)"
                   IL_0042:  ret
                 }
                 """);
@@ -28406,9 +28406,9 @@ partial class Program
                 }
                 """;
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expressions' and 'List<int>'
+                // (7,9): error CS0019: Operator '+' cannot be applied to operands of type 'collection expression' and 'List<int>'
                 //         [] + list;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expressions", "System.Collections.Generic.List<int>").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "[] + list").WithArguments("+", "collection expression", "System.Collections.Generic.List<int>").WithLocation(7, 9),
                 // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [] + list;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "[] + list").WithLocation(7, 9));
@@ -35865,7 +35865,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0001:  callvirt   "System.IntPtr[] System.Collections.Generic.List<System.IntPtr>.ToArray()"
                   IL_0006:  ret
                 }
                 """);
@@ -35875,7 +35875,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  call       "System.Collections.Generic.List<nint> System.Linq.Enumerable.ToList<nint>(System.Collections.Generic.IEnumerable<nint>)"
+                  IL_0001:  call       "System.Collections.Generic.List<System.IntPtr> System.Linq.Enumerable.ToList<System.IntPtr>(System.Collections.Generic.IEnumerable<System.IntPtr>)"
                   IL_0006:  ret
                 }
                 """);
@@ -35885,7 +35885,7 @@ partial class Program
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.1
-                  IL_0001:  callvirt   "nint[] System.Collections.Generic.List<nint>.ToArray()"
+                  IL_0001:  callvirt   "System.IntPtr[] System.Collections.Generic.List<System.IntPtr>.ToArray()"
                   IL_0006:  ret
                 }
                 """);
@@ -43474,12 +43474,12 @@ class Program
                 // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object x = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
-                // (13,25): warning CS8601: Possible null reference assignment.
+                // (13,23): warning CS8601: Possible null reference assignment.
                 //         object[] z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 25),
-                // (14,16): warning CS8601: Possible null reference assignment.
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(13, 23),
+                // (14,14): warning CS8601: Possible null reference assignment.
                 //         z = [..y];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(14, 16));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..y").WithLocation(14, 14));
         }
 
         [Fact]
@@ -43501,9 +43501,9 @@ class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,37): warning CS8601: Possible null reference assignment.
+                // (8,35): warning CS8601: Possible null reference assignment.
                 //         IEnumerable<object> y1 = [..x1];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(8, 37));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..x1").WithLocation(8, 35));
         }
 
         [Fact]
@@ -43579,9 +43579,9 @@ class Program
                 // (14,14): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
-                // (14,19): warning CS8601: Possible null reference assignment.
+                // (14,17): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19),
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "..F(x)").WithLocation(14, 17),
                 // (16,26): warning CS8604: Possible null reference argument for parameter 'x' in 'IEnumerable<string> Program.F<string>(string x)'.
                 //         z = [..F<string>(x)];
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "IEnumerable<string> Program.F<string>(string x)").WithLocation(16, 26));

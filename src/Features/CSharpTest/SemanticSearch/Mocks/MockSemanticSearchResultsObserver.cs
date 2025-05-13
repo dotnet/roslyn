@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SemanticSearch;
 
-internal class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
+internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
 {
     public Action<DefinitionItem>? OnDefinitionFoundImpl { get; set; }
     public Action<UserCodeExceptionInfo>? OnUserCodeExceptionImpl { get; set; }
@@ -41,12 +41,6 @@ internal class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserve
     public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
     {
         OnUserCodeExceptionImpl?.Invoke(exception);
-        return ValueTaskFactory.CompletedTask;
-    }
-
-    public ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-    {
-        OnCompilationFailureImpl?.Invoke(errors);
         return ValueTaskFactory.CompletedTask;
     }
 }

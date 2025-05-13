@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefact
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-public class AddParameterCheckTests
+public sealed class AddParameterCheckTests
 {
     [Fact]
     public async Task TestEmptyFile()
@@ -30,7 +30,7 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestSimpleReferenceType_AlreadyNullChecked()
+    public async Task TestSimpleReferenceType_AlreadyNullChecked1()
     {
         var testCode = """
             using System;
@@ -50,6 +50,27 @@ public class AddParameterCheckTests
         {
             LanguageVersion = LanguageVersion.CSharp11,
             TestCode = testCode
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
     }
 
@@ -81,6 +102,36 @@ public class AddParameterCheckTests
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSimpleReferenceType_ThrowIfNull()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    public C(string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
     }
 
     [Fact]
@@ -521,42 +572,78 @@ public class AddParameterCheckTests
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, string b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, string b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(b))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                    if (string.IsNullOrEmpty(b))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(b));
-        }}
+                                        """)}}", nameof(b));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                                  "
                                                  """, """
                                                  \"
-                                                 """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                                 """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestMultiNullableParameters_Net7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public C([||]string a, string b, string c)
+                {
+                }
+            }
+            """,
+            FixedCode = $$"""
+            using System;
+
+            class C
+            {
+                public C(string a, string b, string c)
+                {
+                    ArgumentException.ThrowIfNullOrEmpty(a);
+                    ArgumentException.ThrowIfNullOrEmpty(b);
+                    ArgumentException.ThrowIfNullOrEmpty(c);
+                }
+            }
+            """,
+            CodeActionIndex = 3,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters),
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
 
@@ -577,33 +664,35 @@ class C
                 }
             }
             """,
-            FixedCode = @$"#nullable enable
+            FixedCode = $$"""
+            #nullable enable
 
-using System;
+            using System;
 
-class C
-{{
-    public C(string a, string b, string? c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, string b, string? c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(b))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                    if (string.IsNullOrEmpty(b))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(b));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(b));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -640,32 +729,33 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, bool b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, bool b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
-            CodeActionIndex = 0,
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
     }
@@ -685,31 +775,33 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, bool b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, bool b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -730,36 +822,38 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, object b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, object b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (b is null)
-        {{
-            throw new ArgumentNullException(nameof(b));
-        }}
+                    if (b is null)
+                    {
+                        throw new ArgumentNullException(nameof(b));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -1864,22 +1958,24 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
         }.RunAsync();
@@ -1900,24 +1996,58 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrWhiteSpace(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrWhiteSpace(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 2,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSpecialStringCheck2_Net8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public C([||]string s)
+                {
+                }
+            }
+            """,
+            FixedCode = $$"""
+            using System;
+
+            class C
+            {
+                public C(string s)
+                {
+                    ArgumentException.ThrowIfNullOrWhiteSpace(s);
+                }
+            }
+            """,
+            CodeActionIndex = 2,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check),
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1937,22 +2067,24 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
         }.RunAsync();
@@ -1991,22 +2123,24 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class Program
-{{
-    static void Main(String bar)
-    {{
-        if (String.IsNullOrEmpty(bar))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("""
+            class Program
+            {
+                static void Main(String bar)
+                {
+                    if (String.IsNullOrEmpty(bar))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(bar));
-        }}
-    }}
-}}",
+                               """)}}", nameof(bar));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
             Options =
@@ -2583,20 +2717,22 @@ class Program
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2623,20 +2759,22 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2663,22 +2801,24 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2705,19 +2845,21 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s)) throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2744,19 +2886,21 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s)) throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2783,22 +2927,24 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },

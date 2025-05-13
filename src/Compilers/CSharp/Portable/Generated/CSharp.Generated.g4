@@ -160,7 +160,7 @@ parameter_list
   ;
 
 parameter
-  : attribute_list* modifier* type? (identifier_token | '__arglist') equals_value_clause?
+  : attribute_list* modifier* type? (identifier_token | '__arglist')? equals_value_clause?
   ;
 
 constructor_initializer
@@ -323,6 +323,7 @@ enum_member_declaration
 
 type_declaration
   : class_declaration
+  | extension_declaration
   | interface_declaration
   | record_declaration
   | struct_declaration
@@ -330,6 +331,10 @@ type_declaration
 
 class_declaration
   : attribute_list* modifier* 'class' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  ;
+
+extension_declaration
+  : attribute_list* modifier* 'extension' type_parameter_list? parameter_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 interface_declaration
@@ -1284,6 +1289,7 @@ directive_trivia
   | end_if_directive_trivia
   | end_region_directive_trivia
   | error_directive_trivia
+  | ignored_directive_trivia
   | line_or_span_directive_trivia
   | load_directive_trivia
   | nullable_directive_trivia
@@ -1336,6 +1342,10 @@ end_region_directive_trivia
 
 error_directive_trivia
   : '#' 'error'
+  ;
+
+ignored_directive_trivia
+  : '#' ':' string_literal_token?
   ;
 
 line_or_span_directive_trivia

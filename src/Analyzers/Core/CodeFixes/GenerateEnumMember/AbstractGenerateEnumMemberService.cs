@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,14 +18,16 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
     where TExpressionSyntax : SyntaxNode
 {
     protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
-    protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
+    protected abstract bool TryInitializeIdentifierNameState(
+        SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken,
+        out SyntaxToken identifierToken, [NotNullWhen(true)] out TExpressionSyntax? simpleNameOrMemberAccessExpression);
 
     public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
         {
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var state = State.Generate((TService)this, semanticDocument, node, cancellationToken);
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
                 return [];

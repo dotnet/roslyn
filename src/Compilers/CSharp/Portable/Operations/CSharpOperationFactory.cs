@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TypeOrValueExpression:
                 case BoundKind.KeyValuePairElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                 case BoundKind.CollectionExpressionWithElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
-                case BoundKind.KeyValuePairExpressionElement: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
+                case BoundKind.KeyValuePairConversion: // https://github.com/dotnet/roslyn/issues/77872: Implement IOperation support.
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -1267,7 +1267,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 BoundCollectionExpressionWithElement withElement => Create(withElement),
                 BoundCollectionExpressionSpreadElement spreadElement => CreateBoundCollectionExpressionSpreadElement(expr, spreadElement),
                 BoundKeyValuePairElement keyValuePairElement => Create(keyValuePairElement),
-                BoundKeyValuePairExpressionElement keyValuePairExpressionElement => Create(keyValuePairExpressionElement),
+                BoundKeyValuePairConversion keyValuePairConversion => Create(keyValuePairConversion),
                 _ => Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false))
             };
         }
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = element.WasCompilerGenerated;
             var elementType = element.EnumeratorInfoOpt?.ElementType.GetPublicSymbol();
             // https://github.com/dotnet/roslyn/issues/77872: For key-value pairs, we probably need a pair of conversions rather a single conversion.
-            var elementConversion = (expr.CollectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.DictionaryInterface) ?
+            var elementConversion = iteratorItem is BoundKeyValuePairConversion or BoundConversion { Operand: BoundKeyValuePairConversion } ?
                 Conversion.Identity :
                 BoundNode.GetConversion(iteratorItem, element.ElementPlaceholder);
             return new SpreadOperation(

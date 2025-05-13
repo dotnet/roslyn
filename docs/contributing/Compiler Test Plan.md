@@ -80,6 +80,7 @@ This document provides guidance for thinking about language interactions and tes
 - Readonly members on structs (methods, property/indexer accessors, custom event accessors)
 - SkipLocalsInit
 - Method override or explicit implementation with `where T : { class, struct, default }`
+- `extension` blocks
  
 # Code
 - Operators (see Eric's list below)
@@ -174,7 +175,13 @@ M();
 ++x; 
 x++; 
 --x; 
-x--; 
+x--;
+a?.M(); // conditional access / null-propagating operator
+a?[b] = c;
+a?.b = c;
+a?[b] = c;
+a?.b += c; // and other compound assignment cases
+var x = a?.M(); // similar "value is used" versions of the above '?.' cases
 new C(); 
 if (…) … else … 
 switch(…) { … case (…) when (…): … } 

@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.14</remarks>
-internal class DeclarationClientCapabilities : DynamicRegistrationSetting
+internal sealed class DeclarationClientCapabilities : DynamicRegistrationSetting
 {
     /// <summary>
     /// Whether the client supports supports additional metadata in the form of <see cref="LocationLink"/> definition links

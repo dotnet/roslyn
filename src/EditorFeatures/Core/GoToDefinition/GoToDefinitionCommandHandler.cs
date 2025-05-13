@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class GoToDefinitionCommandHandler(
+internal sealed class GoToDefinitionCommandHandler(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>

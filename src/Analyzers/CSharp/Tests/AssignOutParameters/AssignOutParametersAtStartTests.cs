@@ -21,7 +21,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 /// such.
 /// </summary>
 [Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
-public class AssignOutParametersAtStartTests
+public sealed class AssignOutParametersAtStartTests
 {
     [Fact]
     public async Task TestForSimpleReturn()

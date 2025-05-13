@@ -18,7 +18,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 [TestService]
-internal partial class WorkaroundsInProcess
+internal sealed partial class WorkaroundsInProcess
 {
     public async Task RemoveConflictingKeyBindingsAsync(CancellationToken cancellationToken)
     {

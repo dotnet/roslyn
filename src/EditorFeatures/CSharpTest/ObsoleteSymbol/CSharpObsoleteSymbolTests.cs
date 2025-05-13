@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ObsoleteSymbol;
 
-public class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
+public sealed class CSharpObsoleteSymbolTests : AbstractObsoleteSymbolTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string markup)
         => EditorTestWorkspace.CreateCSharp(markup);

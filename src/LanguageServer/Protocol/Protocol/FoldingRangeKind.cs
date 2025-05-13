@@ -2,35 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System.ComponentModel;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Value representing various folding range kinds.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeKind">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+/// <remarks>Since LSP 3.17</remarks>
+[JsonConverter(typeof(StringEnumConverter<FoldingRangeKind>))]
+[TypeConverter(typeof(StringEnumConverter<FoldingRangeKind>.TypeConverter))]
+internal readonly record struct FoldingRangeKind(string Value) : IStringEnum
 {
-    using System.ComponentModel;
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// Comment folding range.
+    /// </summary>
+    public static readonly FoldingRangeKind Comment = new("comment");
 
     /// <summary>
-    /// Value representing various folding range kinds.
-    /// <para>
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeKind">Language Server Protocol specification</see> for additional information.
-    /// </para>
+    /// Imports folding range.
     /// </summary>
-    /// <remarks>Since LSP 3.17</remarks>
-    [JsonConverter(typeof(StringEnumConverter<FoldingRangeKind>))]
-    [TypeConverter(typeof(StringEnumConverter<FoldingRangeKind>.TypeConverter))]
-    internal readonly record struct FoldingRangeKind(string Value) : IStringEnum
-    {
-        /// <summary>
-        /// Comment folding range.
-        /// </summary>
-        public static readonly FoldingRangeKind Comment = new("comment");
+    public static readonly FoldingRangeKind Imports = new("imports");
 
-        /// <summary>
-        /// Imports folding range.
-        /// </summary>
-        public static readonly FoldingRangeKind Imports = new("imports");
-
-        /// <summary>
-        /// Region folding range.
-        /// </summary>
-        public static readonly FoldingRangeKind Region = new("region");
-    }
+    /// <summary>
+    /// Region folding range.
+    /// </summary>
+    public static readonly FoldingRangeKind Region = new("region");
 }

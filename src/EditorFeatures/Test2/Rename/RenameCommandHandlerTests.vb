@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Commanding
@@ -216,50 +217,6 @@ End Class
                 session.Cancel()
             End Using
         End Sub
-
-        <WpfTheory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Async Function TypingTabDuringRename(host As RenameTestHost) As Task
-            Using workspace = CreateWorkspaceWithWaiter(
-                <Workspace>
-                    <Project Language="C#" CommonReferences="true">
-                        <Document>
-                                class $$Goo
-                                {
-                                    Goo f;
-                                }
-                            </Document>
-                    </Project>
-                </Workspace>, host)
-
-                ' This test specifically matters for the case where a user is typing in the editor
-                ' and is not intended to test the rename flyout tab behavior
-                Dim optionsService = workspace.GetService(Of IGlobalOptionService)()
-                optionsService.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, False)
-
-                Dim view = workspace.Documents.Single().GetTextView()
-                view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
-
-                Dim commandHandler = CreateCommandHandler(workspace)
-
-                Dim session = StartSession(workspace)
-
-                ' TODO: should we make tab wait instead?
-                Await WaitForRename(workspace)
-
-                ' Unfocus the dashboard
-                Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, RenameDashboard)
-                dashboard.ShouldReceiveKeyboardNavigation = False
-
-                commandHandler.ExecuteCommand(New TabKeyCommandArgs(view, view.TextBuffer),
-                                              Sub() AssertEx.Fail("Tab should not have been passed to the editor."),
-                                              Utilities.TestCommandExecutionContext.Create())
-
-                Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLineNumber())
-
-                session.Cancel()
-            End Using
-        End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1043,6 +1000,9 @@ partial class [|Program|]
                     </Project>
                 </Workspace>, host)
 
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, False)
+
                 Dim view = workspace.Documents.Single().GetTextView()
 
                 Dim commandHandler = CreateCommandHandler(workspace)
@@ -1167,7 +1127,10 @@ partial class [|Program|]
                 End Sub)
         End Sub
 
-        Private Shared Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifyCommandCommitsRenameSessionAndExecutesCommand(
+                host As RenameTestHost,
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action),
+                Optional commitAsynchronously As Boolean = False)
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1180,6 +1143,9 @@ class [|C$$|]
                         </Document>
                     </Project>
                 </Workspace>, host)
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, commitAsynchronously)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
@@ -1241,7 +1207,10 @@ class [|C$$|]
             End Using
         End Function
 
-        Private Shared Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action))
+        Private Shared Sub VerifySessionCommittedAfterCutPasteOutsideIdentifier(
+                host As RenameTestHost,
+                executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action),
+                Optional commitAsynchronously As Boolean = False)
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1254,6 +1223,9 @@ class [|C$$|]
                         </Document>
                         </Project>
                     </Workspace>, host)
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, commitAsynchronously)
 
                 Dim view = workspace.Documents.Single().GetTextView()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))

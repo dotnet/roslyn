@@ -4,14 +4,13 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Text.Shared.Extensions;
+
+internal static class SnapshotPointExtensions
 {
-    internal static class SnapshotPointExtensions
+    public static void Deconstruct(this SnapshotPoint snapshotPoint, out ITextSnapshot snapshot, out int position)
     {
-        public static void Deconstruct(this SnapshotPoint snapshotPoint, out ITextSnapshot snapshot, out int position)
-        {
-            snapshot = snapshotPoint.Snapshot;
-            position = snapshotPoint.Position;
-        }
+        snapshot = snapshotPoint.Snapshot;
+        position = snapshotPoint.Position;
     }
 }

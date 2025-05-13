@@ -48,7 +48,7 @@ internal interface INavigableItem
 
     ImmutableArray<INavigableItem> ChildItems { get; }
 
-    public record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, SourceGeneratedDocumentIdentity? SourceGeneratedDocumentIdentity, Workspace? Workspace)
+    public sealed record NavigableDocument(NavigableProject Project, string Name, string? FilePath, IReadOnlyList<string> Folders, DocumentId Id, SourceGeneratedDocumentIdentity? SourceGeneratedDocumentIdentity, Workspace? Workspace)
     {
         public static NavigableDocument FromDocument(Document document)
             => new(

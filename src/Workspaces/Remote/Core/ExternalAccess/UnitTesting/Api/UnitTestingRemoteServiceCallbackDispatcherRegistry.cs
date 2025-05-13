@@ -7,20 +7,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal sealed class UnitTestingRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
 {
-    internal sealed class UnitTestingRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
+    public static readonly UnitTestingRemoteServiceCallbackDispatcherRegistry Empty = new([]);
+
+    private readonly ImmutableDictionary<Type, UnitTestingRemoteServiceCallbackDispatcher> _lazyDispatchers;
+
+    public UnitTestingRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, UnitTestingRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
     {
-        public static readonly UnitTestingRemoteServiceCallbackDispatcherRegistry Empty = new([]);
-
-        private readonly ImmutableDictionary<Type, UnitTestingRemoteServiceCallbackDispatcher> _lazyDispatchers;
-
-        public UnitTestingRemoteServiceCallbackDispatcherRegistry(IEnumerable<(Type serviceType, UnitTestingRemoteServiceCallbackDispatcher dispatcher)> lazyDispatchers)
-        {
-            _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
-        }
-
-        IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
-            => _lazyDispatchers[serviceType];
+        _lazyDispatchers = lazyDispatchers.ToImmutableDictionary(e => e.serviceType, e => e.dispatcher);
     }
+
+    IRemoteServiceCallbackDispatcher IRemoteServiceCallbackDispatcherProvider.GetDispatcher(Type serviceType)
+        => _lazyDispatchers[serviceType];
 }

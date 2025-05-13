@@ -31,7 +31,7 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
     private readonly IBufferGraphFactoryService _bufferGraphFactoryService;
     private readonly bool _isImmediateWindow;
 
-    private class ImmediateWindowContext
+    private sealed class ImmediateWindowContext
     {
         public int CurrentLineIndex = -1;
         public int QuestionIndex = -2;

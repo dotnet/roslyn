@@ -23,9 +23,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences;
 
 [UseExportProvider]
-public class FindReferencesCommandHandlerTests
+public sealed class FindReferencesCommandHandlerTests
 {
-    private class MockFindUsagesContext : FindUsagesContext
+    private sealed class MockFindUsagesContext : FindUsagesContext
     {
         public readonly List<DefinitionItem> Result = [];
 
@@ -40,7 +40,7 @@ public class FindReferencesCommandHandlerTests
         }
     }
 
-    private class MockStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
+    private sealed class MockStreamingFindUsagesPresenter : IStreamingFindUsagesPresenter
     {
         private readonly FindUsagesContext _context;
 
