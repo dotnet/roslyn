@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <summary>
 /// Soon this will be replaced invoke dotnet run-api command implemented in https://github.com/dotnet/sdk/pull/48749
 /// </summary>
-internal static class VirtualProject
+internal static class VirtualCSharpFileBasedProgramProject
 {
     /// <summary>
     /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
