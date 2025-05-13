@@ -204,15 +204,15 @@ public class D
     }
 }
                                                           ]]></Document>
-                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+                                                          <Document FilePath="Test.razor.g.cs">
 public class Component
 {
-#line 4 "Test.razor"
+#line 4 "<%= Path.Combine(TestWorkspace.RootDirectory, "Test.razor") %>"
     public void M()
     {
     }
 }
-                                                          ]]></Document>
+                                                          </Document>
                                                       </Project>
                                                   </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)

@@ -5,8 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.SyncNamespaces
 
@@ -19,13 +17,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
         Public Async Function SingleProject_MatchingNamespace_NoChanges() As Task
             Dim test =
 <Workspace>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test/Test.csproj">
-        <AnalyzerConfigDocument FilePath="/Test/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test/Test.csproj">
+        <AnalyzerConfigDocument FilePath="Test/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test") %>
 build_property.RootNamespace = Test.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test/App/Test.cs">
+        <Document FilePath="Test/App/Test.cs">
 namespace Test.Namespace.App
 {
     class Goo
@@ -54,13 +52,13 @@ namespace Test.Namespace.App
         Public Async Function SingleProject_MismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test/Test.csproj">
-        <AnalyzerConfigDocument FilePath="/Test/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test/Test.csproj">
+        <AnalyzerConfigDocument FilePath="Test/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test") %>
 build_property.RootNamespace = Test.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test/App/Test.cs">
+        <Document FilePath="Test/App/Test.cs">
 namespace Test
 {
     class Goo
@@ -97,13 +95,13 @@ namespace Test
         Public Async Function MultipleProjects_MatchingNamespaces_NoChanges() As Task
             Dim test =
 <Workspace>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test/Test.csproj">
-        <AnalyzerConfigDocument FilePath="/Test/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test/Test.csproj">
+        <AnalyzerConfigDocument FilePath="Test/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test") %>
 build_property.RootNamespace = Test.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test/App/Test.cs">
+        <Document FilePath="Test/App/Test.cs">
 namespace Test.Namespace.App
 {
     class Goo
@@ -112,13 +110,13 @@ namespace Test.Namespace.App
 }
 </Document>
     </Project>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test2/Test2.csproj">
-        <AnalyzerConfigDocument FilePath="/Test2/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test2/Test2.csproj">
+        <AnalyzerConfigDocument FilePath="Test2/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test2/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test2") %>
 build_property.RootNamespace = Test2.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test2/App/Test2.cs">
+        <Document FilePath="Test2/App/Test2.cs">
 namespace Test2.Namespace.App
 {
     class Goo
@@ -147,13 +145,13 @@ namespace Test2.Namespace.App
         Public Async Function MultipleProjects_OneMismatchedNamespace_HasChanges() As Task
             Dim test =
 <Workspace>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test/Test.csproj">
-        <AnalyzerConfigDocument FilePath="/Test/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test/Test.csproj">
+        <AnalyzerConfigDocument FilePath="Test/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test") %>
 build_property.RootNamespace = Test.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test/App/Test.cs">
+        <Document FilePath="Test/App/Test.cs">
 namespace Test.Namespace
 {
     class Goo
@@ -162,13 +160,13 @@ namespace Test.Namespace
 }
 </Document>
     </Project>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test2/Test2.csproj">
-        <AnalyzerConfigDocument FilePath="/Test2/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test2/Test2.csproj">
+        <AnalyzerConfigDocument FilePath="Test2/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test2/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test2") %>
 build_property.RootNamespace = Test2.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test2/App/Test2.cs">
+        <Document FilePath="Test2/App/Test2.cs">
 namespace Test2.Namespace.App
 {
     class Goo
@@ -183,7 +181,7 @@ namespace Test2.Namespace.App
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects.Single(Function(proj As Project)
-                                                  Return proj.FilePath = "/Test/Test.csproj"
+                                                  Return Path.GetFileName(proj.FilePath) = "Test.csproj"
                                               End Function)
 
                 Dim document = project.Documents.Single()

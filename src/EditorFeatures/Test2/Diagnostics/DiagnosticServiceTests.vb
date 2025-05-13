@@ -554,11 +554,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
-                solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
+                Dim document = solution.GetDocument(documentId)
+                solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader(document.FilePath), PreservationMode.PreserveIdentity)
                 Await workspace.ChangeSolutionAsync(solution)
 
-                Dim project = solution.Projects.Single()
-                Dim document = project.Documents.Single()
+                document = solution.GetDocument(documentId)
+                Dim project = document.Project
 
                 ' analyzer throws an exception
                 Dim analyzer = New CodeBlockStartedAnalyzer(Of Microsoft.CodeAnalysis.CSharp.SyntaxKind)
@@ -572,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, span).ConfigureAwait(False)
                 Assert.Equal(1, diagnostics.Length)
                 Assert.True(diagnostics(0).Id = "IDE1100")
-                Assert.Equal(String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, "Test.cs", "Bad data!"), diagnostics(0).Message)
+                Assert.Equal(String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, document.FilePath, "Bad data!"), diagnostics(0).Message)
             End Using
         End Function
 
@@ -894,11 +895,13 @@ class AnonymousFunctions
             Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim solution = workspace.CurrentSolution
                 Dim documentId = solution.Projects.Single().DocumentIds.Single()
-                solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader("Test.cs"), PreservationMode.PreserveIdentity)
+                Dim document = solution.GetDocument(documentId)
+
+                solution = solution.WithDocumentTextLoader(documentId, New FailingTextLoader(document.FilePath), PreservationMode.PreserveIdentity)
                 Await workspace.ChangeSolutionAsync(solution)
 
-                Dim project = solution.Projects.Single()
-                Dim document = project.Documents.Single()
+                document = solution.GetDocument(documentId)
+                Dim project = document.Project
 
                 Dim analyzer = New StatefulCompilationAnalyzer
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
@@ -916,7 +919,7 @@ class AnonymousFunctions
                 Dim documentDiagnostics = Await DiagnosticProviderTestUtilities.GetDocumentDiagnosticsAsync(workspace, document, TextSpan.FromBounds(0, 0))
                 AssertEx.Equal(
                 {
-                    "IDE1100: " & String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, "Test.cs", "Bad data!")
+                    "IDE1100: " & String.Format(WorkspacesResources.Error_reading_content_of_source_file_0_1, document.FilePath, "Bad data!")
                 }, documentDiagnostics.Select(Function(d) d.Id & ": " & d.GetMessage()))
 
             End Using
