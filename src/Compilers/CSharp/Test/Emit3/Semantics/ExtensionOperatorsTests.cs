@@ -1817,6 +1817,615 @@ class Program
 
         [Theory]
         [CombinatorialData]
+        public void Unary_035_Consumption_True(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        if (s1)
+        {}
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.IfStatementSyntax>().First().Condition;
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("s1", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(
+                // (6,13): error CS0029: Cannot implicitly convert type 'S1' to 'bool'
+                //         if (s1)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1", "bool").WithLocation(6, 13)
+                );
+
+            var src3 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        Extensions1.op_True(s1);
+    }
+}
+""";
+            var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var src4 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.op_True();
+        S1.op_True(s1);
+    }
+}
+""";
+            var comp4 = CreateCompilation(src4, references: [comp1Ref]);
+            comp4.VerifyDiagnostics(
+                // (6,12): error CS1061: 'S1' does not contain a definition for 'op_True' and no accessible extension method 'op_True' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         s1.op_True();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "op_True").WithArguments("S1", "op_True").WithLocation(6, 12),
+                // (7,12): error CS0117: 'S1' does not contain a definition for 'op_True'
+                //         S1.op_True(s1);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "op_True").WithArguments("S1", "op_True").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void Unary_036_Consumption_True_ConversionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static bool operator true(S2 x) => throw null;
+        public static bool operator false(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static implicit operator bool(S2 x)
+    {
+        System.Console.Write("operator2");
+        return true;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        if(s2)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_037_Consumption_True_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static bool operator true(S2 x) => throw null;
+        public static bool operator false(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static bool operator true(S2 x)
+    {
+        System.Console.Write("operator2");
+        return true;
+    }
+    public static bool operator false(S2 x) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        if(s2)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_038_Consumption_True_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static bool operator true(S1 x) => throw null;
+        public static bool operator false(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(S1)
+        {
+            public static bool operator true(S1 x)
+            {
+                System.Console.Write("operator1");
+                return true;
+            }
+            public static bool operator false(S1 x) => throw null;
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(S2)
+            {
+                public static bool operator true(S2 x) => throw null;
+                public static bool operator false(S2 x) => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                if(s1)
+                {}
+            }
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_039_Consumption_True_NonExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1
+{
+    public static bool operator true(I1 x) => true;
+    public static bool operator false(I1 x) => false;
+}
+
+public interface I3
+{
+    public static bool operator true(I3 x) => true;
+    public static bool operator false(I3 x) => false;
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+
+public static class Extensions1
+{
+    extension(I2)
+    {
+        public static bool operator true(I2 x) => true;
+        public static bool operator false(I2 x) => false;
+    }
+}
+
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        if(x)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (35,12): error CS0029: Cannot implicitly convert type 'I2' to 'bool'
+                //         if(x)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I2", "bool").WithLocation(35, 12)
+                );
+        }
+
+        [Fact]
+        public void Unary_040_Consumption_True_ExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1;
+public interface I3;
+public interface I4 : I1, I3;
+public interface I2 : I4;
+
+public static class Extensions1
+{
+    extension(I2)
+    {
+        public static bool operator true(I2 x) => true;
+        public static bool operator false(I2 x) => false;
+    }
+}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(I1)
+        {
+            public static bool operator true(I1 x) => true;
+            public static bool operator false(I1 x) => false;
+        }
+
+        extension(I3)
+        {
+            public static bool operator true(I3 x) => true;
+            public static bool operator false(I3 x) => false;
+        }
+    }
+
+    class Test2 : I2
+    {
+        static void Main()
+        {
+            I2 x = new Test2();
+            if(x)
+            {}
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // (37,16): error CS0029: Cannot implicitly convert type 'I2' to 'bool'
+                //             if(x)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I2", "bool").WithLocation(37, 16)
+                );
+        }
+
+        [Fact]
+        public void Unary_041_Consumption_True_NoLiftedForm()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        if (s1)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,13): error CS0029: Cannot implicitly convert type 'S1?' to 'bool'
+                //         if (s1)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "bool").WithLocation(22, 13)
+                );
+        }
+
+        [Fact]
+        public void Unary_042_Consumption_True_ExtendedTypeIsNullable()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1?)
+    {
+        public static bool operator true(S1? x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1? x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        if (s1)
+        {}
+        Extensions1.op_True(s1);
+
+        S1? s2 = new S1();
+        if (s2)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (22,13): error CS0029: Cannot implicitly convert type 'S1' to 'bool'
+                //         if (s1)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1", "bool").WithLocation(22, 13)
+                );
+        }
+
+        [Fact]
+        public void Unary_043_Consumption_True()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static bool operator true(S1? x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1? x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        if (s1)
+        {}
+        S1 s2 = new S1();
+        if (s2)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
+            //            One can consume them only on the receiver type, not on nullable of receiver type.
+            //            Should we disallow declarations like that?
+            comp.VerifyDiagnostics(
+                // (22,13): error CS0029: Cannot implicitly convert type 'S1?' to 'bool'
+                //         if (s1)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "bool").WithLocation(22, 13)
+                );
+        }
+
+        [Fact]
+        public void Unary_044_Consumption_True_OnObject()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static bool operator true(object x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(object x) => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+        if (s1)
+        {}
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_045_Consumption_True_NotOnDynamic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static bool operator true(object x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(object x) => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        dynamic s1 = new object();
+        try
+        {
+            if (s1)
+            {}
+        }
+        catch
+        {
+            System.Console.Write("exception");
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "exception").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_035_Consumption_TupleComparison(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static bool operator true(S1 x) => throw null;
+        public static bool operator false(S1 x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+    }
+}
+
+public struct S1
+{
+    public static S1 operator ==(S1 x, S1 y)
+    {
+        return x;
+    }
+    public static S1 operator !=(S1 x, S1 y) => throw null;
+
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        if ((s1, 1) == (s1, 1))
+        {}
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(
+                // (6,13): error CS0029: Cannot implicitly convert type 'S1' to 'bool'
+                //         if ((s1, 1) == (s1, 1))
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(s1, 1) == (s1, 1)").WithArguments("S1", "bool").WithLocation(6, 13)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Increment_001_Declaration([CombinatorialValues("++", "--")] string op)
         {
             var src = $$$"""
@@ -3499,4 +4108,4 @@ struct S1
     }
 }
 
-// PROTOTYPE: Test unsafe and partial
+// PROTOTYPE: Test unsafe and partial, IOperation, Linq expression tree
