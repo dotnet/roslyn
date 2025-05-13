@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 /// <summary>
-/// Soon this will be replaced invoke dotnet run-api command implemented in https://github.com/dotnet/sdk/pull/48749
+/// This will be replaced invoke dotnet run-api command implemented in https://github.com/dotnet/sdk/pull/48749
 /// </summary>
 internal static class VirtualCSharpFileBasedProgramProject
 {
