@@ -78,16 +78,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
         Contract.ThrowIfNull(primordialDoc.FilePath);
 
-        if (uri.ParsedUri?.IsFile is true
+        var doDesignTimeBuild = uri.ParsedUri?.IsFile is true
             && primordialDoc.Project.Language == LanguageNames.CSharp
-            && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
-        {
-            await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id);
-        }
-        else
-        {
-            await TrackPrimordialOnlyProjectAsync(primordialDoc.FilePath, primordialDoc.Project.Id);
-        }
+            && GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+        await BeginLoadingProjectWithPrimordialAsync(primordialDoc.FilePath, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
 
         return primordialDoc;
 
@@ -103,10 +97,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             var sourceTextLoader = new SourceTextLoader(documentText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 workspace, documentFilePath, sourceTextLoader, languageInformation, documentText.ChecksumAlgorithm, workspace.Services.SolutionServices, []);
-
-            // Ensure that syntax errors for `#:` directives are not reported on the primordial project.
-            Contract.ThrowIfNull(projectInfo.ParseOptions);
-            projectInfo = projectInfo.WithParseOptions(projectInfo.ParseOptions.WithFeatures([new("FileBasedProgram", "true")]));
 
             ProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
 

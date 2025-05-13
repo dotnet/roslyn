@@ -365,32 +365,25 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask TrackPrimordialOnlyProjectAsync(string projectPath, ProjectId primordialProjectId)
-    {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
-        {
-            // If project is already tracked, no need to do any further work.
-            if (_loadedProjects.ContainsKey(projectPath))
-            {
-                return;
-            }
-
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectId));
-        }
-    }
-
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectId primordialProjectId)
+    /// <param name="doDesignTimeBuild">
+    /// If <see langword="true"/>, initiates a design-time build now, and starts file watchers to repeat the design-time build on relevant changes.
+    /// If <see langword="false"/>, only tracks the primordial project.
+    /// </param>
+    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectId primordialProjectId, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
             // If project has already begun loading, no need to do any further work.
             if (_loadedProjects.ContainsKey(projectPath))
             {
-                return;
+                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
             }
 
             _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectId));
-            _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+            if (doDesignTimeBuild)
+            {
+                _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+            }
         }
     }
 
