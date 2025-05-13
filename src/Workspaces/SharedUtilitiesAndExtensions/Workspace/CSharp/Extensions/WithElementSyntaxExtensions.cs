@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -36,26 +37,43 @@ internal static class WithElementSyntaxExtensions
         ImmutableArray<IMethodSymbol>? TryGetInterfaceItems()
         {
             // When the type is IList<T> or ICollection<T>, we can provide a signature help item for the `(int capacity)`
-            // constructor of List<T>, as that's what the compiler will call into.
+            // constructor of List<T>, as that's what the compiler will call into.  When the type is IDictionary<,> we
+            // provide signature help for the overloads of Dictionary<,> that take a capacity or IEqualityComparer.
 
             var ilistOfTType = semanticModel.Compilation.IListOfTType();
             var icollectionOfTType = semanticModel.Compilation.ICollectionOfTType();
+            var idictionaryOfTKeyTValueType = semanticModel.Compilation.IDictionaryOfTKeyTValueType();
 
-            if (!Equals(ilistOfTType, collectionExpressionType.OriginalDefinition) &&
-                !Equals(icollectionOfTType, collectionExpressionType.OriginalDefinition))
+            if (Equals(ilistOfTType, collectionExpressionType.OriginalDefinition) ||
+                Equals(icollectionOfTType, collectionExpressionType.OriginalDefinition))
+            {
+                var listOfTType = semanticModel.Compilation.ListOfTType();
+                if (listOfTType is not null)
+                {
+                    var constructedListType = listOfTType.Construct([.. collectionExpressionType.TypeArguments]);
+                    return constructedListType.InstanceConstructors.WhereAsArray(
+                        c => c.Parameters.Any(p => p.Name is "capacity"));
+                }
+
+                return [];
+            }
+            else if (Equals(idictionaryOfTKeyTValueType, collectionExpressionType.OriginalDefinition))
+            {
+                var dictionaryOfTKeyTValueType = semanticModel.Compilation.DictionaryOfTKeyTValueType();
+                if (dictionaryOfTKeyTValueType is not null)
+                {
+                    var constructedDictionaryType = dictionaryOfTKeyTValueType.Construct([.. collectionExpressionType.TypeArguments]);
+                    return constructedDictionaryType.InstanceConstructors.WhereAsArray(
+                        c => c.Parameters.Any(p => p.Name is "capacity" or "comparer"));
+
+                }
+
+                return [];
+            }
+            else
             {
                 return null;
             }
-
-            var listOfTType = semanticModel.Compilation.ListOfTType();
-            if (listOfTType is null)
-                return [];
-
-            var constructedListType = listOfTType.Construct(collectionExpressionType.TypeArguments.Single());
-            var constructor = constructedListType.InstanceConstructors.FirstOrDefault(
-                static m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32, Name: "capacity" }]);
-
-            return constructor is null ? [] : [constructor];
         }
 
         ImmutableArray<IMethodSymbol>? TryGetCollectionBuilderItems()
@@ -72,13 +90,9 @@ internal static class WithElementSyntaxExtensions
             {
                 // Create a synthesized method with the ReadOnlySpan<T> parameter removed.  This corresponds to the parameters
                 // that actually have to be passed to the with element.
-                var slicedParameters = Equals(constructedMethod.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType)
-                    ? constructedMethod.Parameters[1..]
-                    : constructedMethod.Parameters[..^1];
-
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     constructedMethod,
-                    parameters: slicedParameters,
+                    parameters: constructedMethod.Parameters[..^1],
                     containingType: constructedMethod.ContainingType);
             });
         }

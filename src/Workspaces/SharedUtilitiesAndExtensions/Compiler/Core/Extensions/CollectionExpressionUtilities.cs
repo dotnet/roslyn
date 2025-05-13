@@ -149,10 +149,9 @@ internal static class CollectionExpressionUtilities
                 m.IsStatic &&
                 // The arity of the method must match the arity of the collection type.
                 m.Arity == collectionExpressionType.Arity &&
-                m.Parameters.Length >= 1 &&
-                // The method must have a first (or last) parameter of type System.ReadOnlySpan<E>, passed by value.
-                (Equals(m.Parameters[0].Type.OriginalDefinition, readonlySpanOfTType) ||
-                 Equals(m.Parameters.Last().Type.OriginalDefinition, readonlySpanOfTType)))
+                m.Parameters is [.., var lastParameter] &&
+                // The method must have a last parameter of type System.ReadOnlySpan<E>, passed by value.
+                Equals(lastParameter.Type.OriginalDefinition, readonlySpanOfTType))
             .ToImmutableArray();
 
         // Instance the construction method if generic. And filter to only those that return the collection type
