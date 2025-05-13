@@ -109,7 +109,7 @@ public class IntermediateTokenAnalyzer : DiagnosticAnalyzer
             var baselineDirectory = Path.GetDirectoryName(baselineFile.Path);
             var locationFilePath = location.SourceTree?.FilePath;
 
-            var relativePath = locationFilePath?.Substring(baselineDirectory?.Length + 1 ?? 0);
+            var relativePath = locationFilePath?.Substring(baselineDirectory?.Length + 1 ?? 0).Replace("\\", "/");
             var linePosition = location.GetLineSpan().StartLinePosition;
             var locationString = $"{relativePath}:{linePosition.Line + 1}:{linePosition.Character + 1}";
 
