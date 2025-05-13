@@ -335,7 +335,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             if (document.IsSourceGenerated)
                 continue;
 
-            solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
+            Assert.True(PathUtilities.IsAbsolute(document.FilePath));
 
             var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
             solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8, SourceHashAlgorithms.Default));
@@ -344,7 +344,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         foreach (var project in workspace.Projects)
         {
             // Ensure all the projects have a valid file path.
-            solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
+            Assert.True(PathUtilities.IsAbsolute(project.FilePath));
         }
 
         var analyzerReferencesByLanguage = CreateTestAnalyzersReference();
@@ -495,9 +495,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Range = new LSP.Range { Start = newPosition, End = newPosition }
         };
     }
-
-    private static string GetDocumentFilePathFromName(string documentName)
-        => "C:\\" + documentName;
 
     private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
         DocumentUri documentUri,

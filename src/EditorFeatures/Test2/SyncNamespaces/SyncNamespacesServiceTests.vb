@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -207,13 +208,13 @@ namespace Test2.Namespace.App
         Public Async Function MultipleProjects_MultipleMismatchedNamespaces_HasChanges() As Task
             Dim test =
 <Workspace>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test/Test.csproj">
-        <AnalyzerConfigDocument FilePath="/Test/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test/Test.csproj">
+        <AnalyzerConfigDocument FilePath="Test/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test") %>
 build_property.RootNamespace = Test.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test/App/Test.cs">
+        <Document FilePath="Test/App/Test.cs">
 namespace Test.Namespace
 {
     class Goo
@@ -222,13 +223,13 @@ namespace Test.Namespace
 }
 </Document>
     </Project>
-    <Project Language="C#" CommonReferences="true" FilePath="/Test2/Test2.csproj">
-        <AnalyzerConfigDocument FilePath="/Test2/.editorconfig">
+    <Project Language="C#" CommonReferences="true" FilePath="Test2/Test2.csproj">
+        <AnalyzerConfigDocument FilePath="Test2/.editorconfig">
 is_global=true
-build_property.ProjectDir = /Test2/
+build_property.ProjectDir = <%= Path.Combine(TestWorkspace.RootDirectory, "Test2") %>
 build_property.RootNamespace = Test2.Namespace
         </AnalyzerConfigDocument>
-        <Document FilePath="/Test2/App/Test2.cs">
+        <Document FilePath="Test2/App/Test2.cs">
 namespace Test2.Namespace
 {
     class Goo
@@ -243,12 +244,12 @@ namespace Test2.Namespace
 
                 Dim projects = workspace.CurrentSolution.Projects.ToImmutableArray()
                 Dim project = projects.Single(Function(proj As Project)
-                                                  Return proj.FilePath = "/Test/Test.csproj"
+                                                  Return Path.GetFileName(proj.FilePath) = "Test.csproj"
                                               End Function)
                 Dim document = project.Documents.Single()
 
                 Dim project2 = projects.Single(Function(proj As Project)
-                                                   Return proj.FilePath = "/Test2/Test2.csproj"
+                                                   Return Path.GetFileName(proj.FilePath) = "Test2.csproj"
                                                End Function)
                 Dim document2 = project2.Documents.Single()
 

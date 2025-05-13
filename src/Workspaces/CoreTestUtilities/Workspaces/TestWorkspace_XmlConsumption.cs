@@ -148,7 +148,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
 
         if (projectFilePath != null)
         {
-            projectFilePath = PathUtilities.CombinePaths(TempRoot.Root, projectFilePath);
+            projectFilePath = PathUtilities.CombinePaths(TestWorkspace.RootDirectory, projectFilePath);
         }
 
         var projectOutputDir = AbstractTestHostProject.GetTestOutputDirectory(projectFilePath);
@@ -672,7 +672,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             AssertEx.Fail($"The document attributes on file {fileName} conflicted");
         }
 
-        var filePath = Path.Combine(TempRoot.Root, fileName);
+        var filePath = Path.Combine(TestWorkspace.RootDirectory, fileName);
 
         return CreateDocument(
             exportProvider, languageServiceProvider, code, fileName, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
