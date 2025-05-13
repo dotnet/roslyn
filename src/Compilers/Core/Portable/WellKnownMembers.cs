@@ -5205,6 +5205,37 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
+                // System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IEqualityComparer_T - WellKnownType.ExtSentinel),
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
+                // System_Collections_Generic_Dictionary_KV__ctor_Int32
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.GenericTypeInstance,
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IEqualityComparer_T - WellKnownType.ExtSentinel),
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Collections_Generic_Dictionary_KV__set_Item
                 (byte)MemberFlags.PropertySet,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_Dictionary_KV - WellKnownType.ExtSentinel),  // DeclaringTypeId
@@ -5875,6 +5906,9 @@ namespace Microsoft.CodeAnalysis
                 "get_UTF8",                                 // System_Text_Encoding__get_UTF8
                 "GetString",                                // System_Text_Encoding__GetString
                 ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor,
+                ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                ".ctor",                                    // System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
                 "set_Item",                                 // System_Collections_Generic_Dictionary_KV__set_Item
                 ".ctor",                                    // System_Collections_Generic_KeyValuePair_KV__ctor,
                 "get_Key",                                  // System_Collections_Generic_KeyValuePair_KV__get_Key

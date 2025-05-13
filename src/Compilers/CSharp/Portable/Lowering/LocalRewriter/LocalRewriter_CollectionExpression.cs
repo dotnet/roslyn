@@ -410,8 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
-            Debug.Assert(node.CollectionCreation is null);
             Debug.Assert(node.Placeholder is null);
+
+            if (node.CollectionCreation is not BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor } })
+            {
+                throw ExceptionUtilities.UnexpectedValue(node.CollectionCreation);
+            }
 
             var syntax = node.Syntax;
             var collectionType = (NamedTypeSymbol)node.Type;
@@ -424,6 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialType.System_Collections_Generic_IReadOnlyCollection_T or
                 SpecialType.System_Collections_Generic_IReadOnlyList_T)
             {
+                Debug.Assert((object)constructor.OriginalDefinition == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor));
+
                 int numberIncludingLastSpread;
                 bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
 
@@ -478,22 +484,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall(BoundCall node, NamedTypeSymbol collectionType)
+        {
+            Debug.Assert(!_inExpressionLambda);
+
+            if (node.Method is not CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor })
+            {
+                throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            constructor = constructor.AsMember(collectionType);
+
+            // var instance = new(args);
+            var syntax = node.Syntax;
+            ArrayBuilder<LocalSymbol>? tempsBuilder = null;
+            BoundExpression? rewrittenReceiver = null;
+            var argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            var rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
+                node.Arguments,
+                constructor,
+                node.ArgsToParamsOpt,
+                argumentRefKindsOpt,
+                storesOpt: null,
+                ref tempsBuilder);
+            rewrittenArguments = MakeArguments(
+                rewrittenArguments,
+                constructor,
+                expanded: node.Expanded,
+                node.ArgsToParamsOpt,
+                ref argumentRefKindsOpt,
+                ref tempsBuilder);
+            BoundExpression result = new BoundObjectCreationExpression(
+                syntax,
+                constructor,
+                rewrittenArguments,
+                argumentNamesOpt: default,
+                argumentRefKindsOpt,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                collectionType);
+            Debug.Assert(result.Type is { });
+            if (tempsBuilder is { })
+            {
+                result = new BoundSequence(
+                    syntax,
+                    tempsBuilder.ToImmutableAndFree(),
+                    sideEffects: [],
+                    result,
+                    result.Type);
+            }
+            return result;
+        }
+
         private BoundExpression VisitDictionaryInterfaceCollectionExpression(BoundCollectionExpression node)
         {
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(_factory.ModuleBuilderOpt is { });
             Debug.Assert(_diagnostics.DiagnosticBag is { });
             Debug.Assert(node.Type is NamedTypeSymbol);
-            Debug.Assert(node.CollectionCreation is null);
+            Debug.Assert(node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol });
             Debug.Assert(node.Placeholder is { });
 
             var interfaceType = (NamedTypeSymbol)node.Type;
             var typeArguments = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_Dictionary_KV).Construct(typeArguments);
 
-            // Dictionary<K, V> dictionary = new();
-            var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor)).AsMember(collectionType);
-            var rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+            // Dictionary<K, V> dictionary = new(args);
+            var rewrittenReceiver = VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall((BoundCall)node.CollectionCreation, collectionType);
             var collection = PopulateDictionary(node, collectionType, rewrittenReceiver);
 
             if ((object)interfaceType.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV))
@@ -1053,58 +1115,72 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
             int numberIncludingLastSpread;
-            bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
-            VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
-
             bool useOptimizations = false;
             MethodSymbol? setCount = null;
             MethodSymbol? asSpan = null;
-
-            // Do not use optimizations in async method since the optimizations require Span<T>.
-            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
-            {
-                setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
-                asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
-
-                if (setCount is { } && asSpan is { })
-                {
-                    useOptimizations = true;
-                }
-            }
+            BoundAssignmentOperator assignmentToTemp;
+            BoundExpression rewrittenReceiver;
 
             // Create a temp for the knownLength
-            BoundAssignmentOperator assignmentToTemp;
             BoundLocal? knownLengthTemp = null;
 
-            BoundObjectCreationExpression rewrittenReceiver;
-            if (useKnownLength && elements.Length > 0)
+            // If an explicit collection creation was generated in initial binding, and the collection
+            // creation does not use the parameterless List<T> constructor, use the collection
+            // creation as is. Otherwise, consider optimizations.
+            if (node.CollectionCreation is BoundCall { Method: CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var wellKnownConstructor } } &&
+                (object)wellKnownConstructor.OriginalDefinition != _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor))
             {
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+                numberIncludingLastSpread = 0;
 
-                if (useOptimizations)
-                {
-                    // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
-
-                    // int knownLengthTemp = N + s1.Length + ...;
-                    knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
-                    localsBuilder.Add(knownLengthTemp);
-                    sideEffects.Add(assignmentToTemp);
-
-                    // List<ElementType> list = new(knownLengthTemp);
-                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
-                }
-                else
-                {
-                    // List<ElementType> list = new(N + s1.Length + ...)
-                    rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
-                }
+                // List<ElementType> list = new(args);
+                rewrittenReceiver = VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall((BoundCall)node.CollectionCreation, collectionType);
             }
             else
             {
-                // List<ElementType> list = new();
-                var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
-                rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                bool useKnownLength = ShouldUseKnownLength(node, out numberIncludingLastSpread);
+                VisitAndRewriteCollectionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+
+                // Do not use optimizations in async method since the optimizations require Span<T>.
+                if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
+                {
+                    setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
+                    asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
+
+                    if (setCount is { } && asSpan is { })
+                    {
+                        useOptimizations = true;
+                    }
+                }
+
+                if (useKnownLength && elements.Length > 0)
+                {
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
+                    var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+
+                    if (useOptimizations)
+                    {
+                        // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
+
+                        // int knownLengthTemp = N + s1.Length + ...;
+                        knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
+                        localsBuilder.Add(knownLengthTemp);
+                        sideEffects.Add(assignmentToTemp);
+
+                        // List<ElementType> list = new(knownLengthTemp);
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
+                    }
+                    else
+                    {
+                        // List<ElementType> list = new(N + s1.Length + ...)
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
+                    }
+                }
+                else
+                {
+                    // List<ElementType> list = new();
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                }
             }
 
             // Create a temp for the list.
@@ -1115,7 +1191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use Span<T> if CollectionsMarshal methods are available, otherwise use List<T>.Add().
             if (useOptimizations)
             {
-                Debug.Assert(useKnownLength);
                 Debug.Assert(setCount is { });
                 Debug.Assert(asSpan is { });
                 Debug.Assert(knownLengthTemp is { });

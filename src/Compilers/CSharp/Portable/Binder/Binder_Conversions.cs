@@ -948,8 +948,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface) ||
                 node.HasSpreadElements(out _, out _))
             {
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
-                _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                if (collectionTypeKind is not CollectionExpressionTypeKind.ArrayInterface)
+                {
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctor, diagnostics, syntax: syntax);
+                    _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32, diagnostics, syntax: syntax);
+                }
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__Add, diagnostics, syntax: syntax);
                 _ = GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_List_T__ToArray, diagnostics, syntax: syntax);
             }
@@ -985,9 +988,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 collectionCreation = CreateConversion(collectionCreation, targetType, diagnostics);
             }
+            else if (collectionTypeKind is CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.DictionaryInterface)
+            {
+                var candidateMethodGroup = BindInterfaceTargetCollectionMethodGroup(syntax, collectionTypeKind, (NamedTypeSymbol)targetType, diagnostics);
+
+                // Bind collection creation with arguments.
+                foreach (var element in elements)
+                {
+                    if (element is BoundCollectionExpressionWithElement withElement)
+                    {
+                        var collectionWithArguments = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement, targetType, diagnostics);
+                        collectionCreation ??= collectionWithArguments;
+                    }
+                }
+
+                // Bind collection creation with no arguments.
+                if (collectionCreation is null)
+                {
+                    collectionCreation = BindInterfaceTargetCollectionArguments(syntax, candidateMethodGroup, withElement: null, targetType, diagnostics);
+                }
+            }
 
             if (collectionTypeKind is not
-                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer))
+                (CollectionExpressionTypeKind.ImplementsIEnumerable or CollectionExpressionTypeKind.ImplementsIEnumerableWithIndexer or CollectionExpressionTypeKind.ArrayInterface or CollectionExpressionTypeKind.DictionaryInterface))
             {
                 var withElement = elements.FirstOrDefault(e => e is BoundCollectionExpressionWithElement { Arguments.Length: > 0 });
                 if (withElement is { })
@@ -1279,6 +1302,187 @@ namespace Microsoft.CodeAnalysis.CSharp
                 acceptOnlyMethods: true).MakeCompilerGenerated();
             analyzedArguments.Free();
             return collectionCreation;
+        }
+
+        private BoundExpression BindInterfaceTargetCollectionMethodGroup(
+            SyntaxNode syntax,
+            CollectionExpressionTypeKind collectionTypeKind,
+            NamedTypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(ContainingType is { });
+            const string methodName = "<signature>"; // Arbitrary name.
+            var builder = ArrayBuilder<MethodSymbol>.GetInstance();
+            AddInterfaceTargetCollectionSignatures(builder, syntax, collectionTypeKind, ContainingType, methodName, targetType, diagnostics);
+            if (builder.IsEmpty)
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: CreateErrorType());
+            }
+            return new BoundMethodGroup(
+                syntax,
+                typeArgumentsOpt: default,
+                methodName,
+                methods: builder.ToImmutableAndFree(),
+                lookupSymbolOpt: null,
+                lookupError: null,
+                flags: BoundMethodGroupFlags.None,
+                functionType: null,
+                receiverOpt: null,
+                resultKind: LookupResultKind.Viable);
+        }
+
+        private void AddInterfaceTargetCollectionSignatures(
+            ArrayBuilder<MethodSymbol> builder,
+            SyntaxNode syntax,
+            CollectionExpressionTypeKind collectionTypeKind,
+            NamedTypeSymbol containingType,
+            string methodName,
+            NamedTypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            var returnType = TypeWithAnnotations.Create(targetType);
+            switch (collectionTypeKind)
+            {
+                case CollectionExpressionTypeKind.ArrayInterface:
+                    {
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_List_T__ctor,
+                            containingType,
+                            methodName,
+                            parameters: [],
+                            returnType,
+                            diagnostics);
+                        if (targetType.OriginalDefinition.SpecialType is SpecialType.System_Collections_Generic_ICollection_T or SpecialType.System_Collections_Generic_IList_T)
+                        {
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                                containingType,
+                                methodName,
+                                parameters: [("capacity", intType)],
+                                returnType,
+                                diagnostics);
+                        }
+                    }
+                    break;
+                case CollectionExpressionTypeKind.DictionaryInterface:
+                    {
+                        // PROTOTYPE: If the target type has type arguments that are type parameters from the current method,
+                        // then the signature method will reference type parameters that are not in scope. Does that break any
+                        // compiler invariant? If so, we could create a synthesized generic type for the signature methods where
+                        // the synthesized type has type parameters for the type arguments of List<T> or Dictionary<K, V>.
+                        var comparerType = TypeWithAnnotations.Create(
+                            GetWellKnownType(WellKnownType.System_Collections_Generic_IEqualityComparer_T, diagnostics, node: syntax).Construct([targetType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]),
+                            NullableAnnotation.Annotated);
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                            containingType,
+                            methodName,
+                            parameters: [],
+                            returnType,
+                            diagnostics);
+                        addSignature(
+                            builder,
+                            Compilation,
+                            syntax,
+                            WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                            containingType,
+                            methodName,
+                            parameters: [("comparer", comparerType)],
+                            returnType,
+                            diagnostics);
+                        if ((object)targetType.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV))
+                        {
+                            var intType = TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Int32, diagnostics, syntax));
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                                containingType,
+                                methodName,
+                                parameters: [("capacity", intType)],
+                                returnType,
+                                diagnostics);
+                            addSignature(
+                                builder,
+                                Compilation,
+                                syntax,
+                                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K,
+                                containingType,
+                                methodName,
+                                parameters: [("capacity", intType), ("comparer", comparerType)],
+                                returnType,
+                                diagnostics);
+                        }
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(collectionTypeKind);
+            }
+
+            static void addSignature(
+                ArrayBuilder<MethodSymbol> builder,
+                CSharpCompilation compilation,
+                SyntaxNode syntax,
+                WellKnownMember wellKnownConstructor,
+                NamedTypeSymbol containingType,
+                string methodName,
+                ImmutableArray<(string Name, TypeWithAnnotations Type)> parameters,
+                TypeWithAnnotations returnType,
+                BindingDiagnosticBag diagnostics)
+            {
+                var constructor = (MethodSymbol?)GetWellKnownTypeMember(compilation, wellKnownConstructor, diagnostics, syntax: syntax);
+                if (constructor is { })
+                {
+                    var method = new CollectionArgumentsSignatureOnlyMethodSymbol(constructor, methodName, containingType, parameters, returnType);
+                    builder.Add(method);
+                }
+            }
+        }
+
+        private BoundExpression BindInterfaceTargetCollectionArguments(
+            SyntaxNode syntax,
+            BoundExpression methodGroup,
+            BoundCollectionExpressionWithElement? withElement,
+            TypeSymbol targetType,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (methodGroup is BoundMethodGroup group)
+            {
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                withElement?.GetArguments(analyzedArguments);
+                var result = BindMethodGroupInvocation(
+                    syntax,
+                    expression: syntax,
+                    group.Name,
+                    group,
+                    analyzedArguments,
+                    diagnostics,
+                    queryClause: null,
+                    ignoreNormalFormIfHasValidParamsParameter: false,
+                    out _,
+                    disallowExpandedNonArrayParams: true,
+                    acceptOnlyMethods: true).MakeCompilerGenerated();
+                analyzedArguments.Free();
+                Debug.Assert(result.Kind != BoundKind.DynamicInvocation);
+                Debug.Assert(targetType.Equals(result.Type, TypeCompareKind.AllIgnoreOptions));
+                return result;
+            }
+            else
+            {
+                Debug.Assert(methodGroup.Kind == BoundKind.BadExpression);
+                return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: withElement is null ? [] : withElement.Arguments, targetType);
+            }
         }
 
         private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
@@ -3099,6 +3303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Perform final validation of the method to be invoked.
 
             Debug.Assert(memberSymbol is not MethodSymbol { MethodKind: not MethodKind.Constructor } ||
+                memberSymbol is CollectionArgumentsSignatureOnlyMethodSymbol ||
                 memberSymbol.CanBeReferencedByName);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.

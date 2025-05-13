@@ -546,16 +546,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
-                //         i = [with(default), t];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(7, 14),
-                // (8,17): error CS9501: Collection argument element must be the first element.
-                //         i = [t, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17),
-                // (8,17): error CS9502: Collection arguments are not supported for type 'IEnumerable<T>'.
-                //         i = [t, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<T>").WithLocation(8, 17));
+            if (interfaceType is "ICollection" or "IList")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,17): error CS9501: Collection argument element must be the first element.
+                    //         i = [t, with(default)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         i = [with(default), t];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default), t]").WithArguments("<signature>", "1").WithLocation(7, 13),
+                    // (8,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         i = [t, with(default)];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[t, with(default)]").WithArguments("<signature>", "1").WithLocation(8, 13),
+                    // (8,17): error CS9501: Collection argument element must be the first element.
+                    //         i = [t, with(default)];
+                    Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 17));
+            }
 
             // Collection arguments do not affect convertibility.
             var tree = comp.SyntaxTrees[0];
@@ -616,29 +626,120 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("IReadOnlyDictionary")]
         public void Arguments_DictionaryInterface(string interfaceType)
         {
-            string source = $$"""
+            string sourceA = $$"""
                 using System.Collections.Generic;
                 class Program
                 {
-                    static void F<K, V>(K k, V v)
+                    static void Main()
                     {
-                        {{interfaceType}}<K, V> i;
-                        i = [with(default), k:v];
-                        i = [k:v, with(default)];
+                        Pair(null, 1, "one").Report();
+                    }
+                    static {{interfaceType}}<K, V> Pair<K, V>(IEqualityComparer<K> c, K k, V v)
+                    {
+                        return [with(c), k:v];
                     }
                 }
                 """;
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[[1, one]], "));
+            verifier.VerifyIL("Program.Pair<K, V>", (interfaceType == "IReadOnlyDictionary") ?
+                """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  4
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0013:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  4
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Expression(null, new KeyValuePair<int, string>(2, "two")).Report();
+                    }
+                    static {{interfaceType}}<K, V> Expression<K, V>(IEqualityComparer<K> c, KeyValuePair<K, V> e)
+                    {
+                        return [with(1, c), e];
+                    }
+                }
+                """;
+            comp = CreateCompilation([sourceB, s_collectionExtensions], options: TestOptions.ReleaseExe);
+            if (interfaceType == "IReadOnlyDictionary")
+            {
+                comp.VerifyDiagnostics(
+                    // (10,16): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    //         return [with(1, c), e];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(1, c), e]").WithArguments("<signature>", "2").WithLocation(10, 16));
+            }
+            else
+            {
+                comp.VerifyDiagnostics();
+                verifier = CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput("[[2, two]], "));
+                verifier.VerifyIL("Program.Expression<K, V>", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0007:  ldarg.1
+                  IL_0008:  stloc.0
+                  IL_0009:  dup
+                  IL_000a:  ldloca.s   V_0
+                  IL_000c:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0018:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_001d:  ret
+                }
+                """);
+            }
+
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{interfaceType}}<K, V> Pair<K, V>(IEqualityComparer<K> c, K k, V v)
+                    {
+                        return [k:v, with(c)];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceC);
             comp.VerifyEmitDiagnostics(
-                // (7,14): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
-                //         i = [with(default), k:v];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(7, 14),
-                // (8,19): error CS9501: Collection argument element must be the first element.
-                //         i = [k:v, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(8, 19),
-                // (8,19): error CS9502: Collection arguments are not supported for type 'IDictionary<K, V>'.
-                //         i = [k:v, with(default)];
-                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments($"System.Collections.Generic.{interfaceType}<K, V>").WithLocation(8, 19));
+                // (6,22): error CS9501: Collection argument element must be the first element.
+                //         return [k:v, with(1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(6, 22));
         }
 
         [Fact]
@@ -3759,6 +3860,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (13,19): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
                 //         c = [with((dynamic)1, (dynamic)"2"), 3];
                 Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "(dynamic)1").WithLocation(13, 19),
+                // (13,31): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         c = [with((dynamic)1, (dynamic)"2"), 3];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, @"(dynamic)""2""").WithLocation(13, 31),
                 // (14,21): error CS8917: The delegate type could not be inferred.
                 //         c = [with(x => { })];
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(14, 21));
@@ -3995,6 +4099,1482 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,34): error CS8716: There is no target type for the default literal.
                 //         Identity([with(default), default, 3]);
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 34));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_ArrayInterfaces(
+            [CombinatorialValues("IEnumerable", "IReadOnlyCollection", "IReadOnlyList", "ICollection", "IList")] string typeName)
+        {
+            bool isMutable = typeName is "ICollection" or "IList";
+            string sourceA = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2, 3).Report();
+                    }
+                    static {{typeName}}<T> Create<T>(T x, T y, T z)
+                    {
+                        return [with(), x, y, z];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[1, 2, 3], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<T>", isMutable ?
+                """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  dup
+                  IL_0015:  ldarg.2
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_001b:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "T"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  stelem     "T"
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldarg.1
+                  IL_0011:  stelem     "T"
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldarg.2
+                  IL_0019:  stelem     "T"
+                  IL_001e:  newobj     "<>z__ReadOnlyArray<T>..ctor(T[])"
+                  IL_0023:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1(2, 1, 2, 3).Report();
+                        Create2(2, 4, 5, 6).Report();
+                    }
+                    static {{typeName}}<T> Create1<T>(int c, T x, T y, T z)
+                    {
+                        return [with(c), x, y, z];
+                    }
+                    static {{typeName}}<T> Create2<T>(int c, T x, T y, T z)
+                    {
+                        return [with(capacity: c), x, y, z];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            if (isMutable)
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[1, 2, 3], [4, 5, 6], ");
+                verifier.VerifyDiagnostics();
+                string expectedIL = """
+                    {
+                      // Code size       28 (0x1c)
+                      .maxstack  3
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                      IL_0006:  dup
+                      IL_0007:  ldarg.1
+                      IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_000d:  dup
+                      IL_000e:  ldarg.2
+                      IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_0014:  dup
+                      IL_0015:  ldarg.3
+                      IL_0016:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                      IL_001b:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<T>", expectedIL);
+                verifier.VerifyIL("Program.Create2<T>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(11, 16),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<T> Create1<T>(IEnumerable<T> c, T x, T y, T z)
+                    {
+                        return [with(c), x, y, z];
+                    }
+                    static {{typeName}}<T> Create2<T>(IEnumerable<T> c, T x, T y, T z)
+                    {
+                        return [with(collection: c), x, y, z];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceC);
+            if (isMutable)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<T>' to 'int'
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<T>", "int").WithLocation(6, 22),
+                    // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                    //         return [with(collection: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS1501: No overload for method '<signature>' takes 1 arguments
+                    //         return [with(c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c), x, y, z]").WithArguments("<signature>", "1").WithLocation(6, 16),
+                    // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                    //         return [with(collection: c), x, y, z];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_DictionaryInterfaces(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string sourceA = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(1, "one", new(2, "two")).Report();
+                    }
+                    static {{typeName}}<K, V> Create<K, V>(K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(), k:v, x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                [sourceA, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[[1, one], [2, two]], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>", (typeName is "IDictionary") ?
+                """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000d:  ldarg.2
+                  IL_000e:  stloc.0
+                  IL_000f:  dup
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001e:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0023:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       41 (0x29)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000d:  ldarg.2
+                  IL_000e:  stloc.0
+                  IL_000f:  dup
+                  IL_0010:  ldloca.s   V_0
+                  IL_0012:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0017:  ldloca.s   V_0
+                  IL_0019:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001e:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0023:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0028:  ret
+                }
+                """);
+
+            string sourceB = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(3, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(1, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(c), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(capacity: c), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceB, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            string expectedIL;
+            if (typeName is "IDictionary")
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+                verifier.VerifyDiagnostics();
+                expectedIL = """
+                    {
+                      // Code size       37 (0x25)
+                      .maxstack  4
+                      .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int)"
+                      IL_0006:  dup
+                      IL_0007:  ldarg.1
+                      IL_0008:  ldarg.2
+                      IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000e:  ldarg.3
+                      IL_000f:  stloc.0
+                      IL_0010:  dup
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_0018:  ldloca.s   V_0
+                      IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0024:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+                verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,22): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                    //         return [with(c), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(11, 22),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceC = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(null, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(null, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K> e, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(e), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K> e, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: e), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceC, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(
+                comp,
+                expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+            verifier.VerifyDiagnostics();
+            expectedIL = (typeName is "IDictionary") ?
+                """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ldarg.3
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0024:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       42 (0x2a)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldarg.2
+                  IL_0009:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_000e:  ldarg.3
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_001f:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_0024:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0029:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+            verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+
+            string sourceD = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create1<int, string>(null, 3, 1, "one", new(2, "two")).Report();
+                        Create2<int, string>(null, 1, 3, "three", new(4, "four")).Report();
+                    }
+                    static {{typeName}}<K, V> Create1<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(c, e), k:v, x];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEqualityComparer<K> e, int c, K k, V v, KeyValuePair<K, V> x)
+                    {
+                        return [with(capacity: c, comparer: e), k:v, x];
+                    }
+                }
+                """;
+            comp = CreateCompilation(
+                [sourceD, s_collectionExtensions],
+                options: TestOptions.ReleaseExe);
+            if (typeName is "IDictionary")
+            {
+                verifier = CompileAndVerify(
+                    comp,
+                    expectedOutput: "[[1, one], [2, two]], [[3, three], [4, four]], ");
+                verifier.VerifyDiagnostics();
+                expectedIL = """
+                    {
+                      // Code size       39 (0x27)
+                      .maxstack  4
+                      .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0)
+                      IL_0000:  ldarg.1
+                      IL_0001:  ldarg.0
+                      IL_0002:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                      IL_0007:  dup
+                      IL_0008:  ldarg.2
+                      IL_0009:  ldarg.3
+                      IL_000a:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_000f:  ldarg.s    V_4
+                      IL_0011:  stloc.0
+                      IL_0012:  dup
+                      IL_0013:  ldloca.s   V_0
+                      IL_0015:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                      IL_001a:  ldloca.s   V_0
+                      IL_001c:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                      IL_0021:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                      IL_0026:  ret
+                    }
+                    """;
+                verifier.VerifyIL("Program.Create1<K, V>", expectedIL);
+                verifier.VerifyIL("Program.Create2<K, V>", expectedIL);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,16): error CS1501: No overload for method '<signature>' takes 2 arguments
+                    //         return [with(c, e), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, "[with(c, e), k:v, x]").WithArguments("<signature>", "2").WithLocation(11, 16),
+                    // (15,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'capacity'
+                    //         return [with(capacity: c, comparer: e), k:v, x];
+                    Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("<signature>", "capacity").WithLocation(15, 22));
+            }
+
+            string sourceE = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(IEnumerable<KeyValuePair<K, V>> c, K k, V v)
+                    {
+                        return [with(c), k:v];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(IEnumerable<KeyValuePair<K, V>> c, K k, V v)
+                    {
+                        return [with(collection: c), k:v];
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceE);
+            comp.VerifyEmitDiagnostics(
+                // (6,22): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                //         return [with(c), k:v];
+                Diagnostic(ErrorCode.ERR_BadArgType, "c").WithArguments("1", "System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<K, V>>", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(6, 22),
+                // (10,22): error CS1739: The best overload for '<signature>' does not have a parameter named 'collection'
+                //         return [with(collection: c), k:v];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "collection").WithArguments("<signature>", "collection").WithLocation(10, 22));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_Nullability(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create1<K, V>(bool b, IEqualityComparer<K>? c1)
+                    {
+                        if (b) return new Dictionary<K, V>(c1);
+                        return [with(c1)];
+                    }
+                    static {{typeName}}<K, V> Create2<K, V>(bool b, IEqualityComparer<K?> c2) where K : class
+                    {
+                        if (b) return new Dictionary<K, V>(c2);
+                        return [with(c2)];
+                    }
+                    static {{typeName}}<K?, V> Create3<K, V>(bool b, IEqualityComparer<K> c3) where K : class
+                    {
+                        if (b) return new Dictionary<K?, V>(c3);
+                        return [with(c3)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+            comp.VerifyEmitDiagnostics(
+                // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
+                //         if (b) return new Dictionary<K?, V>(c3);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c3").WithArguments("System.Collections.Generic.IEqualityComparer<K>", "System.Collections.Generic.IEqualityComparer<K?>", "comparer", "Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)").WithLocation(17, 45));
+        }
+
+        [Fact]
+        public void InterfaceTarget_ReorderedArguments()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create<int, string>(EqualityComparer<int>.Default, 2, new(1, "one")).Report();
+                    }
+                    static IDictionary<K, V> Create<K, V>(IEqualityComparer<K> e, int c, KeyValuePair<K, V> x)
+                    {
+                        return [with(comparer: Identity(e), capacity: Identity(c)), Identity(x)];
+                    }
+                    static T Identity<T>(T value)
+                    {
+                        Console.WriteLine(value);
+                        return value;
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                    expectedOutput: """
+                        System.Collections.Generic.GenericEqualityComparer`1[System.Int32]
+                        2
+                        [1, one]
+                        [[1, one]],
+                        """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  4
+                  .locals init (System.Collections.Generic.KeyValuePair<K, V> V_0,
+                                System.Collections.Generic.IEqualityComparer<K> V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> Program.Identity<System.Collections.Generic.IEqualityComparer<K>>(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0006:  stloc.1
+                  IL_0007:  ldarg.1
+                  IL_0008:  call       "int Program.Identity<int>(int)"
+                  IL_000d:  ldloc.1
+                  IL_000e:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(int, System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_0013:  ldarg.2
+                  IL_0014:  call       "System.Collections.Generic.KeyValuePair<K, V> Program.Identity<System.Collections.Generic.KeyValuePair<K, V>>(System.Collections.Generic.KeyValuePair<K, V>)"
+                  IL_0019:  stloc.0
+                  IL_001a:  dup
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "K System.Collections.Generic.KeyValuePair<K, V>.Key.get"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "V System.Collections.Generic.KeyValuePair<K, V>.Value.get"
+                  IL_0029:  callvirt   "void System.Collections.Generic.Dictionary<K, V>.this[K].set"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void InterfaceTarget_Dynamic()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        CreateReadOnlyDictionary(null, 1, "one");
+                        CreateDictionary(2, null, 2, "two");
+                    }
+                    static IReadOnlyDictionary<K, V> CreateReadOnlyDictionary<K, V>(dynamic d, K k, V v)
+                    {
+                        return [with(d), k:v];
+                    }
+                    static IDictionary<K, V> CreateDictionary<K, V>(dynamic x, dynamic y, K k, V v)
+                    {
+                        return [with(x, y), k:v];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (11,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(d), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(11, 22),
+                // (15,22): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(x, y), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "x").WithLocation(15, 22),
+                // (15,25): error CS9503: Collection arguments cannot be dynamic; compile-time binding is required.
+                //         return [with(x, y), k:v];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "y").WithLocation(15, 25));
+        }
+
+        /// <summary>
+        /// Implementation of List(int) uses a name other than capacity.
+        /// </summary>
+        [Fact]
+        public void InterfaceTarget_ImplementationParameterName()
+        {
+            string sourceA = """
+                namespace System
+                {
+                    public class Object { }
+                    public abstract class ValueType { }
+                    public class String { }
+                    public class Type { }
+                    public struct Void { }
+                    public struct Boolean { }
+                    public struct Int32 { }
+                    public class Array { }
+                    public interface IDisposable
+                    {
+                        void Dispose();
+                    }
+                }
+                namespace System.Collections
+                {
+                    public interface IEnumerator
+                    {
+                        bool MoveNext();
+                        object Current { get; }
+                    }
+                    public interface IEnumerable
+                    {
+                        IEnumerator GetEnumerator();
+                    }
+                }
+                namespace System.Collections.Generic
+                {
+                    public interface IEnumerator<T> : IEnumerator
+                    {
+                        new T Current { get; }
+                    }
+                    public interface IEnumerable<T> : IEnumerable
+                    {
+                        new IEnumerator<T> GetEnumerator();
+                    }
+                    public interface ICollection<T> : IEnumerable<T>
+                    {
+                    }
+                    public class List<T> : ICollection<T>
+                    {
+                        public List() { }
+                        public List(int __c) { }
+                        public void Add(T t) { }
+                        public T[] ToArray() => null;
+                        IEnumerator<T> IEnumerable<T>.GetEnumerator() => null;
+                        IEnumerator IEnumerable.GetEnumerator() => null;
+                    }
+                }
+                """;
+            string sourceB = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2);
+                    }
+                    static ICollection<T> Create<T>(T x, T y)
+                    {
+                        return [with(capacity: 3), x, y];
+                    }
+                }
+                """;
+            var comp = CreateEmptyCompilation(
+                [sourceA, sourceB],
+                parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute(),
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(
+                comp,
+                emitOptions: Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("4.0.0.0"),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<T>", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                  IL_0006:  dup
+                  IL_0007:  ldarg.0
+                  IL_0008:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_000d:  dup
+                  IL_000e:  ldarg.1
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                  IL_0014:  ret
+                }
+                """);
+        }
+
+        // PROTOTYPE: Semantic model for collection creation: what method is returned if any?
+
+        [Theory]
+        [CombinatorialData]
+        public void CollectionArguments_CapacityAndComparer_01(
+            [CombinatorialValues(
+                "T[]",
+                "System.ReadOnlySpan<T>",
+                "System.Span<T>",
+                "System.Collections.Generic.IEnumerable<T>",
+                "System.Collections.Generic.IReadOnlyCollection<T>",
+                "System.Collections.Generic.IReadOnlyList<T>",
+                "System.Collections.Generic.ICollection<T>",
+                "System.Collections.Generic.IList<T>")]
+            string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create<T>(int capacity, IEqualityComparer<T> comparer)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(default)];
+                        c = [with(capacity)];
+                        c = [with(comparer)];
+                        c = [with(capacity, comparer)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            switch (typeName)
+            {
+                case "T[]":
+                case "System.ReadOnlySpan<T>":
+                case "System.Span<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
+                        // (10,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
+                        // (11,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
+                        // (12,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
+                    break;
+                case "System.Collections.Generic.IEnumerable<T>":
+                case "System.Collections.Generic.IReadOnlyCollection<T>":
+                case "System.Collections.Generic.IReadOnlyList<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default)]").WithArguments("<signature>", "1").WithLocation(9, 13),
+                        // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity)]").WithArguments("<signature>", "1").WithLocation(10, 13),
+                        // (11,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(comparer)]").WithArguments("<signature>", "1").WithLocation(11, 13),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                case "System.Collections.Generic.ICollection<T>":
+                case "System.Collections.Generic.IList<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (11,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<T>' to 'int'
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "comparer").WithArguments("1", "System.Collections.Generic.IEqualityComparer<T>", "int").WithLocation(11, 19),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(typeName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CollectionArguments_CapacityAndComparer_02(
+            [CombinatorialValues(
+                "System.Collections.Generic.IReadOnlyDictionary<K, V>",
+                "System.Collections.Generic.IDictionary<K, V>")]
+            string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create<K, V>(int capacity, IEqualityComparer<K> comparer)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(default)];
+                        c = [with(capacity)];
+                        c = [with(comparer)];
+                        c = [with(capacity, comparer)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            switch (typeName)
+            {
+                case "System.Collections.Generic.IReadOnlyDictionary<K, V>":
+                    comp.VerifyEmitDiagnostics(
+                        // (10,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "capacity").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(10, 19),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                case "System.Collections.Generic.IDictionary<K, V>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.<signature>(IEqualityComparer<K>?)' and 'Program.<signature>(int)'
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "[with(default)]").WithArguments("Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)", "Program.<signature>(int)").WithLocation(9, 13));
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(typeName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_MissingMember_01(
+            [CombinatorialValues(
+                "IEnumerable",
+                "IReadOnlyCollection",
+                "IReadOnlyList",
+                "ICollection",
+                "IList")]
+            string typeName,
+            [CombinatorialValues(
+                0,
+                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)]
+            int missingMember)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create(int i)
+                    {
+                        {{typeName}}<int> c;
+                        c = [];
+                        c = [with()];
+                        c = [with(i)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            if (typeName is "ICollection" or "IList")
+            {
+                switch ((WellKnownMember)missingMember)
+                {
+                    case WellKnownMember.System_Collections_Generic_List_T__ctor:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                            // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                            // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'capacity' of 'Program.<signature>(int)'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("capacity", "Program.<signature>(int)").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13));
+                        break;
+                    case WellKnownMember.System_Collections_Generic_List_T__ctorInt32:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13),
+                            // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13));
+                        break;
+                    default:
+                        comp.VerifyEmitDiagnostics();
+                        break;
+                }
+            }
+            else
+            {
+                switch ((WellKnownMember)missingMember)
+                {
+                    case WellKnownMember.System_Collections_Generic_List_T__ctor:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.List`1", ".ctor").WithLocation(9, 13));
+                        break;
+                    default:
+                        comp.VerifyEmitDiagnostics(
+                            // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13));
+                        break;
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_MissingMember_02(
+            [CombinatorialValues(
+                "IDictionary",
+                "IReadOnlyDictionary")]
+            string typeName,
+            [CombinatorialValues(
+                0,
+                WellKnownMember.System_Collections_Generic_List_T__ctor,
+                WellKnownMember.System_Collections_Generic_List_T__ctorInt32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32,
+                WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K)]
+            int missingMember)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create(int i, IEqualityComparer<int> e)
+                    {
+                        {{typeName}}<int, string> c;
+                        c = [];
+                        c = [with()];
+                        c = [with(i)];
+                        c = [with(e)];
+                        c = [with(i, e)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing((WellKnownMember)missingMember);
+            if (typeName is "IDictionary")
+            {
+                switch ((WellKnownMember)missingMember)
+                {
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (7,13): error CS1501: No overload for method '<signature>' takes 0 arguments
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[]").WithArguments("<signature>", "0").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (8,13): error CS1501: No overload for method '<signature>' takes 0 arguments
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with()]").WithArguments("<signature>", "0").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                        break;
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (10,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<int>' to 'int'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_BadArgType, "e").WithArguments("1", "System.Collections.Generic.IEqualityComparer<int>", "int").WithLocation(10, 19),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                        break;
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13));
+                        break;
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_Int32_IEqualityComparer_K:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                            // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        break;
+                    default:
+                        comp.VerifyEmitDiagnostics();
+                        break;
+                }
+            }
+            else
+            {
+                switch ((WellKnownMember)missingMember)
+                {
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (7,13): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<int>?)'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<int>?)").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (8,13): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<int>?)'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "[with()]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<int>?)").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                            // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        break;
+                    case WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor_IEqualityComparer_K:
+                        comp.VerifyEmitDiagnostics(
+                            // (7,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(7, 13),
+                            // (8,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with()];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with()]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(8, 13),
+                            // (9,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(9, 13),
+                            // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i)]").WithArguments("<signature>", "1").WithLocation(9, 13),
+                            // (10,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(10, 13),
+                            // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                            //         c = [with(e)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(e)]").WithArguments("<signature>", "1").WithLocation(10, 13),
+                            // (11,13): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(i, e)]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(11, 13),
+                            // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        break;
+                    default:
+                        comp.VerifyEmitDiagnostics(
+                            // (9,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<int>?'
+                            //         c = [with(i)];
+                            Diagnostic(ErrorCode.ERR_BadArgType, "i").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<int>?").WithLocation(9, 19),
+                            // (11,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                            //         c = [with(i, e)];
+                            Diagnostic(ErrorCode.ERR_BadArgCount, "[with(i, e)]").WithArguments("<signature>", "2").WithLocation(11, 13));
+                        break;
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_GenericMethod(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static {{typeName}}<K, V> Create<K, V>(IEqualityComparer<K> e)
+                    {
+                        return [with(e)];
+                    }
+                    static void Main()
+                    {
+                        Create<int, string>(null).Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Create<K, V>",
+                typeName == "IDictionary" ?
+                """
+                {
+                    // Code size        7 (0x7)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  ret
+                }
+                """ :
+                """
+                {
+                    // Code size       12 (0xc)
+                    .maxstack  1
+                    IL_0000:  ldarg.0
+                    IL_0001:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                    IL_0006:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                    IL_000b:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterfaceTarget_FieldInitializer(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class C<K, V>
+                {
+                    public {{typeName}}<K, V> F =
+                        [with(GetComparer())];
+                    static IEqualityComparer<K> GetComparer() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C<int, string>();
+                        c.F.Report();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: "[], ");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C<K, V>..ctor",
+                typeName == "IDictionary" ?
+                """
+                {
+                  // Code size       23 (0x17)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  stfld      "System.Collections.Generic.IDictionary<K, V> C<K, V>.F"
+                  IL_0010:  ldarg.0
+                  IL_0011:  call       "object..ctor()"
+                  IL_0016:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       28 (0x1c)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEqualityComparer<K> C<K, V>.GetComparer()"
+                  IL_0006:  newobj     "System.Collections.Generic.Dictionary<K, V>..ctor(System.Collections.Generic.IEqualityComparer<K>)"
+                  IL_000b:  newobj     "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>..ctor(System.Collections.Generic.IDictionary<K, V>)"
+                  IL_0010:  stfld      "System.Collections.Generic.IReadOnlyDictionary<K, V> C<K, V>.F"
+                  IL_0015:  ldarg.0
+                  IL_0016:  call       "object..ctor()"
+                  IL_001b:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void List_KnownLength(
+            [CombinatorialValues("ICollection", "List")] string typeName,
+            [CombinatorialValues("", "with(), ", "with(3), ")] string argsPrefix)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        Create(1, 2, 3).Report();
+                    }
+                    static {{typeName}}<T> Create<T>(params T[] items)
+                    {
+                        return [{{argsPrefix}} ..items];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+            string expectedIL;
+            switch (typeName, argsPrefix)
+            {
+                case ("ICollection", "with(3), "):
+                    expectedIL = """
+                        {
+                          // Code size       14 (0xe)
+                          .maxstack  3
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0006:  dup
+                          IL_0007:  ldarg.0
+                          IL_0008:  callvirt   "void System.Collections.Generic.List<T>.AddRange(System.Collections.Generic.IEnumerable<T>)"
+                          IL_000d:  ret
+                        }
+                        """;
+                    break;
+                case ("ICollection", _):
+                    expectedIL = """
+                        {
+                          // Code size       69 (0x45)
+                          .maxstack  5
+                          .locals init (T[] V_0,
+                                        int V_1,
+                                        System.Span<T> V_2,
+                                        int V_3,
+                                        System.ReadOnlySpan<T> V_4)
+                          IL_0000:  ldarg.0
+                          IL_0001:  stloc.0
+                          IL_0002:  ldloc.0
+                          IL_0003:  ldlen
+                          IL_0004:  conv.i4
+                          IL_0005:  stloc.1
+                          IL_0006:  ldloc.1
+                          IL_0007:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_000c:  dup
+                          IL_000d:  ldloc.1
+                          IL_000e:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<T>(System.Collections.Generic.List<T>, int)"
+                          IL_0013:  dup
+                          IL_0014:  call       "System.Span<T> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<T>(System.Collections.Generic.List<T>)"
+                          IL_0019:  stloc.2
+                          IL_001a:  ldc.i4.0
+                          IL_001b:  stloc.3
+                          IL_001c:  ldloca.s   V_4
+                          IL_001e:  ldloc.0
+                          IL_001f:  call       "System.ReadOnlySpan<T>..ctor(T[])"
+                          IL_0024:  ldloca.s   V_4
+                          IL_0026:  ldloca.s   V_2
+                          IL_0028:  ldloc.3
+                          IL_0029:  ldloca.s   V_4
+                          IL_002b:  call       "int System.ReadOnlySpan<T>.Length.get"
+                          IL_0030:  call       "System.Span<T> System.Span<T>.Slice(int, int)"
+                          IL_0035:  call       "void System.ReadOnlySpan<T>.CopyTo(System.Span<T>)"
+                          IL_003a:  ldloc.3
+                          IL_003b:  ldloca.s   V_4
+                          IL_003d:  call       "int System.ReadOnlySpan<T>.Length.get"
+                          IL_0042:  add
+                          IL_0043:  stloc.3
+                          IL_0044:  ret
+                        }
+                        """;
+                    break;
+                case ("List", "with(3), "):
+                    expectedIL = """
+                        {
+                          // Code size       40 (0x28)
+                          .maxstack  2
+                          .locals init (System.Collections.Generic.List<T> V_0,
+                                        T[] V_1,
+                                        int V_2,
+                                        T V_3)
+                          IL_0000:  ldc.i4.3
+                          IL_0001:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
+                          IL_0006:  stloc.0
+                          IL_0007:  ldarg.0
+                          IL_0008:  stloc.1
+                          IL_0009:  ldc.i4.0
+                          IL_000a:  stloc.2
+                          IL_000b:  br.s       IL_0020
+                          IL_000d:  ldloc.1
+                          IL_000e:  ldloc.2
+                          IL_000f:  ldelem     "T"
+                          IL_0014:  stloc.3
+                          IL_0015:  ldloc.0
+                          IL_0016:  ldloc.3
+                          IL_0017:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                          IL_001c:  ldloc.2
+                          IL_001d:  ldc.i4.1
+                          IL_001e:  add
+                          IL_001f:  stloc.2
+                          IL_0020:  ldloc.2
+                          IL_0021:  ldloc.1
+                          IL_0022:  ldlen
+                          IL_0023:  conv.i4
+                          IL_0024:  blt.s      IL_000d
+                          IL_0026:  ldloc.0
+                          IL_0027:  ret
+                        }
+                        """;
+                    break;
+                case ("List", _):
+                    expectedIL = """
+                        {
+                          // Code size        7 (0x7)
+                          .maxstack  1
+                          IL_0000:  ldarg.0
+                          IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                          IL_0006:  ret
+                        }
+                        """;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((typeName, argsPrefix));
+            }
+            verifier.VerifyIL("Program.Create<T>", expectedIL);
+        }
+
+        [Fact]
+        public void DefiniteAssignment_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static HashSet<T> Create<T>()
+                    {
+                        IEqualityComparer<T> e = null;
+                        return [with(e)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (6,30): warning CS0219: The variable 'e' is assigned but its value is never used
+                //         IEqualityComparer<T> e = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "e").WithArguments("e").WithLocation(6, 30));
+        }
+
+        [Fact]
+        public void DefiniteAssignment_02()
+        {
+            string source = """
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEqualityComparer<T> Create<T>()
+                    {
+                        IEqualityComparer<T> e;
+                        HashSet<T> s = [with(e = null)];
+                        return e;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (8,16): error CS0165: Use of unassigned local variable 'e'
+                //         return e;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "e").WithArguments("e").WithLocation(8, 16));
+        }
+
+        [Fact]
+        public void NullableAnalysis_01()
+        {
+            string source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEqualityComparer<T> Create<T>()
+                    {
+                        IEqualityComparer<T>? e = null;
+                        HashSet<T> s = [with(e = Create<T>())];
+                        return e;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Handle collection arguments in flow analysis.
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS8603: Possible null reference return.
+                //         return e;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "e").WithLocation(9, 16));
         }
 
         [Fact]

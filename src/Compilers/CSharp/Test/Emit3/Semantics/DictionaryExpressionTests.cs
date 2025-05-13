@@ -1195,6 +1195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         new IEnumerator<T> GetEnumerator();
                     }
+                    public interface IEqualityComparer<T>
+                    {
+                        bool Equals(T x, T y);
+                        int GetHashCode(T t);
+                    }
                     public interface IDictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
                     {
                     }
@@ -1210,6 +1215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public sealed class Dictionary<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
                     {
                         public Dictionary() { }
+                        public Dictionary(IEqualityComparer<TKey> comparer) { }
+                        public Dictionary(int capacity) { }
+                        public Dictionary(int capacity, IEqualityComparer<TKey> comparer) { }
                         public TValue this[TKey key] { get { return default; } set { } }
                         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => null;
                         IEnumerator IEnumerable.GetEnumerator() => null;
@@ -1270,17 +1278,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [InlineData("IDictionary<int, string>")]
-        [InlineData("IReadOnlyDictionary<int, string>")]
-        public void DictionaryInterface_MissingMember(string typeName)
+        [CombinatorialData]
+        public void DictionaryInterface_MissingMember(
+            [CombinatorialValues("IDictionary", "IReadOnlyDictionary")] string typeName,
+            [CombinatorialValues("k:v", "x", "..y")] string element)
         {
             string source = $$"""
                 using System.Collections.Generic;
-                {{typeName}} d;
-                d = [];
-                d = [1:"one"];
-                d = [new KeyValuePair<int, string>(2, "two")];
-                d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                class Program
+                {
+                    static {{typeName}}<K, V> Create<K, V>(K k, V v, KeyValuePair<K, V> x, KeyValuePair<K, V>[] y)
+                    {
+                        return [{{element}}];
+                    }
+                }
                 """;
 
             var comp = CreateCompilation(source);
@@ -1289,91 +1300,110 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_Dictionary_KV);
-            comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
-                // d = [];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "[]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(3, 5),
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(3, 5),
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(3, 5),
-                // (4,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(4, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(4, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(4, 5),
-                // (5,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(5, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(5, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(5, 5),
-                // (6,5): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(6, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 5));
+            if (typeName == "IDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS0518: Predefined type 'System.Collections.Generic.Dictionary`2' is not defined or imported
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16));
+            }
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_Dictionary_KV__ctor);
-            comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 5));
+            if (typeName == "IDictionary")
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS1501: No overload for method '<signature>' takes 0 arguments
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_BadArgCount, $"[{element}]").WithArguments("<signature>", "0").WithLocation(6, 16));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2..ctor'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", ".ctor").WithLocation(6, 16),
+                    // (6,16): error CS7036: There is no argument given that corresponds to the required parameter 'comparer' of 'Program.<signature>(IEqualityComparer<K>?)'
+                    //         return [k:v];
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, $"[{element}]").WithArguments("comparer", "Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)").WithLocation(6, 16));
+            }
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_Dictionary_KV__set_Item);
             comp.VerifyEmitDiagnostics(
-                // (3,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(3, 5),
-                // (4,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [1:"one"];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[1:""one""]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(4, 5),
-                // (5,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[new KeyValuePair<int, string>(2, ""two"")]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(5, 5),
-                // (6,5): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[.. new KeyValuePair<int, string>[] { new(3, ""three"") }]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 5));
+                // (6,16): error CS0656: Missing compiler required member 'System.Collections.Generic.Dictionary`2.set_Item'
+                //         return [k:v];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, $"[{element}]").WithArguments("System.Collections.Generic.Dictionary`2", "set_Item").WithLocation(6, 16));
         }
 
         [Theory]
-        [InlineData("IDictionary<int, string>")]
-        [InlineData("IReadOnlyDictionary<int, string>")]
-        [InlineData("IDictionary<int?, object>")]
-        [InlineData("IReadOnlyDictionary<int?, object>")]
+        [InlineData("IDictionary")]
+        [InlineData("IReadOnlyDictionary")]
         public void KeyValuePair_MissingMember_DictionaryInterface(string typeName)
         {
             string source = $$"""
                 using System.Collections.Generic;
-                {{typeName}} d;
-                d = [];
-                d = [1:"one"];
-                d = [new KeyValuePair<int, string>(2, "two")];
-                d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
+                class Program
+                {
+                    static {{typeName}}<int?, object> Pair(int k, string v)
+                    {
+                        return [k:v];
+                    }
+                    static {{typeName}}<int?, object> Element(KeyValuePair<int, string> e)
+                    {
+                        return [e];
+                    }
+                    static {{typeName}}<int?, object> Spread(KeyValuePair<int, string>[] s)
+                    {
+                        return [..s];
+                    }
+                }
                 """;
 
             var comp = CreateCompilation(source);
@@ -1382,26 +1412,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Key);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(5, 6),
-                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(6, 9));
+                // (10,17): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                //         return [e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(10, 17),
+                // (14,19): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Key'
+                //         return [..s];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Key").WithLocation(14, 19));
 
             comp = CreateCompilation(source);
             comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__get_Value);
             comp.VerifyEmitDiagnostics(
-                // (5,6): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [new KeyValuePair<int, string>(2, "two")];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>(2, ""two"")").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(5, 6),
-                // (6,9): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
-                // d = [.. new KeyValuePair<int, string>[] { new(3, "three") }];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"new KeyValuePair<int, string>[] { new(3, ""three"") }").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(6, 9));
-
-            comp = CreateCompilation(source);
-            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_KeyValuePair_KV__ctor);
-            comp.VerifyEmitDiagnostics();
+                // (10,17): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                //         return [e];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(10, 17),
+                // (14,19): error CS0656: Missing compiler required member 'System.Collections.Generic.KeyValuePair`2.get_Value'
+                //         return [..s];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.Collections.Generic.KeyValuePair`2", "get_Value").WithLocation(14, 19));
         }
 
         [Fact]
