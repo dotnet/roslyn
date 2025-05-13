@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     compilation.SourceAssembly,
                     changes,
                     emitOptions: emitOptions,
+                    options: options,
                     outputKind: compilation.Options.OutputKind,
                     serializationProperties: serializationProperties,
                     manifestResources: manifestResources,
@@ -130,7 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
                     definitionMap,
-                    changes,
                     metadataStream,
                     ilStream,
                     pdbStream,

@@ -2397,6 +2397,11 @@
         <target state="translated">生文字列リテラルの先頭に十分な数の引用符文字がないため、連続した引用符文字をコンテンツとして使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">トップレベルのステートメントは、名前空間および型の宣言の前にある必要があります。</target>

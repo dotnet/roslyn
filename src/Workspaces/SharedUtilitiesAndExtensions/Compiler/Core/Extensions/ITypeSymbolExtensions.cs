@@ -578,10 +578,9 @@ internal static partial class ITypeSymbolExtensions
         // SPEC: argument is more specific and no type argument is less specific than the
         // SPEC: corresponding type argument in the other.
 
-        var n1 = t1 as INamedTypeSymbol;
         var n2 = t2 as INamedTypeSymbol;
 
-        if (n1 == null)
+        if (t1 is not INamedTypeSymbol n1)
         {
             return null;
         }

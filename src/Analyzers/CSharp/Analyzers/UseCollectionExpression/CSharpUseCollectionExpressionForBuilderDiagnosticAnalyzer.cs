@@ -126,8 +126,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (createSymbol is not IMethodSymbol { IsStatic: true } createMethod)
             return null;
 
-        var factoryType = semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol as INamedTypeSymbol;
-        if (factoryType is null)
+        if (semanticModel.GetSymbolInfo(memberAccessExpression.Expression, cancellationToken).Symbol is not INamedTypeSymbol factoryType)
             return null;
 
         // has to be the form:

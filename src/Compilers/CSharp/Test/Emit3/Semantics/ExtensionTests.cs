@@ -5,12 +5,15 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -37286,5 +37289,238 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         Assert.Equal(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void AnalyzerActions_01()
+    {
+        var src = """
+static class E
+{
+    extension<T>([Attr] T t)
+    {
+        [Attr2]
+        public void M() { }
+
+        [Attr3]
+        public int P => 0;
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_01_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "Attr2 -> void E.<>E__0<T>.M()",
+            "M -> void E.<>E__0<T>.M()",
+            "Attr3 -> System.Int32 E.<>E__0<T>.P { get; }",
+            "P -> System.Int32 E.<>E__0<T>.P { get; }",
+            "T -> E.<>E__0<T>",
+            "Attr -> E.<>E__0<T>",
+            "extension -> E.<>E__0<T>"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.ExtensionDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.IdentifierName);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.PropertyDeclaration);
+
+            void handle(SyntaxNodeAnalysisContext context)
+            {
+                _results.Enqueue(print(context));
+                Assert.Same(context.Node.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            static string print(SyntaxNodeAnalysisContext context)
+            {
+                var syntaxString = context.Node switch
+                {
+                    ExtensionDeclarationSyntax => "extension",
+                    MethodDeclarationSyntax method => method.Identifier.ValueText,
+                    PropertyDeclarationSyntax property => property.Identifier.ValueText,
+                    _ => context.Node.ToString()
+                };
+
+                return $"{syntaxString} -> {context.ContainingSymbol.ToTestDisplayString()}";
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_02()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M(int i) { }
+        public int P => 0;
+    }
+    extension(__arglist) { }
+    extension(object o1, object o2) { }
+}
+""";
+
+        var analyzer = new AnalyzerActions_02_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "E",
+            "E.<>E__0<T>",
+            "System.Int32 E.<>E__0<T>.P { get; }",
+            "T t",
+            "E.<>E__1",
+            "E.<>E__2",
+            "System.Object o1",
+            "void E.<>E__0<T>.M(System.Int32 i)",
+            "System.Int32 i",
+            "System.Int32 E.<>E__0<T>.P.get"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolAction(handle, SymbolKind.NamedType);
+            context.RegisterSymbolAction(handle, SymbolKind.Parameter);
+            context.RegisterSymbolAction(handle, SymbolKind.TypeParameter);
+            context.RegisterSymbolAction(handle, SymbolKind.Method);
+            context.RegisterSymbolAction(handle, SymbolKind.Property);
+
+            void handle(SymbolAnalysisContext context)
+            {
+                _results.Enqueue(context.Symbol.ToTestDisplayString());
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+        public int P { get { return 0; } }
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_03_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "public void M() { } -> void E.<>E__0<T>.M()",
+            "get { return 0; } -> System.Int32 E.<>E__0<T>.P.get"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(handle, OperationKind.MethodBody);
+
+            void handle(OperationAnalysisContext context)
+            {
+                _results.Enqueue($"{context.Operation.Syntax.ToString()} -> {context.ContainingSymbol.ToTestDisplayString()}");
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_04()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M(int i) { }
+        public int P { get { return 0; } }
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_04_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "Start: E",
+            "Start: E.<>E__0<T>",
+            "Start: void E.<>E__0<T>.M(System.Int32 i)",
+            "Start: System.Int32 E.<>E__0<T>.P { get; }",
+            "Start: System.Int32 E.<>E__0<T>.P.get",
+            "End: System.Int32 E.<>E__0<T>.P { get; }",
+            "End: System.Int32 E.<>E__0<T>.P.get",
+            "End: void E.<>E__0<T>.M(System.Int32 i)",
+            "End: E.<>E__0<T>",
+            "End: E"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_04_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.NamedType);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Method);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Property);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Parameter);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.TypeParameter);
+
+            void handleStart(SymbolStartAnalysisContext context)
+            {
+                _results.Enqueue($"Start: {context.Symbol.ToTestDisplayString()}");
+                context.RegisterSymbolEndAction(handleEnd);
+            }
+
+            void handleEnd(SymbolAnalysisContext context)
+            {
+                _results.Enqueue($"End: {context.Symbol.ToTestDisplayString()}");
+            }
+        }
     }
 }
