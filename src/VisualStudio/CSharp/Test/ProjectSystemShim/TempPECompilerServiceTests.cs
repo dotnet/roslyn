@@ -12,39 +12,38 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
+namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim;
+
+public sealed class TempPECompilerServiceTests
 {
-    public class TempPECompilerServiceTests
+    [Fact]
+    public void TempPECompilationWithInvalidReferenceDoesNotCrash()
     {
-        [Fact]
-        public void TempPECompilationWithInvalidReferenceDoesNotCrash()
+        var tempPEService = new TempPECompilerService(new TrivialMetadataService());
+
+        using var tempRoot = new TempRoot();
+        var directory = tempRoot.CreateDirectory();
+
+        // This should not crash. Visual inspection of the Dev12 codebase implied we might return
+        // S_FALSE in this case, but it wasn't very clear. In any case, it's not expected to throw,m
+        // so S_FALSE seems fine.
+        var hr = tempPEService.CompileTempPE(
+            pszOutputFileName: Path.Combine(directory.Path, "Output.dll"),
+            sourceCount: 0,
+            fileNames: [],
+            fileContents: [],
+            optionCount: 1,
+            optionNames: ["r"],
+            optionValues: [Path.Combine(directory.Path, "MissingReference.dll")]);
+
+        Assert.Equal(VSConstants.S_FALSE, hr);
+    }
+
+    private sealed class TrivialMetadataService : IMetadataService
+    {
+        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
         {
-            var tempPEService = new TempPECompilerService(new TrivialMetadataService());
-
-            using var tempRoot = new TempRoot();
-            var directory = tempRoot.CreateDirectory();
-
-            // This should not crash. Visual inspection of the Dev12 codebase implied we might return
-            // S_FALSE in this case, but it wasn't very clear. In any case, it's not expected to throw,m
-            // so S_FALSE seems fine.
-            var hr = tempPEService.CompileTempPE(
-                pszOutputFileName: Path.Combine(directory.Path, "Output.dll"),
-                sourceCount: 0,
-                fileNames: [],
-                fileContents: [],
-                optionCount: 1,
-                optionNames: ["r"],
-                optionValues: [Path.Combine(directory.Path, "MissingReference.dll")]);
-
-            Assert.Equal(VSConstants.S_FALSE, hr);
-        }
-
-        private class TrivialMetadataService : IMetadataService
-        {
-            public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
-            {
-                return MetadataReference.CreateFromFile(resolvedPath, properties);
-            }
+            return MetadataReference.CreateFromFile(resolvedPath, properties);
         }
     }
 }

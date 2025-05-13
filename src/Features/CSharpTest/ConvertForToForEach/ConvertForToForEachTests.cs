@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
-public class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertForToForEachTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertForToForEachCodeRefactoringProvider();

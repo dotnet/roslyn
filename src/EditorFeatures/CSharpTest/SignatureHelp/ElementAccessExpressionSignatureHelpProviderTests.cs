@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
 
 [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+public sealed class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
 {
     internal override Type GetSignatureHelpProviderType()
         => typeof(ElementAccessExpressionSignatureHelpProvider);
@@ -503,7 +503,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                             referencedCode: referencedCode,
-                                            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+                                            expectedOrderedItemsMetadataReference: [],
                                             expectedOrderedItemsSameSolution: expectedOrderedItemsMetadataReference,
                                             sourceLanguage: LanguageNames.CSharp,
                                             referencedLanguage: LanguageNames.CSharp);
@@ -540,7 +540,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
             referencedCode: referencedCode,
-            expectedOrderedItemsMetadataReference: new List<SignatureHelpTestItem>(),
+            expectedOrderedItemsMetadataReference: [],
             expectedOrderedItemsSameSolution: expectedOrderedItems,
             sourceLanguage: LanguageNames.CSharp,
             referencedLanguage: LanguageNames.CSharp,
@@ -816,7 +816,14 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                 </Project>
             </Workspace>
             """;
-        var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
+        var expectedDescription = new SignatureHelpTestItem($"""
+            int C[int z]
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
         await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
@@ -858,12 +865,19 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             </Workspace>
             """;
 
-        var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
+        var expectedDescription = new SignatureHelpTestItem($"""
+            int C[int z]
+
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, currentParameterIndex: 0);
         await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-    public class IncompleteElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
+    public sealed class IncompleteElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpSignatureHelpProviderTests
     {
         internal override Type GetSignatureHelpProviderType()
             => typeof(ElementAccessExpressionSignatureHelpProvider);

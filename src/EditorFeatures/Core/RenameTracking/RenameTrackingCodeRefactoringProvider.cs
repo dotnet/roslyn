@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.RenameTracking), Shared]
-internal class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class RenameTrackingCodeRefactoringProvider : CodeRefactoringProvider
 {
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;

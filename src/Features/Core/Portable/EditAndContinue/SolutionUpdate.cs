@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal readonly struct SolutionUpdate(
     ModuleUpdates moduleUpdates,
+    ImmutableArray<ProjectId> projectsToStale,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
@@ -18,19 +19,21 @@ internal readonly struct SolutionUpdate(
     Diagnostic? syntaxError)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
+    public readonly ImmutableArray<ProjectId> ProjectsToStale = projectsToStale;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
     public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
     public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
     public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits = documentsWithRudeEdits;
     public readonly Diagnostic? SyntaxError = syntaxError;
 
-    public static SolutionUpdate Blocked(
+    public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
         ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits,
         Diagnostic? syntaxError,
-        bool hasEmitErrors)
+        ModuleUpdateStatus status)
         => new(
-            new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
+            new(status, Updates: []),
+            projectsToStale: [],
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,

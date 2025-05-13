@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.QuickInfo;
@@ -41,7 +40,7 @@ internal static class OnTheFlyDocsLogger
 
     public static void ReportTelemetry()
     {
-        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Get_Counts, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Get_Counts, KeyValueLogMessage.Create(static m =>
         {
             foreach (var kv in s_countLogAggregator)
             {

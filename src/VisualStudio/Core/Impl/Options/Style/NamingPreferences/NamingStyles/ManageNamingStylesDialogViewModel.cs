@@ -11,63 +11,62 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences;
+
+internal sealed class ManageNamingStylesDialogViewModel : AbstractNotifyPropertyChanged, IManageNamingStylesInfoDialogViewModel
 {
-    internal class ManageNamingStylesDialogViewModel : AbstractNotifyPropertyChanged, IManageNamingStylesInfoDialogViewModel
+    private readonly INotificationService _notificationService;
+
+    public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
+
+    public string DialogTitle => ServicesVSResources.Manage_naming_styles;
+
+    public ManageNamingStylesDialogViewModel(
+        ObservableCollection<MutableNamingStyle> namingStyles,
+        List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules,
+        INotificationService notificationService)
     {
-        private readonly INotificationService _notificationService;
+        _notificationService = notificationService;
 
-        public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
+        Items = [.. namingStyles.Select(style => new NamingStyleViewModel(
+            style.Clone(),
+            !namingRules.Any(rule => rule.SelectedStyle?.ID == style.ID),
+            notificationService))];
+    }
 
-        public string DialogTitle => ServicesVSResources.Manage_naming_styles;
+    internal void RemoveNamingStyle(NamingStyleViewModel namingStyle)
+        => Items.Remove(namingStyle);
 
-        public ManageNamingStylesDialogViewModel(
-            ObservableCollection<MutableNamingStyle> namingStyles,
-            List<NamingStyleOptionPageViewModel.NamingRuleViewModel> namingRules,
-            INotificationService notificationService)
+    public void AddItem()
+    {
+        var style = new MutableNamingStyle();
+        var viewModel = new NamingStyleViewModel(style, canBeDeleted: true, notificationService: _notificationService);
+        var dialog = new NamingStyleDialog(viewModel);
+
+        if (dialog.ShowModal().Value == true)
         {
-            _notificationService = notificationService;
-
-            Items = [.. namingStyles.Select(style => new NamingStyleViewModel(
-                style.Clone(),
-                !namingRules.Any(rule => rule.SelectedStyle?.ID == style.ID),
-                notificationService))];
+            Items.Add(viewModel);
         }
+    }
 
-        internal void RemoveNamingStyle(NamingStyleViewModel namingStyle)
-            => Items.Remove(namingStyle);
+    public void RemoveItem(INamingStylesInfoDialogViewModel item)
+        => Items.Remove(item);
 
-        public void AddItem()
+    public void EditItem(INamingStylesInfoDialogViewModel item)
+    {
+        var context = (NamingStyleViewModel)item;
+
+        var style = context.GetNamingStyle();
+        var viewModel = new NamingStyleViewModel(style, context.CanBeDeleted, notificationService: _notificationService);
+        var dialog = new NamingStyleDialog(viewModel);
+
+        if (dialog.ShowModal().Value == true)
         {
-            var style = new MutableNamingStyle();
-            var viewModel = new NamingStyleViewModel(style, canBeDeleted: true, notificationService: _notificationService);
-            var dialog = new NamingStyleDialog(viewModel);
-
-            if (dialog.ShowModal().Value == true)
-            {
-                Items.Add(viewModel);
-            }
-        }
-
-        public void RemoveItem(INamingStylesInfoDialogViewModel item)
-            => Items.Remove(item);
-
-        public void EditItem(INamingStylesInfoDialogViewModel item)
-        {
-            var context = (NamingStyleViewModel)item;
-
-            var style = context.GetNamingStyle();
-            var viewModel = new NamingStyleViewModel(style, context.CanBeDeleted, notificationService: _notificationService);
-            var dialog = new NamingStyleDialog(viewModel);
-
-            if (dialog.ShowModal().Value == true)
-            {
-                context.ItemName = viewModel.ItemName;
-                context.RequiredPrefix = viewModel.RequiredPrefix;
-                context.RequiredSuffix = viewModel.RequiredSuffix;
-                context.WordSeparator = viewModel.WordSeparator;
-                context.CapitalizationSchemeIndex = viewModel.CapitalizationSchemeIndex;
-            }
+            context.ItemName = viewModel.ItemName;
+            context.RequiredPrefix = viewModel.RequiredPrefix;
+            context.RequiredSuffix = viewModel.RequiredSuffix;
+            context.WordSeparator = viewModel.WordSeparator;
+            context.CapitalizationSchemeIndex = viewModel.CapitalizationSchemeIndex;
         }
     }
 }

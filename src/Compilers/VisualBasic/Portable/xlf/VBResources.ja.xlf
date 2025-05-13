@@ -631,13 +631,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">アナライザー アセンブリ '{0}' は、コンパイラのバージョン '{1}' を参照しています。これは、現在実行中のバージョン '{2}' よりも新しいバージョンです。</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">アナライザー アセンブリ '{0}' は、コンパイラのバージョン '{1}' を参照しています。これは、現在実行中のバージョン '{2}' よりも新しいバージョンです。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">アナライザー アセンブリが参照しるコンパイラのバージョンは、現在実行中のバージョンよりも新しいです。</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">アナライザー アセンブリが参照しるコンパイラのバージョンは、現在実行中のバージョンよりも新しいです。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

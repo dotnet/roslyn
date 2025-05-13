@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-public class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class AsyncLocalFunctionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(AsyncAwaitHighlighter);

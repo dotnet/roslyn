@@ -38,7 +38,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
-  echo "  --solution                 Soluton to build (Default is Compilers.slnf)"
+  echo "  --solution                 Solution to build (default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -80,7 +80,6 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
-restoreUseStaticGraphEvaluation=true
 solution_to_build="Compilers.slnf"
 
 args=""
@@ -174,10 +173,8 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild)
+    --sourcebuild|-sb)
       source_build=true
-      # RestoreUseStaticGraphEvaluation will cause prebuilts
-      restoreUseStaticGraphEvaluation=false
       ;;
     --solution)
       solution_to_build=$2
@@ -307,7 +304,6 @@ function BuildSolution {
     /p:Publish=$publish \
     /p:Sign=$sign \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
-    /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \

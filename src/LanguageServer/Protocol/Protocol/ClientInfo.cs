@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Information about the client
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class ClientInfo
+internal sealed class ClientInfo
 {
     /// <summary>
     /// The client's name as defined by the client

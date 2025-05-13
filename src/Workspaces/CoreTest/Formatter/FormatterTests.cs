@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formating;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Formatting)]
-public class FormatterTests
+public sealed class FormatterTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features;
 
     [ExportLanguageService(typeof(IFormattingService), language: NoCompilationConstants.LanguageName), Shared, PartNotDiscoverable]
-    internal class TestFormattingService : IFormattingService
+    internal sealed class TestFormattingService : IFormattingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

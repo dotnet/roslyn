@@ -453,7 +453,7 @@ internal abstract class AbstractListItemFactory
         return builder.ToImmutableAndClear();
     }
 
-    private class AssemblySymbolComparer : IEqualityComparer<(ProjectId, IAssemblySymbol)>
+    private sealed class AssemblySymbolComparer : IEqualityComparer<(ProjectId, IAssemblySymbol)>
     {
         public bool Equals((ProjectId, IAssemblySymbol) x, (ProjectId, IAssemblySymbol) y)
             => x.Item2.Identity.Equals(y.Item2.Identity);

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ReplaceConditionalWithS
 using VerifyCS = CSharpCodeRefactoringVerifier<CSharpReplaceConditionalWithStatementsCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class ReplaceConditionalWithStatementsTests
+public sealed class ReplaceConditionalWithStatementsTests
 {
     [Fact]
     public async Task TestAssignment_ObjectType()

@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GoToAdjacentMember;
 
 [Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
-public class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
+public sealed class CSharpGoToAdjacentMemberTests : AbstractGoToAdjacentMemberTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
     protected override ParseOptions DefaultParseOptions => CSharpParseOptions.Default;

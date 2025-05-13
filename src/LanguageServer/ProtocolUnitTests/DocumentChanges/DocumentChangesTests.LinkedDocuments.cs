@@ -10,15 +10,15 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges;
+
+public sealed partial class DocumentChangesTests
 {
-    public partial class DocumentChangesTests
+    [Theory, CombinatorialData]
+    public async Task LinkedDocuments_AllTracked(bool mutatingLspWorkspace)
     {
-        [Theory, CombinatorialData]
-        public async Task LinkedDocuments_AllTracked(bool mutatingLspWorkspace)
-        {
-            var documentText = "class C { }";
-            var workspaceXml =
+        var documentText = "class C { }";
+        var workspaceXml =
 @$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
         <Document FilePath=""C:\C.cs"">{documentText}{{|caret:|}}</Document>
@@ -28,30 +28,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
-            var caretLocation = testLspServer.GetLocations("caret").Single();
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            await DidOpen(testLspServer, caretLocation.Uri);
+        await DidOpen(testLspServer, caretLocation.DocumentUri);
 
-            var trackedDocuments = testLspServer.GetTrackedTexts();
-            Assert.Equal(1, trackedDocuments.Length);
+        var trackedDocuments = testLspServer.GetTrackedTexts();
+        Assert.Equal(1, trackedDocuments.Length);
 
-            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri).ConfigureAwait(false);
+        var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.DocumentUri).ConfigureAwait(false);
 
-            foreach (var document in solution.Projects.First().Documents)
-            {
-                Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
-            }
-
-            await DidClose(testLspServer, caretLocation.Uri);
-
-            Assert.Empty(testLspServer.GetTrackedTexts());
+        foreach (var document in solution.Projects.First().Documents)
+        {
+            Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
         }
 
-        [Theory, CombinatorialData]
-        public async Task LinkedDocuments_AllTextChanged(bool mutatingLspWorkspace)
-        {
-            var initialText =
+        await DidClose(testLspServer, caretLocation.DocumentUri);
+
+        Assert.Empty(testLspServer.GetTrackedTexts());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task LinkedDocuments_AllTextChanged(bool mutatingLspWorkspace)
+    {
+        var initialText =
 @"class A
 {
     void M()
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         {|caret:|}
     }
 }";
-            var workspaceXml =
+        var workspaceXml =
 @$"<Workspace>
     <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
         <Document FilePath=""C:\C.cs"">{initialText}</Document>
@@ -69,10 +69,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
-            var caretLocation = testLspServer.GetLocations("caret").Single();
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
+        var caretLocation = testLspServer.GetLocations("caret").Single();
 
-            var updatedText =
+        var updatedText =
 @"class A
 {
     void M()
@@ -81,29 +81,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     }
 }";
 
-            await DidOpen(testLspServer, caretLocation.Uri);
+        await DidOpen(testLspServer, caretLocation.DocumentUri);
 
-            Assert.Equal(1, testLspServer.GetTrackedTexts().Length);
+        Assert.Equal(1, testLspServer.GetTrackedTexts().Length);
 
-            await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
+        await DidChange(testLspServer, caretLocation.DocumentUri, (4, 8, "// hi there"));
 
-            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri).ConfigureAwait(false);
+        var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.DocumentUri).ConfigureAwait(false);
 
-            foreach (var document in solution.Projects.First().Documents)
-            {
-                Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
-            }
-
-            await DidClose(testLspServer, caretLocation.Uri);
-
-            Assert.Empty(testLspServer.GetTrackedTexts());
-        }
-
-        private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, Uri uri)
+        foreach (var document in solution.Projects.First().Documents)
         {
-            var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
-            Contract.ThrowIfNull(lspDocument);
-            return lspDocument.Project.Solution;
+            Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
         }
+
+        await DidClose(testLspServer, caretLocation.DocumentUri);
+
+        Assert.Empty(testLspServer.GetTrackedTexts());
+    }
+
+    private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, DocumentUri uri)
+    {
+        var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+        Contract.ThrowIfNull(lspDocument);
+        return lspDocument.Project.Solution;
     }
 }

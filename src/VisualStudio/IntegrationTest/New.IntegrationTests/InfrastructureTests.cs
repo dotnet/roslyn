@@ -6,14 +6,13 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests;
 
-public class InfrastructureTests : AbstractEditorTest
+public sealed class InfrastructureTests : AbstractEditorTest
 {
     public InfrastructureTests()
         : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)

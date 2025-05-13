@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
+public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
     [Theory, CombinatorialData]
@@ -113,7 +113,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(TestDiagnosticSourceProvider));
 
-    private class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
+    private sealed class TestDiagnosticSource(Document document, TestDiagnosticSourceProvider provider) : AbstractDocumentDiagnosticSource<Document>(document)
     {
         public const string Id = "Id";
 
@@ -134,7 +134,7 @@ public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
     [Export(typeof(IDiagnosticSourceProvider)), Shared, PartNotDiscoverable]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
+    private sealed class TestDiagnosticSourceProvider() : IDiagnosticSourceProvider
     {
         public bool IsDocument => true;
 

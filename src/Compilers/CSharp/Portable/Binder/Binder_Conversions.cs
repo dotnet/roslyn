@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node, node, receiver, WellKnownMemberNames.CollectionInitializerAddMethodName, rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
                     typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
-                    invoked: true, indexed: false, diagnostics, searchExtensionMethodsIfNecessary: true);
+                    invoked: true, indexed: false, diagnostics, searchExtensionsIfNecessary: true);
 
                 // require the target member to be a method.
                 if (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess)
@@ -1361,13 +1361,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resolution = addMethodBinder.ResolveMethodGroup(
                     methodGroup, expression, WellKnownMemberNames.CollectionInitializerAddMethodName, analyzedArguments,
                     useSiteInfo: ref useSiteInfo,
-                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything);
+                    options: OverloadResolution.Options.DynamicResolution | OverloadResolution.Options.DynamicConvertsToAnything,
+                    acceptOnlyMethods: true);
 
                 diagnostics.Add(expression, useSiteInfo);
 
                 if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
 
-                if (resolution.HasAnyErrors)
+                if (resolution.IsNonMethodExtensionMember(out Symbol? extensionMember))
+                {
+                    Debug.Assert(false); // Should not get here given the 'acceptOnlyMethods' argument value used in 'ResolveMethodGroup' call above  
+                    ReportMakeInvocationExpressionBadMemberKind(syntax, WellKnownMemberNames.CollectionInitializerAddMethodName, methodGroup, diagnostics);
+                    addMethods = [];
+                    result = false;
+                }
+                else if (resolution.HasAnyErrors)
                 {
                     addMethods = [];
                     result = false;
@@ -1399,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var finalApplicableCandidates = addMethodBinder.GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult,
                                                                                                                 methodGroup.ReceiverOpt,
                                                                                                                 methodGroup.TypeArgumentsOpt,
-                                                                                                                invokedAsExtensionMethod: resolution.IsExtensionMethodGroup,
+                                                                                                                isExtensionMethodGroup: resolution.IsExtensionMethodGroup,
                                                                                                                 diagnostics);
 
                             Debug.Assert(finalApplicableCandidates.Length != 1 || finalApplicableCandidates[0].IsApplicable);
@@ -1459,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!typeParameters.IsEmpty)
                     {
-                        if (resolution.IsExtensionMethodGroup)
+                        if (resolution.IsExtensionMethodGroup) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we need to handle new extension methods
                         {
                             // We need to validate an ability to infer type arguments as well as check conversion to 'this' parameter.
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
@@ -1510,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     parameterTypes,
                                     parameterRefKinds,
                                     ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, secondArgumentType) { WasCompilerGenerated = true }),
-                                    ref useSiteInfo);
+                                    ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we may need to override ordinals here
 
                                 if (!inferenceResult.Success)
                                 {
@@ -1593,6 +1601,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodResult = result.ValidResult;
                 var method = methodResult.Member;
 
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
+                //            that specifically deals with new extension methods. It adjusts analyzedArguments, etc.
+                //            It is very likely we need to do the same here. 
+
                 // It is possible that overload resolution succeeded, but we have chosen an
                 // instance method and we're in a static method. A careful reading of the
                 // overload resolution spec shows that the "final validation" stage allows an
@@ -1651,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add methods. This case can be hit for spreads and non-spread elements.
                         Debug.Assert(call.HasErrors);
                         Debug.Assert(call.Method.Name == "Add");
-                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0];
+                        return call.Arguments[call.InvokedAsExtensionMethod ? 1 : 0]; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
                     case BoundBadExpression badExpression:
                         Debug.Assert(false); // Add test if we hit this assert.
                         return badExpression;
@@ -1700,7 +1712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 out iterationType,
                 builder: out var builder);
             // Collection expression target types require instance method GetEnumerator.
-            if (result && builder.ViaExtensionMethod)
+            if (result && builder.ViaExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions
             {
                 iterationType = default;
                 return false;
@@ -2223,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             CheckParameterModifierMismatchMethodConversion(syntax, boundLambda.Symbol, destination, invokedAsExtensionMethod: false, diagnostics);
-            CheckLambdaConversion(boundLambda.Symbol, destination, diagnostics);
+            CheckLambdaConversion((LambdaSymbol)boundLambda.Symbol, destination, diagnostics);
             return new BoundConversion(
                 syntax,
                 boundLambda,
@@ -2826,20 +2838,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodParameters = method.Parameters;
             int numParams = delegateOrFuncPtrParameters.Length;
 
-            if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
-            {
-                // This can happen if "method" has optional parameters.
-                Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
-                Error(diagnostics, getMethodMismatchErrorCode(delegateType.TypeKind), errorLocation, method, delegateType);
-                return false;
-            }
+            Debug.Assert(methodParameters.Length == numParams + (isExtensionMethod ? 1 : 0));
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
+            Debug.Assert(!(isExtensionMethod || (method.GetIsNewExtensionMember() && !method.IsStatic)) ||
+                (Conversions.ConvertExtensionMethodThisArg(GetReceiverParameter(method)!.Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
@@ -2972,6 +2978,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeKind.FunctionPointer => ErrorCode.ERR_FuncPtrRefMismatch,
                     _ => throw ExceptionUtilities.UnexpectedValue(type)
                 };
+        }
+
+        internal static ParameterSymbol? GetReceiverParameter(MethodSymbol method)
+        {
+            if (method.IsExtensionMethod)
+            {
+                return method.Parameters[0];
+            }
+
+            Debug.Assert(method.GetIsNewExtensionMember());
+            return method.ContainingType.ExtensionParameter;
         }
 
         /// <summary>

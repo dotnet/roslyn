@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
+public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(SymbolCompletionProvider);
@@ -30,7 +30,7 @@ public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpComplet
     private protected override Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
-        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {

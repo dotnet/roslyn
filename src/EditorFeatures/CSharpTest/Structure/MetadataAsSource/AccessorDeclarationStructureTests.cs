@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSource;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
+public sealed class AccessorDeclarationStructureTests : AbstractCSharpSyntaxNodeStructureTests<AccessorDeclarationSyntax>
 {
     protected override string WorkspaceKind => CodeAnalysis.WorkspaceKind.MetadataAsSource;
     internal override AbstractSyntaxStructureProvider CreateProvider() => new AccessorDeclarationStructureProvider();

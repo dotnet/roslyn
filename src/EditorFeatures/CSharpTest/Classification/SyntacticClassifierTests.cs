@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1504,8 +1505,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
         var expected = new[]
         {
-            PPKeyword("#"),
-            PPText("!/usr/bin/env scriptcs"),
+            Comment("#!/usr/bin/env scriptcs"),
             Identifier("System"),
             Operators.Dot,
             Identifier("Console"),
@@ -1529,8 +1529,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
         var expected = new[]
         {
-            PPKeyword("#"),
-            PPText("!/usr/bin/env scriptcs"),
+            Comment("#!/usr/bin/env scriptcs"),
             Identifier("System"),
             Operators.Dot,
             Identifier("Console"),
@@ -6863,6 +6862,116 @@ testHost,
             Punctuation.Comma,
             Identifier("T"),
             Parameter("b"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InstanceIncrementOperator_01(TestHost testHost, [CombinatorialValues("++", "--")] string op)
+    {
+        await TestInClassAsync(
+            $$$"""
+
+            void operator {{{op}}}()
+            {
+            }
+            """,
+            testHost,
+            Keyword("void"),
+            Keyword("operator"),
+            op == "++" ? Operators.PlusPlus : Operators.MinusMinus,
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InstanceIncrementOperator_02(TestHost testHost, [CombinatorialValues("++", "--")] string op)
+    {
+        await TestInClassAsync(
+            $$$"""
+
+            void I1.operator checked {{{op}}}()
+            {
+            }
+            """,
+            testHost,
+            Keyword("void"),
+            Identifier("I1"),
+            Operators.Dot,
+            Keyword("operator"),
+            Keyword("checked"),
+            op == "++" ? Operators.PlusPlus : Operators.MinusMinus,
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InstanceCompoundAssignmentOperator_01(TestHost testHost, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        await TestInClassAsync(
+            $$$"""
+
+            void operator {{{op}}}(T a)
+            {
+            }
+            """,
+            testHost,
+            Keyword("void"),
+            Keyword("operator"),
+            CompoundAssignmentOperatorClassification(op),
+            Punctuation.OpenParen,
+            Identifier("T"),
+            Parameter("a"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    private static FormattedClassification CompoundAssignmentOperatorClassification(string op)
+    {
+        switch (op)
+        {
+            case "+=": return Operators.PlusEquals;
+            case "-=": return Operators.MinusEquals;
+            case "*=": return Operators.AsteriskEquals;
+            case "/=": return Operators.SlashEquals;
+            case "%=": return Operators.PercentEquals;
+            case "&=": return Operators.AmpersandEquals;
+            case "|=": return Operators.BarEquals;
+            case "^=": return Operators.CaretEquals;
+            case "<<=": return Operators.LessThanLessThanEquals;
+            case ">>=": return Operators.GreaterThanGreaterThanEquals;
+            case ">>>=": return Operators.GreaterThanGreaterThanGreaterThanEquals;
+            default:
+                throw ExceptionUtilities.UnexpectedValue(op);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task InstanceCompoundAssignmentOperator_02(TestHost testHost, [CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        await TestInClassAsync(
+            $$$"""
+
+            void I1.operator checked {{{op}}}(T a)
+            {
+            }
+            """,
+            testHost,
+            Keyword("void"),
+            Identifier("I1"),
+            Operators.Dot,
+            Keyword("operator"),
+            Keyword("checked"),
+            CompoundAssignmentOperatorClassification(op),
+            Punctuation.OpenParen,
+            Identifier("T"),
+            Parameter("a"),
             Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);

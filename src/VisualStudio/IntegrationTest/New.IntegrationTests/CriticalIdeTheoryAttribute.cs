@@ -6,7 +6,7 @@ using System;
 
 namespace Xunit;
 
-internal class CriticalIdeTheoryAttribute : IdeTheoryAttribute
+internal sealed class CriticalIdeTheoryAttribute : IdeTheoryAttribute
 {
     [Obsolete("Critical tests cannot be skipped.", error: true)]
     public new string Skip

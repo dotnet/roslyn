@@ -7,96 +7,95 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
+
+[Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+public sealed class DisableKeywordRecommenderTests : KeywordRecommenderTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class DisableKeywordRecommenderTests : KeywordRecommenderTests
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
+    public async Task TestAfterNullable()
+        => await VerifyKeywordAsync(@"#nullable $$");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
+    public async Task TestNotAfterNullableAndNewline()
     {
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
-        public async Task TestAfterNullable()
-            => await VerifyKeywordAsync(@"#nullable $$");
+        await VerifyAbsenceAsync("""
+            #nullable 
+            $$
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31130")]
-        public async Task TestNotAfterNullableAndNewline()
-        {
-            await VerifyAbsenceAsync("""
-                #nullable 
-                $$
+            """);
+    }
 
-                """);
-        }
-
-        [Fact]
-        public async Task TestNotAtRoot_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
+    [Fact]
+    public async Task TestNotAtRoot_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterClass_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                class C { }
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterClass_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            class C { }
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotAfterGlobalStatement_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                System.Console.WriteLine();
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterGlobalStatement_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            System.Console.WriteLine();
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
-        {
-            await VerifyAbsenceAsync(SourceCodeKind.Script,
-                """
-                int i = 0;
-                $$
-                """);
-        }
+    [Fact]
+    public async Task TestNotAfterGlobalVariableDeclaration_Interactive()
+    {
+        await VerifyAbsenceAsync(SourceCodeKind.Script,
+            """
+            int i = 0;
+            $$
+            """);
+    }
 
-        [Fact]
-        public async Task TestNotInUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInGlobalUsingAlias()
-        {
-            await VerifyAbsenceAsync(
+    [Fact]
+    public async Task TestNotInGlobalUsingAlias()
+    {
+        await VerifyAbsenceAsync(
 @"global using Goo = $$");
-        }
+    }
 
-        [Fact]
-        public async Task TestNotInEmptyStatement()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(
+    [Fact]
+    public async Task TestNotInEmptyStatement()
+    {
+        await VerifyAbsenceAsync(AddInsideMethod(
 @"$$"));
-        }
+    }
 
-        [Fact]
-        public async Task TestNotAfterHash()
-            => await VerifyAbsenceAsync(@"#$$");
+    [Fact]
+    public async Task TestNotAfterHash()
+        => await VerifyAbsenceAsync(@"#$$");
 
-        [Fact]
-        public async Task TestNotAfterPragma()
-            => await VerifyAbsenceAsync(@"#pragma $$");
+    [Fact]
+    public async Task TestNotAfterPragma()
+        => await VerifyAbsenceAsync(@"#pragma $$");
 
-        [Fact]
-        public async Task TestAfterPragmaWarning()
-        {
-            await VerifyKeywordAsync(
+    [Fact]
+    public async Task TestAfterPragmaWarning()
+    {
+        await VerifyKeywordAsync(
 @"#pragma warning $$");
-        }
     }
 }

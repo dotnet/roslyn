@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,7 +21,6 @@ using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-public partial class CodeCleanupTests
+public sealed partial class CodeCleanupTests
 {
     [Fact]
     public Task RemoveUsings()
@@ -857,7 +855,7 @@ public partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private protected static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static Task AssertCodeCleanupResult(string expected, string code, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
         => AssertCodeCleanupResult(expected, code, new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent), systemUsingsFirst, separateUsingGroups, enabledFixIdsFilter, diagnosticIdsWithSeverity);
 
     /// <summary>
@@ -871,7 +869,7 @@ public partial class CodeCleanupTests
     /// <param name="enabledFixIdsFilter">Optional filter to determine if a specific fix ID is explicitly enabled for cleanup.</param>
     /// <param name="diagnosticIdsWithSeverity">Optional list of diagnostic IDs with effective severities to be configured in editorconfig.</param>
     /// <returns>The <see cref="Task"/> to test code cleanup.</returns>
-    private protected static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
+    private static async Task AssertCodeCleanupResult(string expected, string code, CodeStyleOption2<AddImportPlacement> preferredImportPlacement, bool systemUsingsFirst = true, bool separateUsingGroups = false, Func<string, bool> enabledFixIdsFilter = null, (string, DiagnosticSeverity)[] diagnosticIdsWithSeverity = null)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 

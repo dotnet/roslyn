@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FixInterpolatedVerbatim
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.FixInterpolatedVerbatimString)]
-public class FixInterpolatedVerbatimStringCommandHandlerTests
+public sealed class FixInterpolatedVerbatimStringCommandHandlerTests
 {
     private static EditorTestWorkspace CreateTestWorkspace(string inputMarkup)
     {

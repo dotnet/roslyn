@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public class EditorTestHostDocument : TestHostDocument
+public sealed class EditorTestHostDocument : TestHostDocument
 {
     private static readonly ImmutableArray<string> s_defaultRoles =
     [

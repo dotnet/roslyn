@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -50,7 +49,7 @@ using static StringCopyPasteHelpers;
 [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class StringCopyPasteCommandHandler(
+internal sealed partial class StringCopyPasteCommandHandler(
     IThreadingContext threadingContext,
     ITextUndoHistoryRegistry undoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,

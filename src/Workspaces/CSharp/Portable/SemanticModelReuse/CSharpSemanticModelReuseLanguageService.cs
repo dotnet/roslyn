@@ -9,12 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SemanticModelReuse;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SemanticModelReuse;
 
 [ExportLanguageService(typeof(ISemanticModelReuseLanguageService), LanguageNames.CSharp), Shared]
-internal class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
+internal sealed class CSharpSemanticModelReuseLanguageService : AbstractSemanticModelReuseLanguageService<
     MemberDeclarationSyntax,
     BasePropertyDeclarationSyntax,
     AccessorDeclarationSyntax>

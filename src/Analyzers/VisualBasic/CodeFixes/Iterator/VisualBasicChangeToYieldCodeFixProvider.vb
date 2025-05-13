@@ -27,6 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
         Public Sub New()
         End Sub
 
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            Return MyBase.GetFixAllProvider()
+        End Function
+
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return Ids

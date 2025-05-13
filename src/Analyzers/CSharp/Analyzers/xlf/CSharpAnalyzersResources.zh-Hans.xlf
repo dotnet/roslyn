@@ -82,6 +82,11 @@
         <target state="translated">嵌入的语句必须放在其自己的行上</target>
         <note />
       </trans-unit>
+      <trans-unit id="Implement_with_Copilot">
+        <source>Implement with Copilot</source>
+        <target state="new">Implement with Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indexing_can_be_simplified">
         <source>Indexing can be simplified</source>
         <target state="translated">索引可以简化</target>

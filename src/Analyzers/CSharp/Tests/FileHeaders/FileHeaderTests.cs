@@ -13,7 +13,7 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FileHeaders;
 
-public class FileHeaderTests
+public sealed class FileHeaderTests
 {
     private const string TestSettings = """
         [*.cs]

@@ -12,7 +12,7 @@ using System.Windows.Documents;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class BindableTextBlock : TextBlock
+internal sealed class BindableTextBlock : TextBlock
 {
     public IList<Inline> InlineCollection
     {

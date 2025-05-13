@@ -5,35 +5,33 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.OrganizeImports;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
+
+internal readonly struct OmniSharpOrganizeImportsOptionsWrapper
 {
-    internal readonly struct OmniSharpOrganizeImportsOptionsWrapper
+    internal readonly OrganizeImportsOptions UnderlyingObject;
+
+    private OmniSharpOrganizeImportsOptionsWrapper(OrganizeImportsOptions underlyingObject)
     {
-        internal readonly OrganizeImportsOptions UnderlyingObject;
+        UnderlyingObject = underlyingObject;
+    }
 
-        private OmniSharpOrganizeImportsOptionsWrapper(OrganizeImportsOptions underlyingObject)
+    public OmniSharpOrganizeImportsOptionsWrapper(
+        bool placeSystemNamespaceFirst,
+        bool separateImportDirectiveGroups,
+        string newLine)
+        : this(new OrganizeImportsOptions()
         {
-            UnderlyingObject = underlyingObject;
-        }
-
-        public OmniSharpOrganizeImportsOptionsWrapper(
-            bool placeSystemNamespaceFirst,
-            bool separateImportDirectiveGroups,
-            string newLine)
-            : this(new OrganizeImportsOptions()
-            {
-                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
-                SeparateImportDirectiveGroups = separateImportDirectiveGroups,
-                NewLine = newLine
-            })
-        {
-        }
+            PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+            SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+            NewLine = newLine
+        })
+    {
+    }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async ValueTask<OmniSharpOrganizeImportsOptionsWrapper> FromDocumentAsync(Document document, OmniSharpOrganizeImportsOptionsWrapper fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<OmniSharpOrganizeImportsOptionsWrapper> FromDocumentAsync(Document document, OmniSharpOrganizeImportsOptionsWrapper fallbackOptions, CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
-            => new(await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false));
-    }
+        => new(await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false));
 }

@@ -7,13 +7,12 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class ConvertToFileScopedNamespaceDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     public ConvertToFileScopedNamespaceDiagnosticAnalyzer()
         : base(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId,

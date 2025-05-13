@@ -26,8 +26,6 @@ M:Microsoft.CodeAnalysis.Document.GetOptionsAsync(System.Threading.CancellationT
 T:Microsoft.CodeAnalysis.Options.DocumentOptionSet; Use AnalyzerConfigOptions instead
 M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetService``2(System.IServiceProvider); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing.
 M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetService``2(System.IServiceProvider,System.Boolean); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
-M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetServiceAsync``2(Microsoft.VisualStudio.Shell.IAsyncServiceProvider); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
-M:Microsoft.VisualStudio.Shell.ServiceExtensions.GetServiceAsync``2(Microsoft.VisualStudio.Shell.IAsyncServiceProvider,System.Boolean); Use RoslynServiceExtensions instead. This extension internally relies on ThreadHelper, which is incompatible with testing
 P:Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory; Use IThreadingContext.JoinableTaskFactory instead.
 M:Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use internal overload instead
 M:Microsoft.CodeAnalysis.Formatting.Formatter.FormatAsync(Microsoft.CodeAnalysis.Document,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.Options.OptionSet,System.Threading.CancellationToken); Use overload with SyntaxFormattingOptions instead
@@ -72,3 +70,10 @@ M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(CSystem.
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.DesktopStrongNameProvider.#ctor(System.Collections.Immutable.ImmutableArray{System.String}); Use overload that takes in temp directory
 M:System.Diagnostics.Tracing.EventSource.WriteEvent(System.Int32,System.Object[]); Use WriteEventCore instead
+E:Microsoft.CodeAnalysis.Workspace.WorkspaceChanged; Use RegisterWorkspaceChangedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.WorkspaceFailed; Use RegisterWorkspaceFailedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.DocumentOpened; Use RegisterDocumentOpenedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.TextDocumentOpened; Use RegisterTextDocumentOpenedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.DocumentClosed; Use RegisterDocumentClosedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.TextDocumentClosed; Use RegisterTextDocumentClosedHandler instead
+E:Microsoft.CodeAnalysis.Workspace.DocumentActiveContextChanged; Use RegisterDocumentActiveContextChangedHandler instead

@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class ChecksumTests
+public sealed class ChecksumTests
 {
     [Fact]
     public void ValidateChecksumFromSpanSameAsChecksumFromBytes1()

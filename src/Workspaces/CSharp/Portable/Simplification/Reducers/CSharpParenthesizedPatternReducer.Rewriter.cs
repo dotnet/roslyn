@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-internal partial class CSharpParenthesizedPatternReducer
+internal sealed partial class CSharpParenthesizedPatternReducer
 {
-    private class Rewriter : AbstractReductionRewriter
+    private sealed class Rewriter : AbstractReductionRewriter
     {
         public Rewriter(ObjectPool<IReductionRewriter> pool)
             : base(pool)

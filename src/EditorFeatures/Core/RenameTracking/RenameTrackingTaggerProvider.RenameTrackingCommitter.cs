@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 
 internal sealed partial class RenameTrackingTaggerProvider
 {
-    private class RenameTrackingCommitter
+    private sealed class RenameTrackingCommitter
     {
         private readonly StateMachine _stateMachine;
         private readonly SnapshotSpan _snapshotSpan;

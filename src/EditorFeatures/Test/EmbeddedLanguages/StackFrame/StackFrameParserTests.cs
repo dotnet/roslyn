@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
 
-public partial class StackFrameParserTests
+public sealed partial class StackFrameParserTests
 {
     [Fact]
     public void TestNoParams()

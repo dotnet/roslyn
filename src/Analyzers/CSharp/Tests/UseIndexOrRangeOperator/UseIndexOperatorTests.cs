@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseIndexOperatorCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
-public class UseIndexOperatorTests
+public sealed class UseIndexOperatorTests
 {
     [Fact]
     public async Task TestNotInCSharp7()

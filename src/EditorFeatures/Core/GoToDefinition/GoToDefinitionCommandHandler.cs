@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.GoToDefinition;
 [Name(PredefinedCommandHandlerNames.GoToDefinition)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class GoToDefinitionCommandHandler(
+internal sealed class GoToDefinitionCommandHandler(
     IThreadingContext threadingContext,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<GoToDefinitionCommandArgs>
@@ -129,7 +129,8 @@ internal class GoToDefinitionCommandHandler(
 
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            backgroundIndicator.CancelOnFocusLost = false;
+            using var _ = backgroundIndicator.SuppressAutoCancel();
+
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
                 _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }

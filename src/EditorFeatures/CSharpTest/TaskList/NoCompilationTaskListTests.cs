@@ -23,7 +23,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList;
 
 [UseExportProvider]
-public class NoCompilationTaskListTests : AbstractTaskListTests
+public sealed class NoCompilationTaskListTests : AbstractTaskListTests
 {
     protected override EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
     {
@@ -51,7 +51,7 @@ $@"<Workspace>
 
 [PartNotDiscoverable]
 [ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
-internal class NoCompilationTaskListService : ITaskListService
+internal sealed class NoCompilationTaskListService : ITaskListService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

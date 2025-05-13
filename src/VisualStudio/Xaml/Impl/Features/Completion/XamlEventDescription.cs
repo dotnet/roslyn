@@ -4,13 +4,12 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
+
+internal struct XamlEventDescription
 {
-    internal struct XamlEventDescription
-    {
-        public string ClassName { get; set; }
-        public string EventName { get; set; }
-        public string ReturnType { get; set; }
-        public ImmutableArray<(string Name, string ParameterType, string Modifier)> Parameters { get; set; }
-    }
+    public string ClassName { get; set; }
+    public string EventName { get; set; }
+    public string ReturnType { get; set; }
+    public ImmutableArray<(string Name, string ParameterType, string Modifier)> Parameters { get; set; }
 }

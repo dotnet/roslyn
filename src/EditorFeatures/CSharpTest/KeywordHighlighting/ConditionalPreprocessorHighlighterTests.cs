@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
 [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-public class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeywordHighlighterTests
+public sealed class ConditionalPreprocessorHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
     internal override Type GetHighlighterType()
         => typeof(ConditionalPreprocessorHighlighter);

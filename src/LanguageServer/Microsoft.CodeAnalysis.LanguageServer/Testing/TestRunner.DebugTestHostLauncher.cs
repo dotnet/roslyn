@@ -10,9 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal partial class TestRunner
+internal sealed partial class TestRunner
 {
-    private class DebugTestHostLauncher(BufferedProgress<RunTestsPartialResult> progress, IClientLanguageServerManager clientLanguageServerManager) : ITestHostLauncher2, ITestHostLauncher3
+    private sealed class DebugTestHostLauncher(BufferedProgress<RunTestsPartialResult> progress, IClientLanguageServerManager clientLanguageServerManager) : ITestHostLauncher2, ITestHostLauncher3
     {
         public bool IsDebug => true;
 

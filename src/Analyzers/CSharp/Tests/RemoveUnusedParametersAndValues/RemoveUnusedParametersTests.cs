@@ -28,7 +28,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedValuesCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
-public class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class RemoveUnusedParametersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnusedParametersTests(ITestOutputHelper logger)
       : base(logger)

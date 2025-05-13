@@ -6,19 +6,18 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
-{
-    internal readonly struct FSharpInlineRenameReplacement
-    {
-        public FSharpInlineRenameReplacementKind Kind { get; }
-        public TextSpan OriginalSpan { get; }
-        public TextSpan NewSpan { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 
-        public FSharpInlineRenameReplacement(FSharpInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan)
-        {
-            this.Kind = kind;
-            this.OriginalSpan = originalSpan;
-            this.NewSpan = newSpan;
-        }
+internal readonly struct FSharpInlineRenameReplacement
+{
+    public FSharpInlineRenameReplacementKind Kind { get; }
+    public TextSpan OriginalSpan { get; }
+    public TextSpan NewSpan { get; }
+
+    public FSharpInlineRenameReplacement(FSharpInlineRenameReplacementKind kind, TextSpan originalSpan, TextSpan newSpan)
+    {
+        this.Kind = kind;
+        this.OriginalSpan = originalSpan;
+        this.NewSpan = newSpan;
     }
 }

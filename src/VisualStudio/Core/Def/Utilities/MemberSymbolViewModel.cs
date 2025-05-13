@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities;
 
-internal class MemberSymbolViewModel : SymbolViewModel<ISymbol>
+internal sealed class MemberSymbolViewModel : SymbolViewModel<ISymbol>
 {
     private bool _isCheckable;
     private bool _makeAbstract;

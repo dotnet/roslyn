@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-public class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
+public sealed class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
     [WpfFact]
     public void AddComment_EmptyCaret()

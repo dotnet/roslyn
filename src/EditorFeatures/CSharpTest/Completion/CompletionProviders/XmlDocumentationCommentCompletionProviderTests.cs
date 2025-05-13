@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(XmlDocCommentCompletionProvider);
@@ -42,7 +42,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
     private protected override async Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
         SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
-        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        Glyph? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
@@ -894,7 +894,7 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             }
             else
             {
-                await VerifyItemExistsAsync(source, keywordText, glyph: (int)Glyph.Keyword);
+                await VerifyItemExistsAsync(source, keywordText, glyph: Glyph.Keyword);
             }
         }
     }

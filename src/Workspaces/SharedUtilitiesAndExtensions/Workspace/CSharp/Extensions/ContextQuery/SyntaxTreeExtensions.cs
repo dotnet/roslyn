@@ -759,7 +759,7 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
                 canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableHashSet<string> NotNullIfParameterNotNull
             => GetDecodedWellKnownAttributeData()?.NotNullIfParameterNotNull ?? ImmutableHashSet<string>.Empty;
 
-        internal bool HasEnumeratorCancellationAttribute
+        internal override bool HasEnumeratorCancellationAttribute
         {
             get
             {
@@ -1588,9 +1588,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             Debug.Assert(!addMethods.IsDefaultOrEmpty);
 
-                            if (addMethods[0].IsStatic) // No need to check other methods, extensions are never mixed with instance methods
+                            if (addMethods[0].IsExtensionMethod || addMethods[0].GetIsNewExtensionMember()) // No need to check other methods, extensions are never mixed with instance methods
                             {
-                                Debug.Assert(addMethods[0].IsExtensionMethod);
                                 diagnostics.Add(ErrorCode.ERR_ParamsCollectionExtensionAddMethod, syntax, Type);
                                 return;
                             }

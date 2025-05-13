@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,14 +20,9 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.Rename)]
-public class CSharpRename : AbstractEditorTest
+public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
 {
     protected override string LanguageName => LanguageNames.CSharp;
-
-    public CSharpRename()
-        : base(nameof(CSharpRename))
-    {
-    }
 
     public override async Task InitializeAsync()
     {
@@ -37,7 +30,6 @@ public class CSharpRename : AbstractEditorTest
 
         // reset relevant global options to default values:
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);
@@ -151,6 +143,7 @@ public class CSharpRename : AbstractEditorTest
         AssertEx.SetEqual(renameSpans, tagSpans);
 
         await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
             using System;
@@ -185,6 +178,7 @@ public class CSharpRename : AbstractEditorTest
         AssertEx.SetEqual(renameSpans, tagSpans);
 
         await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
             using System;
@@ -224,6 +218,7 @@ public class CSharpRename : AbstractEditorTest
         AssertEx.SetEqual(renameSpans, tagSpans);
 
         await TestServices.Input.SendWithoutActivateAsync("Custom", HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync([VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.TextEqualsAsync("""
             using System;
@@ -239,7 +234,7 @@ public class CSharpRename : AbstractEditorTest
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyLocalVariableRenameWithCommentsUpdated()
     {
         // "variable" is intentionally misspelled as "varixable" and "this" is misspelled as
@@ -314,7 +309,7 @@ public class CSharpRename : AbstractEditorTest
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyLocalVariableRenameWithStringsUpdated()
     {
         var markup = """
@@ -369,7 +364,7 @@ public class CSharpRename : AbstractEditorTest
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyOverloadsUpdated()
     {
         var markup = """
@@ -602,7 +597,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63576")]
     public async Task VerifyRenameInStandaloneFiles()
     {
         await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
@@ -658,7 +653,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
 
         await TestServices.EditorVerifier.TextEqualsAsync(
             """
-            class p$$rogram
+            class program$$
             {
                 static void Main(string[] args)
                 {
@@ -670,8 +665,6 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact]
     public async Task VerifyTextSync()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "Program.cs",
             """
             public class Class2
@@ -710,8 +703,6 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/68374")]
     public async Task VerifySelectionAsync()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         var startCode = """
             public class Class2
             {
@@ -752,8 +743,6 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73630"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
     public async Task VerifyRenameLinkedDocumentsAsync()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, true);
         var projectName = "MultiTFMProject";
         await TestServices.SolutionExplorer.AddCustomProjectAsync(projectName, ".csproj", """
             <Project Sdk="Microsoft.NET.Sdk">
@@ -807,15 +796,11 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
         await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
     }
 
-    [CombinatorialData]
-    [IdeTheory]
-    public async Task VerifyAsyncRename(bool useInlineRename)
+    [IdeFact]
+    public async Task VerifyAsyncRename()
     {
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, true);
-
-        if (!useInlineRename)
-            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
 
         var markup = """
             class Program

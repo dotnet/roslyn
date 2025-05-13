@@ -10662,7 +10662,7 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
             comp.VerifyDiagnostics(
 // (75): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
 //          static implicit operator int(iii aa)   // CS0558, add public
-Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
+Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
                 );
         }
 
@@ -10812,7 +10812,7 @@ interface IA
             comp.VerifyDiagnostics(
                 // (4,17): error CS0558: User-defined operator 'IA.operator +(int, int)' must be declared static and public
                 //    int operator +(int aa, int bb);   // CS0567
-                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStaticAndPublic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
                 // (4,17): error CS0501: 'IA.operator +(int, int)' must declare a body because it is not marked abstract, extern, or partial
                 //    int operator +(int aa, int bb);   // CS0567
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
@@ -14953,9 +14953,9 @@ class B
 }";
             var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
-                // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (3,27): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
-                // (4,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
+                // (4,27): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 27),
                 // (4,42): error CS1100: Method 'M2' has a parameter modifier 'this' which is not on the first parameter
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("M2").WithLocation(4, 42),

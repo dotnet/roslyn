@@ -13,11 +13,10 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
-internal partial class StringCopyPasteCommandHandler :
+internal sealed partial class StringCopyPasteCommandHandler :
     IChainedCommandHandler<CutCommandArgs>,
     IChainedCommandHandler<CopyCommandArgs>
 {

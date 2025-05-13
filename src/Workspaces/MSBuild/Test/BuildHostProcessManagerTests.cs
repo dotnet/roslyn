@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 using BuildHostProcessKind = BuildHostProcessManager.BuildHostProcessKind;
 
-public class BuildHostProcessManagerTests
+public sealed class BuildHostProcessManagerTests
 {
     [Fact]
     public void ProcessStartInfo_ForNetCore_RollsForwardToLatestPreview()

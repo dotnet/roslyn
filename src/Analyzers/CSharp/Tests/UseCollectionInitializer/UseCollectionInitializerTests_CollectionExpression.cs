@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseCollectionInitializerCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-public partial class UseCollectionInitializerTests_CollectionExpression
+public sealed partial class UseCollectionInitializerTests_CollectionExpression
 {
     private static async Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
@@ -5957,6 +5957,27 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     Stack<T> GetNumbers<T>(T[] values)
                     {
                         return new Stack<T>(values);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77962")]
+    public async Task TestNotOnBindingList()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.ComponentModel;
+                
+                class C
+                {
+                    BindingList<T> GetNumbers<T>(T[] values)
+                    {
+                        return new BindingList<T>(values);
                     }
                 }
                 """,

@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-internal partial class TestRunner
+internal sealed partial class TestRunner
 {
-    private class TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger) : ITestRunEventsHandler
+    private sealed class TestRunHandler(BufferedProgress<RunTestsPartialResult> progress, TestProgress initialProgress, ILogger logger) : ITestRunEventsHandler
     {
         private readonly ILogger _logger = logger;
         private readonly BufferedProgress<RunTestsPartialResult> _progress = progress;

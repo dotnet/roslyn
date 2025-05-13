@@ -378,26 +378,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (this.GetIsNewExtensionMember() && ContainingType.ExtensionParameter is { } extensionParameter)
+            {
+                if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
+                {
+                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
+                    diagnostics.Add(code, GetFirstLocation(), this, extensionParameter.Type);
+                }
+            }
+
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
         }
 
         protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
         {
-            if (ContainingType.HasFileLocalTypes())
+            NamedTypeSymbol containingType = ContainingType;
+
+            if (containingType is { IsExtension: true, ContainingType: { } enclosing })
+            {
+                containingType = enclosing;
+            }
+
+            if (containingType.HasFileLocalTypes())
             {
                 return;
             }
 
             if (returnType.Type.HasFileLocalTypes())
             {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, ContainingType);
+                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, containingType);
             }
 
             foreach (var param in parameters)
             {
                 if (param.Type.HasFileLocalTypes())
                 {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, ContainingType);
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, containingType);
                 }
             }
         }
@@ -543,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsExtensionMethod
+        public sealed override bool IsExtensionMethod
         {
             get
             {
@@ -1015,74 +1031,6 @@ done:
         {
             Debug.Assert(!this.IsConstructor()); // Constructors should use IsNullableEnabledForConstructorsAndInitializers() instead.
             return flags.IsNullableAnalysisEnabled;
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
-            }
-
-            var compilation = this.DeclaringCompilation;
-
-            if (compilation.ShouldEmitNullableAttributes(this) &&
-                ShouldEmitNullableContextValue(out byte nullableContextValue))
-            {
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableContextAttribute(this, nullableContextValue));
-            }
-
-            if (this.RequiresExplicitOverride(out _))
-            {
-                // On platforms where it is present, add PreserveBaseOverridesAttribute when a methodimpl is used to override a class method.
-                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizePreserveBaseOverridesAttribute());
-            }
-
-            bool isAsync = this.IsAsync;
-            bool isIterator = this.IsIterator;
-
-            if (!isAsync && !isIterator)
-            {
-                return;
-            }
-
-            // The async state machine type is not synthesized until the async method body is rewritten. If we are
-            // only emitting metadata the method body will not have been rewritten, and the async state machine
-            // type will not have been created. In this case, omit the attribute.
-            if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out NamedTypeSymbol stateMachineType))
-            {
-                var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
-                    TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
-
-                if (isAsync && isIterator)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-                else if (isAsync)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-                else if (isIterator)
-                {
-                    AddSynthesizedAttribute(ref attributes,
-                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,
-                            ImmutableArray.Create(arg)));
-                }
-            }
-
-            if (isAsync && !isIterator)
-            {
-                // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
-                // This means we need to emit DebuggerStepThroughAttribute in order
-                // to have correct stepping behavior during debugging.
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
-            }
         }
 
         /// <summary>

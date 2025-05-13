@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests;
 
-public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+public sealed partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
 {
     public GenerateTypeWithUnboundAnalyzerTests(ITestOutputHelper logger)
        : base(logger)

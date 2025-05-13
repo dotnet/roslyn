@@ -104,7 +104,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         {
             foreach (var changedFile in e.Changes)
             {
-                var filePath = changedFile.Uri.LocalPath;
+                var filePath = changedFile.Uri.GetRequiredParsedUri().LocalPath;
 
                 // Unfortunately the LSP protocol doesn't give us any hint of which of the file watches we might have sent to the client
                 // was the one that registered for this change, so we have to check paths to see if this one we should respond to.
@@ -152,7 +152,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
                 // TODO: figure out how I just can do an absolute path watch
                 GlobPattern = new RelativePattern
                 {
-                    BaseUri = ProtocolConversions.CreateAbsoluteUri(Path.GetDirectoryName(filePath)!),
+                    BaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(Path.GetDirectoryName(filePath)!),
                     Pattern = Path.GetFileName(filePath)
                 }
             };
@@ -173,7 +173,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
             }
         }
 
-        private class WatchedFile : IWatchedFile
+        private sealed class WatchedFile : IWatchedFile
         {
             private readonly string _filePath;
             private readonly LspFileWatchRegistration _fileWatchRegistration;

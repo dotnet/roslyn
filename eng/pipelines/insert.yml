@@ -50,6 +50,9 @@ parameters:
     type: string
     default: ''
 
+  - name: cherryPick
+    type: string
+
 steps:
   - checkout: none
   
@@ -183,7 +186,7 @@ steps:
       .\RIT\tools\net472\OneOffInsertion.ps1 `
         -autoComplete "$(Template.AutoComplete)" `
         -buildQueueName "$(Build.DefinitionName)" `
-        -cherryPick "(default)" `
+        -cherryPick "${{ parameters.cherryPick }}" `
         -userName "$(Template.BuildUserName)" `
         -password "$(Template.BuildPassword)" `
         -componentUserName "$(Template.ComponentUserName)" `

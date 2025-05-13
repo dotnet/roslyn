@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor</RootNamespace>
+    <TargetFrameworks>net472</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures</PackageId>
+    <PackageDescription>
+      A supporting package for Razor:
+      https://github.com/dotnet/razor
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Dependencies\Contracts\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+
+    <!--
+      ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.LanguageServer.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Editor.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
+    <ProjectReference Include="..\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="InternalAPI.Shipped.txt" />
+    <PublicAPI Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

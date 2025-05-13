@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Structure;
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
 [ExportLanguageServiceFactory(typeof(BlockStructureService), LanguageNames.CSharp), Shared]
-internal class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
+internal sealed class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,7 +26,7 @@ internal class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
         => new CSharpBlockStructureService(languageServices.LanguageServices.SolutionServices);
 }
 
-internal class CSharpBlockStructureService(SolutionServices services) : BlockStructureServiceWithProviders(services)
+internal sealed class CSharpBlockStructureService(SolutionServices services) : BlockStructureServiceWithProviders(services)
 {
     protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
     {

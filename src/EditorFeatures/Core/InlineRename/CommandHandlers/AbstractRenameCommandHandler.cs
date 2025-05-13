@@ -26,15 +26,9 @@ internal abstract partial class AbstractRenameCommandHandler(
 {
     public string DisplayName => EditorFeaturesResources.Rename;
 
-    protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
-
     protected abstract void SetFocusToTextView(ITextView textView);
 
     protected abstract void SetFocusToAdornment(ITextView textView);
-
-    protected abstract void SetAdornmentFocusToPreviousElement(ITextView textView);
-
-    protected abstract void SetAdornmentFocusToNextElement(ITextView textView);
 
     private CommandState GetCommandState(Func<CommandState> nextHandler)
     {

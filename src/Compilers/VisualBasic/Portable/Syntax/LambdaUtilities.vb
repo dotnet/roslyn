@@ -608,11 +608,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Compares content of two nodes ignoring lambda bodies and trivia.
         ''' </summary>
         Public Shared Function AreEquivalentIgnoringLambdaBodies(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
-            ' all tokens that don't belong to a lambda body:
-            Dim oldTokens = oldNode.DescendantTokens(Function(node) node Is oldNode OrElse Not IsLambdaBodyStatementOrExpression(node))
-            Dim newTokens = newNode.DescendantTokens(Function(node) node Is newNode OrElse Not IsLambdaBodyStatementOrExpression(node))
+            Return DescendantTokensIgnoringLambdaBodies(oldNode).SequenceEqual(DescendantTokensIgnoringLambdaBodies(newNode), AddressOf SyntaxFactory.AreEquivalent)
+        End Function
 
-            Return oldTokens.SequenceEqual(newTokens, AddressOf SyntaxFactory.AreEquivalent)
+        ''' <summary>
+        ''' Returns all tokens of <paramref name="node"/> that are not part of lambda bodies.
+        ''' </summary>
+        Public Shared Function DescendantTokensIgnoringLambdaBodies(node As SyntaxNode) As IEnumerable(Of SyntaxToken)
+            Return node.DescendantTokens(Function(child) child Is node OrElse Not IsLambdaBodyStatementOrExpression(child))
         End Function
 
         ''' <summary>

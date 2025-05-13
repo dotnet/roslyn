@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -31,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.RemoteHost)]
-public class SolutionServiceTests
+public sealed class SolutionServiceTests
 {
     private static readonly TestComposition s_composition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
     private static readonly TestComposition s_compositionWithFirstDocumentIsActiveAndVisible =

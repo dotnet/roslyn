@@ -217,9 +217,19 @@
         <target state="translated">스위치 식 arm은 'case' 키워드로 시작하지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
+        <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
+        <target state="new">Overloaded compound assignment operator '{0}' takes one parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadDynamicAwaitForEach">
         <source>Cannot use a collection of dynamic type in an asynchronous foreach</source>
         <target state="translated">비동기 foreach에는 동적 형식 컬렉션을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadExtensionContainingType">
+        <source>Extensions must be declared in a top-level, non-generic, static class</source>
+        <target state="new">Extensions must be declared in a top-level, non-generic, static class</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFieldTypeInRecord">
@@ -440,6 +450,11 @@
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberNotStatic">
         <source>'{0}' does not implement static interface member '{1}'. '{2}' cannot implement the interface member because it is not static.</source>
         <target state="translated">'{0}'은(는) 정적 인터페이스 멤버 '{1}'을(를) 구현하지 않습니다. '{2}'은(는) 정적이 아니므로 인터페이스 멤버를 구현할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloseUnimplementedInterfaceMemberWrongInitOnly">
@@ -717,6 +732,11 @@
         <target state="translated">식 트리에는 컬렉션 식이 포함될 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
+        <source>An expression tree may not contain an extension property access</source>
+        <target state="new">An expression tree may not contain an extension property access</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">식 트리에는 내림차순 인덱스('^') 식을 포함할 수 없습니다.</target>
@@ -730,6 +750,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
         <source>An expression tree may not contain an interpolated string handler conversion.</source>
         <target state="translated">식 트리에는 보간된 문자열 처리기 변환이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsNamedArgumentOutOfPosition">
+        <source>An expression tree may not contain a named argument specification out of position</source>
+        <target state="new">An expression tree may not contain a named argument specification out of position</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
@@ -760,6 +785,31 @@
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
         <source>An expression tree may not contain a with-expression.</source>
         <target state="translated">식 트리에는 with 식이 포함될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsMember">
+        <source>Extension declarations can include only methods or properties</source>
+        <target state="new">Extension declarations can include only methods or properties</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionDisallowsName">
+        <source>Extension declarations may not have a name.</source>
+        <target state="new">Extension declarations may not have a name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionParameterDisallowsDefaultValue">
+        <source>The receiver parameter of an extension cannot have a default value</source>
+        <target state="new">The receiver parameter of an extension cannot have a default value</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionResolutionFailed">
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="new">'{0}' does not contain a definition for '{1}' and no accessible extension member '{1}' for receiver of type '{0}' could be found (are you missing a using directive or an assembly reference?)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExtensionTypeNameDisallowed">
+        <source>Types and aliases cannot be named 'extension'.</source>
+        <target state="new">Types and aliases cannot be named 'extension'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExternEventInitializer">
@@ -992,6 +1042,11 @@
         <target state="translated">동적으로 디스패치된 식에서 'in' 한정자가 있는 인수를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InExtensionParameterMustBeValueType">
+        <source>The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</source>
+        <target state="new">The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
         <source>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</source>
         <target state="translated">봉인된 'Object.ToString'이 있는 레코드에서 상속은 C# {0}에서 지원되지 않습니다. 언어 버전 '{1}'이상을 사용하세요.</target>
@@ -1000,6 +1055,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' 접근자는 'readonly'로 표시할 수 없습니다. 대신 '{0}' 읽기 전용으로 표시합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InitInExtension">
+        <source>'{0}': cannot declare init-only accessors in an extension block</source>
+        <target state="new">'{0}': cannot declare init-only accessors in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
@@ -1035,6 +1095,11 @@
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
         <target state="translated">인라인 배열 요소 필드는 필수, 읽기 전용, 휘발성 또는 고정 크기 버퍼로 선언할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
+        <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
+        <target state="new">'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -1247,6 +1312,11 @@
         <target state="translated">'Experimental' 특성에 대한 diagnosticId 인수는 유효한 식별자여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtensionParameterReference">
+        <source>Cannot use extension parameter '{0}' in this context.</source>
+        <target state="new">Cannot use extension parameter '{0}' in this context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
         <source>'{0}' is not a valid function pointer return type modifier. Valid modifiers are 'ref' and 'ref readonly'.</source>
         <target state="translated">'{0}'은(는) 유효한 함수 포인터 반환 형식 한정자가 아닙니다. 유효한 한정자는 'ref' 및 'ref readonly'입니다.</target>
@@ -1387,6 +1457,16 @@
         <target state="translated">목록 패턴은 '{0}' 형식의 값에 사용할 수 없습니다. 적합한 'Length' 또는 'Count' 속성을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LocalSameNameAsExtensionTypeParameter">
+        <source>'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a parameter, local variable, or local function cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">함수 포인터 '{1}'과(와) 일치하는 '{0}'에 대한 오버로드가 없습니다.</target>
@@ -1415,6 +1495,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="translated">패턴이 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ModifierOnUnnamedReceiverParameter">
+        <source>Cannot use modifiers on the unnamed receiver parameter of extension block</source>
+        <target state="new">Cannot use modifiers on the unnamed receiver parameter of extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleInitializerCannotBeUnmanagedCallersOnly">
@@ -1607,6 +1692,26 @@
         <target state="translated">사용자 정의 연산자 '{0}'은(는) 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OperatorMismatchOnOverride">
+        <source>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</source>
+        <target state="new">'{0}': cannot override inherited member '{1}' because one of them is not an operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorMustReturnVoid">
+        <source>The return type for this operator must be void</source>
+        <target state="new">The return type for this operator must be void</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBePublic">
+        <source>User-defined operator '{0}' must be declared public</source>
+        <target state="new">User-defined operator '{0}' must be declared public</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OperatorsMustBeStaticAndPublic">
+        <source>User-defined operator '{0}' must be declared static and public</source>
+        <target state="new">User-defined operator '{0}' must be declared static and public</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
         <target state="translated">ref readonly 매개 변수에는 Out 특성을 사용할 수 없습니다.</target>
@@ -1635,6 +1740,26 @@
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
         <target state="translated">'{0}' 메서드는 형식 매개 변수 '{1}'의 'struct' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 '{3}' 메서드의 해당 형식 매개 변수 '{2}'이(가) null을 허용하지 않는 값 형식이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsIf">
+        <source>'#:' directives cannot be after '#if' directive</source>
+        <target state="new">'#:' directives cannot be after '#if' directive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredFollowsToken">
+        <source>'#:' directives cannot be after first token in file</source>
+        <target state="new">'#:' directives cannot be after first token in file</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPIgnoredNeedsFileBasedProgram">
+        <source>'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</source>
+        <target state="new">'#:' directives can be only used in file-based programs ('-features:FileBasedProgram')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PPShebangInProjectBasedProgram">
+        <source>'#!' directives can be only used in scripts or file-based programs</source>
+        <target state="new">'#!' directives can be only used in scripts or file-based programs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
@@ -1847,6 +1972,11 @@
         <target state="translated">속성 하위 패턴은 일치시킬 속성 또는 필드에 대한 참조가 필요합니다(예: '{{ Name: {0} }}')</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ProtectedInExtension">
+        <source>'{0}': new protected member declared in an extension block</source>
+        <target state="new">'{0}': new protected member declared in an extension block</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
         <source>Raw string literal delimiter must be on its own line.</source>
         <target state="translated">원시 문자열 리터럴 구분 기호는 자체 줄에 있어야 합니다.</target>
@@ -1877,6 +2007,16 @@
         <target state="translated">'{0}': 속성 또는 인덱서에 get 접근자와 set 접근자가 둘 다 있는 경우에만 접근자에 'readonly'를 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterOnlyOne">
+        <source>An extension container can have only one receiver parameter</source>
+        <target state="new">An extension container can have only one receiver parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReceiverParameterSameNameAsTypeParameter">
+        <source>'{0}': a receiver parameter cannot have the same name as an extension container type parameter</source>
+        <target state="new">'{0}': a receiver parameter cannot have the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">기본 생성자가 합성된 복사 생성자와 충돌합니다.</target>
@@ -1900,6 +2040,11 @@
       <trans-unit id="ERR_RefAssignValEscapeWider">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">'{0}'에 '{1}'을(를) ref-assign할 수 없습니다. '{1}'은(는) '{0}'보다 더 넓은 값 이스케이프 범위를 가지며 '{1}'보다 좁은 이스케이프 범위가 있는 값의 '{0}'을(를) 통한 할당을 허용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne">
+        <source>The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</source>
+        <target state="new">The 'ref' receiver parameter of an extension block must be a value type or a generic type constrained to struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefFieldCannotReferToRefStruct">
@@ -2287,6 +2432,16 @@
         <target state="translated">호출 규칙으로 사용하려면 '{0}' 형식이 public이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionParameter">
+        <source>Type parameter '{0}' has the same name as an extension parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeParameterSameNameAsExtensionTypeParameter">
+        <source>Type parameter '{0}' has the same name as an extension container type parameter</source>
+        <target state="new">Type parameter '{0}' has the same name as an extension container type parameter</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnassignedThisAutoPropertyUnsupportedVersion">
         <source>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the property.</source>
         <target state="translated">제어가 호출자에게 반환되기 전에 자동 구현 속성 '{0}'이(가) 완전히 할당되어야 합니다. 속성을 자동으로 기본 설정하려면 언어 버전 '{1}'(으)로 업데이트하는 것이 좋습니다.</target>
@@ -2295,6 +2450,11 @@
       <trans-unit id="ERR_UnassignedThisUnsupportedVersion">
         <source>Field '{0}' must be fully assigned before control is returned to the caller. Consider updating to language version '{1}' to auto-default the field.</source>
         <target state="translated">제어가 호출자에게 반환되기 전에 필드 '{0}'이(가) 완전히 할당되어야 합니다. 필드를 자동으로 기본 설정하려면 언어 버전 '{1}'으로 업데이트하는 것이 좋습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnderspecifiedExtension">
+        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
+        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
@@ -2387,6 +2547,16 @@
         <target state="translated">모든 필드가 할당되기 전에는 'this' 개체를 사용할 수 없습니다. 할당되지 않은 필드의 기본값을 자동으로 설정하려면 언어 버전 '{0}'(으)로 업데이트하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension parameter name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ValueParameterSameNameAsExtensionTypeParameter">
+        <source>'value': an automatically-generated parameter name conflicts with an extension type parameter name</source>
+        <target state="new">'value': an automatically-generated parameter name conflicts with an extension type parameter name</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_VariableDeclarationNamedField">
         <source>In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</source>
         <target state="new">In language version {0}, 'field' is a keyword within a property accessor. Rename the variable or use the identifier '@field' instead.</target>
@@ -2415,6 +2585,11 @@
       <trans-unit id="IDS_AsyncMethodBuilderOverride">
         <source>async method builder override</source>
         <target state="translated">비동기 메서드 빌더 재정의</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CollectionExpression">
+        <source>collection expression</source>
+        <target state="new">collection expression</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
@@ -2455,6 +2630,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">확장 속성 패턴</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExtensions">
+        <source>extensions</source>
+        <target state="new">extensions</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
@@ -2550,6 +2730,11 @@
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">보간에서 줄 바꿈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureOverloadResolutionPriority">
@@ -2650,6 +2835,11 @@
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">부호 없는 오른쪽 시프트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUserDefinedCompoundAssignmentOperators">
+        <source>user-defined compound assignment operators</source>
+        <target state="new">user-defined compound assignment operators</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUtf8StringLiterals">
@@ -2758,13 +2948,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
-        <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
+        <target state="needs-review-translation">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
-        <source>The analyzer assembly references a newer version of the compiler than the currently running version.</source>
-        <target state="translated">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
+        <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
+        <target state="needs-review-translation">분석기 어셈블리는 현재 실행 중인 버전보다 최신 버전의 컴파일러를 참조합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
@@ -5394,12 +5584,12 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
-        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">null을 허용하지 않는 {0} '{1}'은(는) 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 {0}을(를) nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
-        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or safely handling the case where 'field' is null in the 'get' accessor.</source>
         <target state="translated">null을 허용하지 않는 속성은 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 속성을 nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
@@ -7567,11 +7757,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">'{0}' 형식의 사용자 정의 변환이 중복되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_OperatorsMustBeStatic">
-        <source>User-defined operator '{0}' must be declared static and public</source>
-        <target state="translated">'{0}' 사용자 정의 연산자는 static 및 public으로 선언해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadIncDecSignature">
         <source>The parameter type for ++ or -- operator must be the containing type</source>
         <target state="translated">++ 또는 -- 연산자의 매개 변수 형식은 포함하는 형식이어야 합니다.</target>
@@ -8822,8 +9007,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeforThis">
-        <source>The first parameter of an extension method cannot be of type '{0}'</source>
-        <target state="translated">확장 메서드의 첫 번째 매개 변수는 '{0}' 형식이 될 수 없습니다.</target>
+        <source>The receiver parameter of an extension cannot be of type '{0}'</source>
+        <target state="needs-review-translation">확장 메서드의 첫 번째 매개 변수는 '{0}' 형식이 될 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamModThis">
@@ -8852,8 +9037,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttrNotFound">
-        <source>Cannot define a new extension method because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
-        <target state="translated">컴파일러에 필요한 '{0}' 형식을 찾을 수 없으므로 새 확장 메서드를 정의할 수 없습니다. System.Core.dll의 참조가 있는지 확인하세요.</target>
+        <source>Cannot define a new extension because the compiler required type '{0}' cannot be found. Are you missing a reference to System.Core.dll?</source>
+        <target state="needs-review-translation">컴파일러에 필요한 '{0}' 형식을 찾을 수 없으므로 새 확장 메서드를 정의할 수 없습니다. System.Core.dll의 참조가 있는지 확인하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitExtension">
@@ -8947,8 +9132,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidMemberDecl">
-        <source>Invalid token '{0}' in class, record, struct, or interface member declaration</source>
-        <target state="translated">클래스, 레코드, 구조체 또는 인터페이스 멤버 선언에 잘못된 토큰 '{0}'이(가) 있습니다.</target>
+        <source>Invalid token '{0}' in a member declaration</source>
+        <target state="needs-review-translation">클래스, 레코드, 구조체 또는 인터페이스 멤버 선언에 잘못된 토큰 '{0}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNeedsType">

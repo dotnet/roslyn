@@ -57,6 +57,7 @@ internal static partial class ISymbolExtensions2
                 {
                     switch (((INamedTypeSymbol)symbol).TypeKind)
                     {
+                        case TypeKind.Extension:
                         case TypeKind.Class:
                             publicIcon = Glyph.ClassPublic;
                             break;
@@ -95,14 +96,13 @@ internal static partial class ISymbolExtensions2
                 {
                     var methodSymbol = (IMethodSymbol)symbol;
 
-                    if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or
-                        MethodKind.Conversion or
-                        MethodKind.BuiltinOperator)
+                    if (methodSymbol.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion or MethodKind.BuiltinOperator)
                     {
                         return Glyph.Operator;
                     }
                     else if (methodSymbol.IsExtensionMethod ||
-                             methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                             methodSymbol.MethodKind == MethodKind.ReducedExtension ||
+                             methodSymbol.ContainingType?.IsExtension is true)
                     {
                         publicIcon = Glyph.ExtensionMethodPublic;
                     }

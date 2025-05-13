@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -26,10 +27,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
+internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyzer
 {
     internal const int DefaultStatementPart = 0;
     private const string CreateNewOnMetadataUpdateAttributeName = "CreateNewOnMetadataUpdateAttribute";
+    private const string RestartRequiredOnMetadataUpdateAttributeName = "RestartRequiredOnMetadataUpdateAttribute";
 
     /// <summary>
     /// Contains enough information to determine whether two symbols have the same signature.
@@ -397,8 +399,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, SyntaxNode root, bool isNonLeaf);
     protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
-    internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
-    internal abstract void ReportEnclosingExceptionHandlingRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
+    internal abstract void ReportTopLevelSyntacticRudeEdits(RudeEditDiagnosticsBuilder diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
+    internal abstract void ReportEnclosingExceptionHandlingRudeEdits(RudeEditDiagnosticsBuilder diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
 
     internal abstract bool HasUnsupportedOperation(IEnumerable<SyntaxNode> newNodes, [NotNullWhen(true)] out SyntaxNode? unsupportedNode, out RudeEditKind rudeEdit);
 
@@ -414,7 +416,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     }
 
     internal abstract void ReportOtherRudeEditsAroundActiveStatement(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
@@ -425,11 +427,13 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         bool isNonLeaf,
         CancellationToken cancellationToken);
 
-    internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
+    internal abstract void ReportInsertedMemberSymbolRudeEdits(RudeEditDiagnosticsBuilder diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
     internal abstract void ReportStateMachineSuspensionPointRudeEdits(DiagnosticContext diagnosticContext, SyntaxNode oldNode, SyntaxNode newNode);
 
     internal abstract Func<SyntaxNode, bool> IsLambda { get; }
     internal abstract Func<SyntaxNode, bool> IsNotLambda { get; }
+    internal abstract Func<SyntaxNode, IEnumerable<SyntaxToken>> DescendantTokensIgnoringLambdaBodies { get; }
+    internal abstract Func<SyntaxToken, SyntaxToken, bool> AreTokensEquivalent { get; }
 
     internal abstract bool IsInterfaceDeclaration(SyntaxNode node);
     internal abstract bool IsRecordDeclaration(SyntaxNode node);
@@ -475,7 +479,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     /// <summary>
     /// Return true if the declaration is a field/property declaration with an initializer. 
-    /// Shall return false for enum members.
+    /// Shall return false for enum members and const fields.
     /// </summary>
     internal abstract bool IsDeclarationWithInitializer(SyntaxNode declaration);
 
@@ -607,7 +611,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             // 2) If there are syntactic rude edits we'll report them faster without waiting for semantic analysis.
             //    The user may fix them before they address all the semantic errors.
 
-            using var _2 = ArrayBuilder<RudeEditDiagnostic>.GetInstance(out var diagnostics);
+            using var diagnostics = new RudeEditDiagnosticsBuilder();
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -640,6 +644,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             var newExceptionRegions = ImmutableArray.CreateBuilder<ImmutableArray<SourceFileSpan>>(oldActiveStatements.Length);
             newExceptionRegions.Count = oldActiveStatements.Length;
 
+            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
+            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // Accumulates all active members as we discover them while analyzing both changed and unchanged member bodies.
+            using var oldActiveMembers = new ActiveMembersBuilder(this, oldModel, newModel, cancellationToken);
+
             var semanticEdits = await AnalyzeSemanticsAsync(
                 syntacticEdits,
                 editMap,
@@ -647,10 +657,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 newActiveStatementSpans,
                 triviaEdits,
                 oldProject,
-                oldDocument,
-                newDocument,
+                oldModel,
+                newModel,
                 newText,
                 diagnostics,
+                oldActiveMembers,
                 newActiveStatements,
                 newExceptionRegions,
                 capabilities,
@@ -659,25 +670,28 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, log, cancellationToken);
+            AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, oldActiveMembers, log, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
-            if (!diagnostics.IsEmpty)
+            var finalDiagnostics = diagnostics.GetAllDiagnostics(
+                includeDeferred: (_, condition) => oldActiveMembers.IsActive(condition.OldSymbol) == condition.ReportWhenSymbolIsActive);
+
+            if (!finalDiagnostics.IsEmpty)
             {
-                LogRudeEdits(diagnostics, newText, filePath);
+                LogRudeEdits(finalDiagnostics, newText, filePath);
             }
             else
             {
                 log.Write($"Capabilities required by '{filePath}': {capabilities.GrantedCapabilities}");
             }
 
-            var hasBlockingRudeEdits = diagnostics.HasBlockingRudeEdits();
+            var hasBlockingRudeEdits = finalDiagnostics.HasBlockingRudeEdits();
 
             return new DocumentAnalysisResults(
                 newDocument.Id,
                 filePath,
                 newActiveStatements.MoveToImmutable(),
-                diagnostics.ToImmutable(),
+                finalDiagnostics,
                 syntaxError: null,
                 hasBlockingRudeEdits ? default : semanticEdits,
                 hasBlockingRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
@@ -702,7 +716,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
-        void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
+        void LogRudeEdits(ImmutableArray<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -725,7 +739,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
-    private void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
+    private void ReportTopLevelSyntacticRudeEdits(RudeEditDiagnosticsBuilder diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
     {
         foreach (var edit in syntacticEdits.Edits)
         {
@@ -771,13 +785,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     #region Syntax Analysis
 
     private void AnalyzeUnchangedActiveMemberBodies(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         Match<SyntaxNode> topMatch,
         SourceText newText,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [In, Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
+        [Out] ActiveMembersBuilder activeMembers,
         TraceLog log,
         CancellationToken cancellationToken)
     {
@@ -801,19 +816,27 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                 if (node != null && TryFindMemberDeclaration(topMatch.OldRoot, node, oldStatementSpan, out var oldMemberDeclarations))
                 {
-                    foreach (var oldMember in oldMemberDeclarations)
+                    foreach (var oldMemberDeclaration in oldMemberDeclarations)
                     {
-                        var hasPartner = topMatch.TryGetNewNode(oldMember, out var newMember);
+                        var hasPartner = topMatch.TryGetNewNode(oldMemberDeclaration, out var newMemberDeclaration);
                         Contract.ThrowIfFalse(hasPartner);
 
-                        var oldBody = TryGetDeclarationBody(oldMember, symbol: null);
-                        var newBody = TryGetDeclarationBody(newMember, symbol: null);
+                        var oldBody = TryGetDeclarationBody(oldMemberDeclaration, symbol: null);
+                        var newBody = TryGetDeclarationBody(newMemberDeclaration, symbol: null);
 
                         // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                         if (oldBody == null || newBody == null)
                         {
                             log.Write($"Invalid active statement span: {oldStatementSpan}", LogMessageSeverity.Warning);
                             continue;
+                        }
+
+                        var oldStatementSyntax = oldBody.FindStatement(oldStatementSpan, out var _);
+                        Contract.ThrowIfNull(oldStatementSyntax);
+
+                        if (FindEnclosingLambdaBody(oldBody.EncompassingAncestor, oldStatementSyntax) == null)
+                        {
+                            activeMembers.Add(oldMemberDeclaration, newMemberDeclaration);
                         }
 
                         var statementPart = -1;
@@ -849,7 +872,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             Contract.ThrowIfNull(newStatement);
                         }
 
-                        if (diagnostics.Count == 0)
+                        if (diagnostics.Diagnostics.IsEmpty)
                         {
                             var ancestors = GetExceptionHandlingAncestors(newStatement, newBody.EncompassingAncestor, oldActiveStatements[i].Statement.IsNonLeaf);
                             newExceptionRegions[i] = GetExceptionRegions(ancestors, newStatement.SyntaxTree, cancellationToken).Spans;
@@ -929,14 +952,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         ISymbol newMember,
         Compilation oldCompilation,
         SourceText newText,
-        bool isMemberReplaced,
         Match<SyntaxNode> topMatch,
         ImmutableArray<UnmappedActiveStatement> oldActiveStatements,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         EditAndContinueCapabilitiesGrantor capabilities,
+        [Out] ActiveMembersBuilder oldActiveMembers,
         [Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
-        [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        [Out] RudeEditDiagnosticsBuilder diagnostics,
         out SyntaxMaps syntaxMaps,
         CancellationToken cancellationToken)
     {
@@ -979,23 +1002,27 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 // 
                 // 2) The declaration is also deleted, but a synthesized one is generated in its place and thus an update edit is issued.
                 //    Will remap active statements to the first instruction of the synthesized body (same as above).
-
-                foreach (var activeStatementIndex in activeStatementIndices)
+                if (activeStatementIndices is not [])
                 {
-                    // the declaration must exist, otherwise we wouldn't find any active statements overlapping the old body
-                    Debug.Assert(oldDeclaration != null);
+                    oldActiveMembers.Add(oldMember);
 
-                    // We have already calculated the new location of this active statement when analyzing another member declaration.
-                    // This may only happen when two or more member declarations share the same body (VB AsNew clause).
-                    if (newActiveStatements[activeStatementIndex] != null)
+                    foreach (var activeStatementIndex in activeStatementIndices)
                     {
-                        Debug.Assert(IsDeclarationWithSharedBody(oldDeclaration, oldMember));
-                        continue;
-                    }
+                        // the declaration must exist, otherwise we wouldn't find any active statements overlapping the old body
+                        Debug.Assert(oldDeclaration != null);
 
-                    var newSpan = GetDeletedDeclarationActiveSpan(topMatch.Matches, oldDeclaration);
-                    newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], topMatch.NewRoot.SyntaxTree, newSpan, diagnostics, cancellationToken);
-                    newExceptionRegions[activeStatementIndex] = [];
+                        // We have already calculated the new location of this active statement when analyzing another member declaration.
+                        // This may only happen when two or more member declarations share the same body (VB AsNew clause).
+                        if (newActiveStatements[activeStatementIndex] != null)
+                        {
+                            Debug.Assert(IsDeclarationWithSharedBody(oldDeclaration, oldMember));
+                            continue;
+                        }
+
+                        var newSpan = GetDeletedDeclarationActiveSpan(topMatch.Matches, oldDeclaration);
+                        newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], topMatch.NewRoot.SyntaxTree, newSpan, diagnostics, cancellationToken);
+                        newExceptionRegions[activeStatementIndex] = [];
+                    }
                 }
             }
             else
@@ -1021,6 +1048,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         }
 
                         lambda.ActiveNodeIndices!.Add(activeNodes.Count);
+                    }
+                    else
+                    {
+                        oldActiveMembers.Add(oldMember);
                     }
 
                     SyntaxNode? trackedNode = null;
@@ -1087,18 +1118,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 out var runtimeRudeEdits,
                 cancellationToken);
 
-            // Report rude edit only if the body itself has active statement, not when only a lambda in the body has one.
-            if (isMemberReplaced && bodyHasActiveStatement)
+            // Updating an entry point, a method marked with RestartRequiredOnMetadataUpdateAttribute,
+            // a static constructor or a static member with an initializer will most likely have no effect,
+            // unless the update is in a lambda body.
+            if (IsRestartRequired(oldMember, oldDeclaration, oldCompilation, newMember, newDeclaration, cancellationToken))
             {
-                diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken);
-            }
-
-            // Updating entry point that doesn't have an active statement will most likely have no effect, unless the update is in a lambda body.   
-            // In theory, the code could be updating the entry point while executing static constructor of module initializer,
-            // but those cases are rare.
-            if (!hasLambdaBodyUpdate && !bodyHasActiveStatement && oldMember == oldCompilation.GetEntryPoint(cancellationToken))
-            {
-                diagnosticContext.Report(RudeEditKind.UpdateMightNotHaveAnyEffect, cancellationToken);
+                var oldTokens = oldMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
+                var newTokens = newMemberBody?.GetUserCodeTokens(DescendantTokensIgnoringLambdaBodies) ?? [];
+                if (!oldTokens.SequenceEqual(newTokens, AreTokensEquivalent))
+                {
+                    diagnosticContext.Report(RudeEditKind.UpdateMightNotHaveAnyEffect, cancellationToken, condition: new RudeEditReportingCondition(oldMember, reportWhenActive: false));
+                }
             }
 
             // We need to provide syntax map to the compiler if 
@@ -1324,7 +1354,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         return true;
     }
 
-    private ActiveStatement GetActiveStatementWithSpan(UnmappedActiveStatement oldStatement, SyntaxTree newTree, TextSpan newSpan, ArrayBuilder<RudeEditDiagnostic> diagnostics, CancellationToken cancellationToken)
+    private ActiveStatement GetActiveStatementWithSpan(UnmappedActiveStatement oldStatement, SyntaxTree newTree, TextSpan newSpan, RudeEditDiagnosticsBuilder diagnostics, CancellationToken cancellationToken)
     {
         var mappedLineSpan = newTree.GetMappedLineSpan(newSpan, cancellationToken);
         if (mappedLineSpan.HasMappedPath && mappedLineSpan.Path != oldStatement.Statement.FileSpan.Path)
@@ -1351,7 +1381,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         int ordinal,
         bool isNonLeaf,
         ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         CancellationToken cancellationToken)
     {
         if (newStatementSyntax == null)
@@ -1375,7 +1405,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             ReportEnclosingExceptionHandlingRudeEdits(diagnostics, edits, oldStatementSyntax, newStatementSyntaxSpan);
 
             // Exception regions are not needed in presence of errors.
-            if (diagnostics.Count == 0)
+            if (diagnostics.Diagnostics.IsEmpty)
             {
                 Debug.Assert(oldAncestors.Count == newAncestors.Count);
                 newExceptionRegions[ordinal] = GetExceptionRegions(newAncestors, newStatementSyntax.SyntaxTree, cancellationToken).Spans;
@@ -1757,7 +1787,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     #region Rude Edits around Active Statement 
 
-    protected void AddAroundActiveStatementRudeDiagnostic(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode? oldNode, SyntaxNode? newNode, TextSpan newActiveStatementSpan)
+    protected void AddAroundActiveStatementRudeDiagnostic(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode? oldNode, SyntaxNode? newNode, TextSpan newActiveStatementSpan)
     {
         if (oldNode == null)
         {
@@ -1775,7 +1805,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
-    protected void AddRudeTypeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, ITypeSymbol oldType, ITypeSymbol newType)
+    protected void AddRudeTypeUpdateAroundActiveStatement(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode newNode, ITypeSymbol oldType, ITypeSymbol newType)
     {
         diagnostics.Add(new RudeEditDiagnostic(
             RudeEditKind.TypeUpdateAroundActiveStatement,
@@ -1784,7 +1814,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             [GetDisplayName(newNode, EditKind.Update), oldType.ToDisplayString(), newType.ToDisplayString()]));
     }
 
-    protected void AddRudeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+    protected void AddRudeUpdateAroundActiveStatement(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode newNode)
     {
         diagnostics.Add(new RudeEditDiagnostic(
             RudeEditKind.UpdateAroundActiveStatement,
@@ -1793,7 +1823,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             [GetDisplayName(newNode, EditKind.Update)]));
     }
 
-    protected void AddRudeInsertAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+    protected void AddRudeInsertAroundActiveStatement(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode newNode)
     {
         diagnostics.Add(new RudeEditDiagnostic(
             RudeEditKind.InsertAroundActiveStatement,
@@ -1802,7 +1832,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             [GetDisplayName(newNode, EditKind.Insert)]));
     }
 
-    protected void AddRudeDeleteAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
+    protected void AddRudeDeleteAroundActiveStatement(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
     {
         diagnostics.Add(new RudeEditDiagnostic(
             RudeEditKind.DeleteAroundActiveStatement,
@@ -1812,7 +1842,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     }
 
     protected void ReportUnmatchedStatements<TSyntaxNode>(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
@@ -1857,7 +1887,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
-    private void ReportRudeEditsAndInserts(List<SyntaxNode?>? oldNodes, List<SyntaxNode?> newNodes, ArrayBuilder<RudeEditDiagnostic> diagnostics)
+    private void ReportRudeEditsAndInserts(List<SyntaxNode?>? oldNodes, List<SyntaxNode?> newNodes, RudeEditDiagnosticsBuilder diagnostics)
     {
         var oldNodeCount = (oldNodes != null) ? oldNodes.Count : 0;
 
@@ -1887,7 +1917,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         SemanticModel oldModel,
         List<SyntaxNode?> newNodes,
         SemanticModel newModel,
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode>? reverseMap,
         Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
         Func<TSyntaxNode, TSyntaxNode, bool> comparer,
@@ -2493,10 +2523,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         IReadOnlyList<(SyntaxNode OldNode, SyntaxNode NewNode, TextSpan DiagnosticSpan)> triviaEdits,
         Project oldProject,
-        Document? oldDocument,
-        Document newDocument,
+        SemanticModel? oldModel,
+        SemanticModel newModel,
         SourceText newText,
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
+        ActiveMembersBuilder oldActiveMembers,
         ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
         EditAndContinueCapabilitiesGrantor capabilities,
@@ -2522,8 +2553,6 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         try
         {
-            var oldModel = (oldDocument != null) ? await oldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false) : null;
-            var newModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var oldCompilation = oldModel?.Compilation ?? await oldProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var newCompilation = newModel.Compilation;
             var oldTree = editScript.Match.OldRoot.SyntaxTree;
@@ -2721,8 +2750,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                 }
 
                                 // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
-                                // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol?.IsPartialDefinition() == true)
+                                // so must be the implementation (if it exists). An edit will be issued for the implementation change.
+                                if (oldSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
@@ -3091,6 +3120,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             return;
                         }
 
+                        oldActiveMembers.Add(oldSymbol);
+
                         TextSpan? newActiveStatementSpan = null;
                         foreach (var index in activeStatementIndices)
                         {
@@ -3123,15 +3154,23 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         var replaceMember = IsMemberOrDelegate(oldSymbol) && IsMemberOrDelegateReplaced(oldSymbol, newSymbol);
 
                         var signatureRudeEdit = RudeEditKind.None;
-                        if (replaceMember && oldSymbol.Name == newSymbol.Name)
+                        if (replaceMember)
                         {
-                            signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
-                            if (signatureRudeEdit != RudeEditKind.None)
+                            if (oldSymbol is IMethodSymbol)
                             {
-                                diagnosticContext.Report(signatureRudeEdit, cancellationToken);
+                                diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken, condition: new RudeEditReportingCondition(oldSymbol, reportWhenActive: true));
+                            }
 
-                                // Note: Continue analysis - we need to analyze the changed body and
-                                // update any active statements to avoid contract failures.
+                            if (oldSymbol.Name == newSymbol.Name)
+                            {
+                                signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
+                                if (signatureRudeEdit != RudeEditKind.None)
+                                {
+                                    diagnosticContext.Report(signatureRudeEdit, cancellationToken);
+
+                                    // Note: Continue analysis - we need to analyze the changed body and
+                                    // update any active statements to avoid contract failures.
+                                }
                             }
                         }
 
@@ -3157,11 +3196,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     newSymbol,
                                     oldCompilation,
                                     newText,
-                                    replaceMember,
                                     editScript.Match,
                                     oldActiveStatements,
                                     newActiveStatementSpans,
                                     capabilities,
+                                    oldActiveMembers,
                                     newActiveStatements,
                                     newExceptionRegions,
                                     diagnostics,
@@ -3889,19 +3928,53 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         return builder.ToImmutableAndClear();
     }
 
+    private bool IsRestartRequired(ISymbol oldMember, SyntaxNode? oldDeclaration, Compilation oldCompilation, ISymbol newMember, SyntaxNode? newDeclaration, CancellationToken cancellationToken)
+    {
+        if (oldMember == oldCompilation.GetEntryPoint(cancellationToken))
+        {
+            return true;
+        }
+
+        if (oldMember is IMethodSymbol oldMethod)
+        {
+            return oldMethod.MethodKind == MethodKind.StaticConstructor || HasRestartRequiredAttribute(oldMethod);
+        }
+
+        // Updating/inserting/deleting initializer of a field or property:
+        var oldDeclarationHasInitializer = oldDeclaration != null && IsDeclarationWithInitializer(oldDeclaration);
+        if (oldDeclarationHasInitializer ||
+            newDeclaration != null && IsDeclarationWithInitializer(newDeclaration))
+        {
+            Contract.ThrowIfFalse(oldMember is IFieldSymbol or IPropertySymbol or IEventSymbol);
+
+            var memberWithInitializer = oldDeclarationHasInitializer ? oldMember : newMember;
+            if (memberWithInitializer.IsStatic)
+            {
+                return true;
+            }
+
+            // Check if any constructor that initializers are emitted to requires restart:
+            return memberWithInitializer.ContainingType.Constructors.Any(
+                constructor => HasRestartRequiredAttribute(constructor) && IsConstructorWithMemberInitializers(constructor, cancellationToken));
+        }
+
+        return false;
+    }
+
+    private static bool HasRestartRequiredAttribute(ISymbol symbol)
+        => HasCompilerServicesAttribute(symbol, RestartRequiredOnMetadataUpdateAttributeName);
+
     private static bool IsReloadable(INamedTypeSymbol type)
+        => TypeOrBaseTypeHasCompilerServicesAttribute(type, CreateNewOnMetadataUpdateAttributeName);
+
+    private static bool TypeOrBaseTypeHasCompilerServicesAttribute(INamedTypeSymbol type, string attributeName)
     {
         var current = type;
         while (current != null)
         {
-            foreach (var attributeData in current.GetAttributes())
+            if (HasCompilerServicesAttribute(current, attributeName))
             {
-                // We assume that the attribute System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute, if it exists, is well formed.
-                // If not an error will be reported during EnC delta emit.
-                if (attributeData.AttributeClass is { Name: CreateNewOnMetadataUpdateAttributeName, ContainingNamespace: { Name: "CompilerServices", ContainingNamespace: { Name: "Runtime", ContainingNamespace.Name: "System" } } })
-                {
-                    return true;
-                }
+                return true;
             }
 
             current = current.BaseType;
@@ -3909,6 +3982,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         return false;
     }
+
+    // We assume that the attribute, if it exists, is well formed.
+    // If not an error will be reported during EnC delta emit.
+    private static bool HasCompilerServicesAttribute(ISymbol symbol, string attributeName)
+        => symbol.GetAttributes().Any(static (data, attributeName) =>
+                data.AttributeClass is { Name: var name, ContainingNamespace: { Name: "CompilerServices", ContainingNamespace: { Name: "Runtime", ContainingNamespace.Name: "System" } } } &&
+                name == attributeName,
+            attributeName);
 
     private sealed class SemanticEditInfoComparer : IEqualityComparer<SemanticEditInfo>
     {
@@ -4136,8 +4217,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         else if (oldSymbol is IMethodSymbol oldMethod && newSymbol is IMethodSymbol newMethod)
         {
             // Changing property accessor to auto-property accessor adds a field:
-            if (oldMethod is { MethodKind: MethodKind.PropertyGet, AssociatedSymbol: IPropertySymbol oldProperty } && !oldProperty.IsAutoProperty() &&
-                newMethod is { MethodKind: MethodKind.PropertyGet, AssociatedSymbol: IPropertySymbol newProperty } && newProperty.IsAutoProperty() &&
+            if (oldMethod is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: IPropertySymbol oldProperty } && !oldProperty.IsAutoProperty() &&
+                newMethod is { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: IPropertySymbol newProperty } && newProperty.IsAutoProperty() &&
                 !capabilities.Grant(GetRequiredAddFieldCapabilities(newMethod)))
             {
                 rudeEdit = RudeEditKind.InsertNotSupportedByRuntime;
@@ -4812,7 +4893,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     internal readonly struct DiagnosticContext(
         AbstractEditAndContinueAnalyzer analyzer,
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         ISymbol? oldSymbol,
         ISymbol? newSymbol,
         SyntaxNode? newNode,
@@ -4946,12 +5027,21 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         /// 
         /// The rude edit will be associated with the syntax kind of newDeclaration in telemetry.
         /// </summary>
-        public void Report(RudeEditKind kind, CancellationToken cancellationToken, TextSpan? span = null, string?[]? arguments = null)
-            => diagnostics.Add(CreateRudeEdit(kind, cancellationToken, span, arguments));
+        public void Report(RudeEditKind kind, CancellationToken cancellationToken, TextSpan? span = null, string?[]? arguments = null, RudeEditReportingCondition? condition = null)
+            => diagnostics.Add(CreateRudeEdit(kind, cancellationToken, span, arguments), condition);
 
         public RudeEditDiagnostic CreateRudeEdit(RudeEditKind kind, CancellationToken cancellationToken, TextSpan? span = null, string?[]? arguments = null)
         {
             var node = GetDiagnosticNode(out var distance, cancellationToken);
+
+            // If we are to report diagnostic for a root node (compilation unit), usually top-level code,
+            // we find the first different child node rather then picking an arbitrary one.
+            if (node.Parent == null &&
+                topMatch?.TryGetOldNode(node, out var oldNode) == true &&
+                analyzer.GetFirstChangedChildIgnoringLambdaBodies(oldNode, node) is { } firstDifferentNode)
+            {
+                node = firstDifferentNode;
+            }
 
             span ??= diagnosticSpan.IsEmpty
                 ? analyzer.GetDiagnosticSpan(node, (distance > 0 || kind == RudeEditKind.ChangeImplicitMainReturnType) ? EditKind.Delete : EditKind.Update)
@@ -5009,7 +5099,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             => new(analyzer, diagnostics, oldSymbol, newSymbol, newNode, newModel, topMatch, diagnosticSpan);
     }
 
-    private DiagnosticContext CreateDiagnosticContext(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol? oldSymbol, ISymbol? newSymbol, SyntaxNode? newNode, SemanticModel newModel, Match<SyntaxNode>? topMatch, TextSpan diagnosticSpan = default)
+    private DiagnosticContext CreateDiagnosticContext(
+        RudeEditDiagnosticsBuilder diagnostics,
+        ISymbol? oldSymbol,
+        ISymbol? newSymbol,
+        SyntaxNode? newNode,
+        SemanticModel newModel,
+        Match<SyntaxNode>? topMatch,
+        TextSpan diagnosticSpan = default)
         => new(this, diagnostics, oldSymbol, newSymbol, newNode, newModel, topMatch, diagnosticSpan);
 
     #region Type Layout Update Validation 
@@ -5213,7 +5310,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         SemanticModel newModel,
         bool isStatic,
         [Out] ArrayBuilder<SemanticEditInfo> semanticEdits,
-        [Out] ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        [Out] RudeEditDiagnosticsBuilder diagnostics,
         CancellationToken cancellationToken)
     {
         var oldSyntaxTree = topMatch.OldRoot.SyntaxTree;
@@ -5483,7 +5580,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         IReadOnlyDictionary<LambdaBody, LambdaInfo>? activeOrMatchedLambdas,
         DeclarationBodyMap bodyMap,
         EditAndContinueCapabilitiesGrantor capabilities,
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         out bool syntaxMapRequired,
         out bool hasLambdaBodyUpdate,
         out Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits,
@@ -5509,7 +5606,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                 var lambdaBodyMap = newLambdaInfo.BodyMap;
 
-                Debug.Assert(oldModel != null);
+                Contract.ThrowIfNull(oldModel);
+                Contract.ThrowIfNull(oldDeclaration);
 
                 var oldLambda = oldLambdaBody.GetLambda();
                 var newLambda = newLambdaBody.GetLambda();
@@ -5557,6 +5655,28 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         !capabilities.Grant(EditAndContinueCapabilities.GenericUpdateMethod))
                     {
                         diagnosticContext.Report(RudeEditKind.UpdatingGenericNotSupportedByRuntime, cancellationToken);
+                    }
+
+                    // Check if the the parameter the lambda is assigned to forces restart on update.
+                    // Changes in lambdas that are active or are declared in an active member, lambda or function
+                    // do not force restart since the active frame is updated in-place and the changes can be executed
+                    // if the instruction pointer precedes or is moved by the user in front of the updated code.
+                    //
+                    // Consider: Changes in local function body does not force restart. We could find all their use-sites
+                    // and check if any of them is passed to a parameter that forces restart.
+                    if (!IsLocalFunction(oldLambda) &&
+                        !newLambdaInfo.HasActiveStatement &&
+                        !GetEnclosingLambdaBodies(oldDeclaration, oldLambda)
+                            .Any(oldContainingLambdaBody => activeOrMatchedLambdas.TryGetValue(oldContainingLambdaBody, out var info) && info.HasActiveStatement))
+                    {
+                        var oldTargetParameter = oldLambda.Parent != null
+                            ? (oldModel.GetOperation(oldLambda.Parent, cancellationToken) as IArgumentOperation)?.Parameter
+                            : null;
+
+                        if (oldTargetParameter != null && HasRestartRequiredAttribute(oldTargetParameter))
+                        {
+                            diagnosticContext.Report(RudeEditKind.UpdateMightNotHaveAnyEffect, cancellationToken, condition: new RudeEditReportingCondition(oldMember, reportWhenActive: false));
+                        }
                     }
                 }
 
@@ -5802,6 +5922,22 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
+    private IEnumerable<LambdaBody> GetEnclosingLambdaBodies(SyntaxNode encompassingAncestor, SyntaxNode node)
+    {
+        while (true)
+        {
+            var enclosingLambdaBody = FindEnclosingLambdaBody(encompassingAncestor, node);
+            if (enclosingLambdaBody == null)
+            {
+                yield break;
+            }
+
+            yield return enclosingLambdaBody;
+
+            node = enclosingLambdaBody.GetLambda();
+        }
+    }
+
     private enum VariableCaptureKind
     {
         This,
@@ -5923,7 +6059,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     }
 
     private void ReportPrimaryParameterCaptureRudeEdits(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IMethodSymbol? oldLiftingPrimaryConstructor,
         ImmutableArray<IParameterSymbol> oldPrimaryCaptures,
         IMethodSymbol? newLiftingPrimaryConstructor,
@@ -6422,6 +6558,16 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     #region Helpers
 
+    private SyntaxNode? GetFirstChangedChildIgnoringLambdaBodies(SyntaxNode oldNode, SyntaxNode newNode)
+    {
+        var oldTokens = DescendantTokensIgnoringLambdaBodies(oldNode);
+        var newTokens = DescendantTokensIgnoringLambdaBodies(newNode);
+
+        return oldTokens
+            .Zip(newTokens, static (oldToken, newToken) => (oldToken, newToken))
+            .FirstOrDefault(pair => !AreTokensEquivalent(pair.oldToken, pair.newToken)).newToken.Parent;
+    }
+
     private static SyntaxNode? FindPartner(OneOrMany<SyntaxNode> rootNodes, OneOrMany<SyntaxNode> otherRootNodes, SyntaxNode otherNode)
     {
         Debug.Assert(rootNodes.Count == otherRootNodes.Count);
@@ -6780,7 +6926,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             set => analyzer._testFaultInjector = value;
         }
 
-        internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
+        internal void ReportTopLevelSyntacticRudeEdits(RudeEditDiagnosticsBuilder diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
             => analyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
         internal DeclarationBodyMap IncludeLambdaBodyMaps(

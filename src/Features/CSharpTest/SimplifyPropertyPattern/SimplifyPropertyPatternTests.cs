@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpSimplifyPropertyPatternCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyPropertyPattern)]
-public class SimplifyPropertyPatternTests
+public sealed class SimplifyPropertyPatternTests
 {
     [Fact]
     public async Task NotInCSharp9()

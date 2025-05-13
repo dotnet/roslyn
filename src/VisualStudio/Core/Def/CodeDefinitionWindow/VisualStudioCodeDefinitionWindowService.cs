@@ -58,7 +58,7 @@ internal sealed class VisualStudioCodeDefinitionWindowService : ICodeDefinitionW
         Marshal.ThrowExceptionForHR(vsCodeDefView.SetContext(new Context(locations)));
     }
 
-    private class Context : IVsCodeDefViewContext
+    private sealed class Context : IVsCodeDefViewContext
     {
         private readonly ImmutableArray<CodeDefinitionWindowLocation> _locations;
 

@@ -30,7 +30,7 @@ public abstract partial class CSharpCodeStyleOptionBasedSeverityConfigurationTes
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class ErrorConfigurationTests : CSharpCodeStyleOptionBasedSeverityConfigurationTests
+    public sealed class ErrorConfigurationTests : CSharpCodeStyleOptionBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 4;
 

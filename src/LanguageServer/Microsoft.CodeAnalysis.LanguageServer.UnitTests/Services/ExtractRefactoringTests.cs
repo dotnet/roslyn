@@ -10,7 +10,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
 
-public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
+public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
     [Theory]
     [CombinatorialData]
@@ -93,7 +93,7 @@ public class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : Abstr
 
         testLspClient.ApplyWorkspaceEdit(resolvedCodeAction.Edit);
 
-        var updatedCode = testLspClient.GetDocumentText(caretLocation.Uri);
+        var updatedCode = testLspClient.GetDocumentText(caretLocation.DocumentUri);
 
         AssertEx.Equal(expected, updatedCode);
     }

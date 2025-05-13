@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class FindSymbolAtPositionTests
+public sealed class FindSymbolAtPositionTests
 {
     private static Task<ISymbol> FindSymbolAtPositionAsync(TestWorkspace workspace)
     {

@@ -364,6 +364,9 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (property.GetMethod == null)
             return;
 
+        if (property.RefKind != RefKind.None)
+            return;
+
         if (!CanExplicitInterfaceImplementationsBeFixed && property.ExplicitInterfaceImplementations.Length != 0)
             return;
 

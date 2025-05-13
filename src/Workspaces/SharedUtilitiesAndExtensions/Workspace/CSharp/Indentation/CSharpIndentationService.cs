@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -110,7 +109,7 @@ internal sealed partial class CSharpIndentationService : AbstractIndentationServ
         return token.Kind() is SyntaxKind.None or SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken;
     }
 
-    private class CSharpIndentationFormattingRule : AbstractFormattingRule
+    private sealed class CSharpIndentationFormattingRule : AbstractFormattingRule
     {
         public static readonly AbstractFormattingRule Instance = new CSharpIndentationFormattingRule();
 

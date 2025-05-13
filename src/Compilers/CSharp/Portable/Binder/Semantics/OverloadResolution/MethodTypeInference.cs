@@ -138,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ImmutableArray<BoundExpression> _arguments;
         private readonly Extensions _extensions;
 
+        // When doing type inference on a new extension method, we combine the type parameters
+        // from the extension declaration and from the method, so we cannot rely on the ordinals from the type parameters.
+        private readonly Dictionary<TypeParameterSymbol, int> _ordinals;
+
         private readonly (TypeWithAnnotations Type, bool FromFunctionType)[] _fixedResults;
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
@@ -272,7 +276,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
-            Extensions extensions = null)
+            Extensions extensions = null,
+            // Map of TypeParameterSymbol to ordinal for new extension methods
+            Dictionary<TypeParameterSymbol, int> ordinals = null)
         {
             Debug.Assert(!methodTypeParameters.IsDefault);
             Debug.Assert(methodTypeParameters.Length > 0);
@@ -298,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterTypes,
                 formalParameterRefKinds,
                 arguments,
-                extensions);
+                extensions,
+                ordinals);
             return inferrer.InferTypeArgs(binder, ref useSiteInfo);
         }
 
@@ -311,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // SPEC: the bounds is of some type T. Initially each type parameter is unfixed
         // SPEC: with an empty set of bounds.
 
+#nullable enable
         private MethodTypeInferrer(
             CSharpCompilation compilation,
             ConversionsBase conversions,
@@ -319,7 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeWithAnnotations> formalParameterTypes,
             ImmutableArray<RefKind> formalParameterRefKinds,
             ImmutableArray<BoundExpression> arguments,
-            Extensions extensions)
+            Extensions extensions,
+            Dictionary<TypeParameterSymbol, int>? ordinals)
         {
             _compilation = compilation;
             _conversions = conversions;
@@ -329,6 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             _formalParameterRefKinds = formalParameterRefKinds;
             _arguments = arguments;
             _extensions = extensions ?? Extensions.Default;
+
+            // For extension members, we do inference across all the type parameters (from the extension declaration and the member)
+            Debug.Assert(ordinals is null || ordinals.Values.Count() == ordinals.Values.Distinct().Count());
+            Debug.Assert(ordinals is null || methodTypeParameters.All(tp => ordinals.ContainsKey(tp)));
+
+            _ordinals = ordinals;
             _fixedResults = new (TypeWithAnnotations, bool)[methodTypeParameters.Length];
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
@@ -338,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dependencies = null;
             _dependenciesDirty = false;
         }
+#nullable enable
 
 #if DEBUG
 
@@ -488,10 +504,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.TypeKind != TypeKind.TypeParameter) return false;
 
             TypeParameterSymbol typeParameter = (TypeParameterSymbol)type.Type;
-            int ordinal = typeParameter.Ordinal;
+            int ordinal = GetOrdinal(typeParameter);
             return ValidIndex(ordinal) &&
                 TypeSymbol.Equals(typeParameter, _methodTypeParameters[ordinal], TypeCompareKind.ConsiderEverything2) &&
                 IsUnfixed(ordinal);
+        }
+
+        private int GetOrdinal(TypeParameterSymbol typeParameter)
+        {
+            if (_ordinals != null)
+            {
+                return _ordinals[typeParameter];
+            }
+
+            return typeParameter.Ordinal;
         }
 
         private bool AllFixed()
@@ -511,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.Type;
-            int methodTypeParameterIndex = methodTypeParameter.Ordinal;
+            int methodTypeParameterIndex = GetOrdinal(methodTypeParameter);
 
             if (collectedBounds[methodTypeParameterIndex] == null)
             {
@@ -626,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsUnfixedTypeParameter(target) && !target.NullableAnnotation.IsAnnotated() && kind is ExactOrBoundsKind.LowerBound)
                 {
-                    var ordinal = ((TypeParameterSymbol)target.Type).Ordinal;
+                    var ordinal = GetOrdinal((TypeParameterSymbol)target.Type); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test nullability scenario where the override of ordinals matters
                     _nullableAnnotationLowerBounds[ordinal] = _nullableAnnotationLowerBounds[ordinal].Join(argumentType.NullableAnnotation);
                 }
             }
@@ -1491,6 +1517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
                 callingConventionInfo: in callingConventionInfo);
+
+            Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
 
             TypeWithAnnotations type = default;
 
@@ -3151,6 +3179,44 @@ OuterBreak:
         // Helper methods
         //
 
+        /// <summary>
+        /// We apply type inference to an extension type, using the receiver as argument against the
+        /// extension parameter.
+        /// This lets us infer the type arguments of the extension type given this receiver.
+        /// </summary>
+        public static ImmutableArray<TypeWithAnnotations> InferTypeArgumentsFromReceiverType(
+            NamedTypeSymbol extension,
+            BoundExpression receiver,
+            CSharpCompilation compilation,
+            ConversionsBase conversions,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(extension is not null);
+            Debug.Assert(extension.Arity > 0);
+            Debug.Assert(extension.ExtensionParameter is not null);
+            Debug.Assert(!extension.ExtensionParameter.Type.IsDynamic());
+            Debug.Assert(extension.IsDefinition);
+            Debug.Assert(receiver is not null);
+
+            var inferrer = new MethodTypeInferrer(
+                compilation,
+                conversions,
+                extension.TypeParameters,
+                extension.ContainingType,
+                [extension.ExtensionParameter.TypeWithAnnotations],
+                [extension.ExtensionParameter.RefKind],
+                [receiver],
+                extensions: null,
+                ordinals: null);
+
+            if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
+            {
+                return default;
+            }
+
+            return inferrer.GetInferredTypeArguments(out _);
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         //
         // In error recovery and reporting scenarios we sometimes end up in a situation
@@ -3216,7 +3282,8 @@ OuterBreak:
                 constructedFromMethod.GetParameterTypes(),
                 constructedFromMethod.ParameterRefKinds,
                 arguments,
-                extensions: null);
+                extensions: null,
+                ordinals: null);
 
             if (!inferrer.InferTypeArgumentsFromFirstArgument(ref useSiteInfo))
             {

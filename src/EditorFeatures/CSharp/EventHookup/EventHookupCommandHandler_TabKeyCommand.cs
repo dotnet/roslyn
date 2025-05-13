@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.EventHookup;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -31,7 +30,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
 
-internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
+internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler<TabKeyCommandArgs>
 {
     private static readonly SyntaxAnnotation s_plusEqualsTokenAnnotation = new();
 
@@ -168,7 +167,7 @@ internal partial class EventHookupCommandHandler : IChainedCommandHandler<TabKey
             }
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            waitContext.CancelOnEdit = false;
+            using var _ = waitContext.SuppressAutoCancel();
 
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))

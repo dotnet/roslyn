@@ -127,7 +127,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var members = memberNodes
             .Select(node => root.GetCurrentNode(node))
             .WhereNotNull()
-            .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+            .SelectAsArray(node => (semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken), false));
 
         var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
         var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
@@ -202,7 +202,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var members = oldMemberNodes
             .Select(node => root.GetCurrentNode(node))
             .WhereNotNull()
-            .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+            .SelectAsArray(node => (semanticModel.GetRequiredDeclaredSymbol(node, cancellationToken), false));
 
         newTypeDoc = solutionWithFixedReferences.GetRequiredDocument(newTypeDoc.Id);
         newTypeRoot = await newTypeDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

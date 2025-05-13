@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(UnnamedSymbolCompletionProvider);
@@ -105,7 +105,7 @@ public class OperatorCompletionProviderTests : AbstractCSharpCompletionProviderT
                     c.$$;
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -248,6 +248,55 @@ public class Program
             i => Assert.Equal(">>>", i.DisplayText),
             i => Assert.Equal("~", i.DisplayText)
         );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task InstanceIncrementOperators([CombinatorialValues("++", "--")] string op)
+    {
+        var items = await GetCompletionItemsAsync($$$"""
+            public class C
+            {
+                public void operator {{{op}}}(int x) {}
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$;
+                }
+            }
+            """, SourceCodeKind.Regular);
+
+        Assert.Collection(items,
+            i => Assert.Equal(op, i.DisplayText)
+        );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task InstanceCompoundAssignmentOperators([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
+    {
+        var items = await GetCompletionItemsAsync($$$"""
+            public class C
+            {
+                public void operator {{{op}}}(int x) {}
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$;
+                }
+            }
+            """, SourceCodeKind.Regular);
+
+        // Compound forms of operators are never offered, see OperatorsAreSortedByImporttanceAndGroupedByTopic unit-test
+        Assert.Empty(items);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -711,7 +760,7 @@ public class Program
                     d.$$
                 }
             }
-            """, "+", inlineDescription: "x + y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "+", inlineDescription: "x + y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -729,7 +778,7 @@ public class Program
                     r.$$
                 }
             }
-            """, "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "==", inlineDescription: "x == y", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

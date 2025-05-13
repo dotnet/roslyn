@@ -6,12 +6,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [Export, Shared]
-internal class MefServiceBrokerOfExportedServices : ServiceBrokerOfExportedServices
+internal sealed class MefServiceBrokerOfExportedServices : ServiceBrokerOfExportedServices
 {
     private Task<GlobalBrokeredServiceContainer>? _containerTask;
 

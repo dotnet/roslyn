@@ -13082,8 +13082,9 @@ public class Program
                 Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "{}").WithArguments("3").WithLocation(7, 31));
         }
 
-        [Fact]
-        public void CS0853ERR_ExpressionTreeContainsNamedArgument01()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0853ERR_ExpressionTreeContainsNamedArgument01(LanguageVersion languageVersion)
         {
             var text = @"
 using System.Linq.Expressions;
@@ -13095,6 +13096,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13103,16 +13105,26 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,40): error CS0853: An expression tree may not contain a named argument specification
-                //             Expression<dg> myET = x => Index(minSessions:5);
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "Index(minSessions:5)").WithLocation(10, 40)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,40): error CS0853: An expression tree may not contain a named argument specification
+                    //             Expression<dg> myET = x => Index(minSessions:5);
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "Index(minSessions:5)").WithLocation(10, 40)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(5)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [WorkItem(545063, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545063")]
-        [Fact]
-        public void CS0853ERR_ExpressionTreeContainsNamedArgument02()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0853ERR_ExpressionTreeContainsNamedArgument02(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -13124,18 +13136,29 @@ class A
     static void Main()
     {
         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
+        Console.WriteLine(f);
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,41): error CS0853: An expression tree may not contain a named argument specification
-                //         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "new List<int> { 1 } [index: 0]").WithLocation(10, 41)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,41): error CS0853: An expression tree may not contain a named argument specification
+                    //         Expression<Func<int>> f = () => new List<int> { 1 } [index: 0];
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, "new List<int> { 1 } [index: 0]").WithLocation(10, 41)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new List`1() {Void Add(Int32)(1)}.get_Item(0)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument01()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument01(LanguageVersion languageVersion)
         {
             var text = @"
 using System.Linq.Expressions;
@@ -13147,6 +13170,7 @@ namespace ConsoleApplication3
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
+            System.Console.WriteLine(myET);
         }
         public static string Index(int minSessions = 0)
         {
@@ -13155,15 +13179,25 @@ namespace ConsoleApplication3
     }
 }
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (10,40): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //             Expression<dg> myET = x => Index();
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "Index()").WithLocation(10, 40)
-                );
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (10,40): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //             Expression<dg> myET = x => Index();
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "Index()").WithLocation(10, 40)
+                    );
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "x => Index(0)");
+                verifier.VerifyDiagnostics();
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument02()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument02(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -13194,19 +13228,38 @@ class C
         e2 = () => b[4, 5] = null;
     }
 }";
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (22,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[0]").WithLocation(22, 20),
-                // (25,20): error CS0832: An expression tree may not contain an assignment operator
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
-                // (25,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
-                // (26,20): error CS0832: An expression tree may not contain an assignment operator
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (22,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         e1 = () => a[0];
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "a[0]").WithLocation(22, 20),
+                    // (25,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
+                    // (25,20): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
+                    // (26,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[4, 5] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (25,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[3] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[3] = null").WithLocation(25, 20),
+                    // (26,20): error CS0832: An expression tree may not contain an assignment operator
+                    //         e2 = () => b[4, 5] = null;
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+            }
         }
 
-        [Fact]
-        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        [Theory]
+        [MemberData(nameof(LanguageVersions13AndNewer))]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03(LanguageVersion languageVersion)
         {
             var text =
 @"using System;
@@ -13224,15 +13277,25 @@ public class Collection : IEnumerable
 }
 
 public class C {
-    public void M() {
+    static void Main() {
         Expression<Func<Collection>> expr =
             () => new Collection { 1 }; // 1
+        Console.WriteLine(expr);
     }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
-                //             () => new Collection { 1 }; // 1
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyDiagnostics(
+                    // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                    //             () => new Collection { 1 }; // 1
+                    Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, expectedOutput: "() => new Collection() {Void Add(Int32, Int32)(1, 0)}");
+                verifier.VerifyDiagnostics();
+            }
         }
 
         [Fact]

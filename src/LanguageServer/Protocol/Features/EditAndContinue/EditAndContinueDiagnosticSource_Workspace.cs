@@ -66,7 +66,7 @@ internal static partial class EditAndContinueDiagnosticSource
         // diagnostics not associated with a document:
         sources.AddRange(
             from data in applyDiagnostics
-            where data.DocumentId == null && data.ProjectId != null
+            where data.DocumentId == null
             group data by data.ProjectId into projectData
             let project = solution.GetProject(projectData.Key)
             where project != null

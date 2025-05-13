@@ -14,5 +14,6 @@ internal interface IUnitTestingStackTraceServiceAccessor : IWorkspaceService
     Task<ImmutableArray<UnitTestingParsedFrameWrapper>> TryParseAsync(string input, Workspace workspace, CancellationToken cancellationToken);
     Task<UnitTestingDefinitionItemWrapper?> TryFindMethodDefinitionAsync(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame, CancellationToken cancellationToken);
     (Document? document, int lineNumber) GetDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame);
+    (TextDocument? textDocument, int lineNumber) GetTextDocumentAndLine(Workspace workspace, UnitTestingParsedFrameWrapper parsedFrame);
     Task<bool> TryNavigateToAsync(Workspace workspace, UnitTestingDefinitionItemWrapper definitionItem, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
 }

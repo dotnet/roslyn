@@ -7,22 +7,21 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
+
+public partial class AutomationObject
 {
-    public partial class AutomationObject
+    public string Style_NamingPreferences
     {
-        public string Style_NamingPreferences
+        get { return GetOption(NamingStyleOptions.NamingPreferences).CreateXElement().ToString(); }
+        set
         {
-            get { return GetOption(NamingStyleOptions.NamingPreferences).CreateXElement().ToString(); }
-            set
+            try
             {
-                try
-                {
-                    SetOption(NamingStyleOptions.NamingPreferences, NamingStylePreferences.FromXElement(XElement.Parse(value)));
-                }
-                catch (Exception)
-                {
-                }
+                SetOption(NamingStyleOptions.NamingPreferences, NamingStylePreferences.FromXElement(XElement.Parse(value)));
+            }
+            catch (Exception)
+            {
             }
         }
     }

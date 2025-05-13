@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -929,7 +930,20 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
         => node is CompilationUnitSyntax ? null : node.Parent!.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
     internal override bool IsDeclarationWithInitializer(SyntaxNode declaration)
-        => declaration is VariableDeclaratorSyntax { Initializer: not null } or PropertyDeclarationSyntax { Initializer: not null };
+    {
+        if (declaration is PropertyDeclarationSyntax { Initializer: not null })
+        {
+            return true;
+        }
+
+        if (declaration is VariableDeclaratorSyntax { Initializer: not null })
+        {
+            return declaration.Parent?.Parent is not FieldDeclarationSyntax fieldDeclaration ||
+                   !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
+        }
+
+        return false;
+    }
 
     internal override bool IsPrimaryConstructorDeclaration(SyntaxNode declaration)
         => declaration.Parent is TypeDeclarationSyntax { ParameterList: var parameterList } && parameterList == declaration;
@@ -1459,6 +1473,12 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
 
     internal override Func<SyntaxNode, bool> IsNotLambda
         => LambdaUtilities.IsNotLambda;
+
+    internal override Func<SyntaxNode, IEnumerable<SyntaxToken>> DescendantTokensIgnoringLambdaBodies
+        => LambdaUtilities.DescendantTokensIgnoringLambdaBodies;
+
+    internal override Func<SyntaxToken, SyntaxToken, bool> AreTokensEquivalent
+        => SyntaxFactory.AreEquivalent;
 
     internal override bool IsLocalFunction(SyntaxNode node)
         => node.IsKind(SyntaxKind.LocalFunctionStatement);
@@ -2278,7 +2298,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     private readonly struct EditClassifier
     {
         private readonly CSharpEditAndContinueAnalyzer _analyzer;
-        private readonly ArrayBuilder<RudeEditDiagnostic> _diagnostics;
+        private readonly RudeEditDiagnosticsBuilder _diagnostics;
         private readonly Match<SyntaxNode>? _match;
         private readonly SyntaxNode? _oldNode;
         private readonly SyntaxNode? _newNode;
@@ -2287,7 +2307,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
 
         public EditClassifier(
             CSharpEditAndContinueAnalyzer analyzer,
-            ArrayBuilder<RudeEditDiagnostic> diagnostics,
+            RudeEditDiagnosticsBuilder diagnostics,
             SyntaxNode? oldNode,
             SyntaxNode? newNode,
             EditKind kind,
@@ -2467,7 +2487,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     internal override void ReportTopLevelSyntacticRudeEdits(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         Match<SyntaxNode> match,
         Edit<SyntaxNode> edit,
         Dictionary<SyntaxNode, EditKind> editMap)
@@ -2505,7 +2525,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
 
     #region Semantic Rude Edits
 
-    internal override void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType)
+    internal override void ReportInsertedMemberSymbolRudeEdits(RudeEditDiagnosticsBuilder diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType)
     {
         Debug.Assert(IsMember(newSymbol));
 
@@ -2619,7 +2639,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     internal override void ReportEnclosingExceptionHandlingRudeEdits(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
         SyntaxNode oldStatement,
         TextSpan newStatementSpan)
@@ -2833,7 +2853,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     #region Rude Edits around Active Statement
 
     internal override void ReportOtherRudeEditsAroundActiveStatement(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
@@ -2856,7 +2876,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     /// exactly the same variables are emitted for the new switch as they were for the old one and their order didn't change either.
     /// This is guaranteed if none of the case clauses have changed.
     /// </summary>
-    private void ReportRudeEditsForSwitchWhenClauses(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+    private void ReportRudeEditsForSwitchWhenClauses(RudeEditDiagnosticsBuilder diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
     {
         if (!oldActiveStatement.IsKind(SyntaxKind.WhenClause))
         {
@@ -2912,7 +2932,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     private void ReportRudeEditsForCheckedStatements(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         SyntaxNode oldActiveStatement,
         SyntaxNode newActiveStatement,
         bool isNonLeaf)
@@ -2967,7 +2987,7 @@ internal sealed class CSharpEditAndContinueAnalyzer() : AbstractEditAndContinueA
     }
 
     private void ReportRudeEditsForAncestorsDeclaringInterStatementTemps(
-        ArrayBuilder<RudeEditDiagnostic> diagnostics,
+        RudeEditDiagnosticsBuilder diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,

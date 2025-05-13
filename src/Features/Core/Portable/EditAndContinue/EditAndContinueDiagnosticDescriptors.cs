@@ -4,10 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -45,7 +46,7 @@ internal static class EditAndContinueDiagnosticDescriptors
             }
 
             builder[index] = new DiagnosticDescriptor(
-                $"ENC{id:D4}",
+                GetDiagnosticId(id),
                 title,
                 messageFormat: new LocalizableResourceString(resourceName, FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                 DiagnosticCategory.EditAndContinue,
@@ -167,8 +168,9 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddGeneralDiagnostic(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError, nameof(FeaturesResources.CannotApplyChangesUnexpectedError));
         AddGeneralDiagnostic(EditAndContinueErrorCode.ChangesDisallowedWhileStoppedAtException, nameof(FeaturesResources.ChangesDisallowedWhileStoppedAtException));
         AddGeneralDiagnostic(EditAndContinueErrorCode.DocumentIsOutOfSyncWithDebuggee, nameof(FeaturesResources.DocumentIsOutOfSyncWithDebuggee), DiagnosticSeverity.Warning);
-        AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb), DiagnosticSeverity.Warning);
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UnableToReadSourceFileOrPdb, nameof(FeaturesResources.UnableToReadSourceFileOrPdb));
         AddGeneralDiagnostic(EditAndContinueErrorCode.AddingTypeRuntimeCapabilityRequired, nameof(FeaturesResources.ChangesRequiredSynthesizedType));
+        AddGeneralDiagnostic(EditAndContinueErrorCode.UpdatingDocumentInStaleProject, nameof(FeaturesResources.Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit), DiagnosticSeverity.Warning);
 
         s_descriptors = builder.ToImmutable();
     }
@@ -209,4 +211,10 @@ internal static class EditAndContinueDiagnosticDescriptors
 
     private static int GetDescriptorIndex(EditAndContinueErrorCode errorCode)
         => s_diagnosticBaseIndex + (int)errorCode;
+
+    private static string GetDiagnosticId(int id)
+        => $"ENC{id:D4}";
+
+    public static RudeEditKind GetRudeEditKind(string diagnosticId)
+        => diagnosticId.StartsWith("ENC", StringComparison.Ordinal) && int.TryParse(diagnosticId[3..], out var id) ? (RudeEditKind)id : RudeEditKind.None;
 }

@@ -9,11 +9,11 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal record class MockRequest(int Param);
-internal record class MockResponse(string Response);
+internal sealed record class MockRequest(int Param);
+internal sealed record class MockResponse(string Response);
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class TestMethodHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class TestMethodHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "Method";
     public static readonly IMethodHandler Instance = new TestMethodHandler();
@@ -28,7 +28,7 @@ internal class TestMethodHandler : IRequestHandler<MockRequest, MockResponse, Te
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class TestParameterlessMethodHandler : IRequestHandler<MockResponse, TestRequestContext>
+internal sealed class TestParameterlessMethodHandler : IRequestHandler<MockResponse, TestRequestContext>
 {
     public const string Name = "ParameterlessMethod";
     public static readonly IMethodHandler Instance = new TestParameterlessMethodHandler();
@@ -43,7 +43,7 @@ internal class TestParameterlessMethodHandler : IRequestHandler<MockResponse, Te
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class TestNotificationHandler : INotificationHandler<MockRequest, TestRequestContext>
+internal sealed class TestNotificationHandler : INotificationHandler<MockRequest, TestRequestContext>
 {
     public const string Name = "Notification";
     public static readonly IMethodHandler Instance = new TestNotificationHandler();
@@ -57,7 +57,7 @@ internal class TestNotificationHandler : INotificationHandler<MockRequest, TestR
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class TestParameterlessNotificationHandler : INotificationHandler<TestRequestContext>
+internal sealed class TestParameterlessNotificationHandler : INotificationHandler<TestRequestContext>
 {
     public const string Name = "ParameterlessNotification";
     public static readonly IMethodHandler Instance = new TestParameterlessNotificationHandler();
@@ -69,7 +69,7 @@ internal class TestParameterlessNotificationHandler : INotificationHandler<TestR
         => Task.FromResult(true);
 }
 
-internal class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequestContext>
+internal sealed class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequestContext>
 {
     public bool MutatesSolutionState => true;
 
@@ -80,7 +80,7 @@ internal class TestMethodHandlerWithoutAttribute : INotificationHandler<TestRequ
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class MutatingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class MutatingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "MutatingMethod";
     public static readonly IMethodHandler Instance = new MutatingHandler();
@@ -100,7 +100,7 @@ internal class MutatingHandler : IRequestHandler<MockRequest, MockResponse, Test
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class CompletingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class CompletingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "CompletingMethod";
     public static readonly IMethodHandler Instance = new CompletingHandler();
@@ -122,7 +122,7 @@ internal class CompletingHandler : IRequestHandler<MockRequest, MockResponse, Te
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class CancellingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class CancellingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "CancellingMethod";
     public static readonly IMethodHandler Instance = new CancellingHandler();
@@ -141,7 +141,7 @@ internal class CancellingHandler : IRequestHandler<MockRequest, MockResponse, Te
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class ThrowingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class ThrowingHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "ThrowingMethod";
     public static readonly IMethodHandler Instance = new ThrowingHandler();
@@ -156,7 +156,7 @@ internal class ThrowingHandler : IRequestHandler<MockRequest, MockResponse, Test
 }
 
 [LanguageServerEndpoint(Name, LanguageServerConstants.DefaultLanguageName)]
-internal class TestDefaultLanguageHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class TestDefaultLanguageHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = "Language";
     public static readonly IMethodHandler Instance = new TestDefaultLanguageHandler();
@@ -171,7 +171,7 @@ internal class TestDefaultLanguageHandler : IRequestHandler<MockRequest, MockRes
 }
 
 [LanguageServerEndpoint(Name, Language)]
-internal class TestXamlLanguageHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
+internal sealed class TestXamlLanguageHandler : IRequestHandler<MockRequest, MockResponse, TestRequestContext>
 {
     public const string Name = TestDefaultLanguageHandler.Name;
     public const string Language = "xaml";

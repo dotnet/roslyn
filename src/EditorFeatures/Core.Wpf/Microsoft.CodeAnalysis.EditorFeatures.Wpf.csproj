@@ -7,9 +7,6 @@
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!--Temporarily bypass ibcmerge due to an error
-      https://github.com/dotnet/roslyn/issues/57863 -->
-    <ApplyNgenOptimization></ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -61,10 +58,6 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="Roslyn.Services.Test.Utilities" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="InlineRename\UI\Dashboard\Images\ErrorIcon.png" />
-    <Resource Include="InlineRename\UI\Dashboard\Images\InfoIcon.png" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

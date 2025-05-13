@@ -7,31 +7,30 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel;
+
+internal static class ParameterFlagsExtensions
 {
-    internal static class ParameterFlagsExtensions
+    public static ParameterFlags GetParameterFlags(this ParameterSyntax parameter)
     {
-        public static ParameterFlags GetParameterFlags(this ParameterSyntax parameter)
+        ParameterFlags result = 0;
+
+        foreach (var modifier in parameter.Modifiers)
         {
-            ParameterFlags result = 0;
-
-            foreach (var modifier in parameter.Modifiers)
+            switch (modifier.Kind())
             {
-                switch (modifier.Kind())
-                {
-                    case SyntaxKind.RefKeyword:
-                        result |= ParameterFlags.Ref;
-                        break;
-                    case SyntaxKind.OutKeyword:
-                        result |= ParameterFlags.Out;
-                        break;
-                    case SyntaxKind.ParamsKeyword:
-                        result |= ParameterFlags.Params;
-                        break;
-                }
+                case SyntaxKind.RefKeyword:
+                    result |= ParameterFlags.Ref;
+                    break;
+                case SyntaxKind.OutKeyword:
+                    result |= ParameterFlags.Out;
+                    break;
+                case SyntaxKind.ParamsKeyword:
+                    result |= ParameterFlags.Params;
+                    break;
             }
-
-            return result;
         }
+
+        return result;
     }
 }

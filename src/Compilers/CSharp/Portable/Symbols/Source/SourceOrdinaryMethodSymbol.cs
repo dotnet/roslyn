@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
+                // Note: SynthesizedExtensionMarker implements similar checks, which should be kept in sync.
                 var syntax = GetSyntax();
                 var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
@@ -243,23 +244,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Verify ExtensionAttribute is available.
-                    var attributeConstructor = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
-
-                    var thisKeyword = syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
-                    if ((object)attributeConstructor == null)
-                    {
-                        var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
-                        diagnostics.Add(
-                            ErrorCode.ERR_ExtensionAttrNotFound,
-                            thisKeyword.GetLocation(),
-                            memberDescriptor.DeclaringTypeMetadataName);
-                    }
-                    else
-                    {
-                        diagnostics.Add(useSiteInfo, thisKeyword);
-                    }
+                    CheckExtensionAttributeAvailability(DeclaringCompilation, syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(), diagnostics);
                 }
+            }
+        }
+
+        internal static void CheckExtensionAttributeAvailability(CSharpCompilation compilation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            var attributeConstructor = Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor, out var useSiteInfo);
+
+            if ((object)attributeConstructor == null)
+            {
+                var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
+                // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
+                diagnostics.Add(
+                    ErrorCode.ERR_ExtensionAttrNotFound,
+                    location,
+                    memberDescriptor.DeclaringTypeMetadataName);
+            }
+            else
+            {
+                diagnostics.Add(useSiteInfo, location);
             }
         }
 
@@ -697,6 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static (DeclarationModifiers mods, bool hasExplicitAccessMod) MakeModifiers(MethodDeclarationSyntax syntax, NamedTypeSymbol containingType, MethodKind methodKind, bool hasBody, Location location, BindingDiagnosticBag diagnostics)
         {
             bool isInterface = containingType.IsInterface;
+            bool isExtension = containingType.IsExtension;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
 
             // This is needed to make sure we can detect 'public' modifier specified explicitly and
@@ -709,27 +715,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isExplicitInterfaceImplementation)
             {
-                allowedModifiers |= DeclarationModifiers.New |
-                                    DeclarationModifiers.Sealed |
-                                    DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Static |
-                                    DeclarationModifiers.Virtual |
+                allowedModifiers |= DeclarationModifiers.Static |
                                     DeclarationModifiers.AccessibilityMask;
 
-                if (!isInterface)
+                if (!isExtension)
                 {
-                    allowedModifiers |= DeclarationModifiers.Override;
-                }
-                else
-                {
-                    defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
-                                                               DeclarationModifiers.Abstract |
-                                                               DeclarationModifiers.Static |
-                                                               DeclarationModifiers.Virtual |
-                                                               DeclarationModifiers.Extern |
-                                                               DeclarationModifiers.Async |
-                                                               DeclarationModifiers.Partial |
-                                                               DeclarationModifiers.AccessibilityMask;
+                    allowedModifiers |= DeclarationModifiers.New |
+                                        DeclarationModifiers.Sealed |
+                                        DeclarationModifiers.Abstract |
+                                        DeclarationModifiers.Virtual;
+
+                    if (!isInterface)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Override;
+                    }
+                    else
+                    {
+                        defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
+                                                                   DeclarationModifiers.Abstract |
+                                                                   DeclarationModifiers.Static |
+                                                                   DeclarationModifiers.Virtual |
+                                                                   DeclarationModifiers.Extern |
+                                                                   DeclarationModifiers.Async |
+                                                                   DeclarationModifiers.Partial |
+                                                                   DeclarationModifiers.AccessibilityMask;
+                    }
                 }
             }
             else
@@ -744,7 +754,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Static;
             }
 
-            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
+            allowedModifiers |= DeclarationModifiers.Async;
+
+            if (!isExtension)
+            {
+                allowedModifiers |= DeclarationModifiers.Extern;
+            }
 
             if (containingType.IsStructType())
             {
@@ -782,7 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingTypeIsInterface)
             {
                 mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
-                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation,
+                                                                         forMethod: true);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {
@@ -902,6 +918,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (ContainingType is { IsExtension: true, ExtensionParameter.Name: "" } && !IsStatic)
+            {
+                diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, location, Name);
             }
             else if (ContainingType.IsStatic && !IsStatic)
             {
@@ -1136,23 +1156,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Note: It is not an error to have a type parameter named the same as its enclosing method: void M<M>() {}
 
-                    for (int i = 0; i < result.Count; i++)
+                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                    bool checkForDuplicates = true;
+
+                    if ((object)tpEnclosing != null)
                     {
-                        if (name == result[i].Name)
+                        if (tpEnclosing.ContainingSymbol is NamedTypeSymbol { IsExtension: true })
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
-                            break;
+                            diagnostics.Add(ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter, location, name);
+                            checkForDuplicates = false;
+                        }
+                        else
+                        {
+                            // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                            diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
+                        }
+                    }
+
+                    if (checkForDuplicates)
+                    {
+                        for (int i = 0; i < result.Count; i++)
+                        {
+                            if (name == result[i].Name)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateTypeParameter, location, name);
+                                break;
+                            }
                         }
                     }
 
                     SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
-
-                    var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
-                    if ((object)tpEnclosing != null)
-                    {
-                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                        diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
-                    }
 
                     var syntaxRefs = ImmutableArray.Create(parameter.GetReference());
                     var locations = ImmutableArray.Create(location);
