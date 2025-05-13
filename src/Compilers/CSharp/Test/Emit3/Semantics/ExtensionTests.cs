@@ -3937,23 +3937,49 @@ static class Extensions
             );
     }
 
-    [Fact]
-    public void ReceiverParameter_RefScope()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+    public void ReceiverParameter_RefScope_01()
     {
         var src = """
+int i = 42;
+i.M();
+
 static class Extensions
 {
     extension(scoped ref int receiver)
     {
+        public void M() => System.Console.Write(receiver);
     }
 }
 """;
         var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, symbolValidator: (m) =>
+        CompileAndVerify(comp, expectedOutput: "42", symbolValidator: (m) =>
         {
             AssertEx.Equal(ScopedKind.ScopedRef, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].EffectiveScope);
         }).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+    public void ReceiverParameter_RefScope_02()
+    {
+        var src = """
+int i = 42;
+i.M();
+
+static class Extensions
+{
+    extension(scoped ref int receiver)
+    {
+        public ref int M() => ref receiver;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (8,35): error CS9075: Cannot return a parameter by reference 'receiver' because it is scoped to the current method
+            //         public ref int M() => ref receiver;
+            Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "receiver").WithArguments("receiver").WithLocation(8, 35));
     }
 
     [Fact]
@@ -40019,4 +40045,32 @@ static class E
         var model = comp.GetSemanticModel(tree);
         Assert.Equal(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78487")]
+    public void Async_01()
+    {
+        string source = """
+await System.Threading.Tasks.Task.FromResult(true).M();
+await System.Threading.Tasks.Task<bool>.M2();
+
+static class E
+{
+    extension<T>(System.Threading.Tasks.Task<T> source)
+    {
+        public async System.Threading.Tasks.Task M()
+        {
+            System.Console.Write(await source);
+            System.Console.Write(" ran ");
+        }
+
+        public static async System.Threading.Tasks.Task M2()
+        {
+            await System.Threading.Tasks.Task.FromResult(default(T));
+            System.Console.Write("ran2");
+        }
+    }
 }
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "True ran ran2").VerifyDiagnostics();
+    }}

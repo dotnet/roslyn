@@ -497,5 +497,57 @@ public static class E
         var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
+
+    [Fact]
+    public void AnonymousType_01()
+    {
+        var src = """
+var person = new { Name = "John", Age = 30 };
+person.M();
+person.M2();
+_ = person.P;
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { System.Console.Write("method "); }
+        public int Property { get { System.Console.Write("property"); return 42; } }
+    }
+
+    public static void M2<T>(this T t) { System.Console.Write("method2 "); }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should work
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
+            // _ = person.P;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "P").WithArguments("<anonymous type: string Name, int Age>", "P").WithLocation(4, 12));
+    }
+
+    [Fact]
+    public void Attribute_01()
+    {
+        var src = """
+[My(Property = 42)]
+class C { }
+
+public class MyAttribute : System.Attribute { }
+
+public static class E
+{
+    extension(MyAttribute a)
+    {
+        public int Property { get => throw null; set => throw null; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0246: The type or namespace name 'Property' could not be found (are you missing a using directive or an assembly reference?)
+            // [My(Property = 42)]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Property").WithArguments("Property").WithLocation(1, 5));
+    }
 }
 
