@@ -322,6 +322,7 @@ extends:
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
+                       /p:ForceAzureComSources=true
           condition: succeeded()
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
