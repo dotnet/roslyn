@@ -476,11 +476,7 @@ internal sealed partial class SolutionState
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
         var newProjectStates = SortedProjectStates.WhereAsArray(static (p, projectIdsSet) => !projectIdsSet.Contains(p.Id), projectIdsSet);
-
-        // Note: it would be nice to not cause N forks of the dependency graph here.
-        var newDependencyGraph = _dependencyGraph;
-        foreach (var projectId in projectIds)
-            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
+        var newDependencyGraph = _dependencyGraph.WithProjectsRemoved(projectIds);
 
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
