@@ -18,26 +18,25 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private readonly ICommandLineParserService _commandLineParserService;
 
     /// <summary>
-    /// Gate to guard all mutable fields in this class.
-    /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
-    /// </summary>
-    private readonly object _gate = new();
-
-    /// <summary>
     /// A hashed checksum of the last command line we were set to.  We use this
     /// as a low cost (in terms of memory) way to determine if the command line
     /// actually changes and we need to make any downstream updates.
     /// </summary>
     private Checksum? _commandLineChecksum;
 
-    /// <summary>
-    /// To save space in the managed heap, we only cache the command line if we have a ruleset.
-    /// </summary>
-    private ImmutableArray<string> _commandLine;
-
     private CommandLineArguments _commandLineArgumentsForCommandLine;
-    private string? _explicitRuleSetFilePath;
     private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
+
+    /// <summary>
+    /// Gate to guard all mutable fields in this class.
+    /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
+    /// </summary>
+    protected readonly object _gate = new();
+
+    /// <summary>
+    /// To save space in the managed heap, we only cache the command line if we have a ruleset or if we are in a legacy project.
+    /// </summary>
+    protected ImmutableArray<string> _commandLine;
 
     public ProjectSystemProjectOptionsProcessor(
         ProjectSystemProject project,
@@ -68,9 +67,16 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         // Only bother storing the command line if there is an effective ruleset, as that may
         // require a later reparse using it.
-        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : default;
+        UpdateCommandLine(arguments);
 
         return true;
+    }
+
+    protected virtual void UpdateCommandLine(ImmutableArray<string> arguments)
+    {
+        // Only bother storing the command line if there is an effective ruleset, as that may
+        // require a later reparse using it.
+        _commandLine = GetEffectiveRulesetFilePath() != null ? arguments : default;
     }
 
     public void SetCommandLine(string commandLine)
@@ -91,26 +97,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // we don't need to do anything.
             if (ReparseCommandLineIfChanged_NoLock(arguments))
             {
-                UpdateProjectOptions_NoLock();
-            }
-        }
-    }
-
-    public string? ExplicitRuleSetFilePath
-    {
-        get => _explicitRuleSetFilePath;
-
-        set
-        {
-            lock (_gate)
-            {
-                if (_explicitRuleSetFilePath == value)
-                {
-                    return;
-                }
-
-                _explicitRuleSetFilePath = value;
-
                 UpdateProjectOptions_NoLock();
             }
         }
@@ -159,10 +145,10 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         return _commandLineArgumentsForCommandLine;
     }
 
-    private string? GetEffectiveRulesetFilePath()
-        => ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;
+    protected virtual string? GetEffectiveRulesetFilePath()
+        => _commandLineArgumentsForCommandLine.RuleSetPath;
 
-    private void UpdateProjectOptions_NoLock()
+    protected void UpdateProjectOptions_NoLock()
     {
         var effectiveRuleSetPath = GetEffectiveRulesetFilePath();
 
@@ -253,18 +239,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// </summary>
     protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
         => parseOptions;
-
-    /// <summary>
-    /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided
-    /// by either <see cref="ComputeCompilationOptionsWithHostValues(CompilationOptions, IRuleSetFile)"/> or <see cref="ComputeParseOptionsWithHostValues(ParseOptions)"/>.
-    /// </summary>
-    protected void UpdateProjectForNewHostValues()
-    {
-        lock (_gate)
-        {
-            UpdateProjectOptions_NoLock();
-        }
-    }
 
     public void Dispose()
     {
