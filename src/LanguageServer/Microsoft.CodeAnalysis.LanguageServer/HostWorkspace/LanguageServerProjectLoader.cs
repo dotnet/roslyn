@@ -282,7 +282,10 @@ internal abstract class LanguageServerProjectLoader
 
                 if (currentLoadState is ProjectLoadState.Primordial(var projectId))
                 {
-                    // Remove the primordial project now that the design-time build pass is finished.
+                    // Remove the primordial project now that the design-time build pass is finished. This ensures that
+                    // we have the new project in place before we remove the primordial project; otherwise for
+                    // Miscellaneous Files we could have a case where we'd get another request to create a project
+                    // for the project we're currently processing.
                     await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
                 }
 
