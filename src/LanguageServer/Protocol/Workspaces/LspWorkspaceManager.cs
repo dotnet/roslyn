@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -159,7 +160,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: true).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
                 this._logger.LogException(ex);
             }
@@ -263,14 +264,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // if it happens to be in there as well.
                 if (workspace != _lspMiscellaneousFilesWorkspaceProvider?.Workspace)
                 {
-                    // Do not attempt to remove the file from the metadata workspace (the document is still open).
                     if (_lspMiscellaneousFilesWorkspaceProvider is not null)
                     {
                         try
                         {
+                            // Do not attempt to remove the file from the metadata workspace (the document is still open).
                             await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri, removeFromMetadataWorkspace: false).ConfigureAwait(false);
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {
                             _logger.LogException(ex);
                         }
@@ -296,7 +297,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 if (miscDocument is not null)
                     return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
                 _logger.LogException(ex);
             }

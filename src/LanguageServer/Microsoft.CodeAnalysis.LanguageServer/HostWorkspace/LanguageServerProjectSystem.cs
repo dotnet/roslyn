@@ -78,14 +78,14 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
-    public async Task OpenProjectsAsync(ImmutableArray<(string ProjectPath, string? ProjectGuid)> projectFilePaths)
+    public async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths)
     {
         if (!projectFilePaths.Any())
             return;
 
-        foreach (var (path, guid) in projectFilePaths)
+        foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(path, guid);
+            await BeginLoadingProjectAsync(path, projectGuid: null);
         }
         await WaitForProjectsToFinishLoadingAsync();
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();

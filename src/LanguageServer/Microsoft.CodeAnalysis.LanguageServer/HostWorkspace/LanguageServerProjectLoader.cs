@@ -231,7 +231,6 @@ internal abstract class LanguageServerProjectLoader
             var projectLanguage = loadedProjectInfos.FirstOrDefault()?.Language;
             if (projectLanguage != null && ProjectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
             {
-                _logger.LogWarning($"Could not run a design-time build for '{projectPath}' because it uses unsupported language '{projectLanguage}'.");
                 return false;
             }
 

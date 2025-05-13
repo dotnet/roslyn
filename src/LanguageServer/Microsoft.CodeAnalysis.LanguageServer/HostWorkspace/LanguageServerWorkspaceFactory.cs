@@ -53,7 +53,7 @@ internal sealed class LanguageServerWorkspaceFactory
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
-        // TODO: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
         // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
         var fileBasedProgramsWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
         fileBasedProgramsWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fileBasedProgramsWorkspace)), WorkspaceChangeKind.SolutionChanged);
