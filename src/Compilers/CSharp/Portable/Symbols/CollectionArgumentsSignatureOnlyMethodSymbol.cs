@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(wellKnownConstructor is { IsDefinition: true });
             Debug.Assert(containingSymbol is { });
-            Debug.Assert(!returnType.IsVoidType());
             Debug.Assert(parameters.Length == wellKnownConstructor.Parameters.Length);
+            Debug.Assert(!returnType.IsVoidType());
 
             WellKnownConstructor = wellKnownConstructor;
             Name = name;

@@ -4798,6 +4798,135 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void CollectionArguments_CapacityAndComparer_01(
+            [CombinatorialValues(
+                "T[]",
+                "System.ReadOnlySpan<T>",
+                "System.Span<T>",
+                "System.Collections.Generic.IEnumerable<T>",
+                "System.Collections.Generic.IReadOnlyCollection<T>",
+                "System.Collections.Generic.IReadOnlyList<T>",
+                "System.Collections.Generic.ICollection<T>",
+                "System.Collections.Generic.IList<T>")]
+            string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create<T>(int capacity, IEqualityComparer<T> comparer)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(default)];
+                        c = [with(capacity)];
+                        c = [with(comparer)];
+                        c = [with(capacity, comparer)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            switch (typeName)
+            {
+                case "T[]":
+                case "System.ReadOnlySpan<T>":
+                case "System.Span<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(9, 14),
+                        // (10,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(10, 14),
+                        // (11,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(11, 14),
+                        // (12,14): error CS9502: Collection arguments are not supported for type 'T[]'.
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(typeName).WithLocation(12, 14));
+                    break;
+                case "System.Collections.Generic.IEnumerable<T>":
+                case "System.Collections.Generic.IReadOnlyCollection<T>":
+                case "System.Collections.Generic.IReadOnlyList<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(default)]").WithArguments("<signature>", "1").WithLocation(9, 13),
+                        // (10,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity)]").WithArguments("<signature>", "1").WithLocation(10, 13),
+                        // (11,13): error CS1501: No overload for method '<signature>' takes 1 arguments
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(comparer)]").WithArguments("<signature>", "1").WithLocation(11, 13),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                case "System.Collections.Generic.ICollection<T>":
+                case "System.Collections.Generic.IList<T>":
+                    comp.VerifyEmitDiagnostics(
+                        // (11,19): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEqualityComparer<T>' to 'int'
+                        //         c = [with(comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "comparer").WithArguments("1", "System.Collections.Generic.IEqualityComparer<T>", "int").WithLocation(11, 19),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(typeName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CollectionArguments_CapacityAndComparer_02(
+            [CombinatorialValues(
+                "System.Collections.Generic.IReadOnlyDictionary<K, V>",
+                "System.Collections.Generic.IDictionary<K, V>")]
+            string typeName)
+        {
+            string source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Create<K, V>(int capacity, IEqualityComparer<K> comparer)
+                    {
+                        {{typeName}} c;
+                        c = [];
+                        c = [with()];
+                        c = [with(default)];
+                        c = [with(capacity)];
+                        c = [with(comparer)];
+                        c = [with(capacity, comparer)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            switch (typeName)
+            {
+                case "System.Collections.Generic.IReadOnlyDictionary<K, V>":
+                    comp.VerifyEmitDiagnostics(
+                        // (10,19): error CS1503: Argument 1: cannot convert from 'int' to 'System.Collections.Generic.IEqualityComparer<K>?'
+                        //         c = [with(capacity)];
+                        Diagnostic(ErrorCode.ERR_BadArgType, "capacity").WithArguments("1", "int", "System.Collections.Generic.IEqualityComparer<K>?").WithLocation(10, 19),
+                        // (12,13): error CS1501: No overload for method '<signature>' takes 2 arguments
+                        //         c = [with(capacity, comparer)];
+                        Diagnostic(ErrorCode.ERR_BadArgCount, "[with(capacity, comparer)]").WithArguments("<signature>", "2").WithLocation(12, 13));
+                    break;
+                case "System.Collections.Generic.IDictionary<K, V>":
+                    comp.VerifyEmitDiagnostics(
+                        // (9,13): error CS0121: The call is ambiguous between the following methods or properties: 'Program.<signature>(IEqualityComparer<K>?)' and 'Program.<signature>(int)'
+                        //         c = [with(default)];
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "[with(default)]").WithArguments("Program.<signature>(System.Collections.Generic.IEqualityComparer<K>?)", "Program.<signature>(int)").WithLocation(9, 13));
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(typeName);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void InterfaceTarget_MissingMember_01(
             [CombinatorialValues(
                 "IEnumerable",
