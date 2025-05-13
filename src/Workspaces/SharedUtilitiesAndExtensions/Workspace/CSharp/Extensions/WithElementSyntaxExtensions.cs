@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -47,14 +46,14 @@ internal static class WithElementSyntaxExtensions
             {
                 var constructedType = compilation.ListOfTType()?.Construct([.. collectionExpressionType.TypeArguments]);
                 return constructedType is not null
-                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.Any(p => p.Name is "capacity"))
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.All(p => p.Name is "capacity"))
                     : [];
             }
             else if (Equals(compilation.IDictionaryOfTKeyTValueType(), collectionExpressionOriginalType))
             {
                 var constructedType = compilation.DictionaryOfTKeyTValueType()?.Construct([.. collectionExpressionType.TypeArguments]);
                 return constructedType is not null
-                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.Any(p => p.Name is "capacity" or "comparer"))
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.All(p => p.Name is "capacity" or "comparer"))
                     : [];
             }
             else

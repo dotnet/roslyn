@@ -20,7 +20,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     [Theory]
     [InlineData("IList<int>")]
     [InlineData("ICollection<int>")]
-    public async Task TestMutableInterfaces(string type)
+    public async Task TestMutableListInterfaces(string type)
     {
         var markup = $$"""
             <Workspace>
@@ -39,7 +39,36 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
             </Workspace>
             """;
 
-        await TestAsync(markup, [new("List<int>(int capacity)", string.Empty, null, currentParameterIndex: 0)]);
+        await TestAsync(markup, [
+            new("List<int>()", string.Empty, currentParameterIndex: 0),
+            new("List<int>(int capacity)", string.Empty, currentParameterIndex: 0)]);
+    }
+
+    [Fact]
+    public async Task TestMutableDictionaryInterface()
+    {
+        var markup = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                    <Document><![CDATA[
+            using System.Collections.Generic;
+
+            class C
+            {
+                void Goo()
+                {
+                    IDictionary<string, int> list = [with($$)];
+                }
+            }]]></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await TestAsync(markup, [
+            new("Dictionary<string, int>()", string.Empty, currentParameterIndex: 0),
+            new("Dictionary<string, int>(int capacity)", string.Empty, currentParameterIndex: 0),
+            new("Dictionary<string, int>(IEqualityComparer<string> comparer)", string.Empty, currentParameterIndex: 0),
+            new("Dictionary<string, int>(int capacity, IEqualityComparer<string> comparer)", string.Empty, currentParameterIndex: 0)]);
     }
 
     [Theory]
@@ -92,10 +121,10 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
             """;
 
         await TestAsync(markup, [
-            new("HashSet<int>()", string.Empty, null, currentParameterIndex: 0),
-            new("HashSet<int>(IEnumerable<int> collection)", string.Empty, null, currentParameterIndex: 0),
-            new("HashSet<int>(IEqualityComparer<int> comparer)", string.Empty, null, currentParameterIndex: 0),
-            new("HashSet<int>(IEnumerable<int> collection, IEqualityComparer<int> comparer)", string.Empty, null, currentParameterIndex: 0)]);
+            new("HashSet<int>()", string.Empty, currentParameterIndex: 0),
+            new("HashSet<int>(IEnumerable<int> collection)", string.Empty, currentParameterIndex: 0),
+            new("HashSet<int>(IEqualityComparer<int> comparer)", string.Empty, currentParameterIndex: 0),
+            new("HashSet<int>(IEnumerable<int> collection, IEqualityComparer<int> comparer)", string.Empty, currentParameterIndex: 0)]);
     }
 
     [Fact]
@@ -133,7 +162,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
 
             static class MyCollectionBuilder
             {
-                public static MyCollection<T> Create<T>(ReadOnlySpan<T> values, int capacity, int extra) => new System.NotImplementedException();
+                public static MyCollection<T> Create<T>(int capacity, int extra, ReadOnlySpan<T> values) => new System.NotImplementedException();
                 public static MyCollection<T> Create<T>(string capacity, string extra, ReadOnlySpan<T> values) => new System.NotImplementedException();
             }
 
@@ -148,7 +177,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
             </Workspace>
             """;
         await TestAsync(markup, [
-            new("MyCollection<int> MyCollectionBuilder.Create<T>(int capacity, int extra)", string.Empty, null, currentParameterIndex: 0),
-            new("MyCollection<int> MyCollectionBuilder.Create<T>(string capacity, string extra)", string.Empty, null, currentParameterIndex: 0)]);
+            new("MyCollection<int> MyCollectionBuilder.Create<T>(int capacity, int extra)", string.Empty, currentParameterIndex: 0),
+            new("MyCollection<int> MyCollectionBuilder.Create<T>(string capacity, string extra)", string.Empty, currentParameterIndex: 0)]);
     }
 }
