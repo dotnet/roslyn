@@ -486,6 +486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitAndRewriteCollectionArgumentsSignatureOnlyMethodCall(BoundCall node, NamedTypeSymbol collectionType)
         {
+            Debug.Assert(!_inExpressionLambda);
+
             if (node.Method is not CollectionArgumentsSignatureOnlyMethodSymbol { WellKnownConstructor: var constructor })
             {
                 throw ExceptionUtilities.UnexpectedValue(node);

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(wellKnownConstructor is { IsDefinition: true });
             Debug.Assert(containingSymbol is { });
+            Debug.Assert(!returnType.IsVoidType());
 
             WellKnownConstructor = wellKnownConstructor;
             Name = name;
@@ -37,6 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             Parameters = parameterBuilder.ToImmutableAndFree();
             ReturnTypeWithAnnotations = returnType;
+
+            Debug.Assert(wellKnownConstructor.Parameters.SequenceEqual(
+                Parameters,
+                (object?)null, (x, y, _) => x.Type.Equals(y.Type, TypeCompareKind.AllIgnoreOptions) && x.RefKind == y.RefKind));
         }
 
         public override string Name { get; }
