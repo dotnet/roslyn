@@ -434,7 +434,7 @@ internal abstract class LanguageServerProjectLoader
             }
             else
             {
-                throw ExceptionUtilities.Unreachable();
+                throw ExceptionUtilities.UnexpectedValue(loadState);
             }
         }
     }
