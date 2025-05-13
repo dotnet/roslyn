@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Razor.Diagnostics.Analyzers": {
+      "commandName": "Project"
+    },
+    "Run on Razor.Compiler": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\Compiler\\Microsoft.CodeAnalysis.Razor.Compiler\\src\\Microsoft.CodeAnalysis.Razor.Compiler.csproj"
+    }
+  }
+}

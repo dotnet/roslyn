@@ -10,4 +10,6 @@ internal static class DiagnosticIds
     public const string IRemoteJsonServiceParameter = "RZD002";
 
     public const string ImmutableArrayBoxing = "RZD003";
+
+    public const string RawIntermediateTokenCreation = "RZD004";
 }
