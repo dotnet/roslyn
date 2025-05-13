@@ -2397,6 +2397,11 @@
         <target state="translated">原始字串常值開頭沒有足夠的引號字元，因此無法允許這麼多連續的引號字元做為內容。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">最上層陳述式必須在命名空間和型別宣告之前。</target>

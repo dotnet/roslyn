@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ThreadSafeFlagOperations.Set(ref _needsGeneratedAttributes, (int)attributes);
         }
 
-        internal PEModuleBuilder(
+        protected PEModuleBuilder(
             SourceModuleSymbol sourceModule,
             EmitOptions emitOptions,
             OutputKind outputKind,

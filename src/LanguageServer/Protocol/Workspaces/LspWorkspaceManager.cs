@@ -247,7 +247,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
                 _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);
-                _logger.LogInformation($"{document.FilePath} found in workspace {workspaceKind}");
+                _logger.LogDebug($"{document.FilePath} found in workspace {workspaceKind}");
 
                 // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
                 // if it happens to be in there as well.
@@ -264,7 +264,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
         // Depending on the host, this can be entirely normal (e.g. opening a loose file)
         var searchedWorkspaceKinds = string.Join(";", lspSolutions.SelectAsArray(lspSolution => lspSolution.Solution.Workspace.Kind));
-        _logger.LogInformation($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
+        _logger.LogDebug($"Could not find '{textDocumentIdentifier.DocumentUri}'.  Searched {searchedWorkspaceKinds}");
         _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
 
         // Add the document to our loose files workspace (if we have one) if it is open.

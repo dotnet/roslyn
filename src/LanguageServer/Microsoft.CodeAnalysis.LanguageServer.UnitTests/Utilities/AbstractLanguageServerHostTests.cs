@@ -68,7 +68,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             var typeRefResolver = new ExtensionTypeRefResolver(assemblyLoader, loggerFactory);
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory.CreateLogger<LanguageServerHost>(), typeRefResolver);
+            LanguageServerHost = new LanguageServerHost(serverStream, serverStream, exportProvider, loggerFactory, typeRefResolver);
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, messageFormatter))
