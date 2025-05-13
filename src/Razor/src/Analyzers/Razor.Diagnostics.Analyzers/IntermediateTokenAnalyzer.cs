@@ -23,7 +23,8 @@ public class IntermediateTokenAnalyzer : DiagnosticAnalyzer
         MessageFormat,
         DiagnosticCategory.Usage,
         DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
+        isEnabledByDefault: true,
+        helpLinkUri: "https://github.com/dotnet/razor/issues/11858");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
 
