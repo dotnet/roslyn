@@ -28,6 +28,8 @@ internal static class WithElementSyntaxExtensions
         if (semanticModel.GetTypeInfo(collectionExpression, cancellationToken).ConvertedType is not INamedTypeSymbol collectionExpressionType)
             return [];
 
+        var collectionExpressionOriginalType = collectionExpressionType.OriginalDefinition;
+        var compilation = semanticModel.Compilation;
         var result = TryGetInterfaceItems() ??
             TryGetCollectionBuilderItems() ??
             collectionExpressionType.InstanceConstructors;
@@ -40,35 +42,20 @@ internal static class WithElementSyntaxExtensions
             // constructor of List<T>, as that's what the compiler will call into.  When the type is IDictionary<,> we
             // provide signature help for the overloads of Dictionary<,> that take a capacity or IEqualityComparer.
 
-            var ilistOfTType = semanticModel.Compilation.IListOfTType();
-            var icollectionOfTType = semanticModel.Compilation.ICollectionOfTType();
-            var idictionaryOfTKeyTValueType = semanticModel.Compilation.IDictionaryOfTKeyTValueType();
-
-            if (Equals(ilistOfTType, collectionExpressionType.OriginalDefinition) ||
-                Equals(icollectionOfTType, collectionExpressionType.OriginalDefinition))
+            if (Equals(compilation.IListOfTType(), collectionExpressionOriginalType) ||
+                Equals(compilation.ICollectionOfTType(), collectionExpressionOriginalType))
             {
-                var listOfTType = semanticModel.Compilation.ListOfTType();
-                if (listOfTType is not null)
-                {
-                    var constructedListType = listOfTType.Construct([.. collectionExpressionType.TypeArguments]);
-                    return constructedListType.InstanceConstructors.WhereAsArray(
-                        c => c.Parameters.Any(p => p.Name is "capacity"));
-                }
-
-                return [];
+                var constructedType = compilation.ListOfTType()?.Construct([.. collectionExpressionType.TypeArguments]);
+                return constructedType is not null
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.Any(p => p.Name is "capacity"))
+                    : [];
             }
-            else if (Equals(idictionaryOfTKeyTValueType, collectionExpressionType.OriginalDefinition))
+            else if (Equals(compilation.IDictionaryOfTKeyTValueType(), collectionExpressionOriginalType))
             {
-                var dictionaryOfTKeyTValueType = semanticModel.Compilation.DictionaryOfTKeyTValueType();
-                if (dictionaryOfTKeyTValueType is not null)
-                {
-                    var constructedDictionaryType = dictionaryOfTKeyTValueType.Construct([.. collectionExpressionType.TypeArguments]);
-                    return constructedDictionaryType.InstanceConstructors.WhereAsArray(
-                        c => c.Parameters.Any(p => p.Name is "capacity" or "comparer"));
-
-                }
-
-                return [];
+                var constructedType = compilation.DictionaryOfTKeyTValueType()?.Construct([.. collectionExpressionType.TypeArguments]);
+                return constructedType is not null
+                    ? constructedType.InstanceConstructors.WhereAsArray(c => c.Parameters.Any(p => p.Name is "capacity" or "comparer"))
+                    : [];
             }
             else
             {
