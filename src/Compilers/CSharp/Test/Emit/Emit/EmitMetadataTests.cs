@@ -3590,8 +3590,7 @@ public class Child : Parent, IParent
                 """;
 
             var parseOptions = TestOptions.RegularPreview
-                .WithNoRefSafetyRulesAttribute()
-                .WithFeature("experimental-data-section-string-literals", "0");
+                .WithNoRefSafetyRulesAttribute();
 
             CompileAndVerify(CreateEmptyCompilation(source, parseOptions: parseOptions),
                 verify: Verification.Skipped,
@@ -3616,6 +3615,16 @@ public class Child : Parent, IParent
                 .VerifyDiagnostics(
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+
+            // NOTE: If the feature is enabled by default in the future, it should not fail in case of missing Encoding members
+            //       (it should be automatically disabled instead and could warn) to avoid regressing the scenario above.
+            CreateEmptyCompilation(source,
+                parseOptions: parseOptions.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
