@@ -615,7 +615,7 @@ public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 
             var descriptionItems = itemDisplay.DescriptionItems;
 
-            void assertDescription(string label, string? value)
+            void assertDescription(string label, string value)
             {
                 var descriptionItem = descriptionItems.Single(i => i.Category.Single().Text == label);
                 Assert.Equal(value, descriptionItem.Details.Single().Text);
