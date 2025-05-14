@@ -6955,6 +6955,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (node is BoundPropertyAccess)
+            {
+                return true;
+            }
+
             var syntax = node.Syntax;
             if (syntax.Kind() != SyntaxKind.InvocationExpression)
             {
@@ -7007,9 +7012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitArguments<PropertySymbol>(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod: false).results;
         }
 
-        /// <summary>
-        /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
-        /// </summary>
+        // Returns the re-inferred member and the results of the arguments.
         private (TMember? member, ImmutableArray<VisitResult> results, bool returnNotNull) VisitArguments<TMember>(
             BoundNode node,
             ImmutableArray<BoundExpression> arguments,
@@ -7095,9 +7098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                       argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod));
                 }
 
-                MethodSymbol? method = member as MethodSymbol;
-
-                // Re-infer method type parameters
+                // Re-infer method type arguments
                 if (member?.GetMemberArityIncludingExtension() > 0)
                 {
                     if (HasImplicitTypeArguments(node))
@@ -7106,20 +7107,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parametersOpt = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
                     }
 
-                    if (method is not null && ConstraintsHelper.RequiresChecking(method)) // TODO2 handle other types of members
+                    var syntaxForConstraintCheck = node.Syntax switch
                     {
-                        var syntax = node.Syntax;
-                        CheckMethodConstraints(
-                            syntax switch
-                            {
-                                InvocationExpressionSyntax { Expression: var expression } => expression,
-                                ForEachStatementSyntax { Expression: var expression } => expression,
-                                _ => syntax
-                            },
-                            method);
+                        InvocationExpressionSyntax { Expression: var expression } => expression,
+                        ForEachStatementSyntax { Expression: var expression } => expression,
+                        _ => node.Syntax
+                    };
+
+                    if (member is MethodSymbol reinferredMethod)
+                    {
+                        if (ConstraintsHelper.RequiresChecking(reinferredMethod))
+                        {
+                            CheckMethodConstraints(syntaxForConstraintCheck, reinferredMethod);
+                        }
+                    }
+                    else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+                    {
+                        CheckExtensionConstraints(syntaxForConstraintCheck, extension);
                     }
                 }
 
+                var method = member as MethodSymbol;
                 bool parameterHasNotNullIfNotNull = !IsAnalyzingAttribute && !parametersOpt.IsDefault && parametersOpt.Any(static p => !p.NotNullIfParameterNotNull.IsEmpty);
                 var notNullParametersBuilder = parameterHasNotNullIfNotNull ? ArrayBuilder<ParameterSymbol>.GetInstance() : null;
                 var conversionResultsBuilder = ArrayBuilder<VisitResult>.GetInstance(results.Length);
@@ -7127,7 +7135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Visit conversions, inbound assignments including pre-conditions
                     TypeWithAnnotations paramsIterationType = default;
-                    ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull; // TODO2 handle other types of members?
+                    ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
                     for (int i = 0; i < results.Length; i++)
                     {
                         var argumentNoConversion = argumentsNoConversions[i];
@@ -7240,7 +7248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!IsAnalyzingAttribute && method is not null && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) // TODO2 handle other kinds of members?
+                if (!IsAnalyzingAttribute && method is not null && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
                 {
                     SetUnreachable();
                 }
@@ -8314,6 +8322,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticsBuilder,
                 nullabilityBuilder,
                 ref useSiteDiagnosticsBuilder);
+
+            foreach (var pair in nullabilityBuilder)
+            {
+                if (pair.UseSiteInfo.DiagnosticInfo is object)
+                {
+                    Diagnostics.Add(pair.UseSiteInfo.DiagnosticInfo, syntax.Location);
+                }
+            }
+
+            useSiteDiagnosticsBuilder?.Free();
+            nullabilityBuilder.Free();
+            diagnosticsBuilder.Free();
+        }
+
+        private void CheckExtensionConstraints(SyntaxNode syntax, NamedTypeSymbol extension)
+        {
+            if (_disableDiagnostics)
+            {
+                return;
+            }
+
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var nullabilityBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+            var constraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, _conversions, includeNullability: false, location: NoLocation.Singleton, diagnostics: null, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+
+            ConstraintsHelper.CheckConstraints(extension, in constraintsArgs,
+                extension.TypeSubstitution, extension.TypeParameters, extension.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics,
+                diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: nullabilityBuilder, ref useSiteDiagnosticsBuilder);
 
             foreach (var pair in nullabilityBuilder)
             {
@@ -11026,7 +11064,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
         {
             var property = node.PropertySymbol;
-            var updatedMember = VisitMemberAccess(node, node.ReceiverOpt, property);
+            Symbol? updatedProperty;
+
+            if (property.GetIsNewExtensionMember())
+            {
+                Debug.Assert(node.ReceiverOpt is not null);
+                ImmutableArray<BoundExpression> arguments = [node.ReceiverOpt];
+
+                var extensionParameter = property.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+                ImmutableArray<ParameterSymbol> parameters = [extensionParameter];
+
+                ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
+                bool returnNotNull;
+                (updatedProperty, _, returnNotNull) = VisitArguments(node, arguments, refKindsOpt, parameters, default, defaultArguments: default,
+                    expanded: false, invokedAsExtensionMethod: false, property, firstArgumentResult: null);
+
+                Debug.Assert(updatedProperty is not null);
+
+                TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
+                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
+                TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
+
+                SetResult(node, typeWithState, typeWithAnnotations);
+            }
+            else
+            {
+                updatedProperty = VisitMemberAccess(node, node.ReceiverOpt, property);
+            }
 
             if (!IsAnalyzingAttribute)
             {
@@ -11040,7 +11107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            SetUpdatedSymbol(node, property, updatedMember);
+            SetUpdatedSymbol(node, property, updatedProperty);
             return null;
         }
 
@@ -11117,8 +11184,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol VisitMemberAccess(BoundExpression node, BoundExpression? receiverOpt, Symbol member)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions (analyze the receiver as an argument, re-infer extension)
             Debug.Assert(!IsConditionalState);
+            Debug.Assert(!member.GetIsNewExtensionMember());
 
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
 
