@@ -3223,14 +3223,14 @@ public class Child : Parent, IParent
                     {{code}}
                 }
                 """;
-            var comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib1")
-                .VerifyEmitDiagnostics();
+            var comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib1");
             AssertEx.SetEqual([ref1], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
 
             comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib2",
-                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
-                .VerifyEmitDiagnostics();
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             AssertEx.SetEqual([ref1, ref2], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
