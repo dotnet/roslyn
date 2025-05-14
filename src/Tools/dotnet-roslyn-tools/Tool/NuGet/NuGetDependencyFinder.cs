@@ -29,7 +29,7 @@ internal static partial class NuGetDependencyFinder
         var nugetLogger = NuGetLogger.Instance;
         var cache = new SourceCacheContext();
 
-        var packages = (from file in Directory.EnumerateFiles(packageFolder, "*.nupkg")
+        var packages = (from file in Directory.EnumerateFiles(packageFolder, "*.nupkg", SearchOption.TopDirectoryOnly)
                         let fileName = Path.GetFileName(file)
                         let packageVersion = PackageVersion().Match(fileName)
                         where packageVersion.Success
