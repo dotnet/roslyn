@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -1583,7 +1584,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.DocumentUri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "test1.cs")), results[0].TextDocument!.DocumentUri);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, results[0].Diagnostics!.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
@@ -1999,11 +2000,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="CSProj1.csproj">
+                    <Document FilePath="C.cs">{csharpMarkup}</Document>
                 </Project>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="">
-                    <Document FilePath="C:\C2.cs"></Document>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="{TestWorkspace.NullFilePath}">
+                    <Document FilePath="C2.cs"></Document>
                 </Project>
             </Workspace>
             """;
@@ -2012,10 +2013,14 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
-        Assert.Equal(@"C:/C.cs", results[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        var dir = TestWorkspace.RootDirectory.Replace("\\", "/");
+
+        AssertEx.SequenceEqual(
+        [
+            $"{dir}/C.cs",
+            $"{dir}/CSProj1.csproj",
+            $"{dir}/C2.cs"
+        ], results.Select(r => r.TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath));
     }
 
     [Theory, CombinatorialData]
