@@ -97,6 +97,20 @@
     <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
   </ItemGroup>
 
+  <!--
+    Include SourcePackage.editorconfig in all source packages.
+  -->
+
+  <PropertyGroup Condition="'$(IsSourcePackage)' == 'true'">
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddEditorConfigToSourcePackage</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <Target Name="_AddEditorConfigToSourcePackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\config\SourcePackage.editorconfig" PackagePath="contentFiles/cs/$(TargetFramework)/.editorconfig" />
+    </ItemGroup>
+  </Target>
+
   <!-- Check that all shipping assemblies are packaged -->
   <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(IsShippingAssembly)' == 'true' and '$(IsPackable)' != 'true'">
     <Error Text="Project output assembly is shipping (IsShipping == $(IsShipping), IsShippingAssembly == '$(IsShippingAssembly)', IsShippingPackage == '$(IsShippingPackage)') but is not packaged (IsPackable == '$(IsPackable)')" />
