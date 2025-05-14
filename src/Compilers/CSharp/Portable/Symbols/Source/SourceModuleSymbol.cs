@@ -244,6 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
+                            // If "data section string literals" are enabled, check the necessary APIs are available so used assemblies are tracked correctly.
                             if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
                             {
                                 diagnostics ??= BindingDiagnosticBag.GetInstance();
