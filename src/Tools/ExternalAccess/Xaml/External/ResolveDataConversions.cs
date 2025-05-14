@@ -17,24 +17,24 @@ internal static class ResolveDataConversions
     private record DataResolveData(object Data, LSP.TextDocumentIdentifier Document) : DocumentResolveData(Document);
     private record DataIdResolveData(long DataId, LSP.TextDocumentIdentifier Document) : DocumentResolveData(Document);
 
-    public static object ToResolveData(object data, Uri uri)
-        => new DataResolveData(data, new LSP.TextDocumentIdentifier { DocumentUri = new(uri) });
+    public static object ToResolveData(object data, DocumentUri uri)
+        => new DataResolveData(data, new LSP.TextDocumentIdentifier { DocumentUri = uri });
 
-    public static (object? data, Uri? uri) FromResolveData(object? requestData)
+    public static (object? data, DocumentUri? uri) FromResolveData(object? requestData)
     {
         Contract.ThrowIfNull(requestData);
         var resolveData = JsonSerializer.Deserialize<DataResolveData>((JsonElement)requestData);
-        return (resolveData?.Data, resolveData?.Document.DocumentUri.GetRequiredParsedUri());
+        return (resolveData?.Data, resolveData?.Document.DocumentUri);
     }
 
-    internal static object ToCachedResolveData(object data, Uri uri, ResolveDataCache resolveDataCache)
+    internal static object ToCachedResolveData(object data, DocumentUri uri, ResolveDataCache resolveDataCache)
     {
         var dataId = resolveDataCache.UpdateCache(data);
 
-        return new DataIdResolveData(dataId, new LSP.TextDocumentIdentifier { DocumentUri = new(uri) });
+        return new DataIdResolveData(dataId, new LSP.TextDocumentIdentifier { DocumentUri = uri });
     }
 
-    internal static (object? data, Uri? uri) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache)
+    internal static (object? data, DocumentUri? uri) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache)
     {
         DataIdResolveData? resolveData;
         if (lspData is JsonElement token)
@@ -50,6 +50,6 @@ internal static class ResolveDataConversions
         var data = resolveDataCache.GetCachedEntry(resolveData.DataId);
         var document = resolveData.Document;
 
-        return (data, document.DocumentUri.GetRequiredParsedUri());
+        return (data, document.DocumentUri);
     }
 }
