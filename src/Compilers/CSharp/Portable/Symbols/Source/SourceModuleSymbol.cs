@@ -244,6 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
+                            if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
+                            {
+                                diagnostics ??= BindingDiagnosticBag.GetInstance();
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__get_UTF8, diagnostics, NoLocation.Singleton);
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
+                            }
+
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)

@@ -2948,74 +2948,42 @@ public class Child : Parent, IParent
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22),
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            CompileAndVerify(comp, expectedOutput: "abbccc").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
         }
 
         [Fact]
