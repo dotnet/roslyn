@@ -6010,8 +6010,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Несогласованность по доступности: доступность типа параметра "{1}" ниже доступности индексатора "{0}"</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Несогласованность по доступности: доступность типа параметра "{1}" ниже доступности индексатора "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

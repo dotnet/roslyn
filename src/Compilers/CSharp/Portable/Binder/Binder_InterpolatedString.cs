@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = unconvertedSource.Syntax;
             ImmutableArray<BoundExpression> expressions = makeInterpolatedStringFactoryArguments(syntax, parts, diagnostics);
 
-            BoundExpression construction = MakeInvocationExpression(
+            BoundExpression construction = MakeInvocationExpression( // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test this scenario with a delegate-returning property (should be blocked by virtue of allowFieldsAndProperties: false)
                 syntax,
                 new BoundTypeExpression(syntax, null, factoryType) { WasCompilerGenerated = true },
                 factoryMethod,

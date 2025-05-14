@@ -6009,8 +6009,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Inkonsistenter Zugriff: Parametertyp "{1}" ist weniger zugreifbar als Indexer "{0}".</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Inkonsistenter Zugriff: Parametertyp "{1}" ist weniger zugreifbar als Indexer "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
