@@ -5,9 +5,10 @@
 #nullable enable
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal partial class SpecializedCollections
     {
@@ -38,7 +39,7 @@ namespace Roslyn.Utilities
 
                 public bool IsProperSubsetOf(IEnumerable<T> other)
                 {
-                    return !other.IsEmpty();
+                    return other.Any();
                 }
 
                 public bool IsProperSupersetOf(IEnumerable<T> other)
@@ -53,7 +54,7 @@ namespace Roslyn.Utilities
 
                 public bool IsSupersetOf(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public bool Overlaps(IEnumerable<T> other)
@@ -63,7 +64,7 @@ namespace Roslyn.Utilities
 
                 public bool SetEquals(IEnumerable<T> other)
                 {
-                    return other.IsEmpty();
+                    return !other.Any();
                 }
 
                 public void SymmetricExceptWith(IEnumerable<T> other)
