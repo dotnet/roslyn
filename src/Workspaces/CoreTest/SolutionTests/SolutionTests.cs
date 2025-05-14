@@ -2501,7 +2501,7 @@ public sealed class SolutionTests : TestBase
         var filePath = Path.Combine(TempRoot.Root, "x.cs");
         var folders = new[] { "folder1", "folder2" };
 
-        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: null, SourceHashAlgorithm.Sha1)).GetRoot();
+        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: Encoding.ASCII, SourceHashAlgorithm.Sha1)).GetRoot();
         Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.GetText().ChecksumAlgorithm);
 
         var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
@@ -2511,6 +2511,9 @@ public sealed class SolutionTests : TestBase
 
         // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
         Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
+
+        // the encoding is preserved:
+        Assert.Equal(Encoding.ASCII, sourceText.Encoding);
 
         AssertEx.Equal(folders, document2.Folders);
         Assert.Equal(filePath, document2.FilePath);
