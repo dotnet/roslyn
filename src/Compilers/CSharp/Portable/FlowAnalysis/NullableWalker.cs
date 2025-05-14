@@ -4015,7 +4015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? constructor = getConstructor(node, node.Type);
             var arguments = node.Arguments;
 
-            (_, ImmutableArray<VisitResult> argumentResults, _, ArgumentsCompletionDelegate? argumentsCompletion) =
+            (_, ImmutableArray<VisitResult> argumentResults, _, ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion) =
                 VisitArguments(
                            node, arguments, node.ArgumentRefKindsOpt, constructor?.Parameters ?? default,
                            node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, invokedAsExtensionMethod: false,
@@ -4041,7 +4041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundObjectCreationExpressionBase node,
                 TypeSymbol? type,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate? argumentsCompletion,
+                ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion,
                 Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion,
                 Action<int, TypeSymbol>? initializerCompletion,
                 NullableFlowState resultState,
@@ -4070,7 +4070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void setAnalyzedNullabilityAsContinuation(
                 BoundObjectCreationExpressionBase node,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate argumentsCompletion,
+                ArgumentsCompletionDelegate<MethodSymbol> argumentsCompletion,
                 Func<TypeSymbol, MethodSymbol?, int> initialStateInferenceCompletion,
                 Action<int, TypeSymbol>? initializerCompletion,
                 NullableFlowState resultState)
@@ -4273,7 +4273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol? symbol = getTargetMember(containingType, objectInitializer);
 
                 ImmutableArray<VisitResult> argumentResults = default;
-                ArgumentsCompletionDelegate? argumentsCompletion = null;
+                ArgumentsCompletionDelegate<Symbol>? argumentsCompletion = null;
                 if (!objectInitializer.Arguments.IsDefaultOrEmpty)
                 {
                     // It is an error for an interpolated string to use the receiver of an object initializer indexer here, so we just use
@@ -4283,7 +4283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             objectInitializer, objectInitializer.Arguments, objectInitializer.ArgumentRefKindsOpt,
                             ((PropertySymbol?)symbol)?.Parameters ?? default, objectInitializer.ArgsToParamsOpt,
                             objectInitializer.DefaultArguments, objectInitializer.Expanded,
-                            invokedAsExtensionMethod: false, method: null, delayCompletionForTargetMember: delayCompletionForType);
+                            invokedAsExtensionMethod: false, member: (Symbol?)null, delayCompletionForTargetMember: delayCompletionForType);
                 }
 
                 Action<int, Symbol>? initializationCompletion = null;
@@ -4309,7 +4309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<int, TypeSymbol>? setAnalyzedNullability(
                 BoundAssignmentOperator node,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate? argumentsCompletion,
+                ArgumentsCompletionDelegate<Symbol>? argumentsCompletion,
                 Action<int, Symbol>? initializationCompletion,
                 bool delayCompletionForType)
             {
@@ -4331,7 +4331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<int, TypeSymbol>? setAnalyzedNullabilityAsContinuation(
                 BoundAssignmentOperator node,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate? argumentsCompletion,
+                ArgumentsCompletionDelegate<Symbol>? argumentsCompletion,
                 Action<int, Symbol>? initializationCompletion)
             {
                 return (int containingSlot, TypeSymbol containingType) =>
@@ -4468,7 +4468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (MethodSymbol? reinferredMethod,
              argumentResults,
              _,
-             ArgumentsCompletionDelegate? visitArgumentsCompletion) =
+             ArgumentsCompletionDelegate<MethodSymbol>? visitArgumentsCompletion) =
                 VisitArguments(
                     node,
                     node.Arguments,
@@ -4497,7 +4497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol containingType,
                 MethodSymbol? reinferredMethod,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate? visitArgumentsCompletion,
+                ArgumentsCompletionDelegate<MethodSymbol>? visitArgumentsCompletion,
                 bool delayCompletionForType)
             {
                 if (delayCompletionForType)
@@ -4522,14 +4522,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Action<int, TypeSymbol>? setUpdatedSymbolAsContinuation(
                 BoundCollectionElementInitializer node,
                 ImmutableArray<VisitResult> argumentResults,
-                ArgumentsCompletionDelegate visitArgumentsCompletion)
+                ArgumentsCompletionDelegate<MethodSymbol> visitArgumentsCompletion)
             {
                 return (int containingSlot, TypeSymbol containingType) =>
                 {
                     MethodSymbol addMethod = addMethodAsMemberOfContainingType(node, containingType, ref argumentResults);
 
                     setUpdatedSymbol(
-                        node, containingType, visitArgumentsCompletion.Invoke(argumentResults, addMethod.Parameters, addMethod).method,
+                        node, containingType, visitArgumentsCompletion.Invoke(argumentResults, addMethod.Parameters, addMethod).member,
                         argumentResults, visitArgumentsCompletion: null, delayCompletionForType: false);
                 };
             }
@@ -7004,13 +7004,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             bool expanded)
         {
-            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod: false).results;
+            return VisitArguments<PropertySymbol>(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod: false).results;
         }
 
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private (MethodSymbol? method, ImmutableArray<VisitResult> results, bool returnNotNull) VisitArguments(
+        private (TMember? member, ImmutableArray<VisitResult> results, bool returnNotNull) VisitArguments<TMember>(
             BoundNode node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -7019,19 +7019,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             bool expanded,
             bool invokedAsExtensionMethod,
-            MethodSymbol? method = null,
+            TMember? member = null,
             VisitResult? firstArgumentResult = null)
+            where TMember : Symbol
         {
-            var result = VisitArguments(node, arguments, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false, firstArgumentResult: firstArgumentResult);
+            var result = VisitArguments(node, arguments, refKindsOpt, parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, member, delayCompletionForTargetMember: false, firstArgumentResult: firstArgumentResult);
             Debug.Assert(result.completion is null);
 
-            return (result.method, result.results, result.returnNotNull);
+            return (result.member, result.results, result.returnNotNull);
         }
 
-        private delegate (MethodSymbol? method, bool returnNotNull) ArgumentsCompletionDelegate(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, MethodSymbol? method);
+        private delegate (TMember? member, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
 
-        private (MethodSymbol? method, ImmutableArray<VisitResult> results, bool returnNotNull, ArgumentsCompletionDelegate? completion)
-        VisitArguments(
+        private (TMember? member, ImmutableArray<VisitResult> results, bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
+        VisitArguments<TMember>(
             BoundNode node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -7040,9 +7041,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             bool expanded,
             bool invokedAsExtensionMethod,
-            MethodSymbol? method,
+            TMember? member,
             bool delayCompletionForTargetMember,
             VisitResult? firstArgumentResult = null)
+            where TMember : Symbol
         {
             Debug.Assert(!arguments.IsDefault);
             Debug.Assert(!expanded || !parametersOpt.IsDefault);
@@ -7066,9 +7068,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitArguments(
                 node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                 parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod,
-                method, delayCompletionForTargetMember);
+                member, delayCompletionForTargetMember);
 
-            (MethodSymbol? method, ImmutableArray<VisitResult> results, bool returnNotNull, ArgumentsCompletionDelegate? completion)
+            (TMember? member, ImmutableArray<VisitResult> results, bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
             visitArguments(
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
@@ -7081,28 +7083,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BitVector defaultArguments,
                 bool expanded,
                 bool invokedAsExtensionMethod,
-                MethodSymbol? method,
+                TMember? member,
                 bool delayCompletionForTargetMember)
             {
                 bool shouldReturnNotNull = false;
 
                 if (delayCompletionForTargetMember)
                 {
-                    return (method, results, shouldReturnNotNull, visitArgumentsAsContinuation(
+                    return (member, results, shouldReturnNotNull, visitArgumentsAsContinuation(
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
                                                                       argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod));
                 }
 
+                MethodSymbol? method = member as MethodSymbol;
+
                 // Re-infer method type parameters
-                if (method?.GetMemberArityIncludingExtension() > 0)
+                if (member?.GetMemberArityIncludingExtension() > 0)
                 {
                     if (HasImplicitTypeArguments(node))
                     {
-                        method = InferMethodTypeArguments(method, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
-                        parametersOpt = method.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
+                        member = InferMemberTypeArguments(member, GetArgumentsForMethodTypeInference(results, argumentsNoConversions), refKindsOpt, argsToParamsOpt, expanded);
+                        parametersOpt = member.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: false);
                     }
 
-                    if (ConstraintsHelper.RequiresChecking(method))
+                    if (method is not null && ConstraintsHelper.RequiresChecking(method)) // TODO2 handle other types of members
                     {
                         var syntax = node.Syntax;
                         CheckMethodConstraints(
@@ -7123,7 +7127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Visit conversions, inbound assignments including pre-conditions
                     TypeWithAnnotations paramsIterationType = default;
-                    ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull;
+                    ImmutableHashSet<string>? returnNotNullIfParameterNotNull = IsAnalyzingAttribute ? null : method?.ReturnNotNullIfParameterNotNull; // TODO2 handle other types of members?
                     for (int i = 0; i < results.Length; i++)
                     {
                         var argumentNoConversion = argumentsNoConversions[i];
@@ -7139,7 +7143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
                             {
-                                Debug.Assert(method is ErrorMethodSymbol);
+                                Debug.Assert(member is ErrorMethodSymbol);
                             }
                             continue;
                         }
@@ -7172,7 +7176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         _disableDiagnostics = previousDisableDiagnostics;
 
-                        bool isStaticExtensionReceiver = method?.GetIsNewExtensionMember() == true && method.IsStatic && i == 0;
+                        bool isStaticExtensionReceiver = member?.GetIsNewExtensionMember() == true && member.IsStatic && i == 0;
                         if (!isStaticExtensionReceiver)
                         {
                             if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
@@ -7236,16 +7240,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!IsAnalyzingAttribute && method is object && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn)
+                if (!IsAnalyzingAttribute && method is not null && (method.FlowAnalysisAnnotations & FlowAnalysisAnnotations.DoesNotReturn) == FlowAnalysisAnnotations.DoesNotReturn) // TODO2 handle other kinds of members?
                 {
                     SetUnreachable();
                 }
 
                 notNullParametersBuilder?.Free();
-                return (method, results, shouldReturnNotNull, null);
+                return (member, results, shouldReturnNotNull, null);
             }
 
-            ArgumentsCompletionDelegate visitArgumentsAsContinuation(
+            ArgumentsCompletionDelegate<TMember> visitArgumentsAsContinuation(
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<BoundExpression> argumentsNoConversions,
@@ -7256,15 +7260,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool expanded,
                 bool invokedAsExtensionMethod)
             {
-                return (ImmutableArray<VisitResult> results, ImmutableArray<ParameterSymbol> parametersOpt, MethodSymbol? method) =>
+                return (ImmutableArray<VisitResult> results, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) =>
                        {
                            var result = visitArguments(
                                            node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                                            parametersOpt, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod,
-                                           method, delayCompletionForTargetMember: false);
+                                           member, delayCompletionForTargetMember: false);
                            Debug.Assert(result.completion is null);
 
-                           return (result.method, result.returnNotNull);
+                           return (result.member, result.returnNotNull);
                        };
             }
 
@@ -8100,18 +8104,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (parameter, type, GetParameterAnnotations(parameter), isExpandedParamsArgument: false);
         }
 
-        private MethodSymbol InferMethodTypeArguments(
-            MethodSymbol method,
+        private TMember InferMemberTypeArguments<TMember>(
+            TMember member,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
+            where TMember : Symbol
         {
-            Debug.Assert(method.GetMemberArityIncludingExtension() != 0);
+            Debug.Assert(member.GetMemberArityIncludingExtension() != 0);
 
             // https://github.com/dotnet/roslyn/issues/27961 OverloadResolution.IsMemberApplicableInNormalForm and
             // IsMemberApplicableInExpandedForm use the least overridden method. We need to do the same here.
-            var definition = method.GetIsNewExtensionMember() ? method.OriginalDefinition : method.ConstructedFrom;
+            var definition = member.GetIsNewExtensionMember() ? member.OriginalDefinition : member.ConstructedFrom();
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (argumentRefKindsOpt != null)
             {
@@ -8154,10 +8159,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.Success)
             {
-                return method;
+                return member;
             }
 
-            return definition.ConstructIncludingExtension(result.InferredTypeArguments);
+            return (TMember)(object)definition.ConstructIncludingExtension(result.InferredTypeArguments);
         }
 
         private sealed class MethodInferenceExtensions : MethodTypeInferrer.Extensions
@@ -10128,7 +10133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(_binder is object);
-                    method = InferMethodTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
+                    method = InferMemberTypeArguments(method, arguments.ToImmutableAndFree(), argumentRefKindsOpt: default, argsToParamsOpt: default, expanded: false);
                 }
 
                 if (!isNewExtensionMethod || !method.IsStatic)
@@ -10507,7 +10512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argumentRefKinds = GetArgumentRefKinds(invocation.ArgumentRefKindsOpt, isNewExtension, deconstructMethod, argumentCount: n);
                     var argsToParams = GetArgsToParamsOpt(invocation.ArgsToParamsOpt, isNewExtension);
-                    deconstructMethod = InferMethodTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), argumentRefKinds, argsToParams, invocation.Expanded);
+                    deconstructMethod = InferMemberTypeArguments(deconstructMethod, placeholderArgs.ToImmutableAndFree(), argumentRefKinds, argsToParams, invocation.Expanded);
 
                     // check the constraints remain valid with the re-inferred parameter types
                     if (ConstraintsHelper.RequiresChecking(deconstructMethod))
