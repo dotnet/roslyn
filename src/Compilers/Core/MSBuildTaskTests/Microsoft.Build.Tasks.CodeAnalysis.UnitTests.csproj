@@ -15,7 +15,7 @@
     <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
-    <ProjectReference Include="..\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
@@ -23,6 +23,12 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+
+<!--
+    <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj">
+      <Aliases>SdkTask</Aliases>
+    </ProjectReference>
+    -->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />

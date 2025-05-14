@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+
+    <!--
+      Prevent the generation of binding redirects as they are not respected by 
+      MSBuild. At the moment it's on by default due to arcade settings that we
+      need to override here
+
+      https://github.com/dotnet/arcade/issues/9305
+     -->
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <AssemblyVersion />
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
+
+    <PackageDescription>
+      The build task and targets used by MSBuild to run the C# and VB compilers.
+      Supports using VBCSCompiler on Windows.
+    </PackageDescription>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" ExcludeAssets="Runtime" />
+    <PackageReference Include="System.Memory" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
+  </ItemGroup>
+
+  <Import Project="..\..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
+  <Import Project="..\BuildTask.projitems" Label="Shared" />
+</Project>

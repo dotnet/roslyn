@@ -28,3 +28,16 @@ The target project itself needs to be modified so that it will load the freshly 
 Replace `e:\dd\roslyn` with the path to your Roslyn enlistment.
 
 Once that is all done you should be able to F5 the Toolset project and debug the MSBuild task directly.
+
+## Two Build Tasks
+
+The compiler produces two MSBuild tasks target .NET Framework:
+
+| Task Assembly | Installation | Compiler Launched |
+| --- | --- | --- |
+| Microsoft.Build.Tasks.CodeAnalysis.dll | .NET Framework MSBuild | .NET Framework csc.exe |
+| Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll | .NET SDK | .NET SDK csc.dll |
+
+There are case where both of these tasks could be loaded into a single MSBuild node. Consider that when a solution that contains both .NET SDK and non-SDK projects is built, both of these tasks will be loaded. It is possible for these to be loaded into the same MSBuild node. This means the tasks need different assembly identities to ensure the correct task is executed in each scenario.
+
+The easiest way to achieve this is to simply produce the same logical task with two different assembly names.
