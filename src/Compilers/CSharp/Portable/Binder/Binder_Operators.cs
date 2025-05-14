@@ -1558,20 +1558,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         private UnaryOperatorAnalysisResult UnaryOperatorOverloadResolution(
             UnaryOperatorKind kind,
             BoundExpression operand,
+            bool allowExtensions,
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             out LookupResultKind resultKind,
             out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
-            var result = UnaryOperatorOverloadResolutionResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.OverloadResolution.UnaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, operand, result, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
+            var best = unaryOperatorNonExtensionOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
-            UnaryOperatorAnalysisResult possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            if (!best.HasValue && allowExtensions && resultKind != LookupResultKind.Ambiguous)
+            {
+                LookupResultKind extensionResultKind;
+                ImmutableArray<MethodSymbol> extensionOriginalUserDefinedOperators;
+                UnaryOperatorAnalysisResult? extensionBest = this.UnaryOperatorExtensionOverloadResolution(kind, operand, node, diagnostics, out extensionResultKind, out extensionOriginalUserDefinedOperators);
 
-            result.Free();
-            return possiblyBest;
+                if (extensionBest.HasValue && (extensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !extensionOriginalUserDefinedOperators.IsEmpty)))
+                {
+                    best = extensionBest.GetValueOrDefault();
+                    resultKind = extensionResultKind;
+                    originalUserDefinedOperators = extensionOriginalUserDefinedOperators;
+                }
+            }
+
+            return best;
+
+            UnaryOperatorAnalysisResult unaryOperatorNonExtensionOverloadResolution(UnaryOperatorKind kind, BoundExpression operand, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+            {
+                var result = UnaryOperatorOverloadResolutionResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.OverloadResolution.UnaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, operand, result, ref useSiteInfo);
+                diagnostics.Add(node, useSiteInfo);
+
+                UnaryOperatorAnalysisResult possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+
+                result.Free();
+                return possiblyBest;
+            }
         }
 
         UnaryOperatorAnalysisResult AnalyzeUnaryOperatorOverloadResolutionResult(
@@ -2537,7 +2559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.UnaryOperatorOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            var best = this.UnaryOperatorOverloadResolution(kind, operand, allowExtensions: false, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 ReportUnaryOperatorError(node, diagnostics, operatorToken.Text, operand, resultKind);
@@ -3232,38 +3254,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.UnaryOperatorOverloadResolution(kind, operand, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            var best = this.UnaryOperatorOverloadResolution(kind, operand, allowExtensions: true, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
-                if (resultKind != LookupResultKind.Ambiguous)
-                {
-                    LookupResultKind extensionResultKind;
-                    ImmutableArray<MethodSymbol> extensionOriginalUserDefinedOperators;
-                    UnaryOperatorAnalysisResult? extensionBest = this.UnaryOperatorExtensionOverloadResolution(kind, operand, node, diagnostics, out extensionResultKind, out extensionOriginalUserDefinedOperators);
-
-                    if (extensionBest.HasValue && (extensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !extensionOriginalUserDefinedOperators.IsEmpty)))
-                    {
-                        best = extensionBest.GetValueOrDefault();
-                        resultKind = extensionResultKind;
-                        originalUserDefinedOperators = extensionOriginalUserDefinedOperators;
-                    }
-                }
-
-                if (!best.HasValue)
-                {
-                    ReportUnaryOperatorError(node, diagnostics, operatorText, operand, resultKind);
-                    return new BoundUnaryOperator(
-                        node,
-                        kind,
-                        operand,
-                        ConstantValue.NotAvailable,
-                        methodOpt: null,
-                        constrainedToTypeOpt: null,
-                        resultKind,
-                        originalUserDefinedOperators,
-                        CreateErrorType(),
-                        hasErrors: true);
-                }
+                ReportUnaryOperatorError(node, diagnostics, operatorText, operand, resultKind);
+                return new BoundUnaryOperator(
+                    node,
+                    kind,
+                    operand,
+                    ConstantValue.NotAvailable,
+                    methodOpt: null,
+                    constrainedToTypeOpt: null,
+                    resultKind,
+                    originalUserDefinedOperators,
+                    CreateErrorType(),
+                    hasErrors: true);
             }
 
             var signature = best.Signature;

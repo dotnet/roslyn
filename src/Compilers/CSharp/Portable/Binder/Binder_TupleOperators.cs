@@ -155,12 +155,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(binaryOperator);
             }
 
-            // PROTOTYPE: handle extensions
-
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
-            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, allowExtensions: true, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();

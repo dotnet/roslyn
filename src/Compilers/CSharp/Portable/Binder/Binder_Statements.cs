@@ -2717,16 +2717,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics);
             }
 
-            // PROTOTYPE: handle extensions
-
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, allowExtensions: true, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
-                Debug.Assert(resultKind == LookupResultKind.Empty, "How could overload resolution fail if a user-defined true operator was found?");
-                Debug.Assert(originalUserDefinedOperators.IsEmpty, "How could overload resolution fail if a user-defined true operator was found?");
                 GenerateImplicitConversionError(diagnostics, node, conversion, expr, boolean);
                 return BoundConversion.Synthesized(node, expr, Conversion.NoConversion, false, explicitCastInCode: false, conversionGroupOpt: null, ConstantValue.NotAvailable, boolean, hasErrors: true);
             }
