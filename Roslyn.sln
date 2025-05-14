@@ -727,7 +727,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Extensions", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.shproj", "{02BCC112-0A29-43AA-84FA-C71C18A9486C}"
 EndProject
-Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.Extensions.Package", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.Package.csproj", "{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Extensions.Package", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.Package.csproj", "{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -2144,6 +2144,7 @@ Global
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
 		src\Workspaces\SharedUtilitiesAndExtensions\Workspace\VisualBasic\VisualBasicWorkspaceExtensions.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
 		src\Compilers\CSharp\csc\CscCommandLine.projitems*{0161e25c-918a-4dc8-9648-30fdcc8e31e9}*SharedItemsImports = 5
+		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.projitems*{02bcc112-0a29-43aa-84fa-c71c18a9486c}*SharedItemsImports = 13
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{08735294-3e6b-4420-9916-e7b8c4eb874d}*SharedItemsImports = 13
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{0a1267e9-52ff-b8de-8522-802be55f41da}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\FlowAnalysis\FlowAnalysis.Utilities.projitems*{0a1267e9-52ff-b8de-8522-802be55f41da}*SharedItemsImports = 5
