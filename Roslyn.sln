@@ -1,4 +1,5 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31319.15
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -730,6 +731,10 @@ EndProject
 Project("{9a19103f-16f7-4668-be54-9a1e7a4f7556}") = "Microsoft.CodeAnalysis.Extensions.Package", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.Package.csproj", "{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk", "src\Compilers\Core\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj", "{94273041-4871-4CBA-AAEC-ECCA933DDB9E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "BuildTask", "src\Compilers\Core\MSBuildTask\BuildTask.shproj", "{D4E6F5A1-5C3B-4E6A-8F3A-5B6C5D4E6F5A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests", "src\Compilers\Core\SdkTaskTests\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj", "{088A48EF-054D-4158-B6F0-7D149494B617}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1801,6 +1806,10 @@ Global
 		{94273041-4871-4CBA-AAEC-ECCA933DDB9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94273041-4871-4CBA-AAEC-ECCA933DDB9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94273041-4871-4CBA-AAEC-ECCA933DDB9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{088A48EF-054D-4158-B6F0-7D149494B617}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{088A48EF-054D-4158-B6F0-7D149494B617}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{088A48EF-054D-4158-B6F0-7D149494B617}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{088A48EF-054D-4158-B6F0-7D149494B617}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2146,6 +2155,9 @@ Global
 		{11E331FB-4025-4A0A-97DD-9074D5693804} = {6AA311C9-5021-49D8-B616-297168BD4BA7}
 		{AEB06729-10BE-4D6E-848F-64321F7F4994} = {11E331FB-4025-4A0A-97DD-9074D5693804}
 		{94273041-4871-4CBA-AAEC-ECCA933DDB9E} = {AEB06729-10BE-4D6E-848F-64321F7F4994}
+		{94273041-4871-4CBA-AAEC-ECCA933DDB9E} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{D4E6F5A1-5C3B-4E6A-8F3A-5B6C5D4E6F5A} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{088A48EF-054D-4158-B6F0-7D149494B617} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
@@ -2221,6 +2233,7 @@ Global
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{7005dd7b-d3b6-1360-313b-975974aa6254}*SharedItemsImports = 5
 		src\ExpressionEvaluator\VisualBasic\Source\ResultProvider\BasicResultProvider.projitems*{76242a2d-2600-49dd-8c15-fea07ecb1843}*SharedItemsImports = 5
 		src\Analyzers\Core\Analyzers\Analyzers.projitems*{76e96966-4780-4040-8197-bde2879516f4}*SharedItemsImports = 13
+		src\Compilers\Core\MSBuildTask\BuildTask.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 5
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 5
 		src\Analyzers\VisualBasic\Tests\VisualBasicAnalyzers.UnitTests.projitems*{7b7f4153-ae93-4908-b8f0-430871589f83}*SharedItemsImports = 13
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{8087bde4-6707-05a5-5f84-dfe6628e8ec8}*SharedItemsImports = 5
@@ -2235,6 +2248,8 @@ Global
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{8e2a252e-a140-45a6-a81a-2652996ea589}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Compiler\Analyzer.Utilities.projitems*{923e34ba-ca8a-971e-7ff7-51dd346394a1}*SharedItemsImports = 5
 		src\RoslynAnalyzers\Utilities\Workspaces\Workspaces.Utilities.projitems*{923e34ba-ca8a-971e-7ff7-51dd346394a1}*SharedItemsImports = 5
+		src\Compilers\Core\MSBuildTask\BuildTask.projitems*{94273041-4871-4cba-aaec-ecca933ddb9e}*SharedItemsImports = 5
+		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{94273041-4871-4cba-aaec-ecca933ddb9e}*SharedItemsImports = 5
 		src\Analyzers\VisualBasic\Analyzers\VisualBasicAnalyzers.projitems*{94faf461-2e74-4dbb-9813-6b2cde6f1880}*SharedItemsImports = 13
 		src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 5
 		src\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems*{967723e8-4fdd-447b-99f6-4f8c47cb5433}*SharedItemsImports = 13
@@ -2272,6 +2287,7 @@ Global
 		src\Workspaces\SharedUtilitiesAndExtensions\Compiler\VisualBasic\VisualBasicCompilerExtensions.projitems*{cec0dce7-8d52-45c3-9295-fc7b16bd2451}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems*{d2589bce-4f2e-4113-b7e7-37392c0c5492}*SharedItemsImports = 5
+		src\Compilers\Core\MSBuildTask\BuildTask.projitems*{d4e6f5a1-5c3b-4e6a-8f3a-5b6c5d4e6f5a}*SharedItemsImports = 13
 		src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems*{d73adf7d-2c1c-42ae-b2ab-edc9497e4b71}*SharedItemsImports = 13
 		src\Compilers\Server\VBCSCompiler\VBCSCompilerCommandLine.projitems*{d8ef0777-9d65-4849-a7d6-ac81e58e2317}*SharedItemsImports = 13
 		src\Analyzers\CSharp\CodeFixes\CSharpCodeFixes.projitems*{da973826-c985-4128-9948-0b445e638bdb}*SharedItemsImports = 13

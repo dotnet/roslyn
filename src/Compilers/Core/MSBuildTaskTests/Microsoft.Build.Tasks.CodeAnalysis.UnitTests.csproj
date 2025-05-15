@@ -23,12 +23,6 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-
-<!--
-    <ProjectReference Include="..\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj">
-      <Aliases>SdkTask</Aliases>
-    </ProjectReference>
-    -->
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />

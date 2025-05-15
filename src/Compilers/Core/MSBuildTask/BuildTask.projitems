@@ -35,50 +35,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TaskTestHost.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
-
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)ErrorString.resx" GenerateSource="true" />
-
-    <Content Include="*.targets">
+    <Content Include="$(MSBuildThisFileDirectory)*.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
       <BuildAction>None</BuildAction>
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>contentFiles\any\any</PackagePath>
     </Content>
-
-    <CompilerVersionTargetsFile Include="$(IntermediateOutputPath)Microsoft.Managed.Core.CurrentVersions.targets" />
   </ItemGroup>
-
-  <Target Name="GenerateCompilerVersionTargets" BeforeTargets="AssignTargetPaths" DependsOnTargets="GenerateCompilerVersionTargetsFile">
-    <ItemGroup>
-      <Content Include="@(CompilerVersionTargetsFile)">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <Pack>true</Pack>
-        <BuildAction>None</BuildAction>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-        <PackagePath>contentFiles\any\any</PackagePath>
-      </Content>
-    </ItemGroup>
-  </Target>
-
-  <Target Name="GenerateCompilerVersionTargetsFile" Outputs="@(CompilerVersionTargetsFile)">
-
-    <PropertyGroup>
-      <_CompilerApiVersion>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_CompilerApiVersion>
-      <_CompilerVersionTargetsFileContent>
-<![CDATA[<Project>
-  <PropertyGroup>
-    <CompilerApiVersion>roslyn$(_CompilerApiVersion)</CompilerApiVersion>
-  </PropertyGroup>
-</Project>]]>
-      </_CompilerVersionTargetsFileContent>
-    </PropertyGroup>
-
-    <WriteLinesToFile File="@(CompilerVersionTargetsFile)" Lines="$(_CompilerVersionTargetsFileContent)" Overwrite="true" WriteOnlyWhenDifferent="true" />
-  </Target>
-
 </Project>
