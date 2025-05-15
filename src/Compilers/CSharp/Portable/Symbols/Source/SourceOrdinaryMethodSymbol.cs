@@ -632,7 +632,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal sealed override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+        internal sealed override bool GenerateDebugInfo
+        {
+            get
+            {
+                if (IsIterator)
+                {
+                    return false;
+                }
+
+                if (IsAsync)
+                {
+                    // PROTOTYPE: Need more dedicated debug information testing when runtime async is enabled.
+                    return DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
+                }
+
+                return true;
+            }
+        }
 
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)
