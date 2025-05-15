@@ -8958,5 +8958,107 @@ class Test1
                 }
                 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78529")]
+        public void ExceptionHandlerReturn_NonAsyncMethod()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                System.Console.WriteLine(await C.Handler());
+
+                class C
+                {
+                    public static Task<int> Handler()
+                    {
+                        try
+                        {
+                            return Throw(42);
+                        }
+                        catch (IntegerException ex)
+                        {
+                            return Task.FromResult(ex.Value);
+                        }
+                    }
+
+                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    public static async Task<int> Throw(int value) => throw new IntegerException(value);
+                }
+
+                public class IntegerException(int value) : Exception(value.ToString())
+                {
+                    public int Value => value;
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    {{ReturnValueMissing("<Main>$", "0xf")}}
+                    """
+            });
+            verifier.VerifyIL("C.Handler()", """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  1
+                  .locals init (System.Threading.Tasks.Task<int> V_0)
+                  .try
+                  {
+                    IL_0000:  ldc.i4.s   42
+                    IL_0002:  call       "System.Threading.Tasks.Task<int> C.Throw(int)"
+                    IL_0007:  stloc.0
+                    IL_0008:  leave.s    IL_0017
+                  }
+                  catch IntegerException
+                  {
+                    IL_000a:  callvirt   "int IntegerException.Value.get"
+                    IL_000f:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+                    IL_0014:  stloc.0
+                    IL_0015:  leave.s    IL_0017
+                  }
+                  IL_0017:  ldloc.0
+                  IL_0018:  ret
+                }
+                """);
+
+            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true));
+            verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    {{ReturnValueMissing("<Main>$", "0x12")}}
+                    """
+            });
+            verifier.VerifyIL("C.Handler()", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  1
+                  .locals init (System.Threading.Tasks.Task<int> V_0,
+                                IntegerException V_1) //ex
+                  IL_0000:  nop
+                  .try
+                  {
+                    IL_0001:  nop
+                    IL_0002:  ldc.i4.s   42
+                    IL_0004:  call       "System.Threading.Tasks.Task<int> C.Throw(int)"
+                    IL_0009:  stloc.0
+                    IL_000a:  leave.s    IL_001c
+                  }
+                  catch IntegerException
+                  {
+                    IL_000c:  stloc.1
+                    IL_000d:  nop
+                    IL_000e:  ldloc.1
+                    IL_000f:  callvirt   "int IntegerException.Value.get"
+                    IL_0014:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+                    IL_0019:  stloc.0
+                    IL_001a:  leave.s    IL_001c
+                  }
+                  IL_001c:  ldloc.0
+                  IL_001d:  ret
+                }
+                """);
+        }
     }
 }
