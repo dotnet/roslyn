@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionRegisterHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ActivateExtensionHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionRegisterHandler()
-    : AbstractExtensionHandler, ILspServiceRequestHandler<ExtensionRegisterParams, ExtensionRegisterResponse>
+internal sealed class ActivateExtensionHandler()
+    : AbstractExtensionHandler, ILspServiceRequestHandler<ActivateExtensionParams, ActivateExtensionResponse>
 {
-    private const string MethodName = "roslyn/extensionRegister";
+    private const string MethodName = "server/_vs_activateExtension";
 
-    public async Task<ExtensionRegisterResponse> HandleRequestAsync(ExtensionRegisterParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<ActivateExtensionResponse> HandleRequestAsync(ActivateExtensionParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 

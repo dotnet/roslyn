@@ -7,8 +7,8 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
 /// <summary>
-/// Parameters for the roslyn/extensionUnregister request.
+/// Parameters for the server/_vs_deactivateExtension request.
 /// </summary>
 /// <param name="AssemblyFilePath">Full path to the assembly that contains the message handlers to unregister.</param>
-internal readonly record struct ExtensionUnregisterParams(
+internal readonly record struct DeactivateExtensionParams(
     [property: JsonPropertyName("assemblyFilePath")] string AssemblyFilePath);

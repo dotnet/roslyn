@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionUnregisterHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(DeactivateExtensionHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionUnregisterHandler()
-    : AbstractExtensionHandler, ILspServiceNotificationHandler<ExtensionUnregisterParams>
+internal sealed class DeactivateExtensionHandler()
+    : AbstractExtensionHandler, ILspServiceNotificationHandler<DeactivateExtensionParams>
 {
-    private const string MethodName = "roslyn/extensionUnregister";
+    private const string MethodName = "server/_vs_deactivateExtension";
 
-    public async Task HandleNotificationAsync(ExtensionUnregisterParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task HandleNotificationAsync(DeactivateExtensionParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
