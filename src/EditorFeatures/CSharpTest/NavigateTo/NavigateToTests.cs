@@ -1029,13 +1029,13 @@ public sealed class NavigateToTests : AbstractNavigateToTests
 
             var descriptionItems = itemDisplay.DescriptionItems;
 
-            void assertDescription(string label, string value)
+            void assertDescription(string label, string? value)
             {
                 var descriptionItem = descriptionItems.Single(i => i.Category.Single().Text == label);
                 Assert.Equal(value, descriptionItem.Details.Single().Text);
             }
 
-            assertDescription("File:", w.Documents.Single().Name);
+            assertDescription("File:", w.Documents.Single().FilePath);
             assertDescription("Line:", "3"); // one based line number
             assertDescription("Project:", "Test");
         });

@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -156,7 +155,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     {
         var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
         {
-            Uri = r.identifier.Uri,
+            Uri = r.identifier.DocumentUri,
             Value = r.resultId
         }).ToArray() ?? [];
         return new WorkspaceDiagnosticParams
@@ -171,12 +170,12 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     {
         if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
         {
-            return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = fullReport.Uri }, fullReport.ResultId, fullReport.Items);
+            return new TestDiagnosticResult(new TextDocumentIdentifier { DocumentUri = fullReport.Uri }, fullReport.ResultId, fullReport.Items);
         }
         else
         {
             var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
-            return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = unchangedReport.Uri }, unchangedReport.ResultId, null);
+            return new TestDiagnosticResult(new TextDocumentIdentifier { DocumentUri = unchangedReport.Uri }, unchangedReport.ResultId, null);
         }
     }
 
@@ -232,13 +231,13 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
     private protected static Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
         TestLspServer testLspServer,
-        Uri uri,
+        DocumentUri uri,
         bool useVSDiagnostics,
         string? previousResultId = null,
         bool useProgress = false,
         string? category = null)
     {
-        return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { Uri = uri }, useVSDiagnostics, previousResultId, useProgress, category);
+        return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { DocumentUri = uri }, useVSDiagnostics, previousResultId, useProgress, category);
     }
 
     private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
@@ -366,7 +365,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     /// </summary>
     private protected sealed record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string? ResultId, LSP.Diagnostic[]? Diagnostics)
     {
-        public Uri Uri { get; } = TextDocument.Uri;
+        public DocumentUri Uri { get; } = TextDocument.DocumentUri;
     }
 
     [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]

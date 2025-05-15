@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;

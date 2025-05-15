@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                            input = _factory.ConvertReceiverForExtensionMemberIfNeeded(property, input);
                             return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             Debug.Assert(method.Name == WellKnownMemberNames.DeconstructMethodName);
                             int extensionExtra;
-                            if (method.IsStatic) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+                            if (method.IsStatic)
                             {
                                 Debug.Assert(method.IsExtensionMethod);
                                 receiver = _factory.Type(method.ContainingType);
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
                             }
 
+                            receiver = _factory.ConvertReceiverForExtensionMemberIfNeeded(method, receiver);
                             return _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
                         }
 

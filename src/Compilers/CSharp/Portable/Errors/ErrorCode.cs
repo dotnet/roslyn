@@ -2408,6 +2408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangInProjectBasedProgram = 9314,
 
+        ERR_TooManyUserStrings_RestartRequired = 9315,
+
         ERR_BadExtensionUnaryOperatorSignature = 9551, // PROTOTYPE: Pack numbers
         ERR_BadExtensionIncDecSignature = 9552,
         ERR_BadExtensionBinaryOperatorSignature = 9553,

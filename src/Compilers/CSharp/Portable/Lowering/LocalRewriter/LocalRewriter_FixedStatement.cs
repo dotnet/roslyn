@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // .GetPinnable()
+            callReceiver = factory.ConvertReceiverForExtensionMemberIfNeeded(getPinnableMethod, callReceiver);
             var getPinnableCall = getPinnableMethod.IsStatic ?
                 factory.Call(null, getPinnableMethod, callReceiver) :
                 factory.Call(callReceiver, getPinnableMethod);

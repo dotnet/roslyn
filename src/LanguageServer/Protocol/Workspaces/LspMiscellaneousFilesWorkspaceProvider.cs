@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -36,12 +37,19 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// <summary>
     /// Takes in a file URI and text and creates a misc project and document for the file.
     /// 
-    /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri, bool)"/> are made
+    /// Calls to this method and <see cref="TryRemoveMiscellaneousDocumentAsync(DocumentUri, bool)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public TextDocument? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
+    public ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
+        => ValueTaskFactory.FromResult(AddMiscellaneousDocument(uri, documentText, languageId, logger));
+
+    private TextDocument? AddMiscellaneousDocument(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+        var documentFilePath = uri.UriString;
+        if (uri.ParsedUri is not null)
+        {
+            documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri);
+        }
 
         var container = new StaticSourceTextContainer(documentText);
         if (metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, container, out var documentId))
@@ -79,15 +87,14 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
     /// <summary>
     /// Removes a document with the matching file path from this workspace.
     /// 
-    /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
+    /// Calls to this method and <see cref="AddMiscellaneousDocument(DocumentUri, SourceText, string, ILspLogger)"/> are made
     /// from LSP text sync request handling which do not run concurrently.
     /// </summary>
-    public void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadataWorkspace)
+    public ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
     {
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-        if (removeFromMetadataWorkspace && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentFilePath))
+        if (removeFromMetadataWorkspace && uri.ParsedUri is not null && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(ProtocolConversions.GetDocumentFilePathFromUri(uri.ParsedUri)))
         {
-            return;
+            return ValueTaskFactory.CompletedTask;
         }
 
         // We'll only ever have a single document matching this URI in the misc solution.
@@ -108,6 +115,8 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
             var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
             OnProjectRemoved(project.Id);
         }
+
+        return ValueTaskFactory.CompletedTask;
     }
 
     public ValueTask UpdateTextIfPresentAsync(DocumentId documentId, SourceText sourceText, CancellationToken cancellationToken)
