@@ -41,7 +41,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        BinlogNamer binlogNamer)
+        IBinLogPathProvider binLogPathProvider)
             : base(
                 workspaceFactory.FileBasedProgramsProjectFactory,
                 workspaceFactory.TargetFrameworkManager,
@@ -52,7 +52,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
                 listenerProvider,
                 projectLoadTelemetry,
                 serverConfigurationFactory,
-                binlogNamer)
+                binLogPathProvider)
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
