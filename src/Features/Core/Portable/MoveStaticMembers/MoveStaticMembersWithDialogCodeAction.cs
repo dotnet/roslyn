@@ -63,7 +63,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
             // we already have our destination type, but we need to find the document it is in
             // When it is an existing type, "FileName" points to a full path rather than just the name
             // There should be no two docs that have the same file path
-            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FileName).Single();
+            var destinationDocId = _document.Project.Solution.GetDocumentIdsWithFilePath(moveOptions.FilePath).Single();
 
             var fixedSolution = await RefactorAndMoveAsync(
                 moveOptions.SelectedMembers,
@@ -102,7 +102,7 @@ internal sealed class MoveStaticMembersWithDialogCodeAction(
         var (newDoc, annotation) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
             sourceDoc.Project.Solution,
             moveOptions.NamespaceDisplay,
-            moveOptions.FileName,
+            moveOptions.FilePath,
             sourceDoc.Project.Id,
             sourceDoc.Folders,
             newType,

@@ -45,8 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     declaration = ((SourceNamespaceSymbol)this.ContainingSymbol).MergedDeclaration;
                 }
 
-                var index = declaration.Children.IndexOf(this.declaration);
-                return GeneratedNames.MakeExtensionName(index);
+                int index = 0;
+                foreach (Declaration child in declaration.Children)
+                {
+                    if (child == this.declaration)
+                    {
+                        return GeneratedNames.MakeExtensionName(index);
+                    }
+
+                    if (child.Kind == DeclarationKind.Extension)
+                    {
+                        index++;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

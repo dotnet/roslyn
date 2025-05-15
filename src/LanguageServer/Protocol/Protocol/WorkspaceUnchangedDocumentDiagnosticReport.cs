@@ -23,7 +23,7 @@ internal sealed class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocu
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri Uri
     {
         get;
         set;

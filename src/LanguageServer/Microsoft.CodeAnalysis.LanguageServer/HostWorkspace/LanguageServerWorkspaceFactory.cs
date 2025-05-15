@@ -45,14 +45,22 @@ internal sealed class LanguageServerWorkspaceFactory
             .ToImmutableArray();
 
         // Create the workspace and set analyzer references for it
-        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
+        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.Host);
         workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(workspace)), WorkspaceChangeKind.SolutionChanged);
-        Workspace = workspace;
 
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
-            Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
+        HostProjectFactory = new ProjectSystemProjectFactory(
+            workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
+        workspace.ProjectSystemProjectFactory = HostProjectFactory;
+
+        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        var fileBasedProgramsWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
+        fileBasedProgramsWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fileBasedProgramsWorkspace)), WorkspaceChangeKind.SolutionChanged);
+
+        FileBasedProgramsProjectFactory = new ProjectSystemProjectFactory(
+            fileBasedProgramsWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+        fileBasedProgramsWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
@@ -63,9 +71,11 @@ internal sealed class LanguageServerWorkspaceFactory
         TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
-    public Workspace Workspace { get; }
+    public Workspace HostWorkspace => HostProjectFactory.Workspace;
 
-    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
+    public ProjectSystemProjectFactory HostProjectFactory { get; }
+    public ProjectSystemProjectFactory FileBasedProgramsProjectFactory { get; }
+
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 

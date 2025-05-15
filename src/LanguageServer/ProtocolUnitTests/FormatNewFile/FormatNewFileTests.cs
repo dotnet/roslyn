@@ -74,11 +74,11 @@ public sealed class FormatNewFileTests(ITestOutputHelper? testOutputHelper) : Ab
         {
             Project = new TextDocumentIdentifier
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(project.FilePath)
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(project.FilePath)
             },
             Document = new TextDocumentIdentifier
             {
-                Uri = ProtocolConversions.CreateAbsoluteUri(newFilePath)
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newFilePath)
             },
             Contents = input
         };

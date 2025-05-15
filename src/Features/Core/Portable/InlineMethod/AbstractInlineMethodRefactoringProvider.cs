@@ -91,8 +91,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var calleeMethodSymbol = semanticModel.GetSymbolInfo(calleeInvocationNode, cancellationToken).GetAnySymbol() as IMethodSymbol;
-        if (calleeMethodSymbol == null)
+        if (semanticModel.GetSymbolInfo(calleeInvocationNode, cancellationToken).GetAnySymbol() is not IMethodSymbol calleeMethodSymbol)
         {
             return;
         }
@@ -125,8 +124,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var calleeMethodDeclarationSyntaxReference = calleeMethodDeclarationSyntaxReferences[0];
-        var calleeMethodNode = await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) as TMethodDeclarationSyntax;
-        if (calleeMethodNode == null)
+        if (await calleeMethodDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TMethodDeclarationSyntax calleeMethodNode)
         {
             return;
         }
@@ -222,8 +220,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
         }
 
         var callerDeclarationNode = await callerReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-        var invocationOperation = semanticModel.GetOperation(calleeInvocationNode, cancellationToken) as IInvocationOperation;
-        if (invocationOperation == null)
+        if (semanticModel.GetOperation(calleeInvocationNode, cancellationToken) is not IInvocationOperation invocationOperation)
         {
             return;
         }

@@ -92,7 +92,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
 
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
-        var documentUri = ranges.Single().Uri;
+        var documentUri = ranges.Single().DocumentUri;
         var mapCodeParams = new LSP.VSInternalMapCodeParams()
         {
             Mappings =
@@ -119,7 +119,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.DocumentChanges);
 
             var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
+            Assert.Equal(textDocumentEdits.TextDocument.DocumentUri, mapCodeParams.Mappings.Single().TextDocument!.DocumentUri);
 
             edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
         }
@@ -128,7 +128,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.NotNull(results.Changes);
             Assert.Null(results.DocumentChanges);
 
-            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri), out edits));
+            Assert.True(results.Changes!.TryGetValue(ProtocolConversions.GetDocumentFilePathFromUri(documentUri.GetRequiredParsedUri()), out edits));
         }
 
         AssertEx.NotNull(edits);

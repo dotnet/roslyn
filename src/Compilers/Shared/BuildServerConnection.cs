@@ -433,11 +433,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
+        internal static (string processFilePath, string commandLineArguments) GetServerProcessInfo(string clientDir, string pipeName)
         {
-            var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
+            var processFilePath = Path.Combine(clientDir, "VBCSCompiler.exe");
             var commandLineArgs = $@"""-pipename:{pipeName}""";
-            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
+            if (!File.Exists(processFilePath))
+            {
+                // This is a .NET Core deployment
+                commandLineArgs = RuntimeHostInfo.GetDotNetExecCommandLine(Path.ChangeExtension(processFilePath, ".dll"), commandLineArgs);
+                processFilePath = RuntimeHostInfo.GetDotNetPathOrDefault();
+            }
+
+            return (processFilePath, commandLineArgs);
         }
 
         /// <summary>
@@ -451,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             processId = 0;
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
-            if (!File.Exists(serverInfo.toolFilePath))
+            if (!File.Exists(serverInfo.processFilePath))
             {
                 return false;
             }

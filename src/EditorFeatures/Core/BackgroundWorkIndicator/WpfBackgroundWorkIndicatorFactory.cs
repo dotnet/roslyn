@@ -15,26 +15,19 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 
 [Export(typeof(WpfBackgroundWorkIndicatorFactory))]
-[ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory), ServiceLayer.Editor), Shared]
-internal sealed partial class WpfBackgroundWorkIndicatorFactory : IBackgroundWorkIndicatorFactory
+[ExportWorkspaceService(typeof(IBackgroundWorkIndicatorFactory)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class WpfBackgroundWorkIndicatorFactory(
+    IThreadingContext threadingContext,
+    IToolTipPresenterFactory toolTipPresenterFactory,
+    IAsynchronousOperationListenerProvider listenerProvider) : IBackgroundWorkIndicatorFactory
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IToolTipPresenterFactory _toolTipPresenterFactory;
-    private readonly IAsynchronousOperationListener _listener;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IToolTipPresenterFactory _toolTipPresenterFactory = toolTipPresenterFactory;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
 
     private BackgroundWorkIndicatorContext? _currentContext;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WpfBackgroundWorkIndicatorFactory(
-        IThreadingContext threadingContext,
-        IToolTipPresenterFactory toolTipPresenterFactory,
-        IAsynchronousOperationListenerProvider listenerProvider)
-    {
-        _threadingContext = threadingContext;
-        _toolTipPresenterFactory = toolTipPresenterFactory;
-        _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-    }
 
     IBackgroundWorkIndicatorContext IBackgroundWorkIndicatorFactory.Create(
         ITextView textView,

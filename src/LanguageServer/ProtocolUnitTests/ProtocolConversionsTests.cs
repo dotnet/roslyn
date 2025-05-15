@@ -44,9 +44,9 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
 
             Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
-            var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
-            Assert.Equal(expectedAbsoluteUri, uri.AbsoluteUri);
-            Assert.Equal(filePath, uri.LocalPath);
+            var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+            Assert.Equal(expectedAbsoluteUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(filePath, uri.GetRequiredParsedUri().LocalPath);
         }
     }
 
@@ -130,7 +130,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void CreateRelativePatternBaseUri_LocalPaths_Windows(string filePath, string expectedUri)
     {
         var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-        Assert.Equal(expectedUri, uri.AbsoluteUri);
+        Assert.Equal(expectedUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
     [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -148,7 +148,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
     {
         var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-        Assert.Equal(expectedRelativeUri, uri.AbsoluteUri);
+        Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
     [ConditionalTheory(typeof(UnixLikeOnly))]
@@ -300,7 +300,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         var caret = testLspServer.GetLocations("caret").Single();
 
-        var document = await GetTextDocumentAsync(testLspServer, caret.Uri);
+        var document = await GetTextDocumentAsync(testLspServer, caret.DocumentUri);
         Assert.NotNull(document);
 
         var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
@@ -324,7 +324,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         // Open an empty loose file.
-        var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.cs");
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
         var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
@@ -335,9 +335,9 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.True(projectContext.IsMiscellaneous);
     }
 
-    internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, Uri uri)
+    internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, DocumentUri uri)
     {
-        var (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None);
+        var (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None);
         return textDocument;
     }
 }

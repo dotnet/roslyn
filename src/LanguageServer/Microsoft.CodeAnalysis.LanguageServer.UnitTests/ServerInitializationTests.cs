@@ -18,12 +18,12 @@ public sealed class ServerInitializationTests : AbstractLanguageServerHostTests
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {
         await using var server = await CreateLanguageServerAsync();
-        var document = new VersionedTextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri("C:\\\ue25b\ud86d\udeac.cs") };
+        var document = new VersionedTextDocumentIdentifier { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\\ue25b\ud86d\udeac.cs") };
         var response = await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
         {
             TextDocument = new TextDocumentItem
             {
-                Uri = document.Uri,
+                DocumentUri = document.DocumentUri,
                 Text = "Write"
             }
         }, CancellationToken.None);

@@ -24,10 +24,9 @@ internal sealed class XamlRequestExecutionQueue : RequestExecutionQueue<RequestC
 
     protected internal override void BeforeRequest<TRequest>(TRequest request)
     {
-        if (request is ITextDocumentParams textDocumentParams &&
-            textDocumentParams.TextDocument is { Uri: { IsAbsoluteUri: true } documentUri })
+        if (request is ITextDocumentParams { TextDocument.DocumentUri: { ParsedUri: not null } documentUri })
         {
-            _projectService.TrackOpenDocument(documentUri.LocalPath);
+            _projectService.TrackOpenDocument(documentUri.ParsedUri.LocalPath);
         }
     }
 }

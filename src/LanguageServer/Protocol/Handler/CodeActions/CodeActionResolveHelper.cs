@@ -30,7 +30,7 @@ internal sealed class CodeActionResolveHelper
             data,
             operations,
             context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
-            context.TraceInformation,
+            context.TraceDebug,
             cancellationToken);
     }
 
@@ -220,7 +220,7 @@ internal sealed class CodeActionResolveHelper
                 var oldTextDoc = getOldDocument(docId);
                 Contract.ThrowIfNull(oldTextDoc);
 
-                textDocumentEdits.Add(new DeleteFile { Uri = oldTextDoc.GetURI() });
+                textDocumentEdits.Add(new DeleteFile { DocumentUri = oldTextDoc.GetURI() });
             }
 
             return Task.CompletedTask;
@@ -236,7 +236,7 @@ internal sealed class CodeActionResolveHelper
                 var newTextDoc = getNewDocument(docId);
                 Contract.ThrowIfNull(newTextDoc);
 
-                Uri? uri = null;
+                DocumentUri? uri = null;
                 if (newTextDoc.FilePath != null)
                 {
                     uri = newTextDoc.GetURI();
@@ -252,13 +252,13 @@ internal sealed class CodeActionResolveHelper
                     Contract.Fail($"Can't find uri for document: {newTextDoc.Name}.");
                 }
 
-                textDocumentEdits.Add(new CreateFile { Uri = uri });
+                textDocumentEdits.Add(new CreateFile { DocumentUri = uri });
 
                 // And then give it content
                 var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                 var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
-                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
+                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = uri };
                 textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = [edit] });
             }
         }
@@ -301,7 +301,7 @@ internal sealed class CodeActionResolveHelper
 
                     if (edits.Length > 0)
                     {
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newTextDoc.GetURI() };
                         textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                     }
 
@@ -312,7 +312,7 @@ internal sealed class CodeActionResolveHelper
                     // So we would like to first edit the old document, then rename it.
                     if (oldTextDoc.Name != newTextDoc.Name)
                     {
-                        textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetURI(), NewUri = newTextDoc.GetUriForRenamedDocument() });
+                        textDocumentEdits.Add(new RenameFile() { OldDocumentUri = oldTextDoc.GetURI(), NewDocumentUri = newTextDoc.GetUriForRenamedDocument() });
                     }
 
                     var linkedDocuments = solution.GetRelatedDocumentIds(docId);

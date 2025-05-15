@@ -516,7 +516,7 @@ class CustomAttribute : System.Attribute
         var markup = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
+        <Document FilePath=""file.cs"">
 public class C
     {
     public void M$$()
@@ -524,7 +524,7 @@ public class C
         }
     }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath="".editorconfig"">[*.cs]
 csharp_indent_braces = true
         </AnalyzerConfigDocument>
     </Project>

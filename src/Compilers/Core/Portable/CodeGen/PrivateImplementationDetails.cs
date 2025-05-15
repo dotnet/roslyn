@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal static Cci.IFieldReference? TryGetOrCreateFieldForStringValue(
             string text,
             CommonPEModuleBuilder moduleBuilder,
-            SyntaxNode syntaxNode,
+            SyntaxNode? syntaxNode,
             DiagnosticBag diagnostics)
         {
             if (!text.TryGetUtf8ByteRepresentation(out byte[]? data, out _))
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
                     diagnostics.Add(messageProvider.CreateDiagnostic(
                         messageProvider.ERR_DataSectionStringLiteralHashCollision,
-                        syntaxNode.GetLocation(),
+                        syntaxNode?.GetLocation() ?? Location.None,
                         previousText[..Math.Min(previousText.Length, 500)]));
                 }
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var encodingGetString = getWellKnownTypeMember(compilation, WellKnownMember.System_Text_Encoding__GetString);
 
                 TryAddSynthesizedMethod(BytesToStringHelper.Create(
-                    moduleBuilder: (ITokenDeferral)ModuleBuilder,
+                    moduleBuilder: ModuleBuilder,
                     containingType: this,
                     encodingUtf8: encodingUtf8,
                     encodingGetString: encodingGetString,
@@ -743,14 +743,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             var stringField = new DataSectionStringField("s", this);
 
-            var staticConstructor = synthesizeStaticConstructor((ITokenDeferral)containingType.ModuleBuilder, containingType, dataField, stringField, bytesToStringHelper, diagnostics);
+            var staticConstructor = synthesizeStaticConstructor(containingType.ModuleBuilder, this, dataField, stringField, bytesToStringHelper, diagnostics);
 
             _fields = [stringField];
             _methods = [staticConstructor];
 
             static Cci.IMethodDefinition synthesizeStaticConstructor(
-                ITokenDeferral module,
-                Cci.INamespaceTypeDefinition containingType,
+                CommonPEModuleBuilder module,
+                Cci.ITypeDefinition containingType,
                 MappedField dataField,
                 DataSectionStringField stringField,
                 Cci.IMethodDefinition bytesToStringHelper,
@@ -759,23 +759,24 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 var ilBuilder = new ILBuilder(
                     module,
                     new LocalSlotManager(slotAllocator: null),
+                    diagnostics,
                     OptimizationLevel.Release,
                     areLocalsZeroed: false);
 
                 // Push the `byte*` field's address.
                 ilBuilder.EmitOpCode(ILOpCode.Ldsflda);
-                ilBuilder.EmitToken(dataField, null, diagnostics);
+                ilBuilder.EmitToken(dataField, null);
 
                 // Push the byte size.
                 ilBuilder.EmitIntConstant(dataField.MappedData.Length);
 
                 // Call `<PrivateImplementationDetails>.BytesToString(byte*, int)`.
                 ilBuilder.EmitOpCode(ILOpCode.Call, -1);
-                ilBuilder.EmitToken(bytesToStringHelper, null, diagnostics);
+                ilBuilder.EmitToken(bytesToStringHelper, null);
 
                 // Store into the corresponding `string` field.
                 ilBuilder.EmitOpCode(ILOpCode.Stsfld);
-                ilBuilder.EmitToken(stringField, null, diagnostics);
+                ilBuilder.EmitToken(stringField, null);
 
                 ilBuilder.EmitRet(isVoid: true);
                 ilBuilder.Realize();
@@ -1173,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         public static BytesToStringHelper Create(
-            ITokenDeferral moduleBuilder,
+            CommonPEModuleBuilder moduleBuilder,
             Cci.INamespaceTypeDefinition containingType,
             Cci.IMethodReference encodingUtf8,
             Cci.IMethodReference encodingGetString,
@@ -1182,12 +1183,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             var ilBuilder = new ILBuilder(
                 moduleBuilder,
                 new LocalSlotManager(slotAllocator: null),
+                diagnostics,
                 OptimizationLevel.Release,
                 areLocalsZeroed: false);
 
             // Call `Encoding.get_UTF8()`.
             ilBuilder.EmitOpCode(ILOpCode.Call, 1);
-            ilBuilder.EmitToken(encodingUtf8, null, diagnostics);
+            ilBuilder.EmitToken(encodingUtf8, null);
 
             // Push the `byte*`.
             ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
@@ -1197,7 +1199,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Call `Encoding.GetString(byte*, int)`.
             ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
-            ilBuilder.EmitToken(encodingGetString, null, diagnostics);
+            ilBuilder.EmitToken(encodingGetString, null);
 
             // Return.
             ilBuilder.EmitRet(isVoid: false);

@@ -122,7 +122,7 @@ internal sealed class SourceGeneratorRefreshQueue :
     private ValueTask RefreshSourceGeneratedDocumentsAsync(
         CancellationToken cancellationToken)
     {
-        var hasOpenSourceGeneratedDocuments = _lspWorkspaceManager.GetTrackedLspText().Keys.Any(uri => uri.Scheme == SourceGeneratedDocumentUri.Scheme);
+        var hasOpenSourceGeneratedDocuments = _lspWorkspaceManager.GetTrackedLspText().Keys.Any(uri => uri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme);
         if (!hasOpenSourceGeneratedDocuments)
         {
             // There are no opened source generated documents - we don't need to bother asking the client to refresh anything.

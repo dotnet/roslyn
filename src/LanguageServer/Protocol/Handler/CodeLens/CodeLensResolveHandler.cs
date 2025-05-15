@@ -45,7 +45,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
             CommandIdentifier = ClientReferencesCommand,
             Arguments =
             [
-                resolveData.TextDocument.Uri,
+                resolveData.TextDocument.DocumentUri,
                 request.Range.Start
             ]
         };
@@ -73,7 +73,7 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
                 CommandIdentifier = ClientReferencesCommand,
                 Arguments =
                 [
-                    resolveData.TextDocument.Uri,
+                    resolveData.TextDocument.DocumentUri,
                     request.Range.Start,
                 ],
             };

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -14,6 +15,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 /// </remarks>
 internal interface IResolveCachedDataService
 {
-    object ToResolveData(object data, Uri uri);
-    (object? data, Uri? uri) FromResolveData(object? resolveData);
+    object ToResolveData(object data, DocumentUri uri);
+    (object? data, DocumentUri? uri) FromResolveData(object? resolveData);
 }

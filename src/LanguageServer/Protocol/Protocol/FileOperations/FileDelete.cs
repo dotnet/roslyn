@@ -22,5 +22,5 @@ internal sealed class FileDelete
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; set; }
+    public DocumentUri Uri { get; set; }
 }

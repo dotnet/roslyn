@@ -22,7 +22,7 @@ internal sealed class FileRename
     [JsonPropertyName("oldUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri OldUri { get; set; }
+    public DocumentUri OldUri { get; set; }
 
     /// <summary>
     /// A <c>file://</c> URI for the new location of the file/folder being renamed.
@@ -30,5 +30,5 @@ internal sealed class FileRename
     [JsonPropertyName("newUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri NewUri { get; set; }
+    public DocumentUri NewUri { get; set; }
 }

@@ -487,25 +487,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportIVTs), false); }
         }
 
+        // Keeping this for a while to avoid failures if someone uses sdk targets that still set this.
         public string? CompilerType
         {
-            set { _store[nameof(CompilerType)] = value; }
-            get { return (string?)_store[nameof(CompilerType)]; }
-        }
-
-        protected override RoslynCompilerType GetCompilerType()
-        {
-            if (string.IsNullOrWhiteSpace(CompilerType))
-            {
-                return DefaultCompilerType;
-            }
-
-            if (Enum.TryParse<RoslynCompilerType>(CompilerType, ignoreCase: true, out var compilerType))
-            {
-                return compilerType;
-            }
-
-            throw new ArgumentException($"Invalid {nameof(CompilerType)} '{CompilerType}' specified. Valid values are {string.Join(", ", Enum.GetNames(typeof(RoslynCompilerType)))}.");
+            set { }
+            get { return null; }
         }
 
         #endregion
@@ -544,7 +530,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 string? tempDirectory = Path.GetTempPath();
 
                 if (!UseSharedCompilation ||
-                    !IsManagedTool ||
+                    !UsingBuiltinTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
                 {
                     LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
@@ -555,10 +541,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 logger.Log($"CommandLine = '{commandLineCommands}'");
                 logger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
                 if (clientDirectory is null || tempDirectory is null)
                 {
-                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToBuiltInTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -1246,12 +1232,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             return win32Manifest;
         }
-    }
-
-    public enum RoslynCompilerType
-    {
-        Core,
-        Framework,
-        FrameworkPackage,
     }
 }

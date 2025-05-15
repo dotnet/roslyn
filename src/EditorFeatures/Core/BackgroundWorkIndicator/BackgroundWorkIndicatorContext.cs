@@ -296,5 +296,25 @@ internal partial class WpfBackgroundWorkIndicatorFactory
         string IUIThreadOperationContext.Description => BuildData().description;
 
         bool IUIThreadOperationContext.AllowCancellation => true;
+
+        public IDisposable SuppressAutoCancel()
+        {
+            var disposer = new SuppressAutoCancelDisposable(this, this.CancelOnEdit, this.CancelOnFocusLost);
+            this.CancelOnEdit = false;
+            this.CancelOnFocusLost = false;
+            return disposer;
+        }
+    }
+
+    private sealed class SuppressAutoCancelDisposable(
+        BackgroundWorkIndicatorContext context,
+        bool originalCancelOnEdit,
+        bool originalCancelOnFocusLost) : IDisposable
+    {
+        public void Dispose()
+        {
+            context.CancelOnEdit = originalCancelOnEdit;
+            context.CancelOnFocusLost = originalCancelOnFocusLost;
+        }
     }
 }

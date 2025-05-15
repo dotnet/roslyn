@@ -547,7 +547,7 @@
     <value>Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'</value>
   </data>
   <data name="ERR_BadVisIndexerParam" xml:space="preserve">
-    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</value>
+    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</value>
   </data>
   <data name="ERR_BadVisOpReturn" xml:space="preserve">
     <value>Inconsistent accessibility: return type '{1}' is less accessible than operator '{0}'</value>
@@ -5313,6 +5313,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</value>
+  </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</value>
   </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>

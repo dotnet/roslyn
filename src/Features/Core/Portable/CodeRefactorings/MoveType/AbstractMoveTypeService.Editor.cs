@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
@@ -50,5 +51,10 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
                 MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, document, typeDeclaration, fileName, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(operationKind),
             };
+
+        protected string? GetTargetDocumentFilePath()
+            => PathUtilities.GetDirectoryName(SemanticDocument.Document.FilePath) is { } dir
+                ? PathUtilities.CombinePaths(dir, FileName)
+                : null;
     }
 }

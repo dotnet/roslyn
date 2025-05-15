@@ -7,6 +7,7 @@ namespace Roslyn.LanguageServer.Protocol;
 using System;
 using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Class which represents the parameter sent with an initialize method request.
@@ -67,10 +68,18 @@ internal sealed class InitializeParams : IWorkDoneProgressParams
     [JsonPropertyName("rootUri")]
     [Obsolete("Deprecated in favor of WorkspaceFolders")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri? RootUri
+    public DocumentUri? RootDocumentUri
     {
         get;
         set;
+    }
+
+    [Obsolete("Use RootDocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri RootUri
+    {
+        get => RootDocumentUri.GetRequiredParsedUri();
+        set => RootDocumentUri = new DocumentUri(value);
     }
 
     /// <summary>

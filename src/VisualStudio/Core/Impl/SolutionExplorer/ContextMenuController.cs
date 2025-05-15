@@ -35,10 +35,9 @@ internal sealed class ContextMenuController : IContextMenuController
 
         _updateMenu();
 
-        var shell = Shell.Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
         var guidContextMenu = Guids.RoslynGroupId;
         var locationPoints = new[] { new POINTS() { x = (short)location.X, y = (short)location.Y } };
-        return shell != null && ErrorHandler.Succeeded(shell.ShowContextMenu(
+        return Shell.Package.GetGlobalService(typeof(SVsUIShell)) is IVsUIShell shell && ErrorHandler.Succeeded(shell.ShowContextMenu(
             0,
             ref guidContextMenu,
             _menuId,

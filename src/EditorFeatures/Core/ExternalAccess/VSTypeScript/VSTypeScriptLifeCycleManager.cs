@@ -11,11 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportLspServiceFactory(typeof(LspServiceLifeCycleManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptLifeCycleManager : LspServiceLifeCycleManager.LspLifeCycleManagerFactory
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptLifeCycleManager(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : base(lspWorkspaceRegistrationService)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptLifeCycleManager(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+    : LspServiceLifeCycleManager.LspLifeCycleManagerFactory(lspWorkspaceRegistrationService);

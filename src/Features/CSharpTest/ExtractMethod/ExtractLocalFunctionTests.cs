@@ -4574,7 +4574,7 @@ class Program
         var input = """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\file.cs">
+                    <Document FilePath = "file.cs">
             class Program1
             {
                 static void Main()
@@ -4584,7 +4584,7 @@ class Program
                 }
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             """ + EditorConfigNaming_CamelCase + """
             dotnet_naming_symbols.local_functions.required_modifiers = static
             </AnalyzerConfigDocument>
@@ -4595,7 +4595,7 @@ class Program
         var expected = """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                     <Document FilePath="z:\\file.cs">
+                     <Document FilePath="file.cs">
             class Program1
             {
                 static void Main()
@@ -4610,7 +4610,7 @@ class Program
                 }
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             """ + EditorConfigNaming_CamelCase + """
             dotnet_naming_symbols.local_functions.required_modifiers = static
             </AnalyzerConfigDocument>

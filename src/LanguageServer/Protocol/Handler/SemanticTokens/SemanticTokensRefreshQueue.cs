@@ -62,7 +62,7 @@ internal sealed class SemanticTokensRefreshQueue : AbstractRefreshQueue
 
     protected override void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        Uri? documentUri = null;
+        DocumentUri? documentUri = null;
 
         if (e.DocumentId is not null)
         {

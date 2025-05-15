@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             EmitBaseline baseline,
             ImmutableArray<SemanticEdit> edits,
             IEnumerable<ISymbol> allAddedSymbols = null,
+            EmitDifferenceOptions? options = null,
             CompilationTestData testData = null)
         {
             testData ??= new CompilationTestData();
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 mdStream,
                 ilStream,
                 pdbStream,
+                options ?? EmitDifferenceOptions.Default,
                 testData,
                 CancellationToken.None);
 

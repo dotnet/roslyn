@@ -4,6 +4,7 @@
 
 Imports System.Collections.ObjectModel
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -406,7 +407,7 @@ public class Class1
                 textBuffer.Replace(New Span(location, 1), "B")
                 Await WaitForRename(workspace)
 
-                Dim conflictDocument = workspace.Documents.Single(Function(d) d.FilePath = "B.cs")
+                Dim conflictDocument = workspace.Documents.Single(Function(d) d.Name = "B.cs")
                 Dim expectedSpans = GetAnnotatedSpans("conflict", conflictDocument)
                 Dim taggedSpans = GetTagsOfType(RenameConflictTag.Instance, renameService, conflictDocument.GetTextBuffer())
                 Assert.Equal(expectedSpans, taggedSpans)

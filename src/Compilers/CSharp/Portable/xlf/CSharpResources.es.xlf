@@ -2432,6 +2432,11 @@
         <target state="translated">El literal de cadena sin formato no comienza con suficientes comillas para permitir tantas comillas consecutivas como contenido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Las instrucciones de nivel superior deben preceder a las declaraciones de espacio de nombres y de tipos.</target>
@@ -6039,8 +6044,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Incoherencia de accesibilidad: el tipo de parámetro '{1}' es menos accesible que el indizador '{0}'</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Incoherencia de accesibilidad: el tipo de parámetro '{1}' es menos accesible que el indizador '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

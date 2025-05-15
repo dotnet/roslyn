@@ -167,7 +167,7 @@ internal sealed partial class EventHookupCommandHandler : IChainedCommandHandler
             }
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-            waitContext.CancelOnEdit = false;
+            using var _ = waitContext.SuppressAutoCancel();
 
             var workspace = document.Project.Solution.Workspace;
             if (!workspace.TryApplyChanges(solutionAndRenameSpan.Value.solution))

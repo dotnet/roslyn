@@ -20,7 +20,7 @@ internal abstract class AbstractRazorCohostDocumentRequestHandler<TRequestType, 
 
         var textDocumentIdentifier = new VSTextDocumentIdentifier
         {
-            Uri = razorIdentifier.Value.Uri,
+            DocumentUri = new(razorIdentifier.Value.Uri),
         };
 
         if (razorIdentifier.Value.ProjectContextId != null)

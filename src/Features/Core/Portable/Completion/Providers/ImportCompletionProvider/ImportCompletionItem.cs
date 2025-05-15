@@ -179,9 +179,7 @@ internal static class ImportCompletionItem
         // If we have SymbolKey data (i.e. this is an extension method item), use it to recover symbol
         if (item.TryGetProperty(MethodKey, out var methodSymbolKey))
         {
-            var methodSymbol = SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() as IMethodSymbol;
-
-            if (methodSymbol != null)
+            if (SymbolKey.ResolveString(methodSymbolKey, compilation).GetAnySymbol() is IMethodSymbol methodSymbol)
             {
                 var overloadCount = item.TryGetProperty(OverloadCountKey, out var overloadCountString) && int.TryParse(overloadCountString, out var count) ? count : 0;
 

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -33,8 +32,6 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
     private readonly IProjectCodeModel _projectCodeModel;
     private readonly Lazy<ProjectExternalErrorReporter?> _externalErrorReporter;
-
-    private readonly ConcurrentQueue<ProjectSystemProject.BatchScope> _batchScopes = new();
 
     public string DisplayName
     {
@@ -262,15 +259,6 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
     public void RemoveDynamicFile(string filePath)
         => _projectSystemProject.RemoveDynamicSourceFile(filePath);
 
-    public void StartBatch()
-        => _batchScopes.Enqueue(_projectSystemProject.CreateBatchScope());
-
-    public ValueTask EndBatchAsync()
-    {
-        Contract.ThrowIfFalse(_batchScopes.TryDequeue(out var scope));
-        return scope.DisposeAsync();
-    }
-
     public void ReorderSourceFiles(IEnumerable<string>? filePaths)
         => _projectSystemProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
 
@@ -282,8 +270,6 @@ internal sealed partial class CPSProject : IWorkspaceProjectContext
 
     public void RemoveAnalyzerConfigFile(string filePath)
         => _projectSystemProject.RemoveAnalyzerConfigFile(filePath);
-
-    public IAsyncDisposable CreateBatchScope() => _projectSystemProject.CreateBatchScope();
 
     public async ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken)
         => await _projectSystemProject.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);

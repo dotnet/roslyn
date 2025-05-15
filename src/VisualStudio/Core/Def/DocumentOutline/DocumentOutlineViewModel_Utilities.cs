@@ -46,7 +46,7 @@ internal sealed partial class DocumentOutlineViewModel
                 {
                     TextDocument = new TextDocumentIdentifier
                     {
-                        Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath),
+                        DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(textViewFilePath),
                     },
                     UseHierarchicalSymbols = true
                 };

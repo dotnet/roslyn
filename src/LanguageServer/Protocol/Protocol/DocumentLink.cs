@@ -6,6 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 using System;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// A document link is a range in a text document that links to an internal or
@@ -32,10 +33,18 @@ internal sealed class DocumentLink
     [JsonPropertyName("target")]
     [JsonConverter(typeof(DocumentUriConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Uri? Target
+    public DocumentUri? DocumentTarget
     {
         get;
         set;
+    }
+
+    [Obsolete("Use DocumentTarget instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri Target
+    {
+        get => DocumentTarget.GetRequiredParsedUri();
+        set => DocumentTarget = new DocumentUri(value);
     }
 
     /// <summary>

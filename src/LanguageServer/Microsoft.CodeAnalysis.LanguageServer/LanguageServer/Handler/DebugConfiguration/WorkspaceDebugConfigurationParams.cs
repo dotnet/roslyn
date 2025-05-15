@@ -8,4 +8,4 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
 internal sealed record WorkspaceDebugConfigurationParams(
-    [property: JsonPropertyName("workspacePath"), JsonConverter(typeof(DocumentUriConverter))] Uri WorkspacePath);
+    [property: JsonPropertyName("workspacePath"), JsonConverter(typeof(DocumentUriConverter))] DocumentUri WorkspacePath);

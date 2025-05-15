@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbolName Is Nothing Then
-                symbolName = symbol.Name
+                symbolName = If(symbol.IsExtension, symbol.MetadataName, symbol.Name)
             End If
 
             If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case symbol.TypeKind
                 Case TypeKind.Class,
                      TypeKind.Submission,
-                     TypeKind.Extension ' PROTOTYPE: Confirm this is the way we want to handle C# extensions
+                     TypeKind.Extension
                     partKind = SymbolDisplayPartKind.ClassName
                 Case TypeKind.Delegate
                     partKind = SymbolDisplayPartKind.DelegateName

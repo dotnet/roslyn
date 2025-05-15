@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -44,7 +45,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -79,7 +80,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -114,7 +115,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -149,7 +150,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -184,7 +185,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -227,7 +228,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -254,7 +255,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             """;
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected);
     }
 
@@ -282,7 +283,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: false, tabSize: 4);
     }
 
@@ -310,13 +311,13 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, expected, insertSpaces: true, tabSize: 2);
     }
 
     private static async Task AssertFormatDocumentAsync(
         TestLspServer testLspServer,
-        Uri uri,
+        DocumentUri uri,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedText,
         bool insertSpaces = true,
         int tabSize = 4
@@ -331,7 +332,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
 
     private static async Task<LSP.TextEdit[]?> RunFormatDocumentAsync(
         TestLspServer testLspServer,
-        Uri uri,
+        DocumentUri uri,
         bool insertSpaces = true,
         int tabSize = 4)
     {
@@ -339,7 +340,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             CreateDocumentFormattingParams(uri, insertSpaces, tabSize), CancellationToken.None);
     }
 
-    private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)
+    private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(DocumentUri uri, bool insertSpaces, int tabSize)
         => new LSP.DocumentFormattingParams()
         {
             TextDocument = CreateTextDocumentIdentifier(uri),

@@ -4,16 +4,17 @@
 
 using System;
 using System.Collections.Immutable;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal static class SolutionExtensions
 {
     public static ImmutableArray<TextDocument> GetTextDocuments(this Solution solution, Uri documentUri)
-        => LanguageServer.Extensions.GetTextDocuments(solution, documentUri);
+        => LanguageServer.Extensions.GetTextDocuments(solution, new(documentUri));
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
-        => LanguageServer.Extensions.GetDocumentIds(solution, documentUri);
+        => LanguageServer.Extensions.GetDocumentIds(solution, new(documentUri));
 
     public static int GetWorkspaceVersion(this Solution solution)
         => solution.WorkspaceVersion;

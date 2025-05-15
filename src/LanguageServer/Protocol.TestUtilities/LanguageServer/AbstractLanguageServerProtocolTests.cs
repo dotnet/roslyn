@@ -28,6 +28,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -67,7 +68,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         internal static readonly LSP.Location MappedFileLocation = new LSP.Location
         {
             Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
-            Uri = ProtocolConversions.CreateAbsoluteUri(s_mappedFilePath)
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
         };
 
         /// <summary>
@@ -152,7 +153,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         if (l2 is null)
             return 1;
 
-        var compareDocument = l1.Uri.AbsoluteUri.CompareTo(l2.Uri.AbsoluteUri);
+        var compareDocument = l1.DocumentUri.UriString.CompareTo(l2.DocumentUri.UriString);
         var compareRange = CompareRange(l1.Range, l2.Range);
         return compareDocument != 0 ? compareDocument : compareRange;
     }
@@ -190,9 +191,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
         return info;
     }
 
-    private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(Uri uri, ProjectId? projectContext = null)
+    private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new LSP.VSTextDocumentIdentifier { Uri = uri };
+        var documentIdentifier = new LSP.VSTextDocumentIdentifier { DocumentUri = uri };
 
         if (projectContext != null)
         {
@@ -206,7 +207,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
         => new LSP.TextDocumentPositionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri, projectContext),
             Position = caret.Range.Start
         };
 
@@ -224,7 +225,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         LSP.CompletionTriggerKind triggerKind)
         => new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.VSInternalCompletionContext()
             {
@@ -291,7 +292,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         };
 
     private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
-        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
+        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.DocumentUri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
     private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
         => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
@@ -328,23 +329,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private async Task<TestLspServer> CreateTestLspServerAsync(LspTestWorkspace workspace, InitializationOptions initializationOptions, string languageName)
     {
         var solution = workspace.CurrentSolution;
-
-        foreach (var document in workspace.Documents)
-        {
-            if (document.IsSourceGenerated)
-                continue;
-
-            solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
-
-            var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
-            solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8, SourceHashAlgorithms.Default));
-        }
-
-        foreach (var project in workspace.Projects)
-        {
-            // Ensure all the projects have a valid file path.
-            solution = solution.WithProjectFilePath(project.Id, GetDocumentFilePathFromName(project.FilePath));
-        }
 
         var analyzerReferencesByLanguage = CreateTestAnalyzersReference();
         if (initializationOptions.AdditionalAnalyzers != null)
@@ -473,11 +457,11 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         return locations;
 
-        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
+        static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, DocumentUri documentUri)
         {
             var location = new LSP.Location
             {
-                Uri = documentUri,
+                DocumentUri = documentUri,
                 Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
@@ -490,16 +474,13 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
         return new LSP.Location
         {
-            Uri = originalLocation.Uri,
+            DocumentUri = originalLocation.DocumentUri,
             Range = new LSP.Range { Start = newPosition, End = newPosition }
         };
     }
 
-    private static string GetDocumentFilePathFromName(string documentName)
-        => "C:\\" + documentName;
-
     private static LSP.DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(
-        Uri documentUri,
+        DocumentUri documentUri,
         ImmutableArray<(LSP.Range Range, string Text)> changes)
     {
         var changeEvents = changes.Select(change => new LSP.TextDocumentContentChangeEvent
@@ -512,29 +493,29 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             TextDocument = new LSP.VersionedTextDocumentIdentifier
             {
-                Uri = documentUri
+                DocumentUri = documentUri
             },
             ContentChanges = changeEvents
         };
     }
 
-    private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source, string languageId = "")
+    private static LSP.DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(DocumentUri uri, string source, string languageId = "")
         => new LSP.DidOpenTextDocumentParams
         {
             TextDocument = new LSP.TextDocumentItem
             {
                 Text = source,
-                Uri = uri,
+                DocumentUri = uri,
                 LanguageId = languageId
             }
         };
 
-    private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(Uri uri)
+    private static LSP.DidCloseTextDocumentParams CreateDidCloseTextDocumentParams(DocumentUri uri)
        => new LSP.DidCloseTextDocumentParams()
        {
            TextDocument = new LSP.TextDocumentIdentifier
            {
-               Uri = uri
+               DocumentUri = uri
            }
        };
 
@@ -661,14 +642,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return languageServer;
         }
 
-        public async Task<Document> GetDocumentAsync(Uri uri)
+        public async Task<Document> GetDocumentAsync(DocumentUri uri)
         {
-            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
             return document;
         }
 
-        public async Task<SourceText> GetDocumentTextAsync(Uri uri)
+        public async Task<SourceText> GetDocumentTextAsync(DocumentUri uri)
         {
             var document = await GetDocumentAsync(uri).ConfigureAwait(false);
             return await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
@@ -703,7 +684,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
         }
 
-        public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
+        public async Task OpenDocumentAsync(DocumentUri documentUri, string? text = null, string languageId = "")
         {
             if (text == null)
             {
@@ -719,7 +700,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         /// <summary>
         /// Opens a document in the workspace only, and waits for workspace operations.
-        /// Use <see cref="OpenDocumentAsync(Uri, string, string)"/> if the document should be opened in LSP"/>
+        /// Use <see cref="OpenDocumentAsync(DocumentUri, string, string)"/> if the document should be opened in LSP"/>
         /// </summary>
         public async Task OpenDocumentInWorkspaceAsync(DocumentId documentId, bool openAllLinkedDocuments, SourceText? text = null)
         {
@@ -744,7 +725,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await WaitForWorkspaceOperationsAsync(TestWorkspace);
         }
 
-        public Task ReplaceTextAsync(Uri documentUri, params (LSP.Range Range, string Text)[] changes)
+        public Task ReplaceTextAsync(DocumentUri documentUri, params (LSP.Range Range, string Text)[] changes)
         {
             var didChangeParams = CreateDidChangeTextDocumentParams(
                 documentUri,
@@ -752,7 +733,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             return ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(LSP.Methods.TextDocumentDidChangeName, didChangeParams, CancellationToken.None);
         }
 
-        public Task InsertTextAsync(Uri documentUri, params (int Line, int Column, string Text)[] changes)
+        public Task InsertTextAsync(DocumentUri documentUri, params (int Line, int Column, string Text)[] changes)
         {
             return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
             {
@@ -761,7 +742,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             }, change.Text))]);
         }
 
-        public Task DeleteTextAsync(Uri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
+        public Task DeleteTextAsync(DocumentUri documentUri, params (int StartLine, int StartColumn, int EndLine, int EndColumn)[] changes)
         {
             return ReplaceTextAsync(documentUri, [.. changes.Select(change => (new LSP.Range
             {
@@ -770,7 +751,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             }, string.Empty))]);
         }
 
-        public Task CloseDocumentAsync(Uri documentUri)
+        public Task CloseDocumentAsync(DocumentUri documentUri)
         {
             var didCloseParams = CreateDidCloseTextDocumentParams(documentUri);
             return ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(LSP.Methods.TextDocumentDidCloseName, didCloseParams, CancellationToken.None);
@@ -840,7 +821,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
-        internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.Text)];
+        internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
 
         internal async ValueTask RunCodeAnalysisAsync(ProjectId? projectId)
         {

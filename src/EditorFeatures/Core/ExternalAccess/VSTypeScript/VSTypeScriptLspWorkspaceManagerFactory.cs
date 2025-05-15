@@ -12,6 +12,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : LspWorkspaceManagerFactory(lspWorkspaceRegistrationService)
-{
-}
+internal class VSTypeScriptLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+    : LspWorkspaceManagerFactory(lspWorkspaceRegistrationService);

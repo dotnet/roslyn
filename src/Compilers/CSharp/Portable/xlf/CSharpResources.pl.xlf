@@ -2432,6 +2432,11 @@
         <target state="translated">Nieprzetworzony literał ciągu nie rozpoczyna się od wystarczającej liczby znaków cudzysłowu, aby umożliwić używanie tak wielu kolejnych znaków cudzysłowu jako zawartości.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Instrukcje najwyższego poziomu muszą poprzedzać deklaracje przestrzeni nazw i typów.</target>
@@ -6039,8 +6044,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Niespójność dostępności: typ parametru „{1}” jest mniej dostępny niż indeksator „{0}”</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Niespójność dostępności: typ parametru „{1}” jest mniej dostępny niż indeksator „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

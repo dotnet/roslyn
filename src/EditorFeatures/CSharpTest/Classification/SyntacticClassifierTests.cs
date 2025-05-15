@@ -1544,6 +1544,85 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
+    public async Task IgnoredDirective_01(TestHost testHost)
+    {
+        await TestAsync("""
+            #:unknown // comment
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("unknown"),
+            String(" // comment"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task IgnoredDirective_02(TestHost testHost)
+    {
+        await TestAsync("""
+            #:sdk Test 2.1.0
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("sdk"),
+            String(" Test 2.1.0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task IgnoredDirective_03(TestHost testHost)
+    {
+        await TestAsync("""
+            #:no-space
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("no-space"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task IgnoredDirective_04(TestHost testHost)
+    {
+        await TestAsync($"""
+            #:sdk{'\t'}Test 2.1.0
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("sdk"),
+            String("\tTest 2.1.0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+    }
+
+    [Theory, CombinatorialData]
     public async Task CommentAsMethodBodyContent(TestHost testHost)
     {
         var code = """

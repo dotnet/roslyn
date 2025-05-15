@@ -97,12 +97,14 @@ internal static class SemanticTokensHelpers
         await GetClassifiedSpansForDocumentAsync(
             classifiedSpans, document, textSpans, options, cancellationToken).ConfigureAwait(false);
 
-        // Classified spans are not guaranteed to be returned in a certain order so we sort them to be safe.
-        classifiedSpans.Sort(ClassifiedSpanComparer.Instance);
-
         // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
         // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
         ConvertMultiLineToSingleLineSpans(text, classifiedSpans, updatedClassifiedSpans);
+
+        // Classified spans are not guaranteed to be returned in a certain order and
+        // converting multi-line spans to single line spans can change put spans in the wrong order.
+        // Sort them before we compute the tokens to ensure we return them to the client in the correct order.
+        updatedClassifiedSpans.Sort(ClassifiedSpanComparer.Instance);
 
         // TO-DO: We should implement support for streaming if LSP adds support for it:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1276300
@@ -146,7 +148,7 @@ internal static class SemanticTokensHelpers
             if (startLine != endLine)
             {
                 ConvertToSingleLineSpan(
-                    text, classifiedSpans, updatedClassifiedSpans, ref spanIndex, span.ClassificationType,
+                    text, updatedClassifiedSpans, span.ClassificationType,
                     startLine, startOffset, endLine, endOffSet);
             }
             else
@@ -158,9 +160,7 @@ internal static class SemanticTokensHelpers
 
         static void ConvertToSingleLineSpan(
             SourceText text,
-            SegmentedList<ClassifiedSpan> originalClassifiedSpans,
             SegmentedList<ClassifiedSpan> updatedClassifiedSpans,
-            ref int spanIndex,
             string classificationType,
             int startLine,
             int startOffset,
@@ -201,19 +201,6 @@ internal static class SemanticTokensHelpers
                 {
                     var updatedClassifiedSpan = new ClassifiedSpan(textSpan, classificationType);
                     updatedClassifiedSpans.Add(updatedClassifiedSpan);
-                }
-
-                // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
-                // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim
-                // string literal containing escape characters:
-                //     var x = @"one ""
-                //               two";
-                // The check below ensures we correctly return the spans in the correct order, i.e. 'one', '""', 'two'.
-                while (spanIndex + 1 < originalClassifiedSpans.Count &&
-                    textSpan.Contains(originalClassifiedSpans[spanIndex + 1].TextSpan))
-                {
-                    updatedClassifiedSpans.Add(originalClassifiedSpans[spanIndex + 1]);
-                    spanIndex++;
                 }
             }
         }

@@ -12,16 +12,14 @@ internal class SimpleMutableIntervalTree<T, TIntrospector> : MutableIntervalTree
 {
     private readonly TIntrospector _introspector;
 
-    public SimpleMutableIntervalTree(in TIntrospector introspector, IEnumerable<T>? values)
+    public SimpleMutableIntervalTree(in TIntrospector introspector, IEnumerable<T>? values = null)
     {
         _introspector = introspector;
 
         if (values != null)
         {
             foreach (var value in values)
-            {
                 root = Insert(root, new Node(value), introspector);
-            }
         }
     }
 

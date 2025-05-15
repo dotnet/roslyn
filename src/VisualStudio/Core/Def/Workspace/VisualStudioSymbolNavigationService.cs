@@ -276,8 +276,7 @@ internal sealed partial class VisualStudioSymbolNavigationService(
         if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
             return null;
 
-        var navigationNotify = hierarchy as IVsSymbolicNavigationNotify;
-        if (navigationNotify == null)
+        if (hierarchy is not IVsSymbolicNavigationNotify navigationNotify)
             return null;
 
         return (hierarchy, itemID, navigationNotify);

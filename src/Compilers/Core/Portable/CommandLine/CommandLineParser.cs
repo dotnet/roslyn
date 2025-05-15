@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -98,32 +99,39 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static bool IsOptionName(string optionName, ReadOnlySpan<char> value)
         {
-            Debug.Assert(isAllAscii(optionName.AsSpan()));
-            if (isAllAscii(value))
-            {
-                if (optionName.Length != value.Length)
-                    return false;
+            assertAllAscii(optionName.AsSpan());
 
-                for (int i = 0; i < optionName.Length; i++)
+            if (optionName.Length != value.Length)
+                return false;
+
+            for (int i = 0; i < optionName.Length; i++)
+            {
+                char ch = value[i];
+                if (ch > 127)
                 {
-                    if (optionName[i] != char.ToLowerInvariant(value[i]))
-                    {
-                        return false;
-                    }
+                    // If a non-ascii character is encountered, do an InvariantCultureIgnoreCase comparison
+                    return optionName.AsSpan().Equals(value, StringComparison.InvariantCultureIgnoreCase);
                 }
-                return true;
+
+                if (optionName[i] != char.ToLowerInvariant(ch))
+                {
+                    return false;
+                }
             }
 
-            return optionName.AsSpan().Equals(value, StringComparison.InvariantCultureIgnoreCase);
+            return true;
 
-            static bool isAllAscii(ReadOnlySpan<char> span)
+            [Conditional("DEBUG")]
+            static void assertAllAscii(ReadOnlySpan<char> span)
             {
                 foreach (char ch in span)
                 {
                     if (ch > 127)
-                        return false;
+                    {
+                        Debug.Assert(false);
+                        break;
+                    }
                 }
-                return true;
             }
         }
 
@@ -167,7 +175,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            int colon = arg.IndexOf(':');
+            int colon = arg.IndexOf(':', 1);
 
             // temporary heuristic to detect Unix-style rooted paths
             // pattern /goo/*  or  //* will not be treated as a compiler option
@@ -175,8 +183,11 @@ namespace Microsoft.CodeAnalysis
             // TODO: consider introducing "/s:path" to disambiguate paths starting with /
             if (arg.Length > 1 && arg[0] != '-')
             {
-                int separator = arg.IndexOf('/', 1);
-                if (separator > 0 && (colon < 0 || separator < colon))
+                int separator = colon < 0
+                    ? arg.IndexOf('/', 1)
+                    : arg.IndexOf('/', 1, colon - 1);
+
+                if (separator > 0)
                 {
                     //   "/goo/
                     //   "//
@@ -1064,11 +1075,10 @@ namespace Microsoft.CodeAnalysis
                 {
                     inQuotes = !inQuotes;
                 }
-
-                if (!inQuotes && separators.IndexOf(c) >= 0)
+                else if (!inQuotes && separators.Contains(c))
                 {
                     var current = memory.Slice(nextPiece, i - nextPiece);
-                    if (!removeEmptyEntries || current.Length > 0)
+                    if (current.Length > 0 || !removeEmptyEntries)
                     {
                         builder.Add(current);
                     }
@@ -1078,7 +1088,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var last = memory.Slice(nextPiece);
-            if (!removeEmptyEntries || last.Length > 0)
+            if (last.Length > 0 || !removeEmptyEntries)
             {
                 builder.Add(last);
             }

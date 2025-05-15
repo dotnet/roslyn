@@ -202,7 +202,7 @@ class A
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-        Assert.NotNull(results[0].Location!.Uri);
+        Assert.NotNull(results[0].Location!.DocumentUri);
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
     }
 
@@ -303,7 +303,7 @@ class C
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
         => new LSP.ReferenceParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Position = caret.Range.Start,
             Context = new LSP.ReferenceContext(),
             PartialResultToken = progress

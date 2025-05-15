@@ -167,7 +167,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     {
         if (serializedParameters == null)
         {
-            Logger.LogInformation("No request parameters given, using default language handler");
+            Logger.LogDebug("No request parameters given, using default language handler");
             language = LanguageServerConstants.DefaultLanguageName;
             return true;
         }
@@ -189,13 +189,13 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         // { "textDocument": { "uri": "<uri>" ... } ... }
         //
         // We can easily identify the URI for the request by looking for this structure
-        Uri? uri = null;
+        DocumentUri? uri = null;
         if (parameters.TryGetProperty("textDocument", out var textDocumentToken) ||
             parameters.TryGetProperty("_vs_textDocument", out textDocumentToken))
         {
-            var uriToken = textDocumentToken.GetProperty("uri");
-            uri = JsonSerializer.Deserialize<Uri>(uriToken, ProtocolConversions.LspJsonSerializerOptions);
-            Contract.ThrowIfNull(uri, "Failed to deserialize uri property");
+            var textDocumentIdentifier = JsonSerializer.Deserialize<TextDocumentIdentifier>(textDocumentToken, ProtocolConversions.LspJsonSerializerOptions);
+            Contract.ThrowIfNull(textDocumentIdentifier, "Failed to deserialize text document identifier property");
+            uri = textDocumentIdentifier.DocumentUri;
         }
         else if (parameters.TryGetProperty("data", out var dataToken))
         {
@@ -206,13 +206,13 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
             //var dataToken = parameters["data"];
             var data = JsonSerializer.Deserialize<DocumentResolveData>(dataToken, ProtocolConversions.LspJsonSerializerOptions);
             Contract.ThrowIfNull(data, "Failed to document resolve data object");
-            uri = data.TextDocument.Uri;
+            uri = data.TextDocument.DocumentUri;
         }
 
         if (uri == null)
         {
             // This request is not for a textDocument and is not a resolve request.
-            Logger.LogInformation("Request did not contain a textDocument, using default language handler");
+            Logger.LogDebug("Request did not contain a textDocument, using default language handler");
             language = LanguageServerConstants.DefaultLanguageName;
             return true;
         }

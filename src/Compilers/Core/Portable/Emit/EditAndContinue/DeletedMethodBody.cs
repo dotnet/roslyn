@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public DebugId MethodId => default;
 
-        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => ImmutableArray<StateMachineHoistedLocalScope>.Empty;
+        public ImmutableArray<StateMachineHoistedLocalScope> StateMachineHoistedLocalScopes => default;
 
         public string StateMachineTypeName => null;
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
         {
             var hotReloadExceptionCtorDef = context.Module.GetOrCreateHotReloadExceptionConstructorDefinition();
 
-            var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);
+            var builder = new ILBuilder(context.Module, localSlotManager: null, context.Diagnostics, OptimizationLevel.Debug, areLocalsZeroed: false);
 
             string message;
             int codeValue;
@@ -84,12 +84,14 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
                 codeValue = code.GetExceptionCodeValue();
             }
 
-            builder.EmitStringConstant(message);
+            var syntaxNode = context.SyntaxNode;
+
+            builder.EmitStringConstant(message, syntaxNode);
             builder.EmitIntConstant(codeValue);
 
             // consumes message and code, pushes the created exception object:
             builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
-            builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
+            builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), syntaxNode);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 

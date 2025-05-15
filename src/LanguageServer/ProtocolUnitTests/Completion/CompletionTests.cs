@@ -927,7 +927,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         var completionParams = CreateCompletionParams(
             caretLocation,
@@ -940,7 +940,7 @@ class A
         Assert.True(results.IsIncomplete);
         Assert.Equal("T", results.Items.First().Label);
 
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "a"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "a"));
 
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -993,7 +993,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         var completionParams = CreateCompletionParams(
             caretLocation,
@@ -1006,7 +1006,7 @@ class A
         Assert.True(results.IsIncomplete);
         Assert.Equal("T", results.Items.First().Label);
 
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "C"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "C"));
 
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
@@ -1059,7 +1059,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         // Insert 'T' to make 'T' and trigger completion.
         var completionParams = CreateCompletionParams(
@@ -1073,7 +1073,7 @@ class A
         Assert.Equal("T", results.Items.First().Label);
 
         // Insert 'ask' to make 'Task' and trigger completion.
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "ask"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "ask"));
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
             invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -1085,7 +1085,7 @@ class A
         Assert.Equal("Task", results.Items.First().Label);
 
         // Delete 'ask' to make 'T' and trigger completion on deletion.
-        await testLspServer.DeleteTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, caretLocation.Range.End.Line, caretLocation.Range.End.Character + 3));
+        await testLspServer.DeleteTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, caretLocation.Range.End.Line, caretLocation.Range.End.Character + 3));
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
             invokeKind: LSP.VSInternalCompletionInvokeKind.Deletion,
@@ -1098,7 +1098,7 @@ class A
         Assert.Equal("T", results.Items.First().Label);
 
         // Insert 'i' to make 'Ti' and trigger completion.
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "i"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "i"));
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),
             invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
@@ -1154,7 +1154,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var firstCaret = testLspServer.GetLocations("firstCaret").Single();
-        await testLspServer.OpenDocumentAsync(firstCaret.Uri);
+        await testLspServer.OpenDocumentAsync(firstCaret.DocumentUri);
 
         // Make a completion request that returns an incomplete list.
         var completionParams = CreateCompletionParams(
@@ -1277,7 +1277,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var firstCaretLocation = testLspServer.GetLocations("firstCaret").Single();
-        await testLspServer.OpenDocumentAsync(firstCaretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(firstCaretLocation.DocumentUri);
 
         // Create request to on insertion of 'T'
         var completionParams = CreateCompletionParams(
@@ -1293,7 +1293,7 @@ class A
 
         // Insert 'S' at the second caret
         var secondCaretLocation = testLspServer.GetLocations("secondCaret").Single();
-        await testLspServer.InsertTextAsync(secondCaretLocation.Uri, (secondCaretLocation.Range.End.Line, secondCaretLocation.Range.End.Character, "S"));
+        await testLspServer.InsertTextAsync(secondCaretLocation.DocumentUri, (secondCaretLocation.Range.End.Line, secondCaretLocation.Range.End.Character, "S"));
 
         // Trigger completion on 'S'
         var triggerLocation = GetLocationPlusOne(secondCaretLocation);
@@ -1308,7 +1308,7 @@ class A
         Assert.Equal("Saaa", results.Items.First().Label);
 
         // Now type 'a' in M1 after 'T'
-        await testLspServer.InsertTextAsync(firstCaretLocation.Uri, (firstCaretLocation.Range.End.Line, firstCaretLocation.Range.End.Character, "a"));
+        await testLspServer.InsertTextAsync(firstCaretLocation.DocumentUri, (firstCaretLocation.Range.End.Line, firstCaretLocation.Range.End.Character, "a"));
 
         // Trigger completion on 'a' (using incomplete as we previously returned incomplete completions from 'T').
         triggerLocation = GetLocationPlusOne(firstCaretLocation);
@@ -1393,7 +1393,7 @@ class A
 }";
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
 
         var completionParams = CreateCompletionParams(
             caretLocation,
@@ -1406,7 +1406,7 @@ class A
         Assert.True(results.IsIncomplete);
         Assert.Equal("T", results.Items.First().Label);
 
-        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "z"));
+        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "z"));
 
         completionParams = CreateCompletionParams(
             testLspServer.GetLocations("caret").Single(),

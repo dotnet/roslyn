@@ -114,7 +114,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -155,7 +155,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -195,7 +195,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -238,7 +238,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -286,7 +286,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -327,7 +327,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
         => new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
+            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
             Range = caret.Range,
             Context = new CodeActionContext
             {

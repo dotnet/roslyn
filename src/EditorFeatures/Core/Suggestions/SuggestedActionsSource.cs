@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -32,7 +31,6 @@ internal sealed partial class SuggestedActionsSourceProvider
         private readonly ISuggestedActionCategoryRegistryService _suggestedActionCategoryRegistry;
 
         private readonly ReferenceCountedDisposable<State> _state;
-        private readonly IAsynchronousOperationListener _listener;
 
         public event EventHandler<EventArgs>? SuggestedActionsChanged { add { } remove { } }
 
@@ -45,8 +43,7 @@ internal sealed partial class SuggestedActionsSourceProvider
             SuggestedActionsSourceProvider owner,
             ITextView textView,
             ITextBuffer textBuffer,
-            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry,
-            IAsynchronousOperationListener listener)
+            ISuggestedActionCategoryRegistryService suggestedActionCategoryRegistry)
         {
             _threadingContext = threadingContext;
             GlobalOptions = globalOptions;
@@ -55,7 +52,6 @@ internal sealed partial class SuggestedActionsSourceProvider
             _state = new ReferenceCountedDisposable<State>(new State(this, owner, textView, textBuffer));
 
             _state.Target.TextView.Closed += OnTextViewClosed;
-            _listener = listener;
         }
 
         public void Dispose()

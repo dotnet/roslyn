@@ -2,7 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.IO
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
@@ -79,20 +81,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             Using testState = ProgressionTestState.Create(
                     <Workspace>
                         <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
-                            <Document FilePath="Z:\ProjectA.cs">public class A { }</Document>
+                            <Document FilePath="ProjectA.cs">public class A { }</Document>
                         </Project>
                         <Project Language="C#" AssemblyName="ProjectB" CommonReferences="true">
                             <ProjectReference>ProjectA</ProjectReference>
-                            <Document FilePath="Z:\ProjectB.cs">public class B : A { }</Document>
+                            <Document FilePath="ProjectB.cs">public class B : A { }</Document>
                         </Project>
                         <Project Language="C#" AssemblyName="ProjectC" CommonReferences="true">
                             <ProjectReference>ProjectB</ProjectReference>
-                            <Document FilePath="Z:\ProjectC.cs">public class C : B$$ { }</Document>
+                            <Document FilePath="ProjectC.cs">public class C : B$$ { }</Document>
                         </Project>
                     </Workspace>)
 
                 Dim inputGraph = Await testState.GetGraphWithMarkedSymbolNodeAsync()
                 Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New InheritsGraphQuery(), GraphContextDirection.Target)
+
+                Dim dirUri = ProtocolConversions.GetAbsoluteUriString(Path.Combine(TestWorkspace.RootDirectory, "bin")) & "/"
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -105,8 +109,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@2 Type=B)" Target="(@1 Type=A)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/bin/ProjectA.dll"/>
-                            <Alias n="2" Uri="Assembly=file:///Z:/bin/ProjectB.dll"/>
+                            <Alias n="1" Uri=<%= "Assembly=" & dirUri & "ProjectA.dll" %>/>
+                            <Alias n="2" Uri=<%= "Assembly=" & dirUri & "ProjectB.dll" %>/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

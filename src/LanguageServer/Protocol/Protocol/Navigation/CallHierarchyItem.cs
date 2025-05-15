@@ -50,7 +50,7 @@ internal sealed class CallHierarchyItem
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; init; }
+    public DocumentUri Uri { get; init; }
 
     /// <summary>
     /// The range enclosing this symbol not including leading/trailing whitespace

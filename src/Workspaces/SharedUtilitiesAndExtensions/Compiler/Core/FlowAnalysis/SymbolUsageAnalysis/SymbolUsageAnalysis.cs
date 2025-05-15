@@ -6,6 +6,7 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 

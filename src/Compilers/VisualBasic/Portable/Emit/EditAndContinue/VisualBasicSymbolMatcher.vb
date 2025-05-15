@@ -45,7 +45,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' For simplicity, PID helpers and no-PIA embedded definitions are not reused across generations, so we don't map them here.
             ' Instead, new ones are regenerated as needed.
-            Debug.Assert(TypeOf definition Is PrivateImplementationDetails OrElse TypeOf definition Is Cci.IEmbeddedDefinition)
+            Debug.Assert(TypeOf definition Is PrivateImplementationDetails OrElse
+                         TypeOf definition Is Cci.IEmbeddedDefinition OrElse
+                         TypeOf definition Is MappedField OrElse
+                         TypeOf definition Is ExplicitSizeStruct)
 
             Return Nothing
         End Function

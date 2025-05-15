@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal interface IRemoteExtensionMethodImportCompletionService
 {
-    ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+    ValueTask<ImmutableArray<SerializableImportCompletionItem>> GetUnimportedExtensionMethodsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
         int position,

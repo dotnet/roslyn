@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -476,11 +477,7 @@ internal sealed partial class SolutionState
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
         var newProjectStates = SortedProjectStates.WhereAsArray(static (p, projectIdsSet) => !projectIdsSet.Contains(p.Id), projectIdsSet);
-
-        // Note: it would be nice to not cause N forks of the dependency graph here.
-        var newDependencyGraph = _dependencyGraph;
-        foreach (var projectId in projectIds)
-            newDependencyGraph = newDependencyGraph.WithProjectRemoved(projectId);
+        var newDependencyGraph = _dependencyGraph.WithProjectsRemoved(projectIds);
 
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
@@ -1284,7 +1281,8 @@ internal sealed partial class SolutionState
         {
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
-                if (relatedDocumentId != documentId)
+                // Match the linear search behavior below and do not return documents from the same project.
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
                     return relatedDocumentId;
             }
 

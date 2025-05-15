@@ -35,7 +35,7 @@ internal sealed class LspServiceLogger : AbstractLspLogger, ILspService
     /// <summary>
     /// TODO - Switch this to call LogInformation once appropriate callers have been changed to LogDebug.
     /// </summary>
-    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogDebug(message, @params);
+    public override void LogInformation(string message, params object[] @params) => _hostLogger.LogInformation(message, @params);
 
     public override void LogWarning(string message, params object[] @params) => _hostLogger.LogWarning(message, @params);
 }

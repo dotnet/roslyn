@@ -5,13 +5,17 @@
 using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost;
 
 internal readonly struct RazorCohostRequestContext(RequestContext context)
 {
     internal string Method => context.Method;
-    internal Uri? Uri => context.TextDocument?.GetURI();
+
+    [Obsolete("Use DocumentUri instead")]
+    internal Uri? Uri => context.TextDocument?.GetURI().GetRequiredParsedUri();
+    internal DocumentUri? DocumentUri => context.TextDocument?.GetURI();
     /// <inheritdoc cref="RequestContext.Workspace"/>
     internal Workspace? Workspace => context.Workspace;
     /// <inheritdoc cref="RequestContext.Solution"/>

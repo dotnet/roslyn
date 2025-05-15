@@ -90,8 +90,7 @@ public static class QuickInfoToStringConverter
         if (currentInline is LineBreak)
             return Environment.NewLine;
 
-        var run = currentInline as Run;
-        if (run == null)
+        if (currentInline is not Run run)
             return null;
 
         return run.Text;

@@ -52,7 +52,7 @@ internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
             var text = context.SyntaxTree.GetText(context.CancellationToken);
             BlockSpan? lastSpan = null;
 
-            context.Spans.RemoveWhere((span, index, _) =>
+            context.Spans.RemoveAll((span, index, _) =>
                 {
                     // do not remove items before the first item that we added
                     if (index < initialContextCount)

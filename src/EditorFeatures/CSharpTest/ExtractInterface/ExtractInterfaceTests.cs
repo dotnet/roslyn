@@ -2007,7 +2007,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var markup = """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet8="true">
-                    <Document FilePath="z:\\file.cs"><![CDATA[using System;
+                    <Document FilePath="file.cs"><![CDATA[using System;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
