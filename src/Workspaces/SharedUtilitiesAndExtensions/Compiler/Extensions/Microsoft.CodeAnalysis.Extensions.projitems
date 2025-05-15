@@ -44,6 +44,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.ParameterSymbolEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolEquivalenceComparer.SignatureTypeSymbolEquivalenceComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Symbols\SymbolVisibility.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\SpecialTypeExtensions.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

@@ -102,12 +102,18 @@
   -->
 
   <PropertyGroup Condition="'$(IsSourcePackage)' == 'true'">
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddEditorConfigToSourcePackage</TargetsForTfmSpecificContentInPackage>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddEditorConfigToSourcePackage;_AddLinkedCompileItemsToSourcePackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <Target Name="_AddEditorConfigToSourcePackage">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)..\config\SourcePackage.editorconfig" PackagePath="contentFiles/cs/$(TargetFramework)/.editorconfig" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_AddLinkedCompileItemsToSourcePackage">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(Compile)" Condition="'%(Compile.Link)' != ''" PackagePath="contentFiles/cs/$(TargetFramework)/%(Compile.Link)" BuildAction="Compile"/>
     </ItemGroup>
   </Target>
 
