@@ -4316,7 +4316,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Binary_020_Consumption_Lifted_Shift([CombinatorialValues( "<<", ">>", ">>>")] string op)
+        public void Binary_020_Consumption_Lifted_Shift([CombinatorialValues("<<", ">>", ">>>")] string op)
         {
             var src = $$$"""
 public static class Extensions1
