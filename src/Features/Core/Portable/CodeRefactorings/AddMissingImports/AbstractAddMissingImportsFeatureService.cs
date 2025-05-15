@@ -29,16 +29,8 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
 
-    /// <inheritdoc/>
-    public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-    {
-        var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-        return await AddMissingImportsAsync(
-            document, analysisResult, progressTracker, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc/>
-    public async Task<ImmutableArray<AddImportFixData>> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<AddImportFixData>> AnalyzeAsync(
+        Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         // Get the diagnostics that indicate a missing import.
         var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -49,8 +41,10 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         // Since we are not currently considering NuGet packages, pass an empty array
         var packageSources = ImmutableArray<PackageSource>.Empty;
 
+        // Only search for symbols within the current project.  We don't want to add any sort of reference/package to
+        // something outside of the starting project.
         var addImportOptions = await document.GetAddImportOptionsAsync(
-            searchOptions: new() { SearchReferenceAssemblies = true, SearchNuGetPackages = false },
+            searchOptions: new() { SearchUnreferencedProjectSourceSymbols = false, SearchUnreferencedMetadataSymbols = false, SearchReferenceAssemblies = false, SearchNuGetPackages = false },
             cancellationToken).ConfigureAwait(false);
 
         var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
@@ -58,16 +52,9 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
             addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
         // We do not want to add project or framework references without the user's input, so filter those out.
-        var usableFixes = unambiguousFixes.WhereAsArray(fixData => DoesNotAddReference(fixData, document.Project.Id));
+        var usableFixes = unambiguousFixes.WhereAsArray(fixData => fixData.Kind == AddImportFixKind.ProjectSymbol);
 
         return usableFixes;
-    }
-
-    private static bool DoesNotAddReference(AddImportFixData fixData, ProjectId currentProjectId)
-    {
-        return (fixData.ProjectReferenceToAdd is null || fixData.ProjectReferenceToAdd == currentProjectId)
-            && (fixData.PortableExecutableReferenceProjectId is null || fixData.PortableExecutableReferenceProjectId == currentProjectId)
-            && string.IsNullOrEmpty(fixData.AssemblyReferenceAssemblyName);
     }
 
     public async Task<Document> AddMissingImportsAsync(
