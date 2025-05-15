@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
+#pragma warning disable RS1024 // Use 'SymbolEqualityComparer' when comparing symbols (https://github.com/dotnet/roslyn/issues/78583)
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,7 @@ internal sealed class SignatureComparer
             this.ParameterEquivalenceComparer);
     }
 
-    public static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
+    public static bool BadPropertyAccessor(IMethodSymbol? method1, IMethodSymbol? method2)
     {
         return method1 != null &&
             (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);

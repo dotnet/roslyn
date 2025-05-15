@@ -2,14 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+#if !MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FailFast
     {
@@ -109,3 +111,4 @@ namespace Microsoft.CodeAnalysis
         }
     }
 }
+#endif
