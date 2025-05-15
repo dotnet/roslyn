@@ -117,14 +117,14 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         if (parameter.Type.SpecialType == SpecialType.System_String)
         {
             result.Add(CodeAction.Create(
-                FeaturesResources.Add_string_IsNullOrEmpty_check,
+                string.Format(FeaturesResources.Add_0_check, "string.IsNullOrEmpty"),
                 cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
-                nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
+                $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"));
 
             result.Add(CodeAction.Create(
-                FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
+                string.Format(FeaturesResources.Add_0_check, "string.IsNullOrWhiteSpace"),
                 cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
-                nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
+                $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrWhiteSpace"));
         }
 
         return result.ToImmutableAndClear();
