@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     public Exception() {}
                     public Exception(string message) {}
+                    public virtual string Message { get; }
                 }
                 public delegate TResult Func<TResult>();
                 public delegate TResult Func<T, TResult>(T arg);
@@ -107,7 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     public NullReferenceException(string message) : base(message) {}
                 }
-                public class Object {}
+                public class Object
+                {
+                    public virtual string ToString() => null!;
+                }
                 public class String {}
                 public class Type {}
                 public class ValueType {}
@@ -8846,6 +8850,115 @@ class Test1
                 // await default(System.Threading.Tasks.ValueTask<int>);
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "default(System.Threading.Tasks.ValueTask<int>)").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.Await<T>(System.Threading.Tasks.ValueTask<T>)", "T", "int").WithLocation(1, 7)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78529")]
+        public void ExceptionHandlerReturn()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                System.Console.WriteLine(await C.Handler());
+
+                class C
+                {
+                    public static async Task<int> Handler()
+                    {
+                        try
+                        {
+                            return await Throw(42);
+                        }
+                        catch (IntegerException ex)
+                        {
+                            return ex.Value;
+                        }
+                    }
+
+                #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+                    public static async Task<int> Throw(int value) => throw new IntegerException(value);
+                }
+
+                public class IntegerException(int value) : Exception(value.ToString())
+                {
+                    public int Value => value;
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    {{ReturnValueMissing("<Main>$", "0xf")}}
+                    [Handler]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x14, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+            verifier.VerifyIL("C.Handler()", """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  1
+                  .locals init (System.Threading.Tasks.Task<int> V_0)
+                  .try
+                  {
+                    IL_0000:  ldc.i4.s   42
+                    IL_0002:  call       "System.Threading.Tasks.Task<int> C.Throw(int)"
+                    IL_0007:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                    IL_000c:  stloc.0
+                    IL_000d:  leave.s    IL_0017
+                  }
+                  catch IntegerException
+                  {
+                    IL_000f:  callvirt   "int IntegerException.Value.get"
+                    IL_0014:  stloc.0
+                    IL_0015:  leave.s    IL_0017
+                  }
+                  IL_0017:  ldloc.0
+                  IL_0018:  ret
+                }
+                """);
+
+            comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe.WithDebugPlusMode(true));
+            verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("42", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = $$"""
+                    {{ReturnValueMissing("<Main>$", "0x12")}}
+                    [Handler]: Unexpected type on the stack. { Offset = 0x10, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x1b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+            verifier.VerifyIL("C.Handler()", """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  1
+                  .locals init (int V_0,
+                                System.Threading.Tasks.Task<int> V_1,
+                                IntegerException V_2) //ex
+                  IL_0000:  nop
+                  .try
+                  {
+                    IL_0001:  nop
+                    IL_0002:  ldc.i4.s   42
+                    IL_0004:  call       "System.Threading.Tasks.Task<int> C.Throw(int)"
+                    IL_0009:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                    IL_000e:  stloc.0
+                    IL_000f:  ldloc.0
+                    IL_0010:  stloc.1
+                    IL_0011:  leave.s    IL_001e
+                  }
+                  catch IntegerException
+                  {
+                    IL_0013:  stloc.2
+                    IL_0014:  nop
+                    IL_0015:  ldloc.2
+                    IL_0016:  callvirt   "int IntegerException.Value.get"
+                    IL_001b:  stloc.1
+                    IL_001c:  leave.s    IL_001e
+                  }
+                  IL_001e:  ldloc.1
+                  IL_001f:  ret
+                }
+                """);
         }
     }
 }
