@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -924,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string name1 = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind, isChecked);
 
-            getDeclaredOperators(constrainedToTypeOpt, type, kind, name1, operators);
+            GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt, type, kind, name1, operators);
 
             if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
             {
@@ -932,7 +933,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operators2 = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
 
                 // Add regular operators as well.
-                getDeclaredOperators(constrainedToTypeOpt, type, kind, name2, operators2);
+                GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt, type, kind, name2, operators2);
 
                 // Drop operators that have a match among the checked ones.
                 if (operators.Count != 0)
@@ -954,54 +955,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operators2.Free();
             }
 
-            addLiftedOperators(constrainedToTypeOpt, kind, operators);
+            AddLiftedUserDefinedBinaryOperators(constrainedToTypeOpt, kind, operators);
+        }
 
-            void getDeclaredOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
+        private static void GetDeclaredUserDefinedBinaryOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
+        {
+            var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+            type.AddOperators(name, typeOperators);
+
+            foreach (MethodSymbol op in typeOperators)
             {
-                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
-                type.AddOperators(name, typeOperators);
-
-                foreach (MethodSymbol op in typeOperators)
+                // If we're in error recovery, we might have bad operators. Just ignore it.
+                if (op.ParameterCount != 2 || op.ReturnsVoid)
                 {
-                    // If we're in error recovery, we might have bad operators. Just ignore it.
-                    if (op.ParameterCount != 2 || op.ReturnsVoid)
-                    {
-                        continue;
-                    }
-
-                    TypeSymbol leftOperandType = op.GetParameterType(0);
-                    TypeSymbol rightOperandType = op.GetParameterType(1);
-                    TypeSymbol resultType = op.ReturnType;
-
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op, constrainedToTypeOpt));
+                    continue;
                 }
 
-                typeOperators.Free();
+                TypeSymbol leftOperandType = op.GetParameterType(0);
+                TypeSymbol rightOperandType = op.GetParameterType(1);
+                TypeSymbol resultType = op.ReturnType;
+
+                operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op, constrainedToTypeOpt));
             }
 
-            void addLiftedOperators(TypeSymbol constrainedToTypeOpt, BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
+            typeOperators.Free();
+        }
+
+        void AddLiftedUserDefinedBinaryOperators(TypeSymbol constrainedToTypeOpt, BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
+        {
+            for (int i = operators.Count - 1; i >= 0; i--)
             {
-                for (int i = operators.Count - 1; i >= 0; i--)
+                MethodSymbol op = operators[i].Method;
+                TypeSymbol leftOperandType = op.GetParameterType(0);
+                TypeSymbol rightOperandType = op.GetParameterType(1);
+                TypeSymbol resultType = op.ReturnType;
+
+                LiftingResult lifting = UserDefinedBinaryOperatorCanBeLifted(leftOperandType, rightOperandType, resultType, kind);
+
+                if (lifting == LiftingResult.LiftOperandsAndResult)
                 {
-                    MethodSymbol op = operators[i].Method;
-                    TypeSymbol leftOperandType = op.GetParameterType(0);
-                    TypeSymbol rightOperandType = op.GetParameterType(1);
-                    TypeSymbol resultType = op.ReturnType;
-
-                    LiftingResult lifting = UserDefinedBinaryOperatorCanBeLifted(leftOperandType, rightOperandType, resultType, kind);
-
-                    if (lifting == LiftingResult.LiftOperandsAndResult)
-                    {
-                        operators.Add(new BinaryOperatorSignature(
-                            BinaryOperatorKind.Lifted | BinaryOperatorKind.UserDefined | kind,
-                            MakeNullable(leftOperandType), MakeNullable(rightOperandType), MakeNullable(resultType), op, constrainedToTypeOpt));
-                    }
-                    else if (lifting == LiftingResult.LiftOperandsButNotResult)
-                    {
-                        operators.Add(new BinaryOperatorSignature(
-                            BinaryOperatorKind.Lifted | BinaryOperatorKind.UserDefined | kind,
-                            MakeNullable(leftOperandType), MakeNullable(rightOperandType), resultType, op, constrainedToTypeOpt));
-                    }
+                    operators.Add(new BinaryOperatorSignature(
+                        BinaryOperatorKind.Lifted | BinaryOperatorKind.UserDefined | kind,
+                        MakeNullable(leftOperandType), MakeNullable(rightOperandType), MakeNullable(resultType), op, constrainedToTypeOpt));
+                }
+                else if (lifting == LiftingResult.LiftOperandsButNotResult)
+                {
+                    operators.Add(new BinaryOperatorSignature(
+                        BinaryOperatorKind.Lifted | BinaryOperatorKind.UserDefined | kind,
+                        MakeNullable(leftOperandType), MakeNullable(rightOperandType), resultType, op, constrainedToTypeOpt));
                 }
             }
         }
@@ -1372,6 +1373,208 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AssertNotChecked(BinaryOperatorKind kind)
         {
             Debug.Assert((kind & ~BinaryOperatorKind.Checked) == kind, "Did not expect operator to be checked.  Consider using .Operator() to mask.");
+        }
+
+#nullable enable 
+
+        public bool BinaryOperatorExtensionOverloadResolutionInSingleScope(
+            ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+            BinaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string? name2Opt,
+            BoundExpression left,
+            BoundExpression right,
+            BinaryOperatorOverloadResolutionResult result,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            Debug.Assert(isChecked || name2Opt is null);
+
+            var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+
+            getDeclaredUserDefinedBinaryOperatorsInScope(extensionDeclarationsInSingleScope, kind, name1, name2Opt, operators);
+
+            if (left.Type?.IsNullableType() == true || right.Type?.IsNullableType() == true) // Wouldn't be applicable to the receiver type otherwise
+            {
+                AddLiftedUserDefinedBinaryOperators(constrainedToTypeOpt: null, kind, operators);
+            }
+
+            inferTypeArgumentsAndRemoveInapplicableToReceiverType(kind, left, right, operators, ref useSiteInfo);
+
+            bool hadApplicableCandidates = false;
+
+            if (!operators.IsEmpty)
+            {
+                var results = result.Results;
+                results.Clear();
+                if (CandidateOperators(isChecked, operators, left, right, results, ref useSiteInfo))
+                {
+                    BinaryOperatorOverloadResolution(left, right, result, ref useSiteInfo);
+                    hadApplicableCandidates = true;
+                }
+            }
+
+            operators.Free();
+
+            return hadApplicableCandidates;
+
+            static void getDeclaredUserDefinedBinaryOperatorsInScope(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, BinaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<BinaryOperatorSignature> operators)
+            {
+                getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name1, operators);
+
+                if (name2Opt is not null)
+                {
+                    if (!operators.IsEmpty)
+                    {
+                        var existing = new HashSet<MethodSymbol>(PairedExtensionOperatorSignatureComparer.Instance);
+                        existing.AddRange(operators.Select(static (op) => op.Method));
+
+                        var operators2 = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+                        getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators2);
+
+                        foreach (var op in operators2)
+                        {
+                            if (!existing.Contains(op.Method))
+                            {
+                                operators.Add(op);
+                            }
+                        }
+
+                        operators2.Free();
+                    }
+                    else
+                    {
+                        getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators);
+                    }
+                }
+            }
+
+            static void getDeclaredUserDefinedBinaryOperators(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
+            {
+                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarationsInSingleScope)
+                {
+                    Debug.Assert(extensionDeclaration.IsExtension);
+
+                    if (extensionDeclaration.ExtensionParameter is null)
+                    {
+                        continue;
+                    }
+
+                    GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt: null, extensionDeclaration, kind, name, operators);
+                }
+            }
+
+            void inferTypeArgumentsAndRemoveInapplicableToReceiverType(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                for (int i = operators.Count - 1; i >= 0; i--)
+                {
+                    var candidate = operators[i];
+                    MethodSymbol method = candidate.Method;
+                    NamedTypeSymbol extension = method.ContainingType;
+
+                    if (extension.Arity == 0)
+                    {
+                        if (isApplicableToReceiver(candidate, left, right, ref useSiteInfo))
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // Infer type arguments 
+                        var inferenceResult = MethodTypeInferrer.Infer(
+                            _binder,
+                            this.Conversions,
+                            extension.TypeParameters,
+                            extension,
+                            [TypeWithAnnotations.Create(candidate.LeftType), TypeWithAnnotations.Create(candidate.RightType)],
+                            method.ParameterRefKinds,
+                            [left, right],
+                            ref useSiteInfo,
+                            ordinals: null);
+
+                        if (inferenceResult.Success)
+                        {
+                            extension = extension.Construct(inferenceResult.InferredTypeArguments);
+                            method = method.AsMember(extension);
+
+                            if (!FailsConstraintChecks(method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded))
+                            {
+                                TypeSymbol leftOperandType = method.GetParameterType(0);
+                                TypeSymbol rightOperandType = method.GetParameterType(1);
+                                TypeSymbol resultType = method.ReturnType;
+
+                                BinaryOperatorSignature inferredCandidate;
+
+                                if (candidate.Kind.IsLifted())
+                                {
+                                    LiftingResult lifting = UserDefinedBinaryOperatorCanBeLifted(leftOperandType, rightOperandType, resultType, kind);
+                                    Debug.Assert(lifting is LiftingResult.LiftOperandsAndResult or LiftingResult.LiftOperandsButNotResult);
+
+                                    inferredCandidate = new BinaryOperatorSignature(
+                                        BinaryOperatorKind.Lifted | BinaryOperatorKind.UserDefined | kind,
+                                        MakeNullable(leftOperandType),
+                                        MakeNullable(rightOperandType),
+                                        lifting == LiftingResult.LiftOperandsButNotResult ? resultType : MakeNullable(resultType),
+                                        method, constrainedToTypeOpt: null);
+                                }
+                                else
+                                {
+                                    inferredCandidate = new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, method, constrainedToTypeOpt: null);
+                                }
+
+                                if (isApplicableToReceiver(inferredCandidate, left, right, ref useSiteInfo))
+                                {
+                                    operators[i] = inferredCandidate;
+                                    continue;
+                                }
+                            }
+
+                            constraintFailureDiagnosticsOpt?.Free();
+                        }
+                    }
+
+                    operators.RemoveAt(i);
+                }
+            }
+
+            bool isApplicableToReceiver(BinaryOperatorSignature candidate, BoundExpression left, BoundExpression right, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+
+                if (left.Type is not null && isOperandApplicableToReceiver(candidate, left, ref useSiteInfo))
+                {
+                    return true;
+                }
+
+                if (!kind.IsShift() && right.Type is not null && isOperandApplicableToReceiver(candidate, right, ref useSiteInfo))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            bool isOperandApplicableToReceiver(BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                Debug.Assert(operand.Type is not null);
+                Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
+
+                if (candidate.Kind.IsLifted() && operand.Type.IsNullableType())
+                {
+                    if (!candidate.Method.ContainingType.ExtensionParameter.Type.IsValidNullableTypeArgument() ||
+                        !Conversions.ConvertExtensionMethodThisArg(MakeNullable(candidate.Method.ContainingType.ExtensionParameter.Type), operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                    {
+                        return false;
+                    }
+                }
+                else if (!Conversions.ConvertExtensionMethodThisArg(candidate.Method.ContainingType.ExtensionParameter.Type, operand.Type, ref useSiteInfo, isMethodGroupConversion: false).Exists)
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
     }
 }

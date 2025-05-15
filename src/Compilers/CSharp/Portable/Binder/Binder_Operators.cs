@@ -130,9 +130,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the conversion, and second, because that is more convenient for the "d += lambda" case.
             // We want to have the converted (bound) lambda in the bound tree, not the unconverted unbound lambda.
 
+            // PROTOTYPE: Handle extensions
+
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            BinaryOperatorAnalysisResult best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, allowExtensions: false, node, diagnostics, out resultKind, out originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 ReportAssignmentOperatorError(node, kind, diagnostics, left, right, resultKind);
@@ -845,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BinaryOperatorSignature resultSignature, out BinaryOperatorAnalysisResult best)
         {
             bool foundOperator;
-            best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, allowExtensions: true, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
             // However, as an implementation detail, we never "fail to find an applicable
             // operator" during overload resolution if we have x == null, x == default, etc. We always
@@ -928,6 +930,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundBinaryOperator b => doRebind(diagnostics, b),
                         _ => throw ExceptionUtilities.UnexpectedValue(current.Right.Kind)
                     };
+
+                    // PROTOTYPE: Add test coverage for this code path
+
                     left = BindSimpleBinaryOperator((BinaryExpressionSyntax)current.Syntax, diagnostics, left ?? current.Left, right, leaveUnconvertedIfInterpolatedString: false);
                 }
 
@@ -1105,9 +1110,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicBinaryOperator(node, kind, left, right, diagnostics);
             }
 
+            // PROTOTYPE: Handle extensions
+
             LookupResultKind lookupResult;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
+            var best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, allowExtensions: false, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
 
             // SPEC: If overload resolution fails to find a single best operator, or if overload
             // SPEC: resolution selects one of the predefined integer logical operators, a binding-
@@ -1458,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             BoundExpression left,
             BoundExpression right,
+            bool allowExtensions,
             CSharpSyntaxNode node,
             BindingDiagnosticBag diagnostics,
             out LookupResultKind resultKind,
@@ -1470,43 +1478,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default(BinaryOperatorAnalysisResult);
             }
 
-            var result = BinaryOperatorOverloadResolutionResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.OverloadResolution.BinaryOperatorOverloadResolution(kind, isChecked, left, right, result, ref useSiteInfo);
-            diagnostics.Add(node, useSiteInfo);
+            BinaryOperatorAnalysisResult possiblyBest = nonExtensionOverloadResolution(kind, isChecked, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
 
-            var possiblyBest = result.Best;
-
-            if (result.Results.Any())
+            if (!possiblyBest.HasValue && allowExtensions && resultKind != LookupResultKind.Ambiguous)
             {
-                var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var analysisResult in result.Results)
-                {
-                    MethodSymbol method = analysisResult.Signature.Method;
-                    if ((object)method != null)
-                    {
-                        builder.Add(method);
-                    }
-                }
-                originalUserDefinedOperators = builder.ToImmutableAndFree();
+                LookupResultKind extensionResultKind;
+                ImmutableArray<MethodSymbol> extensionOriginalUserDefinedOperators;
+                BinaryOperatorAnalysisResult? extensionBest = extensionOverloadResolution(kind, isChecked, left, right, node, diagnostics, out extensionResultKind, out extensionOriginalUserDefinedOperators);
 
-                if (possiblyBest.HasValue)
+                if (extensionBest.HasValue && (extensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !extensionOriginalUserDefinedOperators.IsEmpty)))
                 {
-                    resultKind = LookupResultKind.Viable;
+                    possiblyBest = extensionBest.GetValueOrDefault();
+                    resultKind = extensionResultKind;
+                    originalUserDefinedOperators = extensionOriginalUserDefinedOperators;
                 }
-                else if (result.AnyValid())
-                {
-                    resultKind = LookupResultKind.Ambiguous;
-                }
-                else
-                {
-                    resultKind = LookupResultKind.OverloadResolutionFailure;
-                }
-            }
-            else
-            {
-                originalUserDefinedOperators = ImmutableArray<MethodSymbol>.Empty;
-                resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
             if (possiblyBest is { HasValue: true, Signature: { Method: { } bestMethod } })
@@ -1515,8 +1500,122 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUseSite(bestMethod, diagnostics, node);
             }
 
-            result.Free();
             return possiblyBest;
+
+            BinaryOperatorAnalysisResult nonExtensionOverloadResolution(
+                BinaryOperatorKind kind,
+                bool isChecked,
+                BoundExpression left,
+                BoundExpression right,
+                CSharpSyntaxNode node,
+                BindingDiagnosticBag diagnostics,
+                out LookupResultKind resultKind,
+                out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+            {
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                this.OverloadResolution.BinaryOperatorOverloadResolution(kind, isChecked, left, right, result, ref useSiteInfo);
+                diagnostics.Add(node, useSiteInfo);
+
+                var possiblyBest = analyzeOverloadResolutionResult(result, out resultKind, out originalUserDefinedOperators);
+                result.Free();
+
+                return possiblyBest;
+            }
+
+            static BinaryOperatorAnalysisResult analyzeOverloadResolutionResult(BinaryOperatorOverloadResolutionResult result, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+            {
+                var possiblyBest = result.Best;
+
+                if (result.Results.Any())
+                {
+                    var builder = ArrayBuilder<MethodSymbol>.GetInstance();
+                    foreach (var analysisResult in result.Results)
+                    {
+                        MethodSymbol method = analysisResult.Signature.Method;
+                        if ((object)method != null)
+                        {
+                            builder.Add(method);
+                        }
+                    }
+                    originalUserDefinedOperators = builder.ToImmutableAndFree();
+
+                    if (possiblyBest.HasValue)
+                    {
+                        resultKind = LookupResultKind.Viable;
+                    }
+                    else if (result.AnyValid())
+                    {
+                        resultKind = LookupResultKind.Ambiguous;
+                    }
+                    else
+                    {
+                        resultKind = LookupResultKind.OverloadResolutionFailure;
+                    }
+                }
+                else
+                {
+                    originalUserDefinedOperators = ImmutableArray<MethodSymbol>.Empty;
+                    resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
+                }
+
+                return possiblyBest;
+            }
+
+#nullable enable 
+
+            BinaryOperatorAnalysisResult? extensionOverloadResolution(
+                BinaryOperatorKind kind,
+                bool isChecked,
+                BoundExpression left,
+                BoundExpression right,
+                CSharpSyntaxNode node,
+                BindingDiagnosticBag diagnostics,
+                out LookupResultKind resultKind,
+                out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
+            {
+                resultKind = LookupResultKind.Empty;
+                originalUserDefinedOperators = [];
+
+                if ((left.Type is null && right.Type is null) ||
+                    !this.Compilation.LanguageVersion.AllowNewExtensions())
+                {
+                    return null;
+                }
+
+                string name1 = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind, isChecked);
+                string? name2Opt = null;
+
+                if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+                {
+                    name2Opt = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind, isChecked: false);
+                }
+
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                BinaryOperatorAnalysisResult? possiblyBest = null;
+
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    extensionDeclarationsInSingleScope.Clear();
+                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope, this);
+
+                    if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(extensionDeclarationsInSingleScope, kind, isChecked, name1, name2Opt, left, right, result, ref useSiteInfo))
+                    {
+                        possiblyBest = analyzeOverloadResolutionResult(result, out resultKind, out originalUserDefinedOperators);
+                        break;
+                    }
+                }
+
+                diagnostics.Add(node, useSiteInfo);
+
+                extensionDeclarationsInSingleScope.Free();
+                result.Free();
+                return possiblyBest;
+            }
+
+#nullable disable
         }
 
         private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
