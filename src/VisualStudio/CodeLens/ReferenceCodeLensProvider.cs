@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.Core.Imaging;

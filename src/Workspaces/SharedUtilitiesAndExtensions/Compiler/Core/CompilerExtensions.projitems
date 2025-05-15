@@ -78,12 +78,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\EnumUtilties.cs">
       <Link>InternalUtilities\EnumUtilties.cs</Link>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs">
-      <Link>InternalUtilities\FailFast.cs</Link>
-    </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
-      <Link>InternalUtilities\FatalError.cs</Link>
-    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
       <Link>InternalUtilities\FileNameUtilities.cs</Link>
     </Compile>

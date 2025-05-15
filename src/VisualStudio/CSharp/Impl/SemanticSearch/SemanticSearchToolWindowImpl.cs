@@ -15,6 +15,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -35,7 +36,6 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
