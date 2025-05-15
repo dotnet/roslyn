@@ -5,8 +5,6 @@
 #nullable enable
 #pragma warning disable RS1024 // Use 'SymbolEqualityComparer' when comparing symbols (https://github.com/dotnet/roslyn/issues/78583)
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -66,7 +64,7 @@ internal sealed class SignatureComparer
             this.ParameterEquivalenceComparer);
     }
 
-    public static bool BadPropertyAccessor(IMethodSymbol method1, IMethodSymbol method2)
+    public static bool BadPropertyAccessor(IMethodSymbol? method1, IMethodSymbol? method2)
     {
         return method1 != null &&
             (method2 == null || method2.DeclaredAccessibility != Accessibility.Public);
