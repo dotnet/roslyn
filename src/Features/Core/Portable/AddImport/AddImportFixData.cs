@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -14,17 +16,17 @@ namespace Microsoft.CodeAnalysis.AddImport;
 internal sealed class AddImportFixData(
     AddImportFixKind kind,
     ImmutableArray<TextChange> textChanges,
-    string? title = null,
+    string title = null,
     ImmutableArray<string> tags = default,
     CodeActionPriority priority = default,
-    ProjectId? projectReferenceToAdd = null,
-    ProjectId? portableExecutableReferenceProjectId = null,
-    string? portableExecutableReferenceFilePathToAdd = null,
-    string? assemblyReferenceAssemblyName = null,
-    string? assemblyReferenceFullyQualifiedTypeName = null,
-    string? packageSource = null,
-    string? packageName = null,
-    string? packageVersionOpt = null)
+    ProjectId projectReferenceToAdd = null,
+    ProjectId portableExecutableReferenceProjectId = null,
+    string portableExecutableReferenceFilePathToAdd = null,
+    string assemblyReferenceAssemblyName = null,
+    string assemblyReferenceFullyQualifiedTypeName = null,
+    string packageSource = null,
+    string packageName = null,
+    string packageVersionOpt = null)
 {
     [DataMember(Order = 0)]
     public AddImportFixKind Kind { get; } = kind;
@@ -42,7 +44,7 @@ internal sealed class AddImportFixData(
     /// String to display in the lightbulb menu.
     /// </summary>
     [DataMember(Order = 2)]
-    public readonly string? Title = title;
+    public readonly string Title = title;
 
     /// <summary>
     /// Tags that control what glyph is displayed in the lightbulb menu.
@@ -62,7 +64,7 @@ internal sealed class AddImportFixData(
     /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
     /// </summary>
     [DataMember(Order = 5)]
-    public readonly ProjectId? ProjectReferenceToAdd = projectReferenceToAdd;
+    public readonly ProjectId ProjectReferenceToAdd = projectReferenceToAdd;
 
     #endregion
 
@@ -74,37 +76,37 @@ internal sealed class AddImportFixData(
     /// referenced from.
     /// </summary>
     [DataMember(Order = 6)]
-    public readonly ProjectId? PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
+    public readonly ProjectId PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
 
     /// <summary>
     /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
     /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
     /// </summary>
     [DataMember(Order = 7)]
-    public readonly string? PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
+    public readonly string PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
 
     #endregion
 
     #region When adding an assembly reference
 
     [DataMember(Order = 8)]
-    public readonly string? AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+    public readonly string AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
 
     [DataMember(Order = 9)]
-    public readonly string? AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+    public readonly string AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
 
     #endregion
 
     #region When adding a package reference
 
     [DataMember(Order = 10)]
-    public readonly string? PackageSource = packageSource;
+    public readonly string PackageSource = packageSource;
 
     [DataMember(Order = 11)]
-    public readonly string? PackageName = packageName;
+    public readonly string PackageName = packageName;
 
     [DataMember(Order = 12)]
-    public readonly string? PackageVersionOpt = packageVersionOpt;
+    public readonly string PackageVersionOpt = packageVersionOpt;
 
     #endregion
 

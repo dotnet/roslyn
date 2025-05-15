@@ -44,7 +44,13 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         // Only search for symbols within the current project.  We don't want to add any sort of reference/package to
         // something outside of the starting project.
         var addImportOptions = await document.GetAddImportOptionsAsync(
-            searchOptions: new() { SearchUnreferencedProjectSourceSymbols = false, SearchUnreferencedMetadataSymbols = false, SearchReferenceAssemblies = false, SearchNuGetPackages = false },
+            searchOptions: new()
+            {
+                SearchUnreferencedProjectSourceSymbols = false,
+                SearchUnreferencedMetadataSymbols = false,
+                SearchReferenceAssemblies = false,
+                SearchNuGetPackages = false,
+            },
             cancellationToken).ConfigureAwait(false);
 
         var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
