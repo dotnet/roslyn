@@ -170,11 +170,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         ? LocalSlotConstraints.None
                         : LocalSlotConstraints.ByRef;
 
+                    var returnTypeWithAnnotations = _method.ReturnTypeWithAnnotations;
+                    if (_module.Compilation.IsRuntimeAsyncEnabledIn(_method))
+                    {
+                        // The return type of the method is either Task<T> or ValueTask<T>. The il of the method is
+                        // actually going to appear to return a T, not the wrapper task type. So we need to
+                        // translate the return type to the actual type that will be returned.
+
+                        var returnType = returnTypeWithAnnotations.Type;
+                        Debug.Assert(((InternalSpecialType)returnType.OriginalDefinition.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_ValueTask_T or InternalSpecialType.System_Threading_Tasks_Task_T);
+
+                        returnTypeWithAnnotations = ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                    }
+
                     var bodySyntax = _methodBodySyntaxOpt;
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(bodySyntax), bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        var localSymbol = new SynthesizedLocal(_method, returnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
                             type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics.DiagnosticBag),
@@ -190,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(returnTypeWithAnnotations.Type, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;

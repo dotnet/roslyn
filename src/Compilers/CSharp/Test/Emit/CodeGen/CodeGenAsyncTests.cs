@@ -8890,15 +8890,14 @@ class Test1
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("<Main>$", "0xf")}}
-                    [Handler]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [Handler]: Unexpected type on the stack. { Offset = 0x14, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x18, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Handler()", """
                 {
                   // Code size       25 (0x19)
                   .maxstack  1
-                  .locals init (System.Threading.Tasks.Task<int> V_0)
+                  .locals init (int V_0)
                   .try
                   {
                     IL_0000:  ldc.i4.s   42
@@ -8923,8 +8922,7 @@ class Test1
             {
                 ILVerifyMessage = $$"""
                     {{ReturnValueMissing("<Main>$", "0x12")}}
-                    [Handler]: Unexpected type on the stack. { Offset = 0x10, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
-                    [Handler]: Unexpected type on the stack. { Offset = 0x1b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Handler]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
                     """
             });
             verifier.VerifyIL("C.Handler()", """
@@ -8932,7 +8930,7 @@ class Test1
                   // Code size       32 (0x20)
                   .maxstack  1
                   .locals init (int V_0,
-                                System.Threading.Tasks.Task<int> V_1,
+                                int V_1,
                                 IntegerException V_2) //ex
                   IL_0000:  nop
                   .try
