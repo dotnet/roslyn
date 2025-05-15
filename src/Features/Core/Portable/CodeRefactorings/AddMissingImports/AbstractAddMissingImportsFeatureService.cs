@@ -15,7 +15,9 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -73,7 +75,6 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
             return document;
 
         var solution = document.Project.Solution;
-        var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
         var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
 
         var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -83,36 +84,26 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         var organizeImportsOptions = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Do not limit the results since we plan to fix all the reported issues.
-        var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);
-        var getChangesTasks = codeActions.Select(
-            action => GetChangesForCodeActionAsync(document, action, textDiffingService, progressTracker, cancellationToken));
+        var codeActions = addImportService.GetCodeActionsForFixes(
+            document, fixes, packageInstallerService, maxResults: int.MaxValue);
 
         // Using Sets allows us to accumulate only the distinct changes. Only consider insertion changes to reduce the
         // chance of producing a badly merged final document.
-        var insertionOnlyChanges = new HashSet<TextChange>();
+        using var _ = PooledHashSet<TextChange>.GetInstance(out var insertionOnlyChanges);
 
-        // Some fixes require adding missing references.
-        var allAddedProjectReferences = new HashSet<ProjectReference>();
-        var allAddedMetaDataReferences = new HashSet<MetadataReference>();
-
-        foreach (var getChangesTask in getChangesTasks)
-        {
-            var (projectChanges, textChanges) = await getChangesTask.ConfigureAwait(false);
-
-            foreach (var textChange in textChanges)
+        var changes = ProducerConsumer<TextChange>.RunParallelStreamAsync(
+            codeActions,
+            produceItems: static async (codeAction, callback, args, cancellationToken) =>
             {
-                if (textChange.Span.IsEmpty)
-                    insertionOnlyChanges.Add(textChange);
-            }
+                var (document, progressTracker) = args;
+                await GetInsertionOnlyChangesForCodeActionAsync(
+                    document, codeAction, progressTracker, callback, cancellationToken).ConfigureAwait(false);
+            },
+            args: (document, progressTracker),
+            cancellationToken);
 
-            allAddedProjectReferences.UnionWith(projectChanges.GetAddedProjectReferences());
-            allAddedMetaDataReferences.UnionWith(projectChanges.GetAddedMetadataReferences());
-        }
-
-        // Apply changes to both the project and document.
-        var newProject = document.Project;
-        newProject = newProject.AddMetadataReferences(allAddedMetaDataReferences);
-        newProject = newProject.AddProjectReferences(allAddedProjectReferences);
+        await foreach (var change in changes)
+            insertionOnlyChanges.Add(change);
 
         // Capture each location where we are inserting imports as well as the total
         // length of the text we are inserting so that we can format the span afterwards.
@@ -122,7 +113,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = text.WithChanges(insertionOnlyChanges);
-        var newDocument = newProject.GetRequiredDocument(document.Id).WithText(newText);
+        var newDocument = document.WithText(newText);
 
         // When imports are added to a code file that has no previous imports, extra newlines are generated between each
         // import because the fix is expecting to separate the imports from the rest of the code file. We need to format
@@ -149,9 +140,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         // format each span individually so that we can retain each newline that was intended
         // to separate the import section from the other content.
         foreach (var insertSpan in insertSpans)
-        {
             newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, formattingOptions, cancellationToken).ConfigureAwait(false);
-        }
 
         return newDocument;
     }
@@ -172,9 +161,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
 
         // If there are no changes then, do less work.
         if (textChanges.Count == 0)
-        {
             return document;
-        }
 
         // The last text change should include where the insert span ends
         Debug.Assert(textChanges.Last().Span.IntersectsWith(insertSpan.End));
@@ -189,18 +176,18 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         return document.WithText(newText);
     }
 
-    private static async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
+    private static async ValueTask GetInsertionOnlyChangesForCodeActionAsync(
         Document document,
         CodeAction codeAction,
-        IDocumentTextDifferencingService textDiffingService,
         IProgress<CodeAnalysisProgress> progressTracker,
+        Action<TextChange> callback,
         CancellationToken cancellationToken)
     {
         // CodeAction.GetChangedSolutionAsync is only implemented for code actions that can fully compute the new	            
         // solution without deferred computation or taking a dependency on the main thread. In other cases, the	                
         // implementation of GetChangedSolutionAsync will throw an exception and the code action application is	            
         // expected to apply the changes by executing the operations in GetOperationsAsync (which may have other	
-        // side effects). This code cannot assume the input CodeAction supports GetChangedSolutionAsync, so it first	
+        // side effects). This code cannot assume the input CodeAction supports GetChangedSolutionAsync, so it first    
         // attempts to apply text changes obtained from GetOperationsAsync. Two forms are supported:	
         //	
         // 1. GetOperationsAsync returns an empty list of operations (i.e. no changes are required)	
@@ -228,11 +215,15 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         var newDocument = newSolution.GetRequiredDocument(document.Id);
 
         // Use Line differencing to reduce the possibility of changes that overwrite existing code.
+        var textDiffingService = document.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
         var textChanges = await textDiffingService.GetTextChangesAsync(
             document, newDocument, TextDifferenceTypes.Line, cancellationToken).ConfigureAwait(false);
-        var projectChanges = newDocument.Project.GetChanges(document.Project);
 
-        return (projectChanges, textChanges);
+        foreach (var change in textChanges)
+        {
+            if (change.Span.IsEmpty)
+                callback(change);
+        }
     }
 
     protected sealed class CleanUpNewLinesFormatter(SourceText text) : AbstractFormattingRule
