@@ -61,7 +61,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         Document document,
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         ImmutableArray<SyntaxNode> listOfParameterNodes,
         TextSpan parameterSpan,
         CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         foreach (var parameterNode in listOfParameterNodes)
         {
             var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(parameterNode, cancellationToken);
-            if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
+            if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatement, cancellationToken))
                 listOfParametersOrdinals.Add(parameter.Ordinal);
         }
 
@@ -84,7 +84,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Great.  The list has parameters that need null checks. Offer to add null checks for all.
         return [CodeAction.Create(
             FeaturesResources.Add_null_checks_for_all_parameters,
-            c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
+            c => UpdateDocumentForRefactoringAsync(document, blockStatement, listOfParametersOrdinals, parameterSpan, c),
             nameof(FeaturesResources.Add_null_checks_for_all_parameters))];
     }
 
@@ -94,13 +94,13 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // Only should provide null-checks for reference types and nullable types.
-        if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
+        if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatement, cancellationToken))
             return [];
 
         var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -109,7 +109,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         using var result = TemporaryArray<CodeAction>.Empty;
         result.Add(CodeAction.Create(
             FeaturesResources.Add_null_check,
-            cancellationToken => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, simplifierOptions, cancellationToken),
+            cancellationToken => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, simplifierOptions, cancellationToken),
             nameof(FeaturesResources.Add_null_check)));
 
         // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
@@ -118,12 +118,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         {
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_string_IsNullOrEmpty_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
+                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
                 nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
             result.Add(CodeAction.Create(
                 FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
+                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
                 nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
         }
 
@@ -132,7 +132,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
     private async Task<Document> UpdateDocumentForRefactoringAsync(
         Document document,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         List<int> listOfParametersOrdinals,
         TextSpan parameterSpan,
         CancellationToken cancellationToken)
@@ -159,7 +159,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
+            if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatement))
                 continue;
 
             lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -168,13 +168,13 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             // commonly used in this regard according to telemetry and UX testing.
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
-                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, s_nullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, s_nullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
             // For all other parameters, add null check - updates document
             document = await AddNullCheckAsync(document, parameter, functionDeclaration,
-                (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                (IMethodSymbol)parameter.ContainingSymbol, blockStatement, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         return document;
@@ -251,7 +251,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     }
 
     protected bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
-        IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+        IBlockOperation? blockStatement, CancellationToken cancellationToken)
     {
         if (parameter.Type.IsReferenceType)
         {
@@ -278,12 +278,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Note: we only check the top level statements of the block.  I think that's sufficient
         // as this will catch the 90% case, while not being that bad an experience even when 
         // people do strange things in their constructors.
-        if (blockStatementOpt != null)
+        if (blockStatement != null)
         {
-            if (!CanOffer(blockStatementOpt.Syntax))
+            if (!CanOffer(blockStatement.Syntax))
                 return false;
 
-            foreach (var statement in blockStatementOpt.Operations)
+            foreach (var statement in blockStatement.Operations)
             {
                 if (IsIfNullCheck(statement, parameter))
                     return false;
@@ -369,13 +369,13 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
         IMethodSymbol method,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         string methodNameSuffix,
         TSimplifierOptions options,
         CancellationToken cancellationToken)
     {
         return await AddNullCheckStatementAsync(
-            document, parameter, functionDeclaration, method, blockStatementOpt,
+            document, parameter, functionDeclaration, method, blockStatement,
             (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodNameSuffix, options),
             cancellationToken).ConfigureAwait(false);
     }
