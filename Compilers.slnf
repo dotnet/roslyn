@@ -22,7 +22,7 @@
       "src\\Compilers\\Core\\MSBuildTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj",
       "src\\Compilers\\Core\\SdkTaskTests\\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj",
       "src\\Compilers\\Core\\MSBuildTask\\MSBuild\\Microsoft.Build.Tasks.CodeAnalysis.csproj",
-      "src\\Compilers\\Core\\MSBuildTask\\SDK\\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj",
+      "src\\Compilers\\Core\\MSBuildTask\\Sdk\\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj",
       "src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj",
       "src\\Compilers\\Core\\RebuildTest\\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj",
       "src\\Compilers\\Core\\Rebuild\\Microsoft.CodeAnalysis.Rebuild.csproj",
