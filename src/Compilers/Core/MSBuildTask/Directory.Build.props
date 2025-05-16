@@ -23,7 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Include all the files from the original .csproj -->
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
