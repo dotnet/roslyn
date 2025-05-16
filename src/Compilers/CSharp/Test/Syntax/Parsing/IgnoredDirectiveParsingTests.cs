@@ -287,7 +287,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         EOF();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78157")]
     public void AfterIf()
     {
         var source = """
@@ -299,11 +299,76 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             """;
 
         VerifyTrivia();
-        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName).WithPreprocessorSymbols("X"),
             // (3,2): error CS9283: '#:' directives cannot be after '#if' directive
             // #:y
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(3, 2),
             // (5,2): error CS9283: '#:' directives cannot be after '#if' directive
+            // #:z
+            Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(5, 2));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "x");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IfDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.IfKeyword);
+                    {
+                        T(SyntaxKind.WhitespaceTrivia, " ");
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "y");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.EndIfDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.EndIfKeyword);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        T(SyntaxKind.EndOfLineTrivia, "\n");
+                    }
+                }
+                L(SyntaxKind.IgnoredDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.StringLiteralToken, "z");
+                    N(SyntaxKind.EndOfDirectiveToken);
+                }
+            }
+        }
+        EOF();
+
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+            // (5,2): error CS9299: '#:' directives cannot be after '#if' directive
             // #:z
             Diagnostic(ErrorCode.ERR_PPIgnoredFollowsIf, ":").WithLocation(5, 2));
 
