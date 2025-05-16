@@ -166,13 +166,14 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
             var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
             var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
+            var deletedDocumentRudeEdit = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["<deleted>"]).ToDiagnostic(tree: null);
 
             return new()
             {
                 Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
+                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic, deletedDocumentRudeEdit])],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
@@ -185,6 +186,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         AssertEx.Equal(
         [
+            $"Error ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
             $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
             $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}"
         ], sessionState.ApplyChangesDiagnostics.Select(Inspect));
@@ -194,7 +196,8 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
             $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
             $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error 3")}",
-            $"RestartRequired ENC0033: {document.FilePath}(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}"
+            $"RestartRequired ENC0033: {document.FilePath}(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}",
+            $"RestartRequired ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
         ], updates.Diagnostics.Select(Inspect));
 
         Assert.True(sessionState.IsSessionActive);

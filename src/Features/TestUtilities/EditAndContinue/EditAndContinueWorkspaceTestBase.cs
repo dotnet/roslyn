@@ -243,17 +243,10 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     }
 
     internal Guid EmitAndLoadLibraryToDebuggee(Document document, TargetFramework targetFramework = DefaultTargetFramework)
-    {
-        var text = document.GetTextSynchronously(CancellationToken.None);
-        return EmitAndLoadLibraryToDebuggee(
-            document.Project.Id,
-            text.ToString(),
-            document.FilePath,
-            text.Encoding,
-            text.ChecksumAlgorithm,
-            document.Project.AssemblyName,
-            targetFramework);
-    }
+        => EmitAndLoadLibraryToDebuggee(document.Project, targetFramework);
+
+    internal Guid EmitAndLoadLibraryToDebuggee(Project project, TargetFramework targetFramework = DefaultTargetFramework)
+        => LoadLibraryToDebuggee(EmitLibrary(project, targetFramework));
 
     internal Guid EmitAndLoadLibraryToDebuggee(
         ProjectId projectId,
@@ -263,16 +256,20 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string assemblyName = "",
         TargetFramework targetFramework = DefaultTargetFramework)
+        => LoadLibraryToDebuggee(EmitLibrary(projectId, source, sourceFilePath, encoding, checksumAlgorithm, assemblyName, targetFramework: targetFramework));
+
+    internal Guid LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
     {
-        var moduleId = EmitLibrary(projectId, source, sourceFilePath, encoding, checksumAlgorithm, assemblyName, targetFramework: targetFramework);
-        LoadLibraryToDebuggee(moduleId);
+        _debuggerService.LoadedModules!.Add(moduleId, availability);
         return moduleId;
     }
 
-    internal void LoadLibraryToDebuggee(Guid moduleId, ManagedHotReloadAvailability availability = default)
-    {
-        _debuggerService.LoadedModules!.Add(moduleId, availability);
-    }
+    internal Guid EmitLibrary(Project project, TargetFramework targetFramework = DefaultTargetFramework)
+        => EmitLibrary(
+            project.Id,
+            project.Documents.Select(d => (d.GetTextSynchronously(CancellationToken.None), d.FilePath ?? throw ExceptionUtilities.UnexpectedValue(null))),
+            project.AssemblyName,
+            targetFramework: targetFramework);
 
     internal Guid EmitLibrary(
         ProjectId projectId,
@@ -286,10 +283,17 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
         TargetFramework targetFramework = DefaultTargetFramework)
-    {
-        var sources = new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) };
-        return EmitLibrary(projectId, sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions, targetFramework);
-    }
+        => EmitLibrary(
+            projectId,
+            [(source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs"))],
+            encoding,
+            checksumAlgorithm,
+            assemblyName,
+            pdbFormat,
+            generatorProject,
+            additionalFileText,
+            analyzerOptions,
+            targetFramework);
 
     internal Guid EmitLibrary(
         ProjectId projectId,
@@ -305,13 +309,30 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     {
         encoding ??= Encoding.UTF8;
 
+        return EmitLibrary(
+            projectId,
+            sources.Select(source => (SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source.content.ToString())), encoding, checksumAlgorithm), source.filePath)),
+            assemblyName,
+            pdbFormat,
+            generatorProject,
+            additionalFileText,
+            analyzerOptions,
+            targetFramework);
+    }
+
+    internal Guid EmitLibrary(
+        ProjectId projectId,
+        IEnumerable<(SourceText text, string filePath)> sources,
+        string assemblyName = "",
+        DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
+        Project? generatorProject = null,
+        string? additionalFileText = null,
+        IEnumerable<(string, string)>? analyzerOptions = null,
+        TargetFramework targetFramework = DefaultTargetFramework)
+    {
         var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
 
-        var trees = sources.Select(source =>
-        {
-            var sourceText = SourceText.From(new MemoryStream(encoding.GetBytesWithPreamble(source.content)), encoding, checksumAlgorithm);
-            return SyntaxFactory.ParseSyntaxTree(sourceText, parseOptions, source.filePath);
-        });
+        var trees = sources.Select(source => SyntaxFactory.ParseSyntaxTree(source.text, parseOptions, source.filePath));
 
         Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: targetFramework, assemblyName: assemblyName);
 

@@ -20,7 +20,8 @@ internal interface IEditAndContinueSessionTracker
     /// <summary>
     /// Diagnostics reported by the last <see cref="IEditAndContinueService.EmitSolutionUpdateAsync"/> call.
     /// Includes emit errors and issues reported by the debugger when applying changes.
-    /// Does not include rude edits, which are reported by <see cref="IEditAndContinueService.GetDocumentDiagnosticsAsync"/>.
+    /// Does not include rude edits reported for added or changed documents, which are reported by <see cref="IEditAndContinueService.GetDocumentDiagnosticsAsync"/>,
+    /// Incldues rude edits reported for deleted documents.
     /// </summary>
     ImmutableArray<DiagnosticData> ApplyChangesDiagnostics { get; }
 }

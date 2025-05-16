@@ -670,7 +670,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     }
 
     [Theory, CombinatorialData]
-    public async Task FileAdded(bool breakMode)
+    public async Task Document_Add(bool breakMode)
     {
         var sourceA = "class C1 { void M() { System.Console.WriteLine(1); } }";
         var sourceB = "class C2 {}";
@@ -732,6 +732,75 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines="
             ], _telemetryLog);
         }
+    }
+
+    [Fact]
+    public async Task Document_Delete()
+    {
+        var sourceA = "partial class C { void F() { System.Console.WriteLine(1); } }";
+        var sourceB = "partial class C { void G() { System.Console.WriteLine(2); } }";
+
+        var sourceFileA = Temp.CreateFile().WriteAllText(sourceA, Encoding.UTF8);
+        var sourceFileB = Temp.CreateFile().WriteAllText(sourceB, Encoding.UTF8);
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(sourceA, sourceFileA.Path).Project.
+            AddTestDocument(sourceB, sourceFileA.Path, out var documentBId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.Projects.Single());
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // delete B:
+        solution = solution.RemoveDocument(documentBId);
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.NotEmpty(updates.Updates);
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task Document_RenameAndUpdate()
+    {
+        var source1 = "class C { void F() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void F() { System.Console.WriteLine(2); } }";
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(source1, sourceFile1.Path, out var documentBId).Project.Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.Projects.Single());
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // delete:
+        solution = solution.RemoveDocument(documentBId);
+
+        // add:
+        var sourceFile2 = Temp.CreateFile().WriteAllText(source2, Encoding.UTF8);
+        solution = solution.AddTestDocument(projectId, source2, sourceFile2.Path, out var document2Id).Project.Solution;
+
+        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(document2Id), s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics);
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.NotEmpty(updates.Updates);
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
     }
 
     /// <summary>
@@ -1669,7 +1738,7 @@ class C { int Y => 2; }
         EnterBreakState(debuggingSession);
 
         Assert.Equal(1, generatorExecutionCount);
-        var changedOrAddedDocuments = new PooledObjects.ArrayBuilder<Document>();
+        var documentDifferences = new ProjectDocumentDifferences();
 
         //
         // Add document
@@ -1698,9 +1767,10 @@ class C { int Y => 2; }
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        Assert.Empty(documentDifferences.Deleted);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1727,9 +1797,9 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        Assert.Empty(changedOrAddedDocuments);
+        Assert.True(documentDifferences.IsEmpty);
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1752,9 +1822,10 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        Assert.Empty(documentDifferences.Deleted);
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1779,9 +1850,19 @@ class C { int Y => 2; }
         AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.GetDocumentDifferencesAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), documentDifferences, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal([generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+
+        if (documentKind == TextDocumentKind.Document)
+        {
+            AssertEx.Equal([documentId], documentDifferences.Deleted.Select(d => d.Id));
+        }
+        else
+        {
+            AssertEx.Empty(documentDifferences.Deleted);
+        }
+
+        AssertEx.Equal([generatedDocumentId], documentDifferences.ChangedOrAdded.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
     }
@@ -1834,7 +1915,7 @@ class C { int Y => 2; }
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
         EnterBreakState(debuggingSession);
 
-        var changedOrAddedDocuments = new ArrayBuilder<Document>();
+        var documentDiffences = new ProjectDocumentDifferences();
 
         //
         // Update document content
@@ -1852,9 +1933,10 @@ class C { int Y => 2; }
         AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.GetDocumentDifferencesAsync(log, oldProject, project, documentDiffences, diagnostics, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().Diagnostics.Single().GetMessage());
-        AssertEx.Empty(changedOrAddedDocuments);
+        AssertEx.Empty(documentDiffences.ChangedOrAdded);
+        AssertEx.Equal(["generated.cs"], documentDiffences.Deleted.Select(d => d.Name));
 
         Assert.Equal(2, generatorExecutionCount);
 

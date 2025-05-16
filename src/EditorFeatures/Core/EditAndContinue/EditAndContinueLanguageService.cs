@@ -398,7 +398,25 @@ internal sealed class EditAndContinueLanguageService(
                 break;
         }
 
-        UpdateApplyChangesDiagnostics(result.Diagnostics);
+        ArrayBuilder<DiagnosticData>? deletedDocumentRudeEdits = null;
+        foreach (var rudeEdit in result.RudeEdits)
+        {
+            if (await solution.GetDocumentAsync(rudeEdit.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                deletedDocumentRudeEdits ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                deletedDocumentRudeEdits.Add(rudeEdit);
+            }
+        }
+
+        if (deletedDocumentRudeEdits != null)
+        {
+            deletedDocumentRudeEdits.AddRange(result.Diagnostics);
+            UpdateApplyChangesDiagnostics(deletedDocumentRudeEdits.ToImmutableAndFree());
+        }
+        else
+        {
+            UpdateApplyChangesDiagnostics(result.Diagnostics);
+        }
 
         return new ManagedHotReloadUpdates(
             result.ModuleUpdates.Updates.FromContract(),
