@@ -727,11 +727,11 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Extensions.Package", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.Package.csproj", "{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Build.Tasks.CodeAnalysis", "src\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj", "{1B4AC233-B345-123F-E004-DAA28DE1CB08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis", "src\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj", "{1B4AC233-B345-123F-E004-DAA28DE1CB08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk", "src\Compilers\Core\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj", "{91F9EAA4-ACA2-87EE-868E-6CC3B73D6A11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk", "src\Compilers\Core\MSBuildTask\Sdk\Microsoft.Build.Tasks.CodeAnalysis.Sdk.csproj", "{91F9EAA4-ACA2-87EE-868E-6CC3B73D6A11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests", "src\Compilers\Core\SdkTaskTests\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj", "{5399BBCC-417F-C710-46DE-EB0C0074C34D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests", "src\Compilers\Core\SdkTaskTests\Microsoft.Build.Tasks.CodeAnalysis.Sdk.UnitTests.csproj", "{5399BBCC-417F-C710-46DE-EB0C0074C34D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

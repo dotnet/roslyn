@@ -54,13 +54,6 @@
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.CSharp.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.VisualBasic.Core.targets"/>
 
-      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll" />
-      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Buffers.dll" />
-      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Memory.dll" />
-      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Numerics.Vectors.dll" />
-      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
-      <BridegCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.Sdk.resources.dll" />
-
       <!--
         Do not overwrite optimization data of System.Threading.Tasks.Extensions.dll
         This assembly is signed by Open key in CoreFX and MicroBuild does not support this key.
@@ -95,6 +88,13 @@
       <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
       <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
 
+      <!-- The task in the .NET SDK loaded by .NET Framework msbuild -->
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Buffers.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Memory.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Numerics.Vectors.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
+      <BridgeCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.Sdk.resources.dll" />
     </ItemGroup>
   </Target>
 </Project>
