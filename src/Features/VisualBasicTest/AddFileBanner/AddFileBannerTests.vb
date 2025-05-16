@@ -4,11 +4,12 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddFileBanner
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
