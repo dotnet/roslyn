@@ -5,13 +5,13 @@
     <_BuildTasksDirectory>$(MSBuildThisFileDirectory)</_BuildTasksDirectory>
     <_BuildTasksDirectory Condition="Exists('$(RoslynTargetsPath)')">$(RoslynTargetsPath)\</_BuildTasksDirectory>
     <_BuildTasksAssemblyName>Microsoft.Build.Tasks.CodeAnalysis</_BuildTasksAssemblyName>
-    <_BuildTasksAssemblyName Condition="!Exists('$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)') && Exists('$(_BuildTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll')>Microsoft.Build.Tasks.CodeAnalysis.Sdk</_BuildTasksAssemblyName>
+    <_BuildTasksAssemblyName Condition="!Exists('$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)') and Exists('$(_BuildTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll')>Microsoft.Build.Tasks.CodeAnalysis.Sdk</_BuildTasksAssemblyName>
   </PropertyGroup>
 
   <!--
     Common targets for managed compilers.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
 
   <Import Project="Microsoft.Managed.Core.CurrentVersions.targets" />
 
