@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
@@ -24,6 +26,7 @@ internal interface IRemoteSemanticSearchService
         ValueTask<ClassificationOptions> GetClassificationOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
         ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
         ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
+        ValueTask OnDocumentUpdatedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
     }
 
     ValueTask<CompileQueryResult> CompileQueryAsync(string query, string language, string referenceAssembliesDir, CancellationToken cancellationToken);
@@ -52,6 +55,9 @@ internal static class RemoteSemanticSearchServiceProxy
 
         public ValueTask<ClassificationOptions> GetClassificationOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
             => ((ServerCallback)GetCallback(callbackId)).GetClassificationOptionsAsync(language, cancellationToken);
+
+        public ValueTask OnDocumentUpdatedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+            => ((ServerCallback)GetCallback(callbackId)).OnDocumentUpdatedAsync(documentId, changes, cancellationToken);
     }
 
     internal sealed class ServerCallback(Solution solution, ISemanticSearchResultsObserver observer, OptionsProvider<ClassificationOptions> classificationOptions)
@@ -62,6 +68,17 @@ internal static class RemoteSemanticSearchServiceProxy
             {
                 var rehydratedDefinition = await definition.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
                 await observer.OnDefinitionFoundAsync(rehydratedDefinition, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+            }
+        }
+
+        public async ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await observer.OnDocumentUpdatedAsync(documentId, changes, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {

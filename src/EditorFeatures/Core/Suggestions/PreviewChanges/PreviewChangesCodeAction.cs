@@ -51,7 +51,7 @@ internal partial class SuggestedActionWithNestedFlavors
                     "vs.codefix.previewchanges",
                     _originalCodeAction.Title,
                     EditorFeaturesResources.Changes,
-                    CodeAnalysis.Glyph.OpenFolder,
+                    Glyph.OpenFolder,
                     changeSummary.NewSolution,
                     changeSummary.OldSolution,
                     showCheckBoxes: false);
