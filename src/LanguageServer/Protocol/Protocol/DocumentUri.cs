@@ -15,7 +15,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// While .NET has a type represent URIs (System.Uri), we do not want to use this type directly in
 /// serialization and deserialization.  System.Uri does full parsing and validation on the URI upfront, so
 /// any issues in the uri format will cause deserialization to fail and bypass any of our error recovery.
-/// 
+///
 /// Compounding this problem, System.Uri will fail to parse various RFC spec valid URIs.
 /// In order to gracefully handle these issues, we defer the parsing of the URI until someone
 /// actually asks for it (and can handle the failure).
@@ -47,7 +47,7 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
     /// <remarks>
     /// Invalid RFC spec URI strings are not parse-able as so will return null here.
     /// However, System.Uri can also fail to parse certain valid RFC spec URI strings.
-    /// 
+    ///
     /// For example, any URI containing a 'sub-delims' character in the host name
     /// is a valid RFC spec URI, but will fail with System.Uri
     /// </remarks>
@@ -55,6 +55,12 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
 
     private static Uri? ParseUri(string uriString)
     {
+        var prefix = "file:///private/var/";
+        if (uriString.StartsWith(prefix))
+        {
+            uriString = "file:///var/" + uriString[prefix.Length..];
+        }
+
         try
         {
             return new Uri(uriString);
