@@ -65,7 +65,7 @@
     ========================
     
     -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ShowMessageForImplicitlySkipAnalyzers" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
 
   <Target Name="_ComputeSkipAnalyzers" BeforeTargets="CoreCompile">
     <!-- First, force clear non-user facing properties '_SkipAnalyzers' and '_ImplicitlySkipAnalyzers'. -->
@@ -158,7 +158,7 @@
       <CompilerVisibleProperty Include="PropertyNameToEval" />
       <CompilerVisibleItemMetadata Include="ItemType" MetadataName="MetadataToRetrieve" />
     -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(_BuildTasksDirectory)$(_BuildTasksAssemblyName).dll" />
 
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"

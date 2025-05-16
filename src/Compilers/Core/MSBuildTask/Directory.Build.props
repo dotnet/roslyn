@@ -69,7 +69,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)ErrorString.resx" GenerateSource="true" />
-    <Content Include="$(MSBuildThisFileDirectory)*.targets">
+    <Content Include="$(MSBuildThisFileDirectory)Microsoft.*.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
       <BuildAction>None</BuildAction>

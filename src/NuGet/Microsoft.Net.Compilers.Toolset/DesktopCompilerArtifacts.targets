@@ -48,11 +48,18 @@
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)vbc$(_ExeDirSuffix)\$(Configuration)\net472\vbc.rsp"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler$(_ExeDirSuffix)\$(Configuration)\net472\VBCSCompiler.exe" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)VBCSCompiler$(_ExeDirSuffix)\$(Configuration)\net472\VBCSCompiler.exe.config"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" NeededForBuildTask="true"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.dll" />
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.CurrentVersions.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.Managed.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.CSharp.Core.targets"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\Microsoft.VisualBasic.Core.targets"/>
+
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Buffers.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Memory.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Numerics.Vectors.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
+      <BridegCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.Sdk.resources.dll" />
 
       <!--
         Do not overwrite optimization data of System.Threading.Tasks.Extensions.dll
@@ -62,19 +69,19 @@
         
         We don't currently collect optimization data for the following assemblies.
       -->
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Buffers.dll" NeededForBuildTask="true"/>
+      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Buffers.dll" />
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Collections.Immutable.dll"/>
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Memory.dll" NeededForBuildTask="true"/>
+    <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Memory.dll" />
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Reflection.Metadata.dll"/>
-      <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" NeededForBuildTask="true"/>
+    <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Text.Encoding.CodePages.dll"/>
       <_NoOptimizationData Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Threading.Tasks.Extensions.dll"/>
       
       <!--
         System.Numerics.Vector requires JIT, since its size is dynamic and based on the underlying CPU support.
       -->
-      <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll" NeededForBuildTask="true"/>
+      <_NoNGen Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.Numerics.Vectors.dll" />
       
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csi\$(Configuration)\net472\System.*.dll" Exclude="@(_NoOptimizationData)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="true"/>            
       <DesktopCompilerArtifact Include="@(_NoOptimizationData)" Exclude="@(_NoNGen)" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" OverwriteNgenOptimizationData="false"/>
@@ -86,7 +93,7 @@
       <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.Scripting.resources.dll" />
       <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" />
       <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
-      <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" NeededForBuildTask="true" />
+      <DesktopCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
 
     </ItemGroup>
   </Target>
