@@ -1257,12 +1257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypedConstant constructorArgument = arguments.Attribute.CommonConstructorArguments[0];
 
             ImmutableArray<ParameterSymbol> containingSymbolParameters = ContainingSymbol.GetParameters();
+            ParameterSymbol? extensionParameter = ContainingType.ExtensionParameter;
 
             ImmutableArray<int> parameterOrdinals;
-            ArrayBuilder<ParameterSymbol?> parameters;
             if (attributeIndex == 0)
             {
-                if (decodeName(constructorArgument, ref arguments) is not (int ordinal, var parameter))
+                if (decodeName(constructorArgument, ref arguments) is not int ordinal)
                 {
                     // If an error needs to be reported, it will already have been reported by another step.
                     setInterpolatedStringHandlerAttributeError(ref arguments);
@@ -1270,8 +1270,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 parameterOrdinals = ImmutableArray.Create(ordinal);
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(1);
-                parameters.Add(parameter);
             }
             else if (attributeIndex == 1)
             {
@@ -1284,13 +1282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 bool hadError = false;
-                parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
                 var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);
                 foreach (var nestedArgument in constructorArgument.Values)
                 {
-                    if (decodeName(nestedArgument, ref arguments) is (int ordinal, var parameter) && !hadError)
+                    if (decodeName(nestedArgument, ref arguments) is int ordinal && !hadError)
                     {
-                        parameters.Add(parameter);
                         ordinalsBuilder.Add(ordinal);
                     }
                     else
@@ -1301,7 +1297,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hadError)
                 {
-                    parameters.Free();
                     ordinalsBuilder.Free();
                     setInterpolatedStringHandlerAttributeError(ref arguments);
                     return;
@@ -1317,7 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterWellKnownAttributeData = arguments.GetOrCreateData<ParameterWellKnownAttributeData>();
             parameterWellKnownAttributeData.InterpolatedStringHandlerArguments = parameterOrdinals;
 
-            (int Ordinal, ParameterSymbol? Parameter)? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
+            int? decodeName(TypedConstant constant, ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
             {
                 Debug.Assert(arguments.AttributeSyntaxOpt is not null);
                 if (constant.IsNull)
@@ -1345,7 +1340,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return null;
                     }
 
-                    return (BoundInterpolatedStringArgumentPlaceholder.InstanceParameter, null);
+                    return BoundInterpolatedStringArgumentPlaceholder.InstanceParameter;
+                }
+
+                if (extensionParameter?.Name == name)
+                {
+                    return BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver;
                 }
 
                 var parameter = containingSymbolParameters.FirstOrDefault(static (param, name) => string.Equals(param.Name, name, StringComparison.Ordinal), name);
@@ -1371,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, arguments.AttributeSyntaxOpt.Location, parameter.Name, this.Name);
                 }
 
-                return (parameter.Ordinal, parameter);
+                return parameter.Ordinal;
             }
 
             static void setInterpolatedStringHandlerAttributeError(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
