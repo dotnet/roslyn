@@ -8,7 +8,7 @@
     <DefineConstants>SDK_TASK;$(DefineConstants)</DefineConstants>
 
     <!--
-         This task is the same as the MSBUild version but for net472 only. Our NRT setup does 
+         This task is the same as the MSBuild version but for net472 only. Our NRT setup does 
          not enable nullable warnings for net472 when the project is multi-targeted which means
          there are a number of nullable warnings when they are enabled for net472. 
 
