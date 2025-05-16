@@ -7,11 +7,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,11 +58,11 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
         if (cancellationToken.IsCancellationRequested)
             return [];
 
-        return GetMembersInTypes(document.Project.Solution, semanticModel.SyntaxTree, typesInFile, cancellationToken);
+        return GetMembersInTypes(document.Project.Solution, semanticModel.SyntaxTree, typesInFile, semanticModel, cancellationToken);
     }
 
     private static ImmutableArray<RoslynNavigationBarItem> GetMembersInTypes(
-        Solution solution, SyntaxTree tree, HashSet<INamedTypeSymbol> types, CancellationToken cancellationToken)
+        Solution solution, SyntaxTree tree, HashSet<INamedTypeSymbol> types, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetMembersInTypes_CSharp, cancellationToken))
         {
@@ -79,29 +83,29 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
 
                     if (member is IMethodSymbol { PartialImplementationPart: { } } methodSymbol)
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol, tree, cancellationToken));
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol.PartialImplementationPart, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol, tree, semanticModel, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol.PartialImplementationPart, tree, semanticModel, cancellationToken));
                     }
                     else if (member is IPropertySymbol { PartialImplementationPart: { } } propertySymbol)
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, cancellationToken));
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, semanticModel, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, semanticModel, cancellationToken));
                     }
                     else if (member is IEventSymbol { PartialImplementationPart: { } } eventSymbol)
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol, tree, cancellationToken));
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol.PartialImplementationPart, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol, tree, semanticModel, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, eventSymbol.PartialImplementationPart, tree, semanticModel, cancellationToken));
                     }
                     else if (member is IMethodSymbol or IPropertySymbol or IEventSymbol)
                     {
                         Debug.Assert(member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null } or IEventSymbol { PartialDefinitionPart: null },
                             $"NavBar expected GetMembers to return partial method/property/event definition parts but the implementation part was returned.");
 
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, semanticModel, cancellationToken));
                     }
                     else
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, semanticModel, cancellationToken));
                     }
                 }
 
@@ -166,6 +170,7 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
         {
             BaseTypeDeclarationSyntax t => semanticModel.GetDeclaredSymbol(t, cancellationToken),
             DelegateDeclarationSyntax d => semanticModel.GetDeclaredSymbol(d, cancellationToken),
+            CompilationUnitSyntax c => c.IsTopLevelProgram() ? semanticModel.GetDeclaredSymbol(c, cancellationToken)?.ContainingType : null,
             _ => null,
         };
 
@@ -182,18 +187,41 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
     }
 
     private static SymbolItem? CreateItemForMember(
-        Solution solution, ISymbol member, SyntaxTree tree, CancellationToken cancellationToken)
+        Solution solution, ISymbol member, SyntaxTree tree, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         var location = GetSymbolLocation(solution, member, tree, cancellationToken);
         if (location == null)
             return null;
+
+        using var _ = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var localFunctionItems);
+        foreach (var syntaxReference in member.DeclaringSyntaxReferences)
+        {
+            if (syntaxReference.SyntaxTree != tree)
+            {
+                // The reference is not in this file, no need to include in the outline view.
+                continue;
+            }
+
+            var node = syntaxReference.GetSyntax(cancellationToken);
+            foreach (var localFunction in node.DescendantNodes().Where(CSharpSyntaxFacts.Instance.IsLocalFunctionStatement))
+            {
+                var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+                // Check to make sure we only include local functions that are directly contained in the current member.
+                // We'll recursively add any nested local functions when we traverse the direct descendent.
+                if (localFunctionSymbol is IMethodSymbol && localFunctionSymbol.ContainingSymbol == member)
+                {
+                    localFunctionItems.AddIfNotNull(CreateItemForMember(solution, localFunctionSymbol, tree, semanticModel, cancellationToken));
+                }
+            }
+        }
 
         return new SymbolItem(
             member.ToDisplayString(s_memberNameFormat),
             member.ToDisplayString(s_memberDetailsFormat),
             member.GetGlyph(),
             member.IsObsolete(),
-            location.Value);
+            location.Value,
+            localFunctionItems.ToImmutable());
     }
 
     private static SymbolItemLocation? GetSymbolLocation(
