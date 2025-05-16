@@ -13,7 +13,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Collections
 {
     /// <summary>
     /// Represents a single item or many items (including none).
