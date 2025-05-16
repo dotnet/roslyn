@@ -24,12 +24,10 @@ internal static class VirtualCSharpFileBasedProgramProject
     internal static string GetVirtualProjectPath(string documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-#region TODO: Copy-pasted from dotnet run-api. Delete when run-api is adopted.
+    #region TODO: Copy-pasted from dotnet run-api. Delete when run-api is adopted.
+    // See https://github.com/dotnet/sdk/blob/b5dbc69cc28676ac6ea615654c8016a11b75e747/src/Cli/Microsoft.DotNet.Cli.Utils/Sha256Hasher.cs#L10
     private static class Sha256Hasher
     {
-        /// <summary>
-        /// The hashed mac address needs to be the same hashed value as produced by the other distinct sources given the same input. (e.g. VsCode)
-        /// </summary>
         public static string Hash(string text)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(text);
@@ -48,6 +46,7 @@ internal static class VirtualCSharpFileBasedProgramProject
     }
 
     // TODO: this is a copy of SDK run-api code. Must delete when adopting run-api.
+    // See https://github.com/dotnet/sdk/blob/5a4292947487a9d34f4256c1d17fb3dc26859174/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L449
     internal static string GetArtifactsPath(string entryPointFileFullPath)
     {
         // We want a location where permissions are expected to be restricted to the current user.
@@ -62,7 +61,7 @@ internal static class VirtualCSharpFileBasedProgramProject
 
         return Path.Join(directory, "dotnet", "runfile", directoryName);
     }
-#endregion
+    #endregion
 
     internal static (string virtualProjectXml, bool isFileBasedProgram) MakeVirtualProjectContent(string documentFilePath, SourceText text)
     {
@@ -75,53 +74,72 @@ internal static class VirtualCSharpFileBasedProgramProject
 
         var artifactsPath = GetArtifactsPath(documentFilePath);
 
+        var targetFramework = Environment.GetEnvironmentVariable("DOTNET_RUN_FILE_TFM") ?? "net10.0";
+
         var virtualProjectXml = $"""
             <Project>
-                <PropertyGroup>
-                    <OutputType>Exe</OutputType>
-                    <TargetFramework>net10.0</TargetFramework>
-                    <ImplicitUsings>enable</ImplicitUsings>
-                    <Nullable>enable</Nullable>
-                    <Features>$(Features);FileBasedProgram</Features>
-                    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-                    <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                    <ArtifactsPath>{SecurityElement.Escape(artifactsPath)}</ArtifactsPath>
-                </PropertyGroup>
 
-                <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+              <PropertyGroup>
+                <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
+                <ArtifactsPath>{SecurityElement.Escape(artifactsPath)}</ArtifactsPath>
+              </PropertyGroup>
 
+              <!-- We need to explicitly import Sdk props/targets so we can override the targets below. -->
+              <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+              <PropertyGroup>
+                <OutputType>Exe</OutputType>
+                <TargetFramework>{SecurityElement.Escape(targetFramework)}</TargetFramework>
+                <ImplicitUsings>enable</ImplicitUsings>
+                <Nullable>enable</Nullable>
+              </PropertyGroup>
+
+              <PropertyGroup>
+                <EnableDefaultItems>false</EnableDefaultItems>
+              </PropertyGroup>
+
+              <PropertyGroup>
+                <LangVersion>preview</LangVersion>
+              </PropertyGroup>
+
+              <PropertyGroup>
+                <Features>$(Features);FileBasedProgram</Features>
+              </PropertyGroup>
+
+
+              <ItemGroup>
+                <Compile Include="{SecurityElement.Escape(documentFilePath)}" />
+              </ItemGroup>
+
+              <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+              <!--
+                Override targets which don't work with project files that are not present on disk.
+                See https://github.com/NuGet/Home/issues/14148.
+              -->
+
+              <Target Name="_FilterRestoreGraphProjectInputItems"
+                      DependsOnTargets="_LoadRestoreGraphEntryPoints"
+                      Returns="@(FilteredRestoreGraphProjectInputItems)">
                 <ItemGroup>
-                    <Compile Include="{SecurityElement.Escape(documentFilePath)}" />
+                  <FilteredRestoreGraphProjectInputItems Include="@(RestoreGraphProjectInputItems)" />
                 </ItemGroup>
+              </Target>
 
-                <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+              <Target Name="_GetAllRestoreProjectPathItems"
+                      DependsOnTargets="_FilterRestoreGraphProjectInputItems"
+                      Returns="@(_RestoreProjectPathItems)">
+                <ItemGroup>
+                  <_RestoreProjectPathItems Include="@(FilteredRestoreGraphProjectInputItems)" />
+                </ItemGroup>
+              </Target>
 
-                <!--
-                  Override targets which don't work with project files that are not present on disk.
-                  See https://github.com/NuGet/Home/issues/14148.
-                -->
+              <Target Name="_GenerateRestoreGraph"
+                      DependsOnTargets="_FilterRestoreGraphProjectInputItems;_GetAllRestoreProjectPathItems;_GenerateRestoreGraphProjectEntry;_GenerateProjectRestoreGraph"
+                      Returns="@(_RestoreGraphEntry)">
+                <!-- Output from dependency _GenerateRestoreGraphProjectEntry and _GenerateProjectRestoreGraph -->
+              </Target>
 
-                <Target Name="_FilterRestoreGraphProjectInputItems"
-                        DependsOnTargets="_LoadRestoreGraphEntryPoints"
-                        Returns="@(FilteredRestoreGraphProjectInputItems)">
-                  <ItemGroup>
-                    <FilteredRestoreGraphProjectInputItems Include="@(RestoreGraphProjectInputItems)" />
-                  </ItemGroup>
-                </Target>
-
-                <Target Name="_GetAllRestoreProjectPathItems"
-                        DependsOnTargets="_FilterRestoreGraphProjectInputItems"
-                        Returns="@(_RestoreProjectPathItems)">
-                  <ItemGroup>
-                    <_RestoreProjectPathItems Include="@(FilteredRestoreGraphProjectInputItems)" />
-                  </ItemGroup>
-                </Target>
-
-                <Target Name="_GenerateRestoreGraph"
-                        DependsOnTargets="_FilterRestoreGraphProjectInputItems;_GetAllRestoreProjectPathItems;_GenerateRestoreGraphProjectEntry;_GenerateProjectRestoreGraph"
-                        Returns="@(_RestoreGraphEntry)">
-                  <!-- Output from dependency _GenerateRestoreGraphProjectEntry and _GenerateProjectRestoreGraph -->
-                </Target>
             </Project>
             """;
 
