@@ -103,6 +103,7 @@
         "command": "dotnet",
         "args": [
           "build",
+          "-p:InnerTargets=CopyFilesForDebugging",
           "-p:GenerateFullPaths=true",
           "${workspaceFolder}/src/NuGet/Microsoft.Net.Compilers.Toolset/AnyCpu/Microsoft.Net.Compilers.Toolset.Package.csproj"
         ],
