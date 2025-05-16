@@ -29,4 +29,52 @@
     </PackageDescription>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Include all the files from the original .csproj -->
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\BuildServerConnection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\CommandLine\BuildProtocol.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\CommandLine\ConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\CommandLine\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\CommandLine\CompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\CommitHashAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CommandLineUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\Debug.cs" Link="Debug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\RoslynString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CanonicalError.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CommandLineBuilderExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CopyRefAssembly.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csc.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Csi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMSBuildEditorConfig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IAnalyzerConfigFilesHostObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICompilerOptionsHostObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ICscHostObject5.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InteractiveCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IVbcHostObject6.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedCompiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ManagedToolTask.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MapSourceRoots.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MvidReader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)ErrorString.resx" GenerateSource="true" />
+    <Content Include="$(MSBuildThisFileDirectory)*.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <BuildAction>None</BuildAction>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackagePath>contentFiles\any\any</PackagePath>
+    </Content>
+  </ItemGroup>
 </Project>
