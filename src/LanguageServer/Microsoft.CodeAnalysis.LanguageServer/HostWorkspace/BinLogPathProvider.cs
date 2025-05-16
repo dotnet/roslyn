@@ -4,14 +4,15 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(BinlogNamer)), Shared]
-internal sealed class BinlogNamer
+[Export(typeof(IBinLogPathProvider)), Shared]
+internal sealed class BinLogPathProvider : IBinLogPathProvider
 {
     /// <summary>
     /// The suffix to use for the binary log name; incremented each time we have a new build. Should be incremented with <see cref="Interlocked.Increment(ref int)"/>.
@@ -28,13 +29,13 @@ internal sealed class BinlogNamer
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public BinlogNamer(IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory)
+    public BinLogPathProvider(IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory)
     {
         _globalOptionService = globalOptionService;
-        _logger = loggerFactory.CreateLogger<BinlogNamer>();
+        _logger = loggerFactory.CreateLogger<BinLogPathProvider>();
     }
 
-    internal string? GetMSBuildBinaryLogPath()
+    public string? GetNewLogPath()
     {
         if (_globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.BinaryLogPath) is not string binaryLogDirectory)
             return null;
