@@ -11,16 +11,16 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionWorkspaceMessageHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(DispatchWorkspaceExtensionMessageHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionWorkspaceMessageHandler()
-    : AbstractExtensionHandler, ILspServiceRequestHandler<ExtensionWorkspaceMessageParams, ExtensionMessageResponse>
+internal sealed class DispatchWorkspaceExtensionMessageHandler()
+    : AbstractExtensionHandler, ILspServiceRequestHandler<DispatchWorkspaceExtensionMessageParams, DispatchExtensionMessageResponse>
 {
-    private const string MethodName = "roslyn/extensionWorkspaceMessage";
+    private const string MethodName = "workspace/_vs_dispatchExtensionMessage";
 
-    public async Task<ExtensionMessageResponse> HandleRequestAsync(ExtensionWorkspaceMessageParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchWorkspaceExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Solution);
 
@@ -34,6 +34,6 @@ internal sealed class ExtensionWorkspaceMessageHandler()
         if (exception is not null)
             context.Logger.LogException(exception);
 
-        return new ExtensionMessageResponse(response, extensionWasUnloaded, exception);
+        return new DispatchExtensionMessageResponse(response, extensionWasUnloaded, exception);
     }
 }

@@ -7,8 +7,8 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
 /// <summary>
-/// Parameters for the roslyn/extensionRegister request.
+/// Parameters for the server/_vs_activateExtension request.
 /// </summary>
 /// <param name="AssemblyFilePath">Full path to the assembly that contains the message handlers to register.</param>
-internal readonly record struct ExtensionRegisterParams(
+internal readonly record struct ActivateExtensionParams(
     [property: JsonPropertyName("assemblyFilePath")] string AssemblyFilePath);
