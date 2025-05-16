@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,6 +24,46 @@ internal static class VirtualCSharpFileBasedProgramProject
     internal static string GetVirtualProjectPath(string documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
+#region TODO: Copy-pasted from dotnet run-api. Delete when run-api is adopted.
+    private static class Sha256Hasher
+    {
+        /// <summary>
+        /// The hashed mac address needs to be the same hashed value as produced by the other distinct sources given the same input. (e.g. VsCode)
+        /// </summary>
+        public static string Hash(string text)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(text);
+            byte[] hash = SHA256.HashData(bytes);
+#if NET9_0_OR_GREATER
+            return Convert.ToHexStringLower(hash);
+#else
+            return Convert.ToHexString(hash).ToLowerInvariant();
+#endif
+        }
+
+        public static string HashWithNormalizedCasing(string text)
+        {
+            return Hash(text.ToUpperInvariant());
+        }
+    }
+
+    // TODO: this is a copy of SDK run-api code. Must delete when adopting run-api.
+    internal static string GetArtifactsPath(string entryPointFileFullPath)
+    {
+        // We want a location where permissions are expected to be restricted to the current user.
+        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? Path.GetTempPath()
+            : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+        // Include entry point file name so the directory name is not completely opaque.
+        string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
+        string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
+        string directoryName = $"{fileName}-{hash}";
+
+        return Path.Join(directory, "dotnet", "runfile", directoryName);
+    }
+#endregion
+
     internal static (string virtualProjectXml, bool isFileBasedProgram) MakeVirtualProjectContent(string documentFilePath, SourceText text)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
@@ -30,21 +73,28 @@ internal static class VirtualCSharpFileBasedProgramProject
         var root = tree.GetRoot();
         var isFileBasedProgram = root.GetLeadingTrivia().Any(SyntaxKind.IgnoredDirectiveTrivia) || root.ChildNodes().Any(node => node.IsKind(SyntaxKind.GlobalStatement));
 
-        var virtualProjectXml = $"""
-            <Project Sdk="Microsoft.NET.Sdk">
+        var artifactsPath = GetArtifactsPath(documentFilePath);
 
+        var virtualProjectXml = $"""
+            <Project>
                 <PropertyGroup>
                     <OutputType>Exe</OutputType>
-                    <TargetFramework>net8.0</TargetFramework>
+                    <TargetFramework>net10.0</TargetFramework>
                     <ImplicitUsings>enable</ImplicitUsings>
                     <Nullable>enable</Nullable>
                     <Features>$(Features);FileBasedProgram</Features>
                     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+                    <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
+                    <ArtifactsPath>{SecurityElement.Escape(artifactsPath)}</ArtifactsPath>
                 </PropertyGroup>
+
+                <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
                 <ItemGroup>
                     <Compile Include="{SecurityElement.Escape(documentFilePath)}" />
                 </ItemGroup>
+
+                <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
                 <!--
                   Override targets which don't work with project files that are not present on disk.
