@@ -171,18 +171,25 @@ internal sealed class ProjectBuildManager
         var log = new DiagnosticLog();
         try
         {
-            var projectCollection = new MSB.Evaluation.ProjectCollection(
-                AllGlobalProperties,
-                _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
-                MSB.Evaluation.ToolsetDefinitionLocations.Default);
-            try
+            if (BatchBuildStarted)
             {
-                return LoadProjectCore(path, readStream, projectCollection, log);
+                return LoadProjectCore(path, readStream, _batchBuildProjectCollection, log);
             }
-            finally
+            else
             {
-                // unload project so collection will release global strings
-                projectCollection.UnloadAllProjects();
+                var projectCollection = new MSB.Evaluation.ProjectCollection(
+                    AllGlobalProperties,
+                    _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
+                try
+                {
+                    return LoadProjectCore(path, readStream, projectCollection, log);
+                }
+                finally
+                {
+                    // unload project so collection will release global strings
+                    projectCollection.UnloadAllProjects();
+                }
             }
         }
         catch (Exception e)
@@ -228,7 +235,8 @@ internal sealed class ProjectBuildManager
             ? [_msbuildLogger]
             : ImmutableArray<MSB.Framework.ILogger>.Empty;
 
-        _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);
+        // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
+        _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
 
         var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
         {
