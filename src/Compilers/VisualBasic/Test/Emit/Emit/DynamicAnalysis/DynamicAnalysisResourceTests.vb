@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Reflection.PortableExecutable
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
