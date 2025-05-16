@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.Serialization
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

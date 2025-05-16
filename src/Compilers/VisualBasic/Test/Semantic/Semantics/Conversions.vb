@@ -4,7 +4,9 @@
 
 Imports System.IO
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -14,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 

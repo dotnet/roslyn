@@ -4,10 +4,10 @@
 
 Imports Microsoft.CodeAnalysis.AddRequiredParentheses
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of Microsoft.CodeAnalysis.VisualBasic.AddRequiredParentheses.VisualBasicAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer, Microsoft.CodeAnalysis.AddRequiredParentheses.AddRequiredParenthesesCodeFixProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddRequiredParentheses

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

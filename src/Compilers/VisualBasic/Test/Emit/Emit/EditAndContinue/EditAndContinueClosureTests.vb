@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Operations

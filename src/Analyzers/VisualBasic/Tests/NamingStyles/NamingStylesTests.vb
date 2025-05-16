@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.NamingStyles
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces

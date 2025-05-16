@@ -7,6 +7,7 @@ Imports System.Reflection.Metadata
 Imports System.Security.Cryptography
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests

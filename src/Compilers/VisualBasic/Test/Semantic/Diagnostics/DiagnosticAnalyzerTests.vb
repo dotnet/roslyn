@@ -6,6 +6,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
