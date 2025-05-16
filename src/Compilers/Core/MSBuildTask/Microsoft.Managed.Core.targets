@@ -5,7 +5,7 @@
     <_BuildTasksDirectory>$(MSBuildThisFileDirectory)</_BuildTasksDirectory>
     <_BuildTasksDirectory Condition="Exists('$(RoslynTargetsPath)')">$(RoslynTargetsPath)\</_BuildTasksDirectory>
     <_BuildTasksAssemblyName>Microsoft.Build.Tasks.CodeAnalysis</_BuildTasksAssemblyName>
-    <_BuildTasksAssemblyName Condition="!Exists('$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)') and Exists('$(_BuildTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll')>Microsoft.Build.Tasks.CodeAnalysis.Sdk</_BuildTasksAssemblyName>
+    <_BuildTasksAssemblyName Condition="!Exists('$(_BuildTasksDirectory)$(_BuildTasksAssemblyName)') and Exists('$(_BuildTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.Sdk.dll')">Microsoft.Build.Tasks.CodeAnalysis.Sdk</_BuildTasksAssemblyName>
   </PropertyGroup>
 
   <!--
