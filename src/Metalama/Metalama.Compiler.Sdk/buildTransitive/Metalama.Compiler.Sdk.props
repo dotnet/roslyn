@@ -1,6 +1,8 @@
 <Project>
    <PropertyGroup>
-        <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">net8.0</_MetalamaCompilerSdkTasksDirectoryName>
+     <_MetalamaBuildRuntimeVersion>$([System.Environment]::Version)</_MetalamaBuildRuntimeVersion>
+     <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '9'">net9.0</_MetalamaCompilerSdkTasksDirectoryName>
+     <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '9'">net9.0</_MetalamaCompilerSdkTasksDirectoryName>
         <_MetalamaCompilerSdkTasksDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_MetalamaCompilerSdkTasksDirectoryName>
         <MetalamaTasksAssembly>$(MSBuildThisFileDirectory)..\tasks\$(_MetalamaCompilerSdkTasksDirectoryName)\Metalama.Compiler.BuildTasks.dll</MetalamaTasksAssembly> 
     </PropertyGroup>

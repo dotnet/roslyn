@@ -26,6 +26,7 @@
     <None Include="buildTransitive\*" Pack="true" PackagePath="buildTransitive" />
     <None Include="build\*" Pack="true" PackagePath="build" />
     <None Include="$(ArtifactsBinDir)\Metalama.Compiler.BuildTasks\$(Configuration)\net8.0\Metalama.Compiler.BuildTasks.dll" Pack="true" PackagePath="tasks/net8.0" />
+    <None Include="$(ArtifactsBinDir)\Metalama.Compiler.BuildTasks\$(Configuration)\net8.0\Metalama.Compiler.BuildTasks.dll" Pack="true" PackagePath="tasks/net9.0" />
     <None Include="$(ArtifactsBinDir)\Metalama.Compiler.BuildTasks\$(Configuration)\net472\Metalama.Compiler.BuildTasks.dll" Pack="true" PackagePath="tasks/net472" />
 
   </ItemGroup>
