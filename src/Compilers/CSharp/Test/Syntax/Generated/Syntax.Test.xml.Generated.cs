@@ -520,8 +520,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
             => InternalSyntaxFactory.EnumMemberDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Identifier("Identifier"), null);
 
-        private static Syntax.InternalSyntax.ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => InternalSyntaxFactory.ExtensionDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ExtensionKeyword), null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
+        private static Syntax.InternalSyntax.ExtensionBlockDeclarationSyntax GenerateExtensionBlockDeclaration()
+            => InternalSyntaxFactory.ExtensionBlockDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), InternalSyntaxFactory.Token(SyntaxKind.ExtensionKeyword), null, null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), null, new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), null, null);
 
         private static Syntax.InternalSyntax.BaseListSyntax GenerateBaseList()
             => InternalSyntaxFactory.BaseList(InternalSyntaxFactory.Token(SyntaxKind.ColonToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.BaseTypeSyntax>());
@@ -2898,9 +2898,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationFactoryAndProperties()
+        public void TestExtensionBlockDeclarationFactoryAndProperties()
         {
-            var node = GenerateExtensionDeclaration();
+            var node = GenerateExtensionBlockDeclaration();
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
@@ -8337,9 +8337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationTokenDeleteRewriter()
+        public void TestExtensionBlockDeclarationTokenDeleteRewriter()
         {
-            var oldNode = GenerateExtensionDeclaration();
+            var oldNode = GenerateExtensionBlockDeclaration();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -8353,9 +8353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationIdentityRewriter()
+        public void TestExtensionBlockDeclarationIdentityRewriter()
         {
-            var oldNode = GenerateExtensionDeclaration();
+            var oldNode = GenerateExtensionBlockDeclaration();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10827,8 +10827,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration()
             => SyntaxFactory.EnumMemberDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Identifier("Identifier"), default(EqualsValueClauseSyntax));
 
-        private static ExtensionDeclarationSyntax GenerateExtensionDeclaration()
-            => SyntaxFactory.ExtensionDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default(TypeParameterListSyntax), default(ParameterListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
+        private static ExtensionBlockDeclarationSyntax GenerateExtensionBlockDeclaration()
+            => SyntaxFactory.ExtensionBlockDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), SyntaxFactory.Token(SyntaxKind.ExtensionKeyword), default(TypeParameterListSyntax), default(ParameterListSyntax), new SyntaxList<TypeParameterConstraintClauseSyntax>(), default(SyntaxToken), new SyntaxList<MemberDeclarationSyntax>(), default(SyntaxToken), default(SyntaxToken));
 
         private static BaseListSyntax GenerateBaseList()
             => SyntaxFactory.BaseList(SyntaxFactory.Token(SyntaxKind.ColonToken), new SeparatedSyntaxList<BaseTypeSyntax>());
@@ -13205,9 +13205,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationFactoryAndProperties()
+        public void TestExtensionBlockDeclarationFactoryAndProperties()
         {
-            var node = GenerateExtensionDeclaration();
+            var node = GenerateExtensionBlockDeclaration();
 
             Assert.Equal(default, node.AttributeLists);
             Assert.Equal(default, node.Modifiers);
@@ -18644,9 +18644,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationTokenDeleteRewriter()
+        public void TestExtensionBlockDeclarationTokenDeleteRewriter()
         {
-            var oldNode = GenerateExtensionDeclaration();
+            var oldNode = GenerateExtensionBlockDeclaration();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -18660,9 +18660,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestExtensionDeclarationIdentityRewriter()
+        public void TestExtensionBlockDeclarationIdentityRewriter()
         {
-            var oldNode = GenerateExtensionDeclaration();
+            var oldNode = GenerateExtensionBlockDeclaration();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

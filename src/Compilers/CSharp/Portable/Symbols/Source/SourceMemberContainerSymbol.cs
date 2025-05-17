@@ -3907,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);

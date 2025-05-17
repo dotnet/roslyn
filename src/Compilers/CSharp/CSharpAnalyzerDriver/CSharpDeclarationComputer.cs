@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case SyntaxKind.InterfaceDeclaration;
                     }
                 case SyntaxKind.InterfaceDeclaration:
-                case SyntaxKind.ExtensionDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)

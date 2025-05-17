@@ -1049,7 +1049,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword);
 
             UsingTree(newTree);
@@ -1061,7 +1061,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1108,7 +1108,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword,
                             SyntaxKind.ParameterList,
                             SyntaxKind.Parameter);
@@ -1122,7 +1122,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1168,7 +1168,7 @@ class C
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
-                            SyntaxKind.ExtensionDeclaration,
+                            SyntaxKind.ExtensionBlockDeclaration,
                             SyntaxKind.ExtensionKeyword);
 
             UsingTree(newTree,
@@ -1183,7 +1183,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1227,7 +1227,7 @@ class C
             TestDiffsInOrder(diffs,
                 SyntaxKind.CompilationUnit,
                 SyntaxKind.ClassDeclaration,
-                SyntaxKind.ExtensionDeclaration,
+                SyntaxKind.ExtensionBlockDeclaration,
                 SyntaxKind.ExtensionKeyword,
                 SyntaxKind.ParameterList,
                 SyntaxKind.Parameter,
@@ -1242,7 +1242,7 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);

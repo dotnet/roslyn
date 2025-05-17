@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
     }
 
-    internal partial class ExtensionDeclarationSyntax
+    internal partial class ExtensionBlockDeclarationSyntax
     {
         public override TypeDeclarationSyntax UpdateCore(
             CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists,

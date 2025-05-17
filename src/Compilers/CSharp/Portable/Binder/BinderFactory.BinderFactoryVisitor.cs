@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitRecordDeclaration(RecordDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
-            public override Binder VisitExtensionDeclaration(ExtensionDeclarationSyntax node)
+            public override Binder VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
                 => VisitTypeDeclarationCore(node);
 
             public sealed override Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent)
@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
-                else if (memberSyntax is ExtensionDeclarationSyntax extensionDeclaration)
+                else if (memberSyntax is ExtensionBlockDeclarationSyntax extensionDeclaration)
                 {
                     Binder outerBinder = VisitCore(memberSyntax);
                     SourceNamedTypeSymbol type = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);

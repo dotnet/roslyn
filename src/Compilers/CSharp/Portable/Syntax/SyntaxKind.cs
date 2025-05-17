@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionElement = 9077,
         SpreadElement = 9078,
 
-        ExtensionDeclaration = 9079,
+        ExtensionBlockDeclaration = 9079,
 
         IgnoredDirectiveTrivia = 9080,
     }

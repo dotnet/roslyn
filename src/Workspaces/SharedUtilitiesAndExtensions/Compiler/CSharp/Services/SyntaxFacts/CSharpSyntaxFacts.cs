@@ -836,7 +836,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
-            else if (memberDeclaration is ExtensionDeclarationSyntax extensionDeclaration)
+            else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
                 builder.Append("extension");
