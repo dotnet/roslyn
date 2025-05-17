@@ -17,11 +17,7 @@
 
  
     <PackageDescription>
-      THIS IS NOT THE PACKAGE YOU ARE LOOKING FOR. If you want to add Metalama to your project, add a reference to the package named `Metalama.Framework`.
-      
-      Metalama Compiler package.
-
-      Referencing this package causes the project to be built using the Metalama Compiler contained in the package (a fork of Roslyn), as opposed to the version of the C# compiler installed with .NET SDK.
+      A fork of the Roslyn compiler that adds an extension point allowing for syntax tree transformations. This fork is used by the Metalama framework.
     </PackageDescription>
    
     <PackageIcon>metalama.png</PackageIcon>

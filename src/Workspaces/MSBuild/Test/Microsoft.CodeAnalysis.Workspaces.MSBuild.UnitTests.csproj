@@ -13,7 +13,7 @@
     <ProjectReference Include="..\..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
     
     <!-- Metalama -->
-    <ProjectReference Include="..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
+    <ProjectReference Include="..\..\..\Metalama\Metalama.Compiler.Interface.TypeForwards\Metalama.Compiler.Interface.TypeForwards.csproj" />
     <!-- /Metalama -->
 
   </ItemGroup>
