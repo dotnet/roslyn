@@ -1162,14 +1162,14 @@ class Program
     static void Main()
     {
         var s1 = new S1<int>();
-        _ = +s1;
+        s1 = +s1;
         Extensions1.op_UnaryPlus(s1);
 
         S1<int>? s2 = new S1<int>();
-        _ = +s2;
+        _ = (+s2).GetValueOrDefault();
         s2 = null;
         System.Console.Write(":");
-        _ = +s2;
+        _ = (+s2).GetValueOrDefault();
     }
 }
 """;
@@ -1311,6 +1311,66 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "regularregular").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_023_Consumption_Checked_CheckedFormNotSupported()
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 x) => throw null;
+        public static C1 operator checked +(C1 x) => throw null;
+    }
+}
+
+public class C1;
+""";
+
+            var comp1 = CreateCompilation(src1);
+            comp1.VerifyDiagnostics(
+                // (6,35): error CS9023: User-defined operator '+' cannot be declared checked
+                //         public static C1 operator checked +(C1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments("+").WithLocation(6, 35),
+                // (6,43): error CS0111: Type 'Extensions1' already defines a member called 'op_UnaryPlus' with the same parameter types
+                //         public static C1 operator checked +(C1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "+").WithArguments("op_UnaryPlus", "Extensions1").WithLocation(6, 43)
+                );
+
+            var src2 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator +(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = +c1;
+
+        checked
+        {
+            _ = +c1;
+        }
+    }
+}
+""";
+
+            var comp2 = CreateCompilation(src2, options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "regularregular").VerifyDiagnostics();
         }
 
         [Fact]
@@ -1471,7 +1531,7 @@ class Program
         }
 
         [Fact]
-        public void Unary_027_Consumption_CheckLiftedIsWorse()
+        public void Unary_027_Consumption_CheckedLiftedIsWorse()
         {
             var src = $$$"""
 public static class Extensions1
@@ -3719,6 +3779,1726 @@ struct S1
                 //         public static S1 operator checked +(S1 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_CheckedOperatorNeedsMatch, op).WithArguments("Extensions3.extension(S1).operator checked " + op + "(S1, S1)").WithLocation(112, 43)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_011_Consumption(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        _ = s1 + s1;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(S1).operator +(S1, S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyDiagnostics(
+                // (6,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(6, 13)
+                );
+
+            var src3 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        Extensions1.op_Addition(s1, s1);
+    }
+}
+""";
+            var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var src4 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.op_Addition(s1);
+        S1.op_Addition(s1, s1);
+    }
+}
+""";
+            var comp4 = CreateCompilation(src4, references: [comp1Ref]);
+            comp4.VerifyDiagnostics(
+                // (6,12): error CS1061: 'S1' does not contain a definition for 'op_Addition' and no accessible extension method 'op_Addition' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         s1.op_Addition(s1);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "op_Addition").WithArguments("S1", "op_Addition").WithLocation(6, 12),
+                // (7,12): error CS0117: 'S1' does not contain a definition for 'op_Addition'
+                //         S1.op_Addition(s1, s1);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "op_Addition").WithArguments("S1", "op_Addition").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void Binary_012_Consumption_PredefinedComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, S2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static implicit operator int(S2 x)
+    {
+        System.Console.Write("operator2");
+        return 0;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        int x = s2 + s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("int.operator +(int, int)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Int32", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Binary_013_Consumption_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, S2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator +(S2 x, S2 y)
+    {
+        System.Console.Write("operator2");
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = s2 + s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator +(S2, S2)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Binary_014_Consumption_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, S1 y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(S1)
+        {
+            public static S1 operator +(S1 x, S1 y)
+            {
+                System.Console.Write("operator1");
+                return x;
+            }
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(S2)
+            {
+                public static S2 operator +(S2 x, S2 y) => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                _ = s1 + s1;
+            }
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("NS1.Extensions2.extension(S1).operator +(S1, S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Binary_015_Consumption_NonExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1
+{
+    public static I1 operator -(I1 x, I1 y) => x;
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x, I3 y) => x;
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+
+public static class Extensions1
+{
+    extension(I2)
+    {
+        public static I2 operator -(I2 x, I2 y) => x;
+    }
+}
+
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = x - x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (32,17): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                //         var y = x - x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(32, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("I1.operator -(I1, I1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("I3.operator -(I3, I3)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Binary_016_Consumption_ExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1;
+public interface I3;
+public interface I4 : I1, I3;
+public interface I2 : I4;
+
+public static class Extensions1
+{
+    extension(I2)
+    {
+        public static I2 operator -(I2 x, I2 y) => x;
+    }
+}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(I1)
+        {
+            public static I1 operator -(I1 x, I1 y) => x;
+        }
+
+        extension(I3)
+        {
+            public static I3 operator -(I3 x, I3 y) => x;
+        }
+    }
+
+    class Test2 : I2
+    {
+        static void Main()
+        {
+            I2 x = new Test2();
+            var y = x - x;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src);
+
+            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            comp.VerifyDiagnostics(
+                // (34,21): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                //             var y = x - x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(34, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("NS1.Extensions2.extension(I1).operator -(I1, I1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("NS1.Extensions2.extension(I3).operator -(I3, I3)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_017_Consumption_Lifted([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s11 = new S1();
+        S1? s12 = new S1();
+        _ = s11 {{{op}}} s12;
+        System.Console.Write(":");
+        s11 = null;
+        _ = s11 {{{op}}} s12;
+        _ = s12 {{{op}}} s11;
+        _ = s11 {{{op}}} s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_018_Consumption_Lifted([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s11 = new S1();
+        S1 s12 = new S1();
+        _ = s11 {{{op}}} s12;
+        _ = s12 {{{op}}} s11;
+        System.Console.Write(":");
+        s11 = null;
+        _ = s11 {{{op}}} s12;
+        _ = s12 {{{op}}} s11;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_019_Consumption_Lifted([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S2 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public static S1 operator {{{op}}}(S2 x, S1 y)
+        {
+            System.Console.Write("operator2");
+            return y;
+        }
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        S2? s2 = new S2();
+        _ = s1 {{{op}}} s2;
+        _ = s2 {{{op}}} s1;
+        System.Console.Write(":");
+        s1 = null;
+        _ = s1 {{{op}}} s2;
+        _ = s2 {{{op}}} s1;
+        s1 = new S1();
+        s2 = null;
+        _ = s1 {{{op}}} s2;
+        _ = s2 {{{op}}} s1;
+        s1 = null;
+        _ = s1 {{{op}}} s2;
+        _ = s2 {{{op}}} s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator2:").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_020_Consumption_Lifted_Shift([CombinatorialValues("<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S2 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        S2? s2 = new S2();
+        _ = s1 {{{op}}} s2;
+        System.Console.Write(":");
+        s1 = null;
+        _ = s1 {{{op}}} s2;
+        s1 = new S1();
+        s2 = null;
+        _ = s1 {{{op}}} s2;
+        s1 = null;
+        _ = s1 {{{op}}} s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_021_Consumption_Lifted([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S2 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public static S1 operator {{{op}}}(S2 x, S1 y)
+        {
+            System.Console.Write("operator2");
+            return y;
+        }
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s11 = new S1();
+        S2 s12 = new S2();
+        S1 s21 = new S1();
+        S2? s22 = new S2();
+        _ = s11 {{{op}}} s12;
+        _ = s12 {{{op}}} s11;
+        _ = s21 {{{op}}} s22;
+        _ = s22 {{{op}}} s21;
+        System.Console.Write(":");
+        s11 = null;
+        s22 = null;
+        _ = s11 {{{op}}} s12;
+        _ = s12 {{{op}}} s11;
+        _ = s21 {{{op}}} s22;
+        _ = s22 {{{op}}} s21;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator2operator1operator2:").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_022_Consumption_Lifted_Shift([CombinatorialValues("<<", ">>", ">>>")] string op)
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S2 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s11 = new S1();
+        S2 s12 = new S2();
+        S1 s21 = new S1();
+        S2? s22 = new S2();
+        _ = s11 {{{op}}} s12;
+        _ = s21 {{{op}}} s22;
+        System.Console.Write(":");
+        s11 = null;
+        s22 = null;
+        _ = s11 {{{op}}} s12;
+        _ = s21 {{{op}}} s22;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_023_Consumption_LiftedIsWorse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, S1 y) => throw null;
+    }
+    extension(S1?)
+    {
+        public static S1? operator +(S1? x, S1? y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = s1 + s1;
+        System.Console.Write(":");
+        s1 = null;
+        _ = s1 + s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_024_Consumption_ExtendedTypeIsNullable()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1?)
+    {
+        public static S1? operator +(S1? x, S1? y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = s1 + s1;
+        Extensions1.op_Addition(s1, s1);
+
+        S1? s2 = new S1();
+        _ = s2 + s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (21,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(21, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_025_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, S2 y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 + s2;
+        _ = s2 + s1;
+        _ = s1 + s1;
+        Extensions1.op_Addition(s1, s1);
+
+        S1? s3 = new S1();
+        _ = s3 + s3;
+        Extensions1.op_Addition(s3, s3);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (25,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(25, 13),
+                // (29,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1?' and 'S1?'
+                //         _ = s3 + s3;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s3 + s3").WithArguments("+", "S1?", "S1?").WithLocation(29, 13),
+                // (30,33): error CS1503: Argument 1: cannot convert from 'S1?' to 'S2'
+                //         Extensions1.op_Addition(s3, s3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("1", "S1?", "S2").WithLocation(30, 33),
+                // (30,37): error CS1503: Argument 2: cannot convert from 'S1?' to 'S2'
+                //         Extensions1.op_Addition(s3, s3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("2", "S1?", "S2").WithLocation(30, 37)
+                );
+        }
+
+        [Fact]
+        public void Binary_026_Consumption_ReceiverTypeMismatch_Shift()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator <<(S2 x, S2 y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 << s2;
+        _ = s2 << s1;
+        _ = s1 << s1;
+        Extensions1.op_LeftShift(s1, s1);
+
+        S1? s3 = new S1();
+        _ = s3 << s3;
+        Extensions1.op_LeftShift(s3, s3);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,13): error CS0019: Operator '<<' cannot be applied to operands of type 'S1' and 'S2'
+                //         _ = s1 << s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 << s2").WithArguments("<<", "S1", "S2").WithLocation(23, 13),
+                // (25,13): error CS0019: Operator '<<' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 << s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 << s1").WithArguments("<<", "S1", "S1").WithLocation(25, 13),
+                // (29,13): error CS0019: Operator '<<' cannot be applied to operands of type 'S1?' and 'S1?'
+                //         _ = s3 << s3;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s3 << s3").WithArguments("<<", "S1?", "S1?").WithLocation(29, 13),
+                // (30,34): error CS1503: Argument 1: cannot convert from 'S1?' to 'S2'
+                //         Extensions1.op_LeftShift(s3, s3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("1", "S1?", "S2").WithLocation(30, 34),
+                // (30,38): error CS1503: Argument 2: cannot convert from 'S1?' to 'S2'
+                //         Extensions1.op_LeftShift(s3, s3);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("2", "S1?", "S2").WithLocation(30, 38)
+                );
+        }
+
+        [Fact]
+        public void Binary_027_Consumption_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : struct
+    {
+        public static S1<T> operator +(S1<T> x, S1<T> y)
+        {
+            System.Console.Write(typeof(T).ToString());
+            return x;
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        s1 = s1 + s1;
+        Extensions1.op_Addition(s1, s1);
+
+        S1<int>? s2 = new S1<int>();
+        _ = (s2 + s2).GetValueOrDefault();
+        s2 = null;
+        System.Console.Write(":");
+        _ = (s2 + s2).GetValueOrDefault();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "System.Int32System.Int32System.Int32:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_028_Consumption_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : struct
+    {
+        public static bool operator >(S1<T> x, S1<T> y)
+        {
+            System.Console.Write(typeof(T).ToString());
+            return true;
+        }
+        public static bool operator <(S1<T> x, S1<T> y) => throw null;
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1<int>();
+        var s12 = new S1<int>();
+        bool b = s11 > s12;
+        Extensions1.op_GreaterThan(s11, s12);
+
+        S1<int>? s21 = new S1<int>();
+        S1<int>? s22 = new S1<int>();
+        b = s21 > s22;
+        s22 = null;
+        System.Console.Write(":");
+        b = s21 > s22;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "System.Int32System.Int32System.Int32:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_029_Consumption_Generic_ConstraintsViolation()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : class
+    {
+        public static S1<T> operator +(S1<T> x, S1<T> y) => throw null;
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        _ = s1 + s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (17,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1<int>' and 'S1<int>'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1<int>", "S1<int>").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_030_Consumption_OverloadResolutionPriority()
+        {
+            var src = $$$"""
+using System.Runtime.CompilerServices;
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        [OverloadResolutionPriority(1)]
+        public static C1 operator +(C1 x, C1 y)
+        {
+            System.Console.Write("C1");
+            return x;
+        }
+    }
+    extension(C2)
+    {
+        public static C2 operator +(C2 x, C2 y)
+        {
+            System.Console.Write("C2");
+            return x;
+        }
+    }
+    extension(C3)
+    {
+        public static C3 operator +(C3 x, C3 y)
+        {
+            System.Console.Write("C3");
+            return x;
+        }
+    }
+    extension(C4)
+    {
+        public static C4 operator +(C4 x, C4 y)
+        {
+            System.Console.Write("C4");
+            return x;
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+
+public class C3;
+public class C4 : C3;
+
+class Program
+{
+    static void Main()
+    {
+        var c2 = new C2();
+        _ = c2 + c2;
+        var c4 = new C4();
+        _ = c4 + c4;
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1C4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_031_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1 - c1;
+
+        checked
+        {
+            _ = c1 - c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularregular").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_031_Consumption_Checked_CheckedFormNotSupported()
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator |(C1 x, C1 y) => throw null;
+        public static C1 operator checked |(C1 x, C1 y) => throw null;
+    }
+}
+
+public class C1;
+""";
+
+            var comp1 = CreateCompilation(src1);
+            comp1.VerifyDiagnostics(
+                // (6,35): error CS9023: User-defined operator '|' cannot be declared checked
+                //         public static C1 operator checked |(C1 x, C1 y) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorCantBeChecked, "checked").WithArguments("|").WithLocation(6, 35),
+                // (6,43): error CS0111: Type 'Extensions1' already defines a member called 'op_BitwiseOr' with the same parameter types
+                //         public static C1 operator checked |(C1 x, C1 y) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "|").WithArguments("op_BitwiseOr", "Extensions1").WithLocation(6, 43)
+                );
+
+            var src2 = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator |(C1 x, C1 y)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1 | c1;
+
+        checked
+        {
+            _ = c1 | c1;
+        }
+    }
+}
+""";
+
+            var comp2 = CreateCompilation(src2, options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "regularregular").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_032_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+        public static C1 operator checked -(C1 x, C1 y)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1 - c1;
+
+        checked
+        {
+            _ = c1 - c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_033_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension(C1)
+    {
+        public static C1 operator checked -(C1 x, C1 y)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1 - c1;
+
+        checked
+        {
+            _ = c1 - c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_034_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            return x;
+        }
+
+        public static C1 operator checked -(C1 x, C1 y)
+        {
+            return x;
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = c1 - c1;
+
+        checked
+        {
+            _ = c1 - c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (35,13): error CS0034: Operator '-' is ambiguous on operands of type 'C1' and 'C1'
+                //         _ = c1 - c1;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 - c1").WithArguments("-", "C1", "C1").WithLocation(35, 13),
+                // (39,17): error CS0034: Operator '-' is ambiguous on operands of type 'C1' and 'C1'
+                //             _ = c1 - c1;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "c1 - c1").WithArguments("-", "C1", "C1").WithLocation(39, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.BinaryExpressionSyntax>().Last();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("Extensions1.extension(C1).operator checked -(C1, C1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(C1).operator -(C1, C1)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Fact]
+        public void Binary_035_Consumption_CheckedLiftedIsWorse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator -(S1 x, S1 y) => throw null;
+        public static S1 operator checked -(S1 x, S1 y) => throw null;
+    }
+    extension(S1?)
+    {
+        public static S1? operator -(S1? x, S1? y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = s1 - s1;
+        System.Console.Write(":");
+
+        checked
+        {
+            _ = s1 - s1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_036_Consumption_OverloadResolutionPlusRegularVsChecked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator -(C1 x, C1 y)
+        {
+            System.Console.Write("C1");
+            return x;
+        }
+        public static C1 operator checked -(C1 x, C1 y)
+        {
+            System.Console.Write("checkedC1");
+            return x;
+        }
+    }
+    extension(C2)
+    {
+        public static C2 operator -(C2 x, C2 y)
+        {
+            System.Console.Write("C2");
+            return x;
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+public class C3 : C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c3 = new C3();
+        _ = c3 - c3;
+
+        checked
+        {
+            _ = c3 - c3;
+        }
+
+        var c2 = new C2();
+        _ = c2 - c2;
+
+        checked
+        {
+            _ = c2 - c2;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_037_Consumption()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1? operator +(S1? x, S1? y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = s1 + s1;
+        S1 s2 = new S1();
+        _ = s2 + s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
+            //            One can consume them only on the receiver type, not on nullable of receiver type.
+            //            Should we disallow declarations like that?
+            comp.VerifyDiagnostics(
+                // (21,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1?' and 'S1?'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1?", "S1?").WithLocation(21, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_038_Consumption_OnObject()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static object operator +(object x, object y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+        _ = s1 + s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_039_Consumption_NotOnDynamic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static object operator +(object x, object y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        dynamic s1 = new object();
+        var s2 = new object();
+        try
+        {
+            _ = s1 + s2;
+        }
+        catch
+        {
+            System.Console.Write("exception1");
+        }
+
+        try
+        {
+            _ = s2 + s1;
+        }
+        catch
+        {
+            System.Console.Write("exception2");
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "exception1exception2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_040_Consumption_WithLambda()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, System.Func<int> y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public static S1 operator +(System.Func<int> y, S1 x)
+        {
+            System.Console.Write("operator2");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+public class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = s1 + (() => 1);
+        _ = (() => 1) + s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_041_Consumption_BadOperand()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator +(S1 x, S2 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public static S1 operator +(S2 y, S1 x)
+        {
+            System.Console.Write("operator2");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+public struct S2
+{}
+
+public class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = s1 + new();
+        _ = new() + s1;
+        _ = new() + new();
+        _ = s1 + default;
+        _ = default + s1;
+        _ = default + default;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (28,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //         _ = s1 + new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 + new()").WithArguments("+", "new()").WithLocation(28, 13),
+                // (29,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //         _ = new() + s1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() + s1").WithArguments("+", "new()").WithLocation(29, 13),
+                // (30,13): error CS8310: Operator '+' cannot be applied to operand 'new()'
+                //         _ = new() + new();
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "new() + new()").WithArguments("+", "new()").WithLocation(30, 13),
+                // (31,13): error CS8310: Operator '+' cannot be applied to operand 'default'
+                //         _ = s1 + default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "s1 + default").WithArguments("+", "default").WithLocation(31, 13),
+                // (32,13): error CS8310: Operator '+' cannot be applied to operand 'default'
+                //         _ = default + s1;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + s1").WithArguments("+", "default").WithLocation(32, 13),
+                // (33,13): error CS8310: Operator '+' cannot be applied to operand 'default'
+                //         _ = default + default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "default + default").WithArguments("+", "default").WithLocation(33, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_042_Consumption_BadReceiver()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(__arglist)
+    {
+        public static object operator +(object x, object y)
+        {
+            return x;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+        _ = s1 + s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (3,15): error CS1669: __arglist is not valid in this context
+                //     extension(__arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
+                // (5,39): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static object operator +(object x, object y)
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 39),
+                // (17,13): error CS0019: Operator '+' cannot be applied to operands of type 'object' and 'object'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "object", "object").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Binary_043_Consumption_Checked_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T1>(C1<T1>)
+    {
+        public static C1<T1> operator -(C1<T1> x, C1<T1> y)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension<T2>(C1<T2>)
+    {
+        public static C1<T2> operator checked -(C1<T2> x, C1<T2> y)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1<T>;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1<int>();
+        _ = c1 - c1;
+
+        checked
+        {
+            _ = c1 - c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
         }
 
         [Theory]

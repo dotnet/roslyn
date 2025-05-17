@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -110,15 +111,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!operators.IsEmpty)
                     {
-                        var existing = new HashSet<UnaryOperatorSignature>(PairedExtensionUnaryOperatorSignatureComparer.Instance);
-                        existing.AddRange(operators);
+                        var existing = new HashSet<MethodSymbol>(PairedExtensionOperatorSignatureComparer.Instance);
+                        existing.AddRange(operators.Select(static (op) => op.Method));
 
                         var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
                         getDeclaredUserDefinedUnaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators2);
 
                         foreach (var op in operators2)
                         {
-                            if (!existing.Contains(op))
+                            if (!existing.Contains(op.Method))
                             {
                                 operators.Add(op);
                             }
@@ -237,21 +238,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class PairedExtensionUnaryOperatorSignatureComparer : IEqualityComparer<UnaryOperatorSignature>
+        private class PairedExtensionOperatorSignatureComparer : IEqualityComparer<MethodSymbol>
         {
-            public static readonly PairedExtensionUnaryOperatorSignatureComparer Instance = new PairedExtensionUnaryOperatorSignatureComparer();
+            public static readonly PairedExtensionOperatorSignatureComparer Instance = new PairedExtensionOperatorSignatureComparer();
 
-            private PairedExtensionUnaryOperatorSignatureComparer() { }
+            private PairedExtensionOperatorSignatureComparer() { }
 
-            public bool Equals(UnaryOperatorSignature x, UnaryOperatorSignature y)
+            public bool Equals(MethodSymbol? x, MethodSymbol? y)
             {
-                if (x.Method.OriginalDefinition.ContainingType.ContainingType != (object)x.Method.OriginalDefinition.ContainingType.ContainingType)
+                Debug.Assert(x is { });
+                Debug.Assert(y is { });
+
+                if (x.OriginalDefinition.ContainingType.ContainingType != (object)x.OriginalDefinition.ContainingType.ContainingType)
                 {
                     return false;
                 }
 
-                var xGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(x.Method.OriginalDefinition.ContainingType);
-                var yGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(y.Method.OriginalDefinition.ContainingType);
+                var xGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(x.OriginalDefinition.ContainingType);
+                var yGroupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(y.OriginalDefinition.ContainingType);
 
                 if (!xGroupingKey.Equals(yGroupingKey))
                 {
@@ -259,20 +263,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SourceMemberContainerTypeSymbol.DoOperatorsPair(
-                           x.Method.OriginalDefinition.AsMember(xGroupingKey.NormalizedExtension),
-                           y.Method.OriginalDefinition.AsMember(yGroupingKey.NormalizedExtension));
+                           x.OriginalDefinition.AsMember(xGroupingKey.NormalizedExtension),
+                           y.OriginalDefinition.AsMember(yGroupingKey.NormalizedExtension));
             }
 
-            public int GetHashCode(UnaryOperatorSignature op)
+            public int GetHashCode(MethodSymbol op)
             {
                 var typeComparer = Symbols.SymbolEqualityComparer.AllIgnoreOptions;
 
-                int result = typeComparer.GetHashCode(op.Method.OriginalDefinition.ContainingType.ContainingType);
+                int result = typeComparer.GetHashCode(op.OriginalDefinition.ContainingType.ContainingType);
 
-                var groupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.Method.OriginalDefinition.ContainingType);
+                var groupingKey = new SourceMemberContainerTypeSymbol.ExtensionGroupingKey(op.OriginalDefinition.ContainingType);
                 result = Hash.Combine(result, groupingKey.GetHashCode());
 
-                foreach (var parameter in op.Method.OriginalDefinition.AsMember(groupingKey.NormalizedExtension).Parameters)
+                foreach (var parameter in op.OriginalDefinition.AsMember(groupingKey.NormalizedExtension).Parameters)
                 {
                     result = Hash.Combine(result, typeComparer.GetHashCode(parameter.Type));
                 }
