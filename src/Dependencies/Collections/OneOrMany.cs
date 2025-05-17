@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Collections
             Debug.Assert(HasOneItem == other.HasOneItem);
 
             return HasOneItem ? comparer.Equals(_one, other._one!) :
-                   System.Linq.ImmutableArrayExtensions.SequenceEqual(_many, other._many, comparer);
+                   _many.SequenceEqual(other._many, comparer);
         }
 
         public bool SequenceEqual(ImmutableArray<T> other, IEqualityComparer<T>? comparer = null)
