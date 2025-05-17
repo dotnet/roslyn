@@ -41,7 +41,7 @@ internal static partial class ProtocolConversions
 
     private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
-    private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
+    private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!<>])", RegexOptions.Compiled);
 
     // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
     // way which can confuse users
