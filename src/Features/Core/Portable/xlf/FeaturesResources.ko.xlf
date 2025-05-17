@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">빼기는 문자 클래스의 마지막 요소여야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' 특성을 추가합니다.</target>
@@ -4833,16 +4838,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">null 검사 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">string.IsNullOrEmpty' 검사 추가</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">string.IsNullOrWhiteSpace' 검사 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

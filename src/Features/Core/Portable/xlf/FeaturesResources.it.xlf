@@ -40,6 +40,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">L'ultimo elemento di una classe di caratteri deve essere una sottrazione</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Aggiungi l'attributo 'DebuggerDisplay'</target>
@@ -4833,16 +4838,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Aggiungi il controllo Null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Aggiungi il controllo 'string.IsNullOrEmpty'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Aggiungi il controllo 'string.IsNullOrWhiteSpace'</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

@@ -40,6 +40,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Вычитание должно быть последним элементом в классе символов</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Добавить атрибут "DebuggerDisplay"</target>
@@ -4833,16 +4838,6 @@ This version used in: {2}</source>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Добавить проверку значений NULL</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Добавить проверку string.IsNullOrEmpty</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Добавить проверку string.IsNullOrWhiteSpace</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">
