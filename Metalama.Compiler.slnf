@@ -1,4 +1,4 @@
-{
+    {
   "solution": {
     "path": "Roslyn.sln",
     "projects": [
@@ -88,7 +88,7 @@
       "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",
       "src\\Workspaces\\CSharpTest\\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.csproj",
       "src\\Workspaces\\CoreTestUtilities\\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj",
-      "src\\Workspaces\\Core\\MSBuild\\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj",
+      "src\\Workspaces\\MSBuild\\Core\\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj",
       "src\\Workspaces\\Core\\Portable\\Microsoft.CodeAnalysis.Workspaces.csproj",
       "src\\Workspaces\\Remote\\Core\\Microsoft.CodeAnalysis.Remote.Workspaces.csproj",
       "src\\Workspaces\\Remote\\ServiceHub\\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj",
