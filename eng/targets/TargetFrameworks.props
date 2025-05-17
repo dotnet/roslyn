@@ -15,7 +15,7 @@
     <NetRoslyn>net9.0</NetRoslyn>
     <NetRoslynAll>net8.0;net9.0</NetRoslynAll>
     <!-- <Metalama> -->
-    <MetalamaNetRoslyn>net8.0</MetalamaNetRoslyn>
+    <MetalamaNetRoslyn>net8.0;net9.0</MetalamaNetRoslyn>
     <!-- </Metalama> -->
     <NetVS>net8.0</NetVS>
     <NetVSCode>net9.0</NetVSCode>
