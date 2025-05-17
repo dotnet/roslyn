@@ -145,7 +145,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -235,7 +235,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -315,7 +315,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
 
@@ -349,7 +349,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(0, symbol.Arity);
@@ -376,7 +376,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(1, symbol.Arity);
@@ -412,7 +412,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(2, symbol.Arity);
@@ -448,7 +448,7 @@ class C<T> { }
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(2, symbol.Arity);
@@ -477,7 +477,7 @@ public static class Extensions<T>
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(1, symbol.Arity);
@@ -508,7 +508,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["record"], symbol.TypeParameters.ToTestDisplayStrings());
@@ -532,7 +532,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["file"], symbol.TypeParameters.ToTestDisplayStrings());
@@ -625,7 +625,7 @@ public static class Extensions<T>
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -653,7 +653,7 @@ extension(object) { public static void M() { } }
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -694,7 +694,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var nestedExtension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var nestedExtension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
 
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
@@ -744,7 +744,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var nestedExtension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var nestedExtension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
 
         var nestedExtensionSymbol = model.GetDeclaredSymbol(nestedExtension);
         AssertExtensionDeclaration(nestedExtensionSymbol);
@@ -848,7 +848,7 @@ public static partial class Extensions
 
         var tree = comp.SyntaxTrees[reverseOrder ? 1 : 0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -876,14 +876,14 @@ public static partial class Extensions
 
         var tree1 = comp.SyntaxTrees[0];
         var model1 = comp.GetSemanticModel(tree1);
-        var extension1 = tree1.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension1 = tree1.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol1 = model1.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", sourceExtension1.ToTestDisplayString());
 
         var tree2 = comp.SyntaxTrees[1];
-        var extension2 = tree2.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension2 = tree2.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var model2 = comp.GetSemanticModel(tree2);
         var symbol2 = model2.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
@@ -910,12 +910,12 @@ public static partial class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         Assert.Equal("<>E__1`2", symbol2.MetadataName);
         Assert.Equal("Extensions.<>E__1<T1, T2>", symbol2.ToTestDisplayString());
@@ -937,13 +937,13 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__1`1", symbol2.MetadataName);
@@ -1228,7 +1228,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0", symbol1.MetadataName);
@@ -1393,7 +1393,7 @@ public static class IntExt
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0", symbol1.MetadataName);
@@ -1555,7 +1555,7 @@ public static class IntExt
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0", symbol1.MetadataName);
@@ -1579,13 +1579,13 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__1`1", symbol2.MetadataName);
@@ -1612,13 +1612,13 @@ extension<T>(T) { }
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__1`1", symbol2.MetadataName);
@@ -1641,13 +1641,13 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__1`2", symbol2.MetadataName);
@@ -1669,13 +1669,13 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var extension1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(extension1);
         var sourceExtension1 = symbol1.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__0`1", symbol1.MetadataName);
         Assert.Equal("Extensions.<>E__0<T>", symbol1.ToTestDisplayString());
 
-        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__1`1", symbol2.MetadataName);
@@ -1708,7 +1708,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Last();
         var symbol = model.GetDeclaredSymbol(extension);
         var sourceExtension = symbol.GetSymbol<SourceNamedTypeSymbol>();
         Assert.Equal("<>E__10`1", symbol.MetadataName);
@@ -1786,7 +1786,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["M"], symbol.MemberNames);
@@ -1887,7 +1887,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["M"], symbol.MemberNames);
@@ -2039,7 +2039,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["Property"], symbol.MemberNames);
@@ -2073,7 +2073,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["Property"], symbol.MemberNames);
@@ -2205,7 +2205,7 @@ extends [netstandard]System.Object
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["Property"], symbol.MemberNames);
@@ -2232,7 +2232,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["Property"], symbol.MemberNames);
@@ -2354,7 +2354,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Equal(["this[]"], symbol.MemberNames);
@@ -2445,7 +2445,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         Assert.Empty(symbol.MemberNames);
@@ -2474,7 +2474,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -2502,7 +2502,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -2536,7 +2536,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -2562,7 +2562,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -2675,7 +2675,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         AssertEx.SetEqual(["System.ObsoleteAttribute"], symbol.GetAttributes().Select(a => a.ToString()));
     }
@@ -2720,7 +2720,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         Assert.Equal("System.Object", symbol.ExtensionParameter.ToTestDisplayString());
     }
@@ -2742,7 +2742,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         Assert.Equal("System.Object o", symbol.ExtensionParameter.ToTestDisplayString());
 
@@ -2771,7 +2771,7 @@ class C { }
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var extensionParameter = symbol.ExtensionParameter;
 
@@ -2819,7 +2819,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var extensionParameter = symbol.ExtensionParameter;
         Assert.Equal("T", extensionParameter.ToTestDisplayString());
@@ -2843,7 +2843,7 @@ public static class Extensions<T>
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var extensionParameter = symbol.ExtensionParameter;
         Assert.Equal("T", extensionParameter.ToTestDisplayString());
@@ -2869,7 +2869,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         var parameter = symbol.ExtensionParameter;
         Assert.Equal("T", parameter.ToTestDisplayString());
@@ -2984,7 +2984,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
         var parameter = symbol1.ExtensionParameter;
         Assert.Equal("System.Int32[] i", parameter.ToTestDisplayString());
@@ -3046,7 +3046,7 @@ public class C<T> where T : struct { }
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
         Assert.Equal("C<T>", symbol1.ExtensionParameter.ToTestDisplayString());
     }
@@ -3068,7 +3068,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         Assert.True(symbol.ExtensionParameter.HasExplicitDefaultValue); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider not recognizing the default value entirely
     }
@@ -3236,7 +3236,7 @@ public class MyAttribute : System.Attribute { }
         Assert.Equal("System.Int32 x", parameterSymbol.ToTestDisplayString());
         AssertEx.SetEqual(["MyAttribute"], parameterSymbol.GetAttributes().Select(a => a.ToString()));
 
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var extensionSymbol = model.GetDeclaredSymbol(type);
         AssertEx.SetEqual(["MyAttribute"], extensionSymbol.ExtensionParameter.GetAttributes().Select(a => a.ToString()));
     }
@@ -3359,7 +3359,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().First();
+        var type1 = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().First();
         var symbol1 = model.GetDeclaredSymbol(type1);
         var parameter = symbol1.ExtensionParameter;
         Assert.Equal("out System.Int32 i", parameter.ToTestDisplayString());
@@ -3909,7 +3909,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
         Assert.Equal("?", symbol.ExtensionParameter.ToTestDisplayString());
     }
@@ -4447,7 +4447,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         model.GetDiagnostics(ext.ParameterList.Span).Verify(
@@ -4491,7 +4491,7 @@ public static class Extensions
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var ext = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var m = ext.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         model.GetDiagnostics(ext.ParameterList.Span).Verify(
@@ -23816,7 +23816,7 @@ static class E
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints);
@@ -23839,7 +23839,7 @@ static class E
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(extension);
 
         var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeModifiers);
@@ -31280,7 +31280,7 @@ public static class E
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         int position = extension.OpenBraceToken.EndPosition;
         AssertEqualAndNoDuplicates(["System.Object o"], model.LookupSymbols(position, null, name: "o").ToTestDisplayStrings());
@@ -40093,7 +40093,7 @@ static class E
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(handle, SyntaxKind.ExtensionDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.ExtensionBlockDeclaration);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.IdentifierName);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.MethodDeclaration);
             context.RegisterSyntaxNodeAction(handle, SyntaxKind.PropertyDeclaration);
@@ -40108,7 +40108,7 @@ static class E
             {
                 var syntaxString = context.Node switch
                 {
-                    ExtensionDeclarationSyntax => "extension",
+                    ExtensionBlockDeclarationSyntax => "extension",
                     MethodDeclarationSyntax method => method.Identifier.ValueText,
                     PropertyDeclarationSyntax property => property.Identifier.ValueText,
                     _ => context.Node.ToString()

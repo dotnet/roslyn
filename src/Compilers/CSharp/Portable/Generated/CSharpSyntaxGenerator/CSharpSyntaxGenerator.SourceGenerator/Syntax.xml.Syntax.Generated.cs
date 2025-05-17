@@ -11312,14 +11312,14 @@ public sealed partial class EnumMemberDeclarationSyntax : MemberDeclarationSynta
     public new EnumMemberDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
 }
 
-/// <summary>Extension container syntax.</summary>
+/// <summary>Extension block syntax.</summary>
 /// <remarks>
 /// <para>This node is associated with the following syntax kinds:</para>
 /// <list type="bullet">
-/// <item><description><see cref="SyntaxKind.ExtensionDeclaration"/></description></item>
+/// <item><description><see cref="SyntaxKind.ExtensionBlockDeclaration"/></description></item>
 /// </list>
 /// </remarks>
-public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
+public sealed partial class ExtensionBlockDeclarationSyntax : TypeDeclarationSyntax
 {
     private SyntaxNode? attributeLists;
     private TypeParameterListSyntax? typeParameterList;
@@ -11327,7 +11327,7 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     private SyntaxNode? constraintClauses;
     private SyntaxNode? members;
 
-    internal ExtensionDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+    internal ExtensionBlockDeclarationSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
       : base(green, parent, position)
     {
     }
@@ -11343,7 +11343,7 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         }
     }
 
-    public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.ExtensionDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
+    public override SyntaxToken Keyword => new SyntaxToken(this, ((InternalSyntax.ExtensionBlockDeclarationSyntax)this.Green).keyword, GetChildPosition(2), GetChildIndex(2));
 
     public override TypeParameterListSyntax? TypeParameterList => GetRed(ref this.typeParameterList, 3);
 
@@ -11355,7 +11355,7 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).openBraceToken;
+            var slot = ((Syntax.InternalSyntax.ExtensionBlockDeclarationSyntax)this.Green).openBraceToken;
             return slot != null ? new SyntaxToken(this, slot, GetChildPosition(6), GetChildIndex(6)) : default;
         }
     }
@@ -11366,7 +11366,7 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).closeBraceToken;
+            var slot = ((Syntax.InternalSyntax.ExtensionBlockDeclarationSyntax)this.Green).closeBraceToken;
             return slot != null ? new SyntaxToken(this, slot, GetChildPosition(8), GetChildIndex(8)) : default;
         }
     }
@@ -11375,7 +11375,7 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     {
         get
         {
-            var slot = ((Syntax.InternalSyntax.ExtensionDeclarationSyntax)this.Green).semicolonToken;
+            var slot = ((Syntax.InternalSyntax.ExtensionBlockDeclarationSyntax)this.Green).semicolonToken;
             return slot != null ? new SyntaxToken(this, slot, GetChildPosition(9), GetChildIndex(9)) : default;
         }
     }
@@ -11402,14 +11402,14 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
             _ => null,
         };
 
-    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionDeclaration(this);
-    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExtensionDeclaration(this);
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionBlockDeclaration(this);
+    public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExtensionBlockDeclaration(this);
 
-    public ExtensionDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+    public ExtensionBlockDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
+            var newNode = SyntaxFactory.ExtensionBlockDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -11418,46 +11418,46 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
     }
 
     internal override MemberDeclarationSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-    public new ExtensionDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override MemberDeclarationSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-    public new ExtensionDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override TypeDeclarationSyntax WithKeywordCore(SyntaxToken keyword) => WithKeyword(keyword);
-    public new ExtensionDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithKeyword(SyntaxToken keyword) => Update(this.AttributeLists, this.Modifiers, keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override TypeDeclarationSyntax WithTypeParameterListCore(TypeParameterListSyntax? typeParameterList) => WithTypeParameterList(typeParameterList);
-    public new ExtensionDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, typeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithTypeParameterList(TypeParameterListSyntax? typeParameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, typeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override TypeDeclarationSyntax WithParameterListCore(ParameterListSyntax? parameterList) => WithParameterList(parameterList);
-    public new ExtensionDeclarationSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, parameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithParameterList(ParameterListSyntax? parameterList) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, parameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override TypeDeclarationSyntax WithConstraintClausesCore(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => WithConstraintClauses(constraintClauses);
-    public new ExtensionDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithConstraintClauses(SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, constraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override BaseTypeDeclarationSyntax WithOpenBraceTokenCore(SyntaxToken openBraceToken) => WithOpenBraceToken(openBraceToken);
-    public new ExtensionDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithOpenBraceToken(SyntaxToken openBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, openBraceToken, this.Members, this.CloseBraceToken, this.SemicolonToken);
     internal override TypeDeclarationSyntax WithMembersCore(SyntaxList<MemberDeclarationSyntax> members) => WithMembers(members);
-    public new ExtensionDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithMembers(SyntaxList<MemberDeclarationSyntax> members) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, members, this.CloseBraceToken, this.SemicolonToken);
     internal override BaseTypeDeclarationSyntax WithCloseBraceTokenCore(SyntaxToken closeBraceToken) => WithCloseBraceToken(closeBraceToken);
-    public new ExtensionDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithCloseBraceToken(SyntaxToken closeBraceToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, closeBraceToken, this.SemicolonToken);
     internal override BaseTypeDeclarationSyntax WithSemicolonTokenCore(SyntaxToken semicolonToken) => WithSemicolonToken(semicolonToken);
-    public new ExtensionDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
+    public new ExtensionBlockDeclarationSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.Modifiers, this.Keyword, this.TypeParameterList, this.ParameterList, this.ConstraintClauses, this.OpenBraceToken, this.Members, this.CloseBraceToken, semicolonToken);
 
     internal override MemberDeclarationSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
-    public new ExtensionDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
+    public new ExtensionBlockDeclarationSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
     internal override MemberDeclarationSyntax AddModifiersCore(params SyntaxToken[] items) => AddModifiers(items);
-    public new ExtensionDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
+    public new ExtensionBlockDeclarationSyntax AddModifiers(params SyntaxToken[] items) => WithModifiers(this.Modifiers.AddRange(items));
     internal override TypeDeclarationSyntax AddTypeParameterListParametersCore(params TypeParameterSyntax[] items) => AddTypeParameterListParameters(items);
-    public new ExtensionDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
+    public new ExtensionBlockDeclarationSyntax AddTypeParameterListParameters(params TypeParameterSyntax[] items)
     {
         var typeParameterList = this.TypeParameterList ?? SyntaxFactory.TypeParameterList();
         return WithTypeParameterList(typeParameterList.WithParameters(typeParameterList.Parameters.AddRange(items)));
     }
     internal override TypeDeclarationSyntax AddParameterListParametersCore(params ParameterSyntax[] items) => AddParameterListParameters(items);
-    public new ExtensionDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
+    public new ExtensionBlockDeclarationSyntax AddParameterListParameters(params ParameterSyntax[] items)
     {
         var parameterList = this.ParameterList ?? SyntaxFactory.ParameterList();
         return WithParameterList(parameterList.WithParameters(parameterList.Parameters.AddRange(items)));
     }
     internal override TypeDeclarationSyntax AddConstraintClausesCore(params TypeParameterConstraintClauseSyntax[] items) => AddConstraintClauses(items);
-    public new ExtensionDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
+    public new ExtensionBlockDeclarationSyntax AddConstraintClauses(params TypeParameterConstraintClauseSyntax[] items) => WithConstraintClauses(this.ConstraintClauses.AddRange(items));
     internal override TypeDeclarationSyntax AddMembersCore(params MemberDeclarationSyntax[] items) => AddMembers(items);
-    public new ExtensionDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
+    public new ExtensionBlockDeclarationSyntax AddMembers(params MemberDeclarationSyntax[] items) => WithMembers(this.Members.AddRange(items));
 }
 
 /// <summary>Base list syntax.</summary>
