@@ -181,7 +181,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 // - instantiating an object with tainted data makes the new object tainted
 
                 List<TaintedDataAbstractValue>? taintedValues = null;
-                foreach (IOperation childOperation in operation.Children)
+                foreach (IOperation childOperation in operation.ChildOperations)
                 {
                     TaintedDataAbstractValue childValue = Visit(childOperation, argument);
                     if (childValue.Kind == TaintedDataAbstractValueKind.Tainted)

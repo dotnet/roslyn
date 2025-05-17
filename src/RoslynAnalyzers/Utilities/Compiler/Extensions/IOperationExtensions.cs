@@ -179,7 +179,7 @@ namespace Analyzer.Utilities.Extensions
                 }
                 else
                 {
-                    foreach (var child in operation.Children)
+                    foreach (var child in operation.ChildOperations)
                     {
                         operationsToProcess.Enqueue(child);
                     }
@@ -799,7 +799,7 @@ namespace Analyzer.Utilities.Extensions
         public static bool HasAnyExplicitDescendant(this IOperation operation, Func<IOperation, bool>? descendIntoOperation = null)
         {
             using var stack = ArrayBuilder<IEnumerator<IOperation>>.GetInstance();
-            stack.Add(operation.Children.GetEnumerator());
+            stack.Add(operation.ChildOperations.GetEnumerator());
 
             while (stack.Any())
             {
@@ -820,7 +820,7 @@ namespace Analyzer.Utilities.Extensions
                             return true;
                         }
 
-                        stack.Add(current.Children.GetEnumerator());
+                        stack.Add(current.ChildOperations.GetEnumerator());
                     }
                 }
             }
