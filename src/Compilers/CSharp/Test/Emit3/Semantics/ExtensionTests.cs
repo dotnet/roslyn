@@ -2260,97 +2260,10 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-
-        var verifier = CompileAndVerify(comp);
-
-        VerifyTypeIL(verifier, "Extensions", """
-.class public auto ansi abstract sealed beforefieldinit Extensions
-    extends [netstandard]System.Object
-{
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
-    // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
-        extends [netstandard]System.Object
-    {
-        .custom instance void [netstandard]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
-            01 00 04 49 74 65 6d 00 00
-        )
-        // Methods
-        .method private hidebysig specialname static
-            void '<Extension>$' (
-                object o
-            ) cil managed
-        {
-            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x206b
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname
-            instance int32 get_Item (
-                int32 i
-            ) cil managed
-        {
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::get_Item
-        .method private hidebysig specialname
-            instance void set_Item (
-                int32 i,
-                int32 'value'
-            ) cil managed
-        {
-            // Method begins at RVA 0x206d
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::set_Item
-        // Properties
-        .property instance int32 Item(
-            int32 i
-        )
-        {
-            .get instance int32 Extensions/'<>E__0'::get_Item(int32)
-            .set instance void Extensions/'<>E__0'::set_Item(int32, int32)
-        }
-    } // end of class <>E__0
-    // Methods
-    .method private hidebysig static
-        int32 get_Item (
-            object o,
-            int32 i
-        ) cil managed
-    {
-        // Method begins at RVA 0x2067
-        // Code size 3 (0x3)
-        .maxstack 8
-        IL_0000: ldc.i4.s 42
-        IL_0002: ret
-    } // end of method Extensions::get_Item
-    .method private hidebysig static
-        void set_Item (
-            object o,
-            int32 i,
-            int32 'value'
-        ) cil managed
-    {
-        // Method begins at RVA 0x206b
-        // Code size 1 (0x1)
-        .maxstack 8
-        IL_0000: ret
-    } // end of method Extensions::set_Item
-} // end of class Extensions
-""");
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int i] { get => 42; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -2372,33 +2285,11 @@ public static class Extensions
         comp5.VerifyEmitDiagnostics(
             // (3,5): error CS1110: Cannot define a new extension because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
             //     extension(object o)
-            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5)
+            Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
+            // (5,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int i] { get => 42; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 13)
             );
-    }
-
-    [Fact]
-    public void Member_InstanceIndexer_Metadata()
-    {
-        string libSrc = """
-public static class E
-{
-    extension(int i)
-    {
-        public int this[int j] { get => i + j; set { } }
-    }
-}
-""";
-        var libComp = CreateCompilation(libSrc);
-
-        string source = """
-System.Console.Write(42[1]);
-""";
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-        var comp = CreateCompilation(source, references: [libComp.EmitToImageReference()]);
-        comp.VerifyEmitDiagnostics(
-            // (1,22): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
-            // System.Console.Write(42[1]);
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "42[1]").WithArguments("int").WithLocation(1, 22));
     }
 
     [Fact]
@@ -2421,7 +2312,10 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "extension").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 5),
             // (5,20): error CS0106: The modifier 'static' is not valid for this item
             //         static int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20)
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(5, 20),
+            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            //         static int this[int i] { get => 42; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20)
             );
     }
 
@@ -4077,9 +3971,18 @@ class C {}
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(C).P", "C").WithLocation(6, 20),
+            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).this[int]'
             //         public int this[int i] { get => 0; set {}}
-            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20)
+            Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20),
+            // (11,21): error CS9282: Extension declarations can include only methods or properties
+            //         private int this[long i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
+            // (15,22): error CS9282: Extension declarations can include only methods or properties
+            //         internal int this[byte i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22)
             );
     }
 
@@ -4134,15 +4037,24 @@ public static class Extensions
             // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 20),
+            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20),
             // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[int]", "Extensions.C").WithLocation(7, 20),
+            // (11,21): error CS9282: Extension declarations can include only methods or properties
+            //         private int this[long i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(11, 21),
             // (13,23): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M2()'
             //         internal void M2() {}
             Diagnostic(ErrorCode.ERR_BadVisParamType, "M2").WithArguments("Extensions.extension(Extensions.C).M2()", "Extensions.C").WithLocation(13, 23),
             // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P2'
             //         internal int P2 { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P2").WithArguments("Extensions.extension(Extensions.C).P2", "Extensions.C").WithLocation(14, 22),
+            // (15,22): error CS9282: Extension declarations can include only methods or properties
+            //         internal int this[byte i] { get => 0; set {}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(15, 22),
             // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[byte]'
             //         internal int this[byte i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[byte]", "Extensions.C").WithLocation(15, 22)
@@ -4340,7 +4252,10 @@ file static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (9,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int i] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 20));
     }
 
     [Fact]
@@ -4364,7 +4279,13 @@ file static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (9,18): error CS9282: Extension declarations can include only methods or properties
+            //         public C this[int y]  => null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 18),
+            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[C y]  => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20));
     }
 
     [Fact]
@@ -21744,7 +21665,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
+            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int i] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
     }
 
     [Fact]
@@ -21772,7 +21696,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5),
+            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[System.Index i] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
         src = """
 var c = new C();
@@ -21911,7 +21838,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5),
+            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[System.Range r] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
         src = """
 var c = new C();
@@ -21993,7 +21923,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
+            // (12,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int i] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
     }
 
     [Fact]
@@ -22021,7 +21954,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = new C() is [1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16),
+            // (12,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[System.Index i] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(12, 20));
 
         src = """
 _ = new C() is [1];
@@ -22134,7 +22070,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20),
+            // (13,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[System.Range r] => throw null;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(13, 20));
 
         src = """
 _ = new C() is [_, .. var x];
@@ -23922,6 +23861,9 @@ static class Extensions
             // (15,28): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         static void M3(int T){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(15, 28),
+            // (16,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int T] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 13),
             // (16,22): error CS9288: 'T': a parameter, local variable, or local function cannot have the same name as an extension container type parameter
             //         int this[int T] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter, "T").WithArguments("T").WithLocation(16, 22)
@@ -23976,9 +23918,15 @@ static class Extensions
             // (4,15): warning CS8981: The type name 'value' only contains lower-cased ascii characters. Such names may become reserved for the language.
             //     extension<value>(value[] p)
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "value").WithArguments("value").WithLocation(4, 15),
+            // (6,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int i] {set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(6, 13),
             // (6,26): error CS9294: 'value': an automatically-generated parameter name conflicts with an extension type parameter name
             //         int this[int i] {set{}}
-            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26)
+            Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter, "set").WithLocation(6, 26),
+            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[long i] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
             );
     }
 
@@ -24453,6 +24401,9 @@ class C8<T> {}
             // (13,18): error CS0119: 'T' is a type, which is not valid in the given context
             //         int T => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(13, 18),
+            // (19,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] => T;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13),
             // (19,28): error CS0119: 'T' is a type, which is not valid in the given context
             //         int this[int x] => T;
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(19, 28),
@@ -24461,7 +24412,13 @@ class C8<T> {}
             Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(26, 20),
             // (32,25): error CS0119: 'T' is a type, which is not valid in the given context
             //         static int T => T;
-            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25)
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(32, 25),
+            // (43,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(43, 13),
+            // (48,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(48, 13)
             );
     }
 
@@ -24546,12 +24503,21 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
+            // (27,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int y]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(27, 13),
             // (42,23): error CS9293: Cannot use extension parameter 'short M1' in this context.
             //             short x = M1;
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "M1").WithArguments("short M1").WithLocation(42, 23),
             // (53,17): error CS9293: Cannot use extension parameter 'string P1' in this context.
             //                 P1 = "val";
-            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17)
+            Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "P1").WithArguments("string P1").WithLocation(53, 17),
+            // (67,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(67, 13),
+            // (72,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(72, 13)
             );
     }
 
@@ -24671,6 +24637,9 @@ static class Extensions
             // (6,28): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         static void M3(int p){}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(6, 28),
+            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int p] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
             // (7,22): error CS9290: 'p': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[int p] => 0;
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "p").WithArguments("p").WithLocation(7, 22),
@@ -24704,9 +24673,18 @@ static class Extensions
             // (6,17): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int P2 {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(6, 17),
+            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] {get=>0;}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13),
+            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[long x] {set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (8,27): error CS9291: 'value': an automatically-generated parameter name conflicts with an extension parameter name
             //         int this[long x] {set{}}
             Diagnostic(ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter, "set").WithLocation(8, 27),
+            // (9,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[long x, int value] {set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 13),
             // (9,30): error CS9290: 'value': a parameter, local variable, or local function cannot have the same name as an extension parameter
             //         int this[long x, int value] {set{}}
             Diagnostic(ErrorCode.ERR_LocalSameNameAsExtensionParameter, "value").WithArguments("value").WithLocation(9, 30),
@@ -25353,7 +25331,10 @@ class MyAttr : System.Attribute
 ";
         var comp = CreateCompilation(src);
 
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int y]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13));
     }
 
     [Fact]
@@ -25383,7 +25364,10 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_InvalidExtensionParameterReference, "p").WithArguments("string p").WithLocation(6, 54),
             // (6,54): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
             //         [System.Runtime.CompilerServices.IndexerName(p)]
-            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54)
+            Diagnostic(ErrorCode.ERR_BadAttributeArgument, "p").WithLocation(6, 54),
+            // (7,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int y]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 13)
             );
     }
 
@@ -25508,7 +25492,10 @@ static class Extensions
         comp.VerifyEmitDiagnostics(
             // (7,54): error CS8078: An expression is too long or complex to compile
             //         [System.Runtime.CompilerServices.IndexerName(Str)]
-            Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54)
+            Diagnostic(ErrorCode.ERR_InsufficientStack, "Str").WithLocation(7, 54),
+            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int y]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
             );
     }
 
@@ -26036,12 +26023,21 @@ static class Extensions6
             // (49,20): error CS0082: Type 'Extensions4' already reserves a member called 'set_P4' with the same parameter types
             //         public int P4 => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "P4").WithArguments("set_P4", "Extensions4").WithLocation(49, 20),
+            // (57,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int x] => 1;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(57, 20),
             // (57,35): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Item", "Extensions5").WithLocation(57, 35),
+            // (64,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[long b] => 4;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(64, 20),
             // (64,36): error CS0082: Type 'Extensions5' already reserves a member called 'get_Item' with the same parameter types
             //         public int this[long b] => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "4").WithArguments("get_Item", "Extensions5").WithLocation(64, 36),
+            // (73,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int x] => 1;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(73, 20),
             // (73,35): error CS0082: Type 'Extensions6' already reserves a member called 'get_Indexer' with the same parameter types
             //         public int this[int x] => 1;
             Diagnostic(ErrorCode.ERR_MemberReserved, "1").WithArguments("get_Indexer", "Extensions6").WithLocation(73, 35)
@@ -26084,9 +26080,15 @@ static class Extensions2
             // (10,20): error CS0102: The type 'Extensions1' already contains a definition for 'P1'
             //         public int P1 {set{}}
             Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("Extensions1", "P1").WithLocation(10, 20),
+            // (18,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int x] => 1;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 20),
             // (23,20): error CS0111: Type 'Extensions2' already defines a member called 'this' with the same parameter types
             //         public int this[int y] {set{}}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions2").WithLocation(23, 20),
+            // (23,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int y] {set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(23, 20)
             );
     }
 
@@ -27147,7 +27149,10 @@ public static class Extensions
         comp.VerifyDiagnostics(
             // (8,13): error CS0102: The type 'Extensions' already contains a definition for 'Item'
             //         int this[T x] => default;
-            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13)
+            Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "this").WithArguments("Extensions", "Item").WithLocation(8, 13),
+            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[T x] => default;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13)
             );
     }
 
@@ -27169,6 +27174,7 @@ public static class Extensions
 
     extension<T>(T[] t)
     {
+#line 8
         int this[T x] => default;
     }
 
@@ -27184,9 +27190,15 @@ public static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
+            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[T x] => default;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (18,13): error CS0111: Type 'Extensions' already defines a member called 'this' with the same parameter types
             //         int this[U x] { set{}}
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13)
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "Extensions").WithLocation(18, 13),
+            // (18,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[U x] { set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(18, 13)
             );
     }
 
@@ -27208,6 +27220,7 @@ public static class Extensions
 
     extension<T>(T[] t)
     {
+#line 8
         int this[T x] => default;
     }
 
@@ -27225,9 +27238,15 @@ public static class Extensions
 
         // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The "within a type" part of the message might be somewhat misleading
         comp.VerifyDiagnostics(
+            // (8,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[T x] => default;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 13),
             // (19,13): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
             //         int this[int x] { set{}}
-            Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13)
+            Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 13),
+            // (19,13): error CS9282: Extension declarations can include only methods or properties
+            //         int this[int x] { set{}}
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(19, 13)
             );
     }
 
@@ -34112,6 +34131,9 @@ class Program
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         comp.VerifyDiagnostics(
+            // (8,23): error CS9282: Extension declarations can include only methods or properties
+            //         public string this[string s] => o + s;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 23),
             // (24,26): error CS0021: Cannot apply indexing with [] to an expression of type 'object'
             //         return (o, s) => o[s];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "o[s]").WithArguments("object").WithLocation(24, 26)
@@ -34916,6 +34938,9 @@ static class E
             // (14,20): error CS9303: 'P3': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int P3 => 0; // 2
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "P3").WithArguments("P3").WithLocation(14, 20),
+            // (16,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j] => 0; // 3
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(16, 20),
             // (16,20): error CS9303: 'this[]': cannot declare instance members in an extension block with an unnamed receiver parameter
             //         public int this[int j] => 0; // 3
             Diagnostic(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, "this").WithArguments("this[]").WithLocation(16, 20));
@@ -35162,6 +35187,9 @@ static class E
             // (8,29): error CS0106: The modifier 'abstract' is not valid for this item
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(8, 29),
+            // (8,29): error CS9282: Extension declarations can include only methods or properties
+            //         public abstract int this[int j] { get; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 29),
             // (8,43): error CS0501: 'E.extension(int).this[int].get' must declare a body because it is not marked abstract, extern, or partial
             //         public abstract int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("E.extension(int).this[int].get").WithLocation(8, 43));
@@ -35191,7 +35219,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("new").WithLocation(6, 24),
             // (7,24): error CS0106: The modifier 'new' is not valid for this item
             //         public new int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("new").WithLocation(7, 24),
+            // (7,24): error CS9282: Extension declarations can include only methods or properties
+            //         public new int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 24));
     }
 
     [Fact]
@@ -35218,7 +35249,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("override").WithLocation(6, 29),
             // (7,29): error CS0106: The modifier 'override' is not valid for this item
             //         public override int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(7, 29),
+            // (7,29): error CS9282: Extension declarations can include only methods or properties
+            //         public override int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 29));
     }
 
     [Fact]
@@ -35249,6 +35283,9 @@ static class E
             // (7,21): error CS0751: A partial member must be declared within a partial type
             //         partial int P { get; set; }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "P").WithLocation(7, 21),
+            // (9,21): error CS9282: Extension declarations can include only methods or properties
+            //         partial int this[int j] { get; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 21),
             // (9,21): error CS0751: A partial member must be declared within a partial type
             //         partial int this[int j] { get; }
             Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "this").WithLocation(9, 21));
@@ -35278,7 +35315,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("sealed").WithLocation(6, 20),
             // (7,20): error CS0106: The modifier 'sealed' is not valid for this item
             //         sealed int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(7, 20),
+            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            //         sealed int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
     }
 
     [Fact]
@@ -35312,7 +35352,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(7, 46),
             // (8,22): error CS0106: The modifier 'readonly' is not valid for this item
             //         readonly int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 22),
+            // (8,22): error CS9282: Extension declarations can include only methods or properties
+            //         readonly int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(8, 22));
     }
 
     [Fact]
@@ -35339,7 +35382,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("required").WithLocation(6, 22),
             // (7,22): error CS0106: The modifier 'required' is not valid for this item
             //         required int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("required").WithLocation(7, 22),
+            // (7,22): error CS9282: Extension declarations can include only methods or properties
+            //         required int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 22));
     }
 
     [Fact]
@@ -35366,7 +35412,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("extern").WithLocation(6, 20),
             // (7,20): error CS0106: The modifier 'extern' is not valid for this item
             //         extern int this[int j] { get => 0; }
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(7, 20),
+            // (7,20): error CS9282: Extension declarations can include only methods or properties
+            //         extern int this[int j] { get => 0; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 20));
     }
 
     [Fact]
@@ -35384,7 +35433,10 @@ static class E
 }
 """;
         var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (7,21): error CS9282: Extension declarations can include only methods or properties
+            //         unsafe int* this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(7, 21));
     }
 
     [Fact]
@@ -35418,9 +35470,15 @@ static class E
             // (8,45): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 45),
+            // (9,23): error CS9282: Extension declarations can include only methods or properties
+            //         protected int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 23),
             // (9,23): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 23),
+            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j, int k] { protected get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,51): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 51));
@@ -35457,9 +35515,15 @@ static class E
             // (8,54): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; protected internal set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 54),
+            // (9,32): error CS9282: Extension declarations can include only methods or properties
+            //         protected internal int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 32),
             // (9,32): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         protected internal int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 32),
+            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j, int k] { protected internal get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,60): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { protected internal get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 60));
@@ -35496,9 +35560,15 @@ static class E
             // (8,53): error CS9302: 'E.extension(int).P3.set': new protected member declared in an extension block
             //         public int P3 { get => 0; private protected set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "set").WithArguments("E.extension(int).P3.set").WithLocation(8, 53),
+            // (9,31): error CS9282: Extension declarations can include only methods or properties
+            //         private protected int this[int j] { get => throw null; }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(9, 31),
             // (9,31): error CS9302: 'E.extension(int).this[int]': new protected member declared in an extension block
             //         private protected int this[int j] { get => throw null; }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "this").WithArguments("E.extension(int).this[int]").WithLocation(9, 31),
+            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j, int k] { private protected get => throw null; set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20),
             // (10,59): error CS9302: 'E.extension(int).this[int, int].get': new protected member declared in an extension block
             //         public int this[int j, int k] { private protected get => throw null; set { } }
             Diagnostic(ErrorCode.ERR_ProtectedInExtension, "get").WithArguments("E.extension(int).this[int, int].get").WithLocation(10, 59));
