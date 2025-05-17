@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DisallowExpandedNonArrayParams = 1 << 8,
             InferringUniqueMethodGroupSignature = 1 << 9,
             DisallowExpandedForm = 1 << 10,
+            IgnoreStaticInstanceMismatches = 1 << 11,
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -168,6 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
             bool dynamicResolution,
+            bool ignoreStaticInstanceMismatches,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!dynamicResolution || arguments.HasDynamicArgument);
@@ -177,7 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexers, typeArguments, receiverOpt, arguments, result,
                 useSiteInfo: ref useSiteInfo,
                 options: (allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None) |
-                         (dynamicResolution ? Options.DynamicResolution : Options.None),
+                         (dynamicResolution ? Options.DynamicResolution : Options.None) |
+                         (ignoreStaticInstanceMismatches ? Options.IgnoreStaticInstanceMismatches : Options.None),
                 callingConventionInfo: default);
             typeArguments.Free();
         }
@@ -447,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
             {
-                RemoveStaticInstanceMismatches(results, receiver);
+                RemoveStaticInstanceMismatches(results, receiver, options);
 
                 RemoveConstraintViolations(results, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo));
 
@@ -579,8 +582,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RemoveStaticInstanceMismatches<TMember>(
             ArrayBuilder<MemberResolutionResult<TMember>> results,
-            BoundExpression receiverOpt) where TMember : Symbol
+            BoundExpression receiverOpt,
+            Options options) where TMember : Symbol
         {
+            if ((options & Options.IgnoreStaticInstanceMismatches) != 0)
+            {
+                return;
+            }
+
             // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
             // is a type, or static members when the receiver is an instance. This does not apply when the
             // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either

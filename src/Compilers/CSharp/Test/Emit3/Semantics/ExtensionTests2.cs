@@ -2285,5 +2285,47 @@ public static class E
             //         [System.Diagnostics.CodeAnalysis.UnscopedRef]
             Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "System.Diagnostics.CodeAnalysis.UnscopedRef").WithLocation(8, 10));
     }
+
+    [Fact]
+    public void Nameof_AllowStaticInstanceMismatch()
+    {
+        var src = """
+public static class E
+{
+    extension(object o)
+    {
+        [My(nameof(string.P)), My(nameof(E.get_P)), My(nameof(E.M))]
+        [My(nameof(string.M))]
+        public void M() { }
+
+        public int P => 42;
+    }
+
+    extension(string)
+    {
+        [My(nameof(string.P)), My(nameof(E.get_P)), My(nameof(E.M))]
+        [My(nameof(string.M))]
+        public static void M() { }
+
+        public static int P => 42;
+    }
+}
+
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true)]
+public class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            //         [My(nameof(string.M))]
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "string.M").WithLocation(6, 20),
+            // (15,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            //         [My(nameof(string.M))]
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "string.M").WithLocation(15, 20));
+    }
 }
 

@@ -23142,7 +23142,10 @@ static class E2
     public void Nameof_Static_Method()
     {
         var src = """
-System.Console.Write(nameof(C.Method));
+_ = nameof(C.Method);
+
+C c = null;
+_ = nameof(c.Method);
 
 class C { }
 
@@ -23156,13 +23159,20 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,29): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
-            // System.Console.Write(nameof(C.Method));
-            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "C.Method").WithLocation(1, 29));
+            // (1,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(C.Method);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "C.Method").WithLocation(1, 12),
+            // (4,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(c.Method);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "c.Method").WithLocation(4, 12));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["System.String E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Method");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
         Assert.Equal(["System.String E.<>E__0.Method()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
     }
@@ -23173,6 +23183,7 @@ static class E
         var src = """
 C c = null;
 _ = nameof(c.Method);
+_ = nameof(C.Method);
 
 class C { }
 
@@ -23188,11 +23199,17 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (2,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
             // _ = nameof(c.Method);
-            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "c.Method").WithLocation(2, 12));
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "c.Method").WithLocation(2, 12),
+            // (3,12): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+            // _ = nameof(C.Method);
+            Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "C.Method").WithLocation(3, 12));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Method");
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+
+        memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Method");
         Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
@@ -38499,7 +38516,7 @@ class C
     public object? P => null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we shouldn't care about static/instance mismatch in nameof
+
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.
@@ -38507,10 +38524,7 @@ class C
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
             // (7,5): warning CS8602: Dereference of a possibly null reference.
             //     o.P.ToString(); // 2
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
-            // (13,73): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
-            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
-            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(13, 73));
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5));
 
         src = """
 #nullable enable
@@ -38588,6 +38602,9 @@ static class E
         src = """
 #nullable enable
 
+if (object.M())
+    object.P.ToString();
+
 static class E
 {
     extension(object o)
@@ -38600,7 +38617,33 @@ static class E
 }
 """;
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            //     object.P.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P").WithLocation(4, 5));
+
+        src = """
+#nullable enable
+
+if (object.M())
+    object.P.ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, "P")]
+        public static bool M() => throw null!;
+
+        public static object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            //     object.P.ToString();
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.P").WithLocation(4, 5));
     }
 
     [Fact]
