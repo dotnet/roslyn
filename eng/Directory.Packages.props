@@ -38,14 +38,12 @@
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.4" />
   </ItemGroup>
 
-  <!-- <Metalama> downgraded to a version that supports .Net 6 -->
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.7.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.7.2" />
   </ItemGroup>
-  <!-- </Metalama> -->
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
     <PackageVersion Include="Microsoft.Build" Version="17.13.9" />
@@ -318,9 +316,7 @@
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <!-- <Metalama> downgraded to version that depends on version of MSBuild that supports .Net 6 -->
-    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.0.174" />
-    <!-- </Metalama> -->
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.2.386" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />

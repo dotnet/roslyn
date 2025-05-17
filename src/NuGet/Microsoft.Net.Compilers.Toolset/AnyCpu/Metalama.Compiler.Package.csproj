@@ -74,8 +74,7 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="NetSdkAnalyzersPath" />
     </Exec>
     <PropertyGroup>
-      <NetCore Condition="'$(TargetFramework)' == 'net6.0'">netcore</NetCore>
-      <NetCore Condition="'$(TargetFramework)' != 'net6.0'">$(TargetFramework)</NetCore>
+      <NetCore>net8.0</NetCore>
     </PropertyGroup>
     <ItemGroup>
       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
