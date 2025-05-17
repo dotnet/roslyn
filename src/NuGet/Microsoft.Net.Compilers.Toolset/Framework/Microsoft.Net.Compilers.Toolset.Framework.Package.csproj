@@ -28,7 +28,7 @@
     <ProjectReference Include="..\..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\MSBuild\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj" PrivateAssets="All"/>
   </ItemGroup>
 
