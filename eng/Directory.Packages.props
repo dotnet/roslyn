@@ -40,10 +40,10 @@
 
   <!-- <Metalama> downgraded to a version that supports .Net 6 -->
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' != 'net472'">
-    <PackageVersion Include="Microsoft.Build" Version="17.6.3" />
-    <PackageVersion Include="Microsoft.Build.Framework" Version="17.6.3" />
-    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.6.3" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.Build" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.3.2" />
   </ItemGroup>
   <!-- </Metalama> -->
 
@@ -195,6 +195,7 @@
     <PackageVersion Include="System.Composition.Hosting" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.Composition.Runtime" Version="$(SystemCompositionVersion)" />
     <PackageVersion Include="System.Composition.TypedParts" Version="$(SystemCompositionVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0" /> <!-- The version is set in Version.Details.xml but I can't see an exported property -->
     <!-- </Metalama> -->
     <PackageVersion Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="$(SystemDiagnosticsDiagnosticSourceVersion)" />
@@ -318,7 +319,7 @@
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <!-- <Metalama> downgraded to version that depends on version of MSBuild that supports .Net 6 -->
-    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.1.858" />
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.0.174" />
     <!-- </Metalama> -->
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />

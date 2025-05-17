@@ -174,6 +174,8 @@ namespace Metalama.Compiler
 
         public override int ERR_EncUpdateFailedMissingSymbol => throw new NotImplementedException();
 
+        public override int ERR_DataSectionStringLiteralHashCollision => throw new NotImplementedException();
+
         #endregion
 
         public override Diagnostic CreateDiagnostic(DiagnosticInfo info) => Diagnostic.Create(info);

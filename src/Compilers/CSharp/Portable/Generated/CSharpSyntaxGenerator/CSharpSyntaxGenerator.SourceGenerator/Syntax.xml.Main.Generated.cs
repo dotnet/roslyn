@@ -6711,6 +6711,24 @@ public static partial class SyntaxFactory
             case SyntaxKind.None: break;
             default: throw new ArgumentException(nameof(semicolonToken));
         }
+        // <Metalama> This change is generated. See Modifications.md for details.
+        keyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(keyword);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        typeParameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(typeParameterList);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        parameterList = Metalama.Compiler.TreeTracker.TrackIfNeeded(parameterList);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        openBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(openBraceToken);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        closeBraceToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(closeBraceToken);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        semicolonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(semicolonToken);
+        // </Metalama>
         return (ExtensionDeclarationSyntax)Syntax.InternalSyntax.SyntaxFactory.ExtensionDeclaration(attributeLists.Node.ToGreenList<Syntax.InternalSyntax.AttributeListSyntax>(), modifiers.Node.ToGreenList<Syntax.InternalSyntax.SyntaxToken>(), (Syntax.InternalSyntax.SyntaxToken)keyword.Node!, typeParameterList == null ? null : (Syntax.InternalSyntax.TypeParameterListSyntax)typeParameterList.Green, parameterList == null ? null : (Syntax.InternalSyntax.ParameterListSyntax)parameterList.Green, constraintClauses.Node.ToGreenList<Syntax.InternalSyntax.TypeParameterConstraintClauseSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)openBraceToken.Node, members.Node.ToGreenList<Syntax.InternalSyntax.MemberDeclarationSyntax>(), (Syntax.InternalSyntax.SyntaxToken?)closeBraceToken.Node, (Syntax.InternalSyntax.SyntaxToken?)semicolonToken.Node).CreateRed();
     }
 
@@ -8782,6 +8800,15 @@ public static partial class SyntaxFactory
         if (hashToken.Kind() != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
         if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
         if (endOfDirectiveToken.Kind() != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
+        // <Metalama> This change is generated. See Modifications.md for details.
+        hashToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(hashToken);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        colonToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(colonToken);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        endOfDirectiveToken = Metalama.Compiler.TreeTracker.TrackIfNeeded(endOfDirectiveToken);
+        // </Metalama>
         return (IgnoredDirectiveTriviaSyntax)Syntax.InternalSyntax.SyntaxFactory.IgnoredDirectiveTrivia((Syntax.InternalSyntax.SyntaxToken)hashToken.Node!, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!, (Syntax.InternalSyntax.SyntaxToken)endOfDirectiveToken.Node!, isActive).CreateRed();
     }
 

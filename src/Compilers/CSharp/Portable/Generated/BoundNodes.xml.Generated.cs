@@ -12449,8 +12449,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // <Metalama> This change is generated. See Modifications.md for details.
         public override BoundNode? VisitGetRuntimeHandleExpression(BoundGetRuntimeHandleExpression node)
         {
+            Symbol symbol = this.VisitSymbol(node.Symbol);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.Symbol, type);
+            return node.Update(symbol, type);
         }
         // </Metalama>
     }

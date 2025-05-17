@@ -11921,6 +11921,9 @@ public sealed partial class ExtensionDeclarationSyntax : TypeDeclarationSyntax
         {
             var newNode = SyntaxFactory.ExtensionDeclaration(attributeLists, modifiers, keyword, typeParameterList, parameterList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
             var annotations = GetAnnotations();
+            // <Metalama> This change is generated. See Modifications.md for details.
+            Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+            // </Metalama>
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
@@ -17336,6 +17339,9 @@ public sealed partial class IgnoredDirectiveTriviaSyntax : DirectiveTriviaSyntax
         {
             var newNode = SyntaxFactory.IgnoredDirectiveTrivia(hashToken, colonToken, endOfDirectiveToken, isActive);
             var annotations = GetAnnotations();
+            // <Metalama> This change is generated. See Modifications.md for details.
+            Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+            // </Metalama>
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 

@@ -6292,3 +6292,5 @@ Microsoft.CodeAnalysis.CSharpExtensions.IsKind(Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CSharpExtensions.IsKind(Microsoft.CodeAnalysis.SyntaxNodeOrToken,Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharpExtensions.IsKind(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharpExtensions.IsKind(Microsoft.CodeAnalysis.SyntaxTrivia,Microsoft.CodeAnalysis.CSharp.SyntaxKind)
+Metalama.Compiler.CSharpTransformerDriver
+Metalama.Compiler.CSharpTransformerDriver.RunTransformers(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Metalama.Compiler.ISourceTransformer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ResourceDescription},Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader,Metalama.Compiler.TransformerOptions)
