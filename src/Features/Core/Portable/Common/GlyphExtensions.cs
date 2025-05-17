@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -29,11 +27,14 @@ internal static class GlyphExtensions
 
     public static Glyph GetFirstGlyph(this ImmutableArray<string> tags)
     {
-        var glyphs = GetGlyphs(tags);
+        foreach (var tag in tags)
+        {
+            var glyph = GetGlyph(tag, tags);
+            if (glyph != Glyph.None)
+                return glyph;
+        }
 
-        return !glyphs.IsEmpty
-            ? glyphs[0]
-            : Glyph.None;
+        return Glyph.None;
     }
 
     private static Glyph GetGlyph(string tag, ImmutableArray<string> allTags)

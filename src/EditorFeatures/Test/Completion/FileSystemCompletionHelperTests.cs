@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -161,7 +160,7 @@ public class FileSystemCompletionHelperTests
             searchPaths: [],
             baseDirectoryOpt: null,
             allowableExtensions: [".cs"],
-            drives: Array.Empty<string>(),
+            drives: [],
             directories: new[]
             {
                 @"\\server\share",
@@ -191,7 +190,7 @@ public class FileSystemCompletionHelperTests
             searchPaths: [@"/A", @"/B"],
             baseDirectoryOpt: @"/C",
             allowableExtensions: [".abc", ".def"],
-            drives: Array.Empty<string>(),
+            drives: [],
             directories: new[]
             {
                 @"/A",

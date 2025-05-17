@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -90,8 +89,8 @@ public class TextDocument
     /// <summary>
     /// Gets the version of the document's text.
     /// </summary>
-    public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
-        => State.GetTextVersionAsync(cancellationToken);
+    public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
+        => await State.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Fetches the current version for the document synchronously.

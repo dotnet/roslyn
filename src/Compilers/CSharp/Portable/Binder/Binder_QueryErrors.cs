@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(methodName == "SelectMany");
 
             // Estimate the return type of Select's lambda argument
-            BoundExpression arg = arguments.Argument(arguments.IsExtensionMethodInvocation ? 1 : 0);
+            BoundExpression arg = arguments.Argument(arguments.IncludesReceiverAsArgument ? 1 : 0); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test this code path for new extensions
             TypeSymbol type = null;
             if (arg.Kind == BoundKind.UnboundLambda)
             {

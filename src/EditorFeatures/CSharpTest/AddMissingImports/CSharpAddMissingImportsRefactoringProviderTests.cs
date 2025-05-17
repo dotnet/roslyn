@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.AddMissingImports)]
-public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
+public sealed class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCodeActionTest
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
         => new CSharpAddMissingImportsRefactoringProvider();
@@ -43,7 +44,8 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
     }
 
     private Task TestInRegularAndScriptAsync(
-        string initialMarkup, string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
     {
         var options =
@@ -208,6 +210,7 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
 
         var expected = """
             using A;
+
             using B;
 
             using System;
@@ -380,5 +383,28 @@ public class CSharpAddMissingImportsRefactoringProviderTests : AbstractCSharpCod
             """;
 
         await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: false, separateImportDirectiveGroups: false);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/51844")]
+    public async Task TestOrdering1()
+    {
+        var code = """
+            class C
+            {
+                [|List<Type> list;|]
+            }
+            """;
+
+        var expected = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<Type> list;
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(code, expected, placeSystemNamespaceFirst: true, separateImportDirectiveGroups: true);
     }
 }

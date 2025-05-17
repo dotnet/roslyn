@@ -212,6 +212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                     WithStatements(VisitList(ReplaceStatementsIfNeeded(node.Statements)))
                     End Function
 
+                    Public Overrides Function VisitElseIfBlock(node As ElseIfBlockSyntax) As SyntaxNode
+                        If node IsNot Me.ContainerOfStatementsOrFieldToReplace Then
+                            Return MyBase.VisitElseIfBlock(node)
+                        End If
+
+                        Return node.WithElseIfStatement(ReplaceStatementIfNeeded(node.ElseIfStatement)).
+                                    WithStatements(VisitList(ReplaceStatementsIfNeeded(node.Statements)))
+                    End Function
+
                     Public Overrides Function VisitTryBlock(node As TryBlockSyntax) As SyntaxNode
                         If node IsNot Me.ContainerOfStatementsOrFieldToReplace Then
                             Return MyBase.VisitTryBlock(node)

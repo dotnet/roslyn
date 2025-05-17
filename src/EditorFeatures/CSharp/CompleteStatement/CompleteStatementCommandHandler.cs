@@ -172,7 +172,7 @@ internal sealed class CompleteStatementCommandHandler(
 
         startingNode = tokenOnLeft.GetRequiredParent();
 
-        // If the caret is before an opening delimiter or after a closing delimeter,
+        // If the caret is before an opening delimiter or after a closing delimiter,
         // start analysis with node outside of delimiters.
         //
         // Examples, 

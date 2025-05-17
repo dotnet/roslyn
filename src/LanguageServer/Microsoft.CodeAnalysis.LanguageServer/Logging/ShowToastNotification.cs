@@ -4,7 +4,6 @@
 
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;

@@ -233,5 +233,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return 0;
         }
+
+#nullable enable
+        protected abstract override SourceMemberMethodSymbol? BoundAttributesSource { get; }
+
+        public sealed override MethodSymbol? PartialImplementationPart => _event is { IsPartialDefinition: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.EventAdd ? other.AddMethod : other.RemoveMethod)
+            : null;
+
+        public sealed override MethodSymbol? PartialDefinitionPart => _event is { IsPartialImplementation: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.EventAdd ? other.AddMethod : other.RemoveMethod)
+            : null;
+
+        internal bool IsPartialDefinition => _event.IsPartialDefinition;
+
+        internal bool IsPartialImplementation => _event.IsPartialImplementation;
+
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
     }
 }

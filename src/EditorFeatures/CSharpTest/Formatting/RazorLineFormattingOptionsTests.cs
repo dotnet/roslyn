@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -57,7 +56,7 @@ void F   () {}
         var documentInfo = DocumentInfo.Create(
             DocumentId.CreateNewId(project.Id),
             name: "file.razor.g.cs",
-            folders: Array.Empty<string>(),
+            folders: [],
             sourceCodeKind: SourceCodeKind.Regular,
             loader: TextLoader.From(TextAndVersion.Create(sourceText, VersionStamp.Create(), "file.razor.g.cs")),
             filePath: "file.razor.g.cs")

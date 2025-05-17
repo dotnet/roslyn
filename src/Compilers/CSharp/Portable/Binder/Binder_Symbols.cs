@@ -338,16 +338,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var diagnosticInfo = diagnostics.Add(ErrorCode.ERR_BadSKknown, syntax.Location, syntax, symbol.Symbol.GetKindText(), MessageID.IDS_SK_TYPE.Localize());
-            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
+            return TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbol.Symbol), symbol.Symbol, LookupResultKind.NotATypeOrNamespace, diagnosticInfo));
         }
 
         /// <summary>
         /// The immediately containing namespace or named type, or the global
         /// namespace if containing symbol is neither a namespace or named type.
+        /// We don't want to use an extension declaration as the containing type
+        /// for error type symbols, as that causes cycles during symbol display.
         /// </summary>
-        private NamespaceOrTypeSymbol GetContainingNamespaceOrType(Symbol symbol)
+        private NamespaceOrTypeSymbol GetContainingNamespaceOrNonExtensionType(Symbol symbol)
         {
-            return symbol.ContainingNamespaceOrType() ?? this.Compilation.Assembly.GlobalNamespace;
+            if (symbol.ContainingNamespaceOrType() is { } containing
+                && containing is not TypeSymbol { IsExtension: true })
+            {
+                return containing;
+            }
+
+            return this.Compilation.Assembly.GlobalNamespace;
         }
 
         internal Symbol BindNamespaceAliasSymbol(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
@@ -915,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnosticForDynamic(diagnostics, node);
                         }
 
-                        if (type.ContainsPointer())
+                        if (type.ContainsPointerOrFunctionPointer())
                         {
                             ReportUnsafeIfNotAllowed(node, diagnostics);
                         }
@@ -1305,7 +1313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for us.
                 Debug.Assert(lookupResult.Error != null);
                 type = new ExtendedErrorTypeSymbol(
-                    GetContainingNamespaceOrType(lookupResultSymbol),
+                    GetContainingNamespaceOrNonExtensionType(lookupResultSymbol),
                     ImmutableArray.Create<Symbol>(lookupResultSymbol),
                     lookupResult.Kind,
                     lookupResult.Error,
@@ -1436,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression colorColorValueReceiver = GetValueExpressionIfTypeOrValueReceiver(receiver);
 
-            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensionMethods) != 0);
+            Debug.Assert(colorColorValueReceiver is null || (methodGroupFlags & BoundMethodGroupFlags.SearchExtensions) != 0);
 
             if (IsPossiblyCapturingPrimaryConstructorParameterReference(colorColorValueReceiver, out ParameterSymbol parameter))
             {
@@ -1534,10 +1542,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!haveInstanceCandidates && members[0].Kind == SymbolKind.Method)
             {
                 // See if there could be extension methods in scope
-                foreach (var scope in new ExtensionMethodScopes(this))
+                foreach (var scope in new ExtensionScopes(this))
                 {
                     lookupResult ??= LookupResult.GetInstance();
-                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo);
+                    LookupExtensionMethods(lookupResult, scope, plainName, arity, ref useSiteInfo); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : account for new extension members
 
                     if (lookupResult.IsMultiViable)
                     {
@@ -2234,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new ExtendedErrorTypeSymbol(
-                            GetContainingNamespaceOrType(originalSymbols[0]),
+                            GetContainingNamespaceOrNonExtensionType(originalSymbols[0]),
                             originalSymbols,
                             LookupResultKind.Ambiguous,
                             info,
@@ -2252,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             wasError = true;
                             var errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_SystemVoid);
                             diagnostics.Add(errorInfo, where.Location);
-                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
+                            singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(singleResult), singleResult, LookupResultKind.NotReferencable, errorInfo); // UNDONE: Review resultkind.
                         }
                         // Check for bad symbol.
                         else
@@ -2285,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         wasError = true;
                                         diagnostics.Add(errorInfo, where.Location);
-                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
+                                        singleResult = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(errorType), errorType.Name, errorType.Arity, errorInfo, unreported: false);
                                     }
                                 }
                             }
@@ -2341,7 +2349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Bad type or namespace (or things expected as types/namespaces) are packaged up as error types, preserving the symbols and the result kind.
                     // We do this if there are multiple symbols too, because just returning one would be losing important information, and they might
                     // be of different kinds.
-                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
+                    return new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbols[0]), symbols.ToImmutable(), result.Kind, result.Error, arity);
                 }
                 else
                 {

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,9 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -83,6 +86,19 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
     }
 
     private async Task<Solution> ProcessResultAsync(
+        Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await ProcessResultWorkerAsync(originalSolution, currentSolution, diagnostic, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+        {
+            return currentSolution;
+        }
+    }
+
+    private async Task<Solution> ProcessResultWorkerAsync(
         Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var (field, property) = await MapDiagnosticToCurrentSolutionAsync(
@@ -243,10 +259,10 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
             editor.ReplaceNode(propertyDeclaration, updatedProperty);
             editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
-            var newRoot = editor.GetChangedRoot();
-            newRoot = await FormatAsync(newRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
+            var updatedFieldDocument = fieldDocument.WithSyntaxRoot(editor.GetChangedRoot());
+            var finalFieldRoot = await FormatAsync(updatedFieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
-            return currentSolution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
+            return currentSolution.WithDocumentSyntaxRoot(fieldDocument.Id, finalFieldRoot);
         }
         else
         {
@@ -258,8 +274,11 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
             Contract.ThrowIfNull(newFieldTreeRoot);
             var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(propertyDeclaration, updatedProperty);
 
-            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
-            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
+            var updatedFieldDocument = fieldDocument.WithSyntaxRoot(newFieldTreeRoot);
+            var updatedPropertyDocument = propertyDocument.WithSyntaxRoot(newPropertyTreeRoot);
+
+            newFieldTreeRoot = await FormatAsync(updatedFieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
+            newPropertyTreeRoot = await FormatAsync(updatedPropertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
             var updatedSolution = currentSolution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -349,17 +368,24 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
     }
 
     private async Task<SyntaxNode> FormatAsync(
-        SyntaxNode newRoot,
         Document document,
         SyntaxNode finalPropertyDeclaration,
         CancellationToken cancellationToken)
     {
+        // First see if we need to apply any specialized formatting rules.
         var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
-        if (formattingRules.IsDefault)
-            return newRoot;
+        if (!formattingRules.IsDefault)
+        {
+            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+            document = await Formatter.FormatAsync(
+                document, SpecializedFormattingAnnotation, options, formattingRules, cancellationToken).ConfigureAwait(false);
+        }
 
-        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Services, options, formattingRules, cancellationToken);
+        var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var cleanedDocument = await CodeAction.CleanupSyntaxAsync(
+            document, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
+
+        return await cleanedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static bool IsWrittenToOutsideOfConstructorOrProperty(

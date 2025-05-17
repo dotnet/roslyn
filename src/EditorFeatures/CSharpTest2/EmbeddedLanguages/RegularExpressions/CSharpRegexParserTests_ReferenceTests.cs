@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="Open" Span="[19..29)" Text="(?'Open'&lt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="Close" Span="[11..27)" Text="(?'Close-Open'&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="Open" Span="[12..22)" Text="(?'Open'&lt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="Close" Span="[10..26)" Text="(?'Close-Open'&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowIndexOutOfRange: true);
+                """, RegexOptions.None);
         }
 
         [Fact]

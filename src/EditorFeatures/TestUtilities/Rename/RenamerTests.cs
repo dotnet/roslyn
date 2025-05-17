@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 }
 
                 AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
-                Assert.Equal(0, remainingErrors.Count);
+                Assert.Empty(remainingErrors);
             }
         }
 

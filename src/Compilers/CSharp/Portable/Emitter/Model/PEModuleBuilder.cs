@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static void GetDocumentsForMethodsAndNestedTypes(PooledHashSet<Cci.DebugSourceDocument> documentList, ArrayBuilder<Cci.ITypeDefinition> typesToProcess, EmitContext context)
         {
-            // Temporarily disable assert to unblock getting net8.0 teststing re-nabled on Unix. Will 
+            // Temporarily disable assert to unblock getting net8.0 testing re-enabled on Unix. Will 
             // remove this shortly.
             // https://github.com/dotnet/roslyn/issues/71571
             // Debug.Assert(!context.MetadataOnly);
@@ -2095,6 +2095,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal ImmutableArray<Cci.UsedNamespaceOrType> GetOrAddTranslatedImports(ImportChain chain, ImmutableArray<Cci.UsedNamespaceOrType> imports)
         {
             return _translatedImportsMap.GetOrAdd(chain, imports);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true } || nestedType.GetInternalSymbol() is FixedFieldImplementationType);
+            base.AddSynthesizedDefinition(container, nestedType);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IFieldDefinition field)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, field);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IMethodDefinition method)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, method);
+        }
+
+        public override void AddSynthesizedDefinition(NamedTypeSymbol container, Cci.IPropertyDefinition property)
+        {
+            Debug.Assert(container is not NamedTypeSymbol { IsExtension: true });
+            base.AddSynthesizedDefinition(container, property);
         }
     }
 }

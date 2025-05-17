@@ -1335,6 +1335,50 @@ class D { }";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+        public async Task AddAttributeWithArrayParams()
+        {
+            var input = """
+                using System; 
+                class ExampleAttribute : Attribute
+                {
+                    public ExampleAttribute(int[] items) { }
+                }
+                class ExampleType
+                {
+                    [Example(new[] { 1, 2, 3 })]
+                    public void {|method:M|}() { }
+                }
+                class C
+                {
+                    public void [|M|]2() { }
+                }
+                """;
+            var expected = """
+                using System; 
+                class ExampleAttribute : Attribute
+                {
+                    public ExampleAttribute(int[] items) { }
+                }
+                class ExampleType
+                {
+                    [Example(new[] { 1, 2, 3 })]
+                    public void M() { }
+                }
+                class C
+                {
+                    [Example(new[] { 1, 2, 3 })]
+                    public void M2() { }
+                }
+                """;
+            await TestAddAttributeAsync(input, expected, (context) =>
+            {
+                var method = context.GetAnnotatedDeclaredSymbols("method", context.SemanticModel).Single();
+                var attribute = method.GetAttributes().Single();
+                return attribute;
+            });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
         public async Task RemoveAttributeWithTrivia()
         {
             // With trivia.

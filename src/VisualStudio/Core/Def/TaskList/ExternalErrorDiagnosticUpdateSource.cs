@@ -19,12 +19,12 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.RpcContracts.DiagnosticManagement;
 using Microsoft.VisualStudio.RpcContracts.Utilities;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
-using static Microsoft.ServiceHub.Framework.ServiceBrokerClient;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 /// <summary>

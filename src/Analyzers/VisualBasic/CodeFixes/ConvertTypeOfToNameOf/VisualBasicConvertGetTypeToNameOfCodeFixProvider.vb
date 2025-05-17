@@ -26,6 +26,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertTypeOfToNameOf
             Return VisualBasicCodeFixesResources.Convert_GetType_to_NameOf
         End Function
 
+        Protected Overrides Function ConvertToUnboundGeneric(options As ParseOptions, nameOfSyntax As SyntaxNode) As SyntaxNode
+            Return nameOfSyntax
+        End Function
+
         Protected Overrides Function GetSymbolTypeExpression(semanticModel As SemanticModel, node As MemberAccessExpressionSyntax, cancellationToken As CancellationToken) As SyntaxNode
             Dim expression = node.Expression
             Dim type = DirectCast(expression, GetTypeExpressionSyntax).Type

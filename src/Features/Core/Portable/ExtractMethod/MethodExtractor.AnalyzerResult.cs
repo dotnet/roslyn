@@ -6,11 +6,9 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
@@ -27,10 +25,9 @@ internal abstract partial class AbstractExtractMethodService<
             ImmutableArray<VariableInfo> variables,
             ITypeSymbol returnType,
             bool returnsByRef,
-            bool awaitTaskReturn,
             bool instanceMemberIsUsed,
             bool shouldBeReadOnly,
-            bool endOfSelectionReachable,
+            ExtractMethodFlowControlInformation flowControlInformation,
             OperationStatus status)
         {
             public ImmutableArray<ITypeParameterSymbol> MethodTypeParametersInDeclaration { get; } = typeParametersInDeclaration;
@@ -48,16 +45,16 @@ internal abstract partial class AbstractExtractMethodService<
             public bool ShouldBeReadOnly { get; } = shouldBeReadOnly;
 
             /// <summary>
-            /// used to determine whether "return" statement needs to be inserted
+            /// Information about the flow control constructs found in the selection.  For for many purposes, including
+            /// determining whether a final "return" statement needs to be inserted.
             /// </summary>
-            public bool EndOfSelectionReachable { get; } = endOfSelectionReachable;
+            public ExtractMethodFlowControlInformation FlowControlInformation { get; } = flowControlInformation;
 
             /// <summary>
-            /// flag to show whether task return type is due to await
+            /// Initial computed return type for the extract method.  This does not include any wrapping in a type like
+            /// <see cref="Task{TResult}"/> for async methods.
             /// </summary>
-            public bool AwaitTaskReturn { get; } = awaitTaskReturn;
-
-            public ITypeSymbol ReturnType { get; } = returnType;
+            public ITypeSymbol CoreReturnType { get; } = returnType;
             public bool ReturnsByRef { get; } = returnsByRef;
 
             /// <summary>
@@ -66,14 +63,6 @@ internal abstract partial class AbstractExtractMethodService<
             public OperationStatus Status { get; } = status;
 
             public ImmutableArray<VariableInfo> Variables { get; } = variables;
-
-            public bool HasReturnType
-            {
-                get
-                {
-                    return ReturnType.SpecialType != SpecialType.System_Void && !AwaitTaskReturn;
-                }
-            }
 
             public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition()
             {

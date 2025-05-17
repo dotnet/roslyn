@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var sizeInBytes = elementType.EnumUnderlyingTypeOrSelf().SpecialType.SizeInBytes();
 
                 ImmutableArray<byte> data = GetRawData(initExprs);
-                if (data.All(datum => datum == data[0]))
+                if (data.All(static (d, first) => d == first, data[0]))
                 {
                     // All bytes are the same, no need for metadata blob, just initblk to fill it with the repeated value.
                     _builder.EmitOpCode(ILOpCode.Dup);

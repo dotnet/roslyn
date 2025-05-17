@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -46,7 +45,6 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
     /// </summary>
-    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 

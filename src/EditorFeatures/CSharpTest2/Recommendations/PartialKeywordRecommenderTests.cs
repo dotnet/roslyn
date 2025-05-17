@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class PartialKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class PartialKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()
@@ -485,6 +485,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 partial class C {
                     async $$
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61439")]
+        public async Task TestAfterMemberButNonClassModifier()
+        {
+            await VerifyKeywordAsync("""
+                partial class C {
+                    virtual $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
         }
     }
 }

@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
@@ -15,28 +18,30 @@ using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionServi
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion;
 
 [Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
-public class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
+public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceCompletionTests
 {
     [WpfFact]
     public void WithExpressionBracesSameLine()
     {
-        var code = @"
-class C
-{
-    void M(C c)
-    {
-        c = c with $$
-    }
-}";
+        var code = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = c with $$
+                }
+            }
+            """;
 
-        var expected = @"
-class C
-{
-    void M(C c)
-    {
-        c = c with { }
-    }
-}";
+        var expected = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = c with { }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -47,23 +52,25 @@ class C
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47381")]
     public void ImplicitObjectCreationExpressionBracesSameLine()
     {
-        var code = @"
-class C
-{
-    void M(C c)
-    {
-        c = new() $$
-    }
-}";
+        var code = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = new() $$
+                }
+            }
+            """;
 
-        var expected = @"
-class C
-{
-    void M(C c)
-    {
-        c = new() { }
-    }
-}";
+        var expected = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = new() { }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -74,25 +81,27 @@ class C
     [WpfFact]
     public void WithExpressionBracesSameLine_Enter()
     {
-        var code = @"
-class C
-{
-    void M(C c)
-    {
-        c = c with $$
-    }
-}";
-        var expected = @"
-class C
-{
-    void M(C c)
-    {
-        c = c with
-        {
+        var code = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = c with $$
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M(C c)
+                {
+                    c = c with
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         CheckStart(session.Session);
         CheckReturn(session.Session, 12, expected);
@@ -108,10 +117,12 @@ class C
     [WpfFact]
     public void InvalidLocation_String()
     {
-        var code = @"class C
-{
-    string s = ""$$
-}";
+        var code = """
+            class C
+            {
+                string s = "$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -119,11 +130,13 @@ class C
     [WpfFact]
     public void InvalidLocation_String2()
     {
-        var code = @"class C
-{
-    string s = @""
-$$
-}";
+        var code = """
+            class C
+            {
+                string s = @"
+            $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -131,10 +144,12 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString1()
     {
-        var code = @"class C
-{
-    string s = $""$$
-}";
+        var code = """
+            class C
+            {
+                string s = $"$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -143,10 +158,12 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString2()
     {
-        var code = @"class C
-{
-    string s = $@""$$
-}";
+        var code = """
+            class C
+            {
+                string s = $@"$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -155,11 +172,13 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString3()
     {
-        var code = @"class C
-{
-    string x = ""goo""
-    string s = $""{x} $$
-}";
+        var code = """
+            class C
+            {
+                string x = "goo"
+                string s = $"{x} $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -168,11 +187,13 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString4()
     {
-        var code = @"class C
-{
-    string x = ""goo""
-    string s = $@""{x} $$
-}";
+        var code = """
+            class C
+            {
+                string x = "goo"
+                string s = $@"{x} $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -181,10 +202,12 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString5()
     {
-        var code = @"class C
-{
-    string s = $""{{$$
-}";
+        var code = """
+            class C
+            {
+                string s = $"{{$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -193,10 +216,12 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString6()
     {
-        var code = @"class C
-{
-    string s = $""{}$$
-}";
+        var code = """
+            class C
+            {
+                string s = $"{}$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -205,16 +230,20 @@ $$
     [WpfFact]
     public void ValidLocation_InterpolatedString7()
     {
-        var code = @"class C
-{
-    string s = $""{}$$
-}";
+        var code = """
+            class C
+            {
+                string s = $"{}$$
+            }
+            """;
 
-        var expected = @"class C
-{
-    string s = $""{}{
-}
-}";
+        var expected = """
+            class C
+            {
+                string s = $"{}{
+            }
+            }
+            """;
 
         using var session = CreateSession(code);
         Assert.NotNull(session);
@@ -225,10 +254,12 @@ $$
     [WpfFact]
     public void InvalidLocation_InterpolatedString1()
     {
-        var code = @"class C
-{
-    string s = @""$$
-}";
+        var code = """
+            class C
+            {
+                string s = @"$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -236,10 +267,12 @@ $$
     [WpfFact]
     public void InvalidLocation_InterpolatedString2()
     {
-        var code = @"class C
-{
-    string s = ""$$
-}";
+        var code = """
+            class C
+            {
+                string s = "$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -247,10 +280,12 @@ $$
     [WpfFact]
     public void InvalidLocation_Comment()
     {
-        var code = @"class C
-{
-    //$$
-}";
+        var code = """
+            class C
+            {
+                //$$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -258,10 +293,12 @@ $$
     [WpfFact]
     public void InvalidLocation_Comment2()
     {
-        var code = @"class C
-{
-    /* $$
-}";
+        var code = """
+            class C
+            {
+                /* $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -269,10 +306,12 @@ $$
     [WpfFact]
     public void InvalidLocation_Comment3()
     {
-        var code = @"class C
-{
-    /// $$
-}";
+        var code = """
+            class C
+            {
+                /// $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -280,10 +319,12 @@ $$
     [WpfFact]
     public void InvalidLocation_Comment4()
     {
-        var code = @"class C
-{
-    /** $$
-}";
+        var code = """
+            class C
+            {
+                /** $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.Null(session);
     }
@@ -291,13 +332,15 @@ $$
     [WpfFact]
     public void MultiLine_Comment()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        /* */$$
-    }
-}";
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    /* */$$
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
         CheckStart(session.Session);
@@ -306,13 +349,15 @@ $$
     [WpfFact]
     public void MultiLine_DocComment()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        /** */$$
-    }
-}";
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    /** */$$
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -322,13 +367,15 @@ $$
     [WpfFact]
     public void String1()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        var s = """"$$
-    }
-}";
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    var s = ""$$
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -338,13 +385,15 @@ $$
     [WpfFact]
     public void String2()
     {
-        var code = @"class C
-{
-    void Method()
-    {
-        var s = @""""$$
-    }
-}";
+        var code = """
+            class C
+            {
+                void Method()
+                {
+                    var s = @""$$
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -401,10 +450,12 @@ $$
     [WpfFact]
     public void Method_OpenBrace_Multiple()
     {
-        var code = @"class C
-{
-    void Method() { $$
-}";
+        var code = """
+            class C
+            {
+                void Method() { $$
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -426,35 +477,38 @@ $$
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47438")]
     public void WithExpression()
     {
-        var code = @"
-record C
-{
-    void M()
-    {
-        _ = this with $$
-    }
-}";
+        var code = """
+            record C
+            {
+                void M()
+                {
+                    _ = this with $$
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-record C
-{
-    void M()
-    {
-        _ = this with { }
-    }
-}";
+        var expectedBeforeReturn = """
+            record C
+            {
+                void M()
+                {
+                    _ = this with { }
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-record C
-{
-    void M()
-    {
-        _ = this with
-        {
+        var expectedAfterReturn = """
+            record C
+            {
+                void M()
+                {
+                    _ = this with
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -466,35 +520,38 @@ record C
     [WpfFact]
     public void RecursivePattern()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is $$
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is $$
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is { }
-    }
-}";
+        var expectedBeforeReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { }
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is
-        {
+        var expectedAfterReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -506,35 +563,38 @@ class C
     [WpfFact]
     public void RecursivePattern_Nested()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: $$ }
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: $$ }
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: { } }
-    }
-}";
+        var expectedBeforeReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: { } }
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name:
-        {
+        var expectedAfterReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name:
+                    {
 
-        } }
-    }
-}";
+                    } }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -546,22 +606,24 @@ class C
     [WpfFact]
     public void RecursivePattern_Parentheses1()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: $$ }
-    }
-}";
-        var expected = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: () }
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: $$ }
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: () }
+                }
+            }
+            """;
 
         using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
         Assert.NotNull(session);
@@ -573,22 +635,24 @@ class C
     [WpfFact]
     public void RecursivePattern_Parentheses2()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: { Length: (> 3) and $$ } }
-    }
-}";
-        var expected = @"
-class C
-{
-    void M()
-    {
-        _ = this is { Name: { Length: (> 3) and () } }
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: { Length: (> 3) and $$ } }
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { Name: { Length: (> 3) and () } }
+                }
+            }
+            """;
 
         using var session = CreateSession(EditorTestWorkspace.CreateCSharp(code), '(', ')');
         Assert.NotNull(session);
@@ -600,38 +664,41 @@ class C
     [WpfFact]
     public void RecursivePattern_FollowedByInvocation()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is $$
-        M();
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is $$
+                    M();
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is { }
-        M();
-    }
-}";
+        var expectedBeforeReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is { }
+                    M();
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is
-        {
+        var expectedAfterReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is
+                    {
 
-        }
-        M();
-    }
-}";
+                    }
+                    M();
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -643,38 +710,41 @@ class C
     [WpfFact]
     public void RecursivePattern_WithInvocation_FollowedByInvocation()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this is (1, 2) $$
-        M();
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is (1, 2) $$
+                    M();
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is (1, 2) { }
-        M();
-    }
-}";
+        var expectedBeforeReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is (1, 2) { }
+                    M();
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this is (1, 2)
-        {
+        var expectedAfterReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this is (1, 2)
+                    {
 
-        }
-        M();
-    }
-}";
+                    }
+                    M();
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -686,35 +756,38 @@ class C
     [WpfFact]
     public void SwitchExpression()
     {
-        var code = @"
-class C
-{
-    void M()
-    {
-        _ = this switch $$
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    _ = this switch $$
+                }
+            }
+            """;
 
-        var expectedBeforeReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this switch { }
-    }
-}";
+        var expectedBeforeReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this switch { }
+                }
+            }
+            """;
 
-        var expectedAfterReturn = @"
-class C
-{
-    void M()
-    {
-        _ = this switch
-        {
+        var expectedAfterReturn = """
+            class C
+            {
+                void M()
+                {
+                    _ = this switch
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -726,28 +799,32 @@ class C
     [WpfFact]
     public void Class_ObjectInitializer_OpenBrace_Enter()
     {
-        var code = @"using System.Collections.Generic;
- 
-class C
-{
-    List<C> list = new List<C>
-    {
-        new C $$
-    };
-}";
+        var code = """
+            using System.Collections.Generic;
 
-        var expected = @"using System.Collections.Generic;
- 
-class C
-{
-    List<C> list = new List<C>
-    {
-        new C
-        {
+            class C
+            {
+                List<C> list = new List<C>
+                {
+                    new C $$
+                };
+            }
+            """;
 
-        }
-    };
-}";
+        var expected = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<C> list = new List<C>
+                {
+                    new C
+                    {
+
+                    }
+                };
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -758,27 +835,31 @@ class C
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void Collection_Initializer_OpenBraceOnSameLine_Enter()
     {
-        var code = @"using System.Collections.Generic;
- 
-class C
-{
-    public void man()
-    {
-        List<C> list = new List<C> $$
-    }
-}";
+        var code = """
+            using System.Collections.Generic;
 
-        var expected = @"using System.Collections.Generic;
- 
-class C
-{
-    public void man()
-    {
-        List<C> list = new List<C> {
+            class C
+            {
+                public void man()
+                {
+                    List<C> list = new List<C> $$
+                }
+            }
+            """;
 
-        }
-    }
-}";
+        var expected = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                public void man()
+                {
+                    List<C> list = new List<C> {
+
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -794,28 +875,32 @@ class C
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void Collection_Initializer_OpenBraceOnDifferentLine_Enter()
     {
-        var code = @"using System.Collections.Generic;
- 
-class C
-{
-    public void man()
-    {
-        List<C> list = new List<C> $$
-    }
-}";
+        var code = """
+            using System.Collections.Generic;
 
-        var expected = @"using System.Collections.Generic;
- 
-class C
-{
-    public void man()
-    {
-        List<C> list = new List<C>
-        {
+            class C
+            {
+                public void man()
+                {
+                    List<C> list = new List<C> $$
+                }
+            }
+            """;
 
-        }
-    }
-}";
+        var expected = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                public void man()
+                {
+                    List<C> list = new List<C>
+                    {
+
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -826,33 +911,37 @@ class C
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void Object_Initializer_OpenBraceOnSameLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        var goo = new Goo $$
-    }
-}
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    var goo = new Goo $$
+                }
+            }
 
-class Goo
-{
-    public int bar;
-}";
+            class Goo
+            {
+                public int bar;
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        var goo = new Goo {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    var goo = new Goo {
 
-        }
-    }
-}
+                    }
+                }
+            }
 
-class Goo
-{
-    public int bar;
-}";
+            class Goo
+            {
+                public int bar;
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -868,34 +957,38 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void Object_Initializer_OpenBraceOnDifferentLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        var goo = new Goo $$
-    }
-}
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    var goo = new Goo $$
+                }
+            }
 
-class Goo
-{
-    public int bar;
-}";
+            class Goo
+            {
+                public int bar;
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        var goo = new Goo
-        {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    var goo = new Goo
+                    {
 
-        }
-    }
-}
+                    }
+                }
+            }
 
-class Goo
-{
-    public int bar;
-}";
+            class Goo
+            {
+                public int bar;
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -906,23 +999,27 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayImplicit_Initializer_OpenBraceOnSameLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr = {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -938,24 +1035,28 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayImplicit_Initializer_OpenBraceOnDifferentLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr =
-        {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr =
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -966,23 +1067,27 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayExplicit1_Initializer_OpenBraceOnSameLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = new[] $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new[] $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr = new[] {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new[] {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -998,24 +1103,28 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayExplicit1_Initializer_OpenBraceOnDifferentLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = new[] $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new[] $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr = new[]
-        {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new[]
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -1026,23 +1135,27 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayExplicit2_Initializer_OpenBraceOnSameLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = new int[] $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new int[] $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr = new int[] {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new int[] {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) }
@@ -1057,24 +1170,28 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1070773")]
     public void ArrayExplicit2_Initializer_OpenBraceOnDifferentLine_Enter()
     {
-        var code = @"class C
-{
-    public void man()
-    {
-        int[] arr = new int[] $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new int[] $$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void man()
-    {
-        int[] arr = new int[]
-        {
+        var expected = """
+            class C
+            {
+                public void man()
+                {
+                    int[] arr = new int[]
+                    {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -1086,25 +1203,31 @@ class Goo
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/850540")]
     public void BlockIndentationWithAutomaticBraceFormattingDisabled()
     {
-        var code = @"class C
-{
-    public void X()
-    $$
-}";
+        var code = """
+            class C
+            {
+                public void X()
+                $$
+            }
+            """;
 
-        var expected = @"class C
-{
-    public void X()
-    {}
-}";
+        var expected = """
+            class C
+            {
+                public void X()
+                {}
+            }
+            """;
 
-        var expectedAfterReturn = @"class C
-{
-    public void X()
-    {
+        var expectedAfterReturn = """
+            class C
+            {
+                public void X()
+                {
 
-    }
-}";
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
@@ -1123,17 +1246,21 @@ class Goo
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2224")]
     public void NoSmartOrBlockIndentationWithAutomaticBraceFormattingDisabled()
     {
-        var code = @"namespace NS1
-{
-    public class C1
-$$
-}";
+        var code = """
+            namespace NS1
+            {
+                public class C1
+            $$
+            }
+            """;
 
-        var expected = @"namespace NS1
-{
-    public class C1
-{ }
-}";
+        var expected = """
+            namespace NS1
+            {
+                public class C1
+            { }
+            }
+            """;
 
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1150,25 +1277,31 @@ $$
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
     public void BlockIndentationWithAutomaticBraceFormatting()
     {
-        var code = @"namespace NS1
-{
-        public class C1
-        $$
-}";
+        var code = """
+            namespace NS1
+            {
+                    public class C1
+                    $$
+            }
+            """;
 
-        var expected = @"namespace NS1
-{
-        public class C1
-        { }
-}";
+        var expected = """
+            namespace NS1
+            {
+                    public class C1
+                    { }
+            }
+            """;
 
-        var expectedAfterReturn = @"namespace NS1
-{
-        public class C1
-        {
+        var expectedAfterReturn = """
+            namespace NS1
+            {
+                    public class C1
+                    {
 
-        }
-}";
+                    }
+            }
+            """;
 
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1187,31 +1320,37 @@ $$
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/2330")]
     public void BlockIndentationWithAutomaticBraceFormattingSecondSet()
     {
-        var code = @"namespace NS1
-{
-        public class C1
-        { public class C2 $$
+        var code = """
+            namespace NS1
+            {
+                    public class C1
+                    { public class C2 $$
 
-        }
-}";
+                    }
+            }
+            """;
 
-        var expected = @"namespace NS1
-{
-        public class C1
-        { public class C2 { }
+        var expected = """
+            namespace NS1
+            {
+                    public class C1
+                    { public class C2 { }
 
-        }
-}";
+                    }
+            }
+            """;
 
-        var expectedAfterReturn = @"namespace NS1
-{
-        public class C1
-        { public class C2 {
+        var expectedAfterReturn = """
+            namespace NS1
+            {
+                    public class C1
+                    { public class C2 {
 
-        }
+                    }
 
-        }
-}";
+                    }
+            }
+            """;
 
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1230,21 +1369,25 @@ $$
     [WpfFact]
     public void DoesNotFormatInsideBracePairInInitializers()
     {
-        var code = @"class C
-{
-    void M()
-    {
-        var x = new int[]$$
-    }
-}";
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    var x = new int[]$$
+                }
+            }
+            """;
 
-        var expected = @"class C
-{
-    void M()
-    {
-        var x = new int[] {}
-    }
-}";
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    var x = new int[] {}
+                }
+            }
+            """;
         using var session = CreateSession(code);
         Assert.NotNull(session);
 
@@ -1257,8 +1400,10 @@ $$
     {
         var code = @"class C $$";
 
-        var expected = @"class C { dd
-}";
+        var expected = """
+            class C { dd
+            }
+            """;
 
         using var session = CreateSession(code);
         Assert.NotNull(session);
@@ -1271,20 +1416,24 @@ $$
     [WpfFact]
     public void CurlyBraceFormattingInsideLambdaInsideInterpolation()
     {
-        var code = @"class C
-{
-    void M(string[] args)
-    {
-        var s = $""{ args.Select(a => $$)}""
-    }
-}";
-        var expectedAfterStart = @"class C
-{
-    void M(string[] args)
-    {
-        var s = $""{ args.Select(a => { })}""
-    }
-}";
+        var code = """
+            class C
+            {
+                void M(string[] args)
+                {
+                    var s = $"{ args.Select(a => $$)}"
+                }
+            }
+            """;
+        var expectedAfterStart = """
+            class C
+            {
+                void M(string[] args)
+                {
+                    var s = $"{ args.Select(a => { })}"
+                }
+            }
+            """;
 
         using var session = CreateSession(code);
         Assert.NotNull(session);
@@ -1298,10 +1447,12 @@ $$
     {
         var code = @"class C $$";
 
-        var expected = @"class C
-{
+        var expected = """
+            class C
+            {
 
-}";
+            }
+            """;
 
         using var session = CreateSession(code);
         Assert.NotNull(session);
@@ -1335,34 +1486,37 @@ $$
     [WpfTheory, CombinatorialData]
     public void WithInitializer_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-record R
-{
-    public void man(R r)
-    {
-        var r2 = r with $$
-    }
-}";
-        var expected = bracesOnNewLine ? @"
-record R
-{
-    public void man(R r)
-    {
-        var r2 = r with
-        {
+        var code = """
+            record R
+            {
+                public void man(R r)
+                {
+                    var r2 = r with $$
+                }
+            }
+            """;
+        var expected = bracesOnNewLine ? """
+            record R
+            {
+                public void man(R r)
+                {
+                    var r2 = r with
+                    {
 
-        }
-    }
-}" : @"
-record R
-{
-    public void man(R r)
-    {
-        var r2 = r with {
+                    }
+                }
+            }
+            """ : """
+            record R
+            {
+                public void man(R r)
+                {
+                    var r2 = r with {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
@@ -1378,35 +1532,38 @@ record R
     [WpfTheory, CombinatorialData]
     public void PropertyPatternClause_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public void man()
-    {
-        if (x is string $$
-    }
-}";
-
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public void man()
-    {
-        if (x is string
+        var code = """
+            class C
             {
-
+                public void man()
+                {
+                    if (x is string $$
+                }
             }
-    }
-}" : @"
-class C
-{
-    public void man()
-    {
-        if (x is string {
+            """;
 
-        }
-    }
-}";
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public void man()
+                {
+                    if (x is string
+                        {
+
+                        }
+                }
+            }
+            """ : """
+            class C
+            {
+                public void man()
+                {
+                    if (x is string {
+
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, bracesOnNewLine) }
@@ -1422,35 +1579,38 @@ class C
     [WpfTheory, CombinatorialData]
     public void Accessor_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public int I
-    {
-        get $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public int I
+                {
+                    get $$
+                }
+            }
+            """;
 
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public int I
-    {
-        get
-        {
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public int I
+                {
+                    get
+                    {
 
-        }
-    }
-}" : @"
-class C
-{
-    public int I
-    {
-        get {
+                    }
+                }
+            }
+            """ : """
+            class C
+            {
+                public int I
+                {
+                    get {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.Accessors, bracesOnNewLine) }
@@ -1466,35 +1626,38 @@ class C
     [WpfTheory, CombinatorialData]
     public void AnonymousMethod_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public void man()
-    {
-        Action a = delegate() $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    Action a = delegate() $$
+                }
+            }
+            """;
 
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public void man()
-    {
-        Action a = delegate()
-        {
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public void man()
+                {
+                    Action a = delegate()
+                    {
 
-        }
-    }
-}" : @"
-class C
-{
-    public void man()
-    {
-        Action a = delegate() {
+                    }
+                }
+            }
+            """ : """
+            class C
+            {
+                public void man()
+                {
+                    Action a = delegate() {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousMethods, bracesOnNewLine) }
@@ -1510,35 +1673,38 @@ class C
     [WpfTheory, CombinatorialData]
     public void AnonymousType_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public void man()
-    {
-        var x = new $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    var x = new $$
+                }
+            }
+            """;
 
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public void man()
-    {
-        var x = new
-        {
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public void man()
+                {
+                    var x = new
+                    {
 
-        }
-    }
-}" : @"
-class C
-{
-    public void man()
-    {
-        var x = new {
+                    }
+                }
+            }
+            """ : """
+            class C
+            {
+                public void man()
+                {
+                    var x = new {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
             { CSharpFormattingOptions2.NewLineBeforeOpenBrace, CSharpFormattingOptions2.NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.AnonymousTypes, bracesOnNewLine) }
@@ -1554,35 +1720,38 @@ class C
     [WpfTheory, CombinatorialData]
     public void If_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public void man()
-    {
-        if (true) $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    if (true) $$
+                }
+            }
+            """;
 
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public void man()
-    {
-        if (true)
-        {
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public void man()
+                {
+                    if (true)
+                    {
 
-        }
-    }
-}" : @"
-class C
-{
-    public void man()
-    {
-        if (true) {
+                    }
+                }
+            }
+            """ : """
+            class C
+            {
+                public void man()
+                {
+                    if (true) {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
 
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1599,41 +1768,44 @@ class C
     [WpfTheory, CombinatorialData]
     public void Else_OpenBraceOnSameLine_Enter(bool bracesOnNewLine)
     {
-        var code = @"
-class C
-{
-    public void man()
-    {
-        if (true) {
-        }
-        else $$
-    }
-}";
+        var code = """
+            class C
+            {
+                public void man()
+                {
+                    if (true) {
+                    }
+                    else $$
+                }
+            }
+            """;
 
-        var expected = bracesOnNewLine ? @"
-class C
-{
-    public void man()
-    {
-        if (true) {
-        }
-        else
-        {
+        var expected = bracesOnNewLine ? """
+            class C
+            {
+                public void man()
+                {
+                    if (true) {
+                    }
+                    else
+                    {
 
-        }
-    }
-}" : @"
-class C
-{
-    public void man()
-    {
-        if (true) {
-        }
-        else {
+                    }
+                }
+            }
+            """ : """
+            class C
+            {
+                public void man()
+                {
+                    if (true) {
+                    }
+                    else {
 
-        }
-    }
-}";
+                    }
+                }
+            }
+            """;
 
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
         {
@@ -1649,16 +1821,22 @@ class C
     [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758005")]
     public void NoFormattingAfterNewlineIfOptionsDisabled()
     {
-        var code = @"namespace NS1
-$$";
+        var code = """
+            namespace NS1
+            $$
+            """;
 
-        var expected = @"namespace NS1
-{}";
+        var expected = """
+            namespace NS1
+            {}
+            """;
 
-        var expectedAfterReturn = @"namespace NS1
-{
+        var expectedAfterReturn = """
+            namespace NS1
+            {
 
-}";
+            }
+            """;
 
         // Those option ensures no additional formatting would happen around added braces, including indention of added newline
         var globalOptions = new OptionsCollection(LanguageNames.CSharp)
@@ -1676,10 +1854,56 @@ $$";
         CheckReturn(session.Session, 0, expectedAfterReturn);
     }
 
-    internal static Holder CreateSession(string code, OptionsCollection? globalOptions = null)
+    [WpfFact]
+    public void ModernExtension()
+    {
+        var code = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) $$
+                }
+            }
+            """;
+
+        var expectedBeforeReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s) { }
+                }
+            }
+            """;
+
+        var expectedAfterReturn = """
+            namespace N
+            {
+                static class C
+                {
+                    extension(string s)
+                    {
+
+                    }
+                }
+            }
+            """;
+        using var session = CreateSession(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+        Assert.NotNull(session);
+
+        CheckStart(session.Session);
+        CheckText(session.Session, expectedBeforeReturn);
+        CheckReturn(session.Session, 12, expectedAfterReturn);
+    }
+
+    internal static Holder CreateSession(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code,
+        OptionsCollection? globalOptions = null,
+        ParseOptions? parseOptions = null)
     {
         return CreateSession(
-            EditorTestWorkspace.CreateCSharp(code),
+            EditorTestWorkspace.CreateCSharp(code, parseOptions),
             CurlyBrace.OpenCharacter, CurlyBrace.CloseCharacter, globalOptions);
     }
 }

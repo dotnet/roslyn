@@ -207,7 +207,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
         NamingStylePreferences namingStyleOptions,
         CancellationToken cancellationToken)
     {
-        var rules = namingStyleOptions.CreateRules().NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
+        var rules = namingStyleOptions.Rules.NamingRules.AddRange(FallbackNamingRules.CompletionFallbackRules);
 
         var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
         var semanticFactsService = context.GetRequiredLanguageService<ISemanticFactsService>();

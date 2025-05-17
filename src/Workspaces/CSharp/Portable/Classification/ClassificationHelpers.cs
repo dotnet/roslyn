@@ -63,7 +63,7 @@ internal static class ClassificationHelpers
             IsControlKeywordKind(token.Kind()) &&
             IsControlStatementKind(token.Parent.Kind());
 
-    private static bool IsControlKeywordKind(SyntaxKind kind)
+    public static bool IsControlKeywordKind(SyntaxKind kind)
     {
         switch (kind)
         {
@@ -94,7 +94,7 @@ internal static class ClassificationHelpers
         }
     }
 
-    private static bool IsControlStatementKind(SyntaxKind kind)
+    public static bool IsControlStatementKind(SyntaxKind kind)
     {
         switch (kind)
         {

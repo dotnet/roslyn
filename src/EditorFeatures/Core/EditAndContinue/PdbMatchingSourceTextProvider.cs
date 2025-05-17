@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 /// </summary>
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 [Export(typeof(PdbMatchingSourceTextProvider))]
-internal sealed class PdbMatchingSourceTextProvider : IEventListener<object>, IEventListenerStoppable, IPdbMatchingSourceTextProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatchingSourceTextProvider
 {
     private readonly object _guard = new();
 
@@ -29,21 +31,11 @@ internal sealed class PdbMatchingSourceTextProvider : IEventListener<object>, IE
     private int _baselineSolutionVersion;
     private readonly Dictionary<string, (DocumentState state, int solutionVersion)> _documentsWithChangedLoaderByPath = [];
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public PdbMatchingSourceTextProvider()
-    {
-    }
-
-    public void StartListening(Workspace workspace, object serviceOpt)
-    {
-        workspace.WorkspaceChanged += WorkspaceChanged;
-    }
+    public void StartListening(Workspace workspace)
+        => workspace.WorkspaceChanged += WorkspaceChanged;
 
     public void StopListening(Workspace workspace)
-    {
-        workspace.WorkspaceChanged -= WorkspaceChanged;
-    }
+        => workspace.WorkspaceChanged -= WorkspaceChanged;
 
     private void WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {

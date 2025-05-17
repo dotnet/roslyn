@@ -6,7 +6,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
@@ -52,6 +51,7 @@ internal record class ServerConfiguration(
     string? RazorSourceGenerator,
     string? RazorDesignTimePath,
     string? ServerPipeName,
+    bool UseStdIo,
     string ExtensionLogDirectory);
 
 internal class LogConfiguration

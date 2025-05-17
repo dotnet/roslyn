@@ -2,6 +2,31 @@
 
 This document lists known breaking changes in Roslyn after .NET 9 general release (.NET SDK version 9.0.100) through .NET 10 general release (.NET SDK version 10.0.100).
 
+## `scoped` in a lambda parameter list is now always a modifier.
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+C# 14 introduces the ability to write a lambda with parameter modifiers, without having to specify a parameter type:
+https://github.com/dotnet/csharplang/blob/main/proposals/simple-lambda-parameters-with-modifiers.md
+
+As part of this work, a breaking change was accepted where `scoped` will always be treated as a modifier
+in a lambda parameter, even where it might have been accepted as a type name in the past.  For example:
+
+```c#
+var v = (scoped scoped s) => { ... };
+
+ref struct @scoped { }
+```
+
+In C# 14 this will be an error as both `scoped` tokens are treated as modifiers.  The workaround is to
+use `@` in the type name position like so:
+
+```c#
+var v = (scoped @scoped s) => { ... };
+
+ref struct @scoped { }
+```
+
 ## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
 ***Introduced in Visual Studio 2022 version 17.13***
@@ -193,3 +218,142 @@ namespace Microsoft.CodeAnalysis;
 // Previously, sometimes allowed. Now, CS9271
 public class EmbeddedAttribute : Attribute {}
 ```
+
+## Expression `field` in a property accessor refers to synthesized backing field
+
+***Introduced in Visual Studio 2022 version 17.12***
+
+The expression `field`, when used within a property accessor, refers to a synthesized backing field for the property.
+
+The warning CS9258 is reported when the identifier would have bound to a different symbol with language version 13 or earlier.
+
+To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+Alternatively, rename the existing member and the reference to that member to avoid a conflict with `field`.
+
+```csharp
+class MyClass
+{
+    private int field = 0;
+
+    public object Property
+    {
+        get
+        {
+            // warning CS9258: The 'field' keyword binds to a synthesized backing field for the property.
+            // To avoid generating a synthesized backing field, and to refer to the existing member,
+            // use 'this.field' or '@field' instead.
+            return field;
+        }
+    }
+}
+```
+
+## Variable named `field` disallowed in a property accessor
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The expression `field`, when used within a property accessor, refers to a synthesized backing field for the property.
+
+The error CS9272 is reported when a local, or a parameter of a nested function, with the name `field` is declared in a property accessor.
+
+To avoid the error, rename the variable, or use `@field` in the declaration.
+
+```csharp
+class MyClass
+{
+    public object Property
+    {
+        get
+        {
+            // error CS9272: 'field' is a keyword within a property accessor.
+            // Rename the variable or use the identifier '@field' instead.
+            int field = 0;
+            return @field;
+        }
+    }
+}
+```
+
+## `record` and `record struct` types cannot define pointer type members, even when providing their own Equals implementations
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The specification for `record class` and `record struct` types indicated that any pointer types are disallowed as instance fields.
+However, this was not enforced correctly when the `record class` or `record struct` type defined its own `Equals` implementation.
+
+The compiler now correctly forbids this.
+
+```cs
+unsafe record struct R(
+    int* P // Previously fine, now CS8908
+)
+{
+    public bool Equals(R other) => true;
+}
+```
+
+## Emitting metadata-only executables requires an entrypoint
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+Previously, the entrypoint was [unintentionally unset](https://github.com/dotnet/roslyn/issues/76707)
+when emitting executables in metadata-only mode (also known as ref assemblies).
+That is now corrected but it also means that a missing entrypoint is a compilation error:
+
+```cs
+// previously successful, now fails:
+CSharpCompilation.Create("test").Emit(new MemoryStream(),
+    options: EmitOptions.Default.WithEmitMetadataOnly(true))
+
+CSharpCompilation.Create("test",
+    // workaround - mark as DLL instead of EXE (the default):
+    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+    .Emit(new MemoryStream(),
+        options: EmitOptions.Default.WithEmitMetadataOnly(true))
+```
+
+Similarly this can be observed when using the command-line argument `/refonly`
+or the `ProduceOnlyReferenceAssembly` MSBuild property.
+
+## `partial` cannot be a return type of methods
+
+***Introduced in Visual Studio 2022 version 17.14***
+
+The [partial events and constructors](https://github.com/dotnet/csharplang/issues/9058) language feature
+allows the `partial` modifier in more places and so it cannot be a return type unless escaped:
+
+```cs
+class C
+{
+    partial F() => new partial(); // previously worked
+    @partial F() => new partial(); // workaround
+}
+
+class partial { }
+```
+
+## `extension` treated as a contextual keyword
+
+PROTOTYPE record which version this break is introduced in
+
+Starting with C# 14, the `extension` keyword serves a special purpose in denoting extension containers. 
+This changes how the compiler interprets certain code constructs.
+
+If you need to use "extension" as an identifier rather than a keyword, escape it with the `@` prefix: `@extension`. This tells the compiler to treat it as a regular identifier instead of a keyword.
+
+The compiler will parse this as an extension container rather than a constructor.
+```csharp
+class extension
+{
+    extension(object o) { } // parsed as an extension container
+}
+```
+
+The compiler will fail to parse this as a method with return type `extension`.
+```csharp
+class extension
+{
+    extension M() { } // will not compile
+}
+```
+

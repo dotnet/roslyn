@@ -40,7 +40,18 @@ return await parser.Parse(args).InvokeAsync(CancellationToken.None);
 
 static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
-    // Before we initialize the LSP server we can't send LSP log messages.
+    if (serverConfiguration.UseStdIo)
+    {
+        if (serverConfiguration.ServerPipeName is not null)
+        {
+            throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
+        }
+
+        // Redirect Console.Out to try prevent the standard output stream from being corrupted. 
+        // This should be done before the logger is created as it can write to the standard output.
+        Console.SetOut(new StreamWriter(Console.OpenStandardError()));
+    }
+
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
@@ -125,23 +136,32 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
 
     var languageServerLogger = loggerFactory.CreateLogger(nameof(LanguageServerHost));
 
-    var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-        ? CreateNewPipeNames()
-        : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
+    LanguageServerHost? server = null;
+    if (serverConfiguration.UseStdIo)
+    {
+        server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, languageServerLogger, typeRefResolver);
+    }
+    else
+    {
+        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
+            ? CreateNewPipeNames()
+            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
 
-    var pipeServer = new NamedPipeServerStream(serverPipeName,
-        PipeDirection.InOut,
-        maxNumberOfServerInstances: 1,
-        PipeTransmissionMode.Byte,
-        PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+        var pipeServer = new NamedPipeServerStream(serverPipeName,
+            PipeDirection.InOut,
+            maxNumberOfServerInstances: 1,
+            PipeTransmissionMode.Byte,
+            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
 
-    // Send the named pipe connection info to the client 
-    Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
+        // Send the named pipe connection info to the client 
+        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
 
-    // Wait for connection from client
-    await pipeServer.WaitForConnectionAsync(cancellationToken);
+        // Wait for connection from client
+        await pipeServer.WaitForConnectionAsync(cancellationToken);
 
-    var server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
+        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, languageServerLogger, typeRefResolver);
+    }
+
     server.Start();
 
     logger.LogInformation("Language server initialized");
@@ -161,7 +181,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     }
 }
 
-static CliRootCommand CreateCommandLineParser()
+static CliConfiguration CreateCommandLineParser()
 {
     var debugOption = new CliOption<bool>("--debug")
     {
@@ -230,7 +250,15 @@ static CliRootCommand CreateCommandLineParser()
     var serverPipeNameOption = new CliOption<string?>("--pipe")
     {
         Description = "The name of the pipe the server will connect to.",
+        Required = false
+    };
+
+    var useStdIoOption = new CliOption<bool>("--stdio")
+    {
+        Description = "Use stdio for communication with the client.",
         Required = false,
+        DefaultValueFactory = _ => false,
+
     };
 
     var rootCommand = new CliRootCommand()
@@ -246,8 +274,10 @@ static CliRootCommand CreateCommandLineParser()
         razorSourceGeneratorOption,
         razorDesignTimePathOption,
         extensionLogDirectoryOption,
-        serverPipeNameOption
+        serverPipeNameOption,
+        useStdIoOption
     };
+
     rootCommand.SetAction((parseResult, cancellationToken) =>
     {
         var launchDebugger = parseResult.GetValue(debugOption);
@@ -261,6 +291,7 @@ static CliRootCommand CreateCommandLineParser()
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
+        var useStdIo = parseResult.GetValue(useStdIoOption);
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
@@ -273,11 +304,21 @@ static CliRootCommand CreateCommandLineParser()
             RazorSourceGenerator: razorSourceGenerator,
             RazorDesignTimePath: razorDesignTimePath,
             ServerPipeName: serverPipeName,
+            UseStdIo: useStdIo,
             ExtensionLogDirectory: extensionLogDirectory);
 
         return RunAsync(serverConfiguration, cancellationToken);
     });
-    return rootCommand;
+
+    var config = new CliConfiguration(rootCommand)
+    {
+        // By default, System.CommandLine will catch all exceptions, log them to the console, and return a non-zero exit code.
+        // Unfortunately this makes .NET's crash dump collection environment variables (e.g. 'DOTNET_DbgEnableMiniDump')
+        // entirely useless as it never detects an actual crash.  Disable this behavior so we can collect crash dumps when asked to.
+        EnableDefaultExceptionHandler = false
+    };
+
+    return config;
 }
 
 static (string clientPipe, string serverPipe) CreateNewPipeNames()

@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_PartialMemberSignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
                 case ErrorCode.WRN_AccessorDoesNotUseBackingField:
@@ -637,7 +637,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYield
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
-                    // Update src\EditorFeatures\CSharp\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                or ErrorCode.ERR_DataSectionStringLiteralHashCollision
+                    // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
+                    // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
                     => true,
 
@@ -2462,8 +2464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyMissingAccessor
                 or ErrorCode.ERR_PartialPropertyUnexpectedAccessor
                 or ErrorCode.ERR_PartialPropertyInitMismatch
-                or ErrorCode.ERR_PartialPropertyTypeDifference
-                or ErrorCode.WRN_PartialPropertySignatureDifference
+                or ErrorCode.ERR_PartialMemberTypeDifference
+                or ErrorCode.WRN_PartialMemberSignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
                 or ErrorCode.WRN_FieldIsAmbiguous
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
@@ -2477,6 +2479,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IteratorRefLikeElementType
                 or ErrorCode.WRN_UnscopedRefAttributeOldRules
                 or ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature
+                or ErrorCode.ERR_ImplicitlyTypedParamsParameter
+                or ErrorCode.ERR_VariableDeclarationNamedField
+                or ErrorCode.ERR_PartialMemberMissingImplementation
+                or ErrorCode.ERR_PartialMemberMissingDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateDefinition
+                or ErrorCode.ERR_PartialMemberDuplicateImplementation
+                or ErrorCode.ERR_PartialEventInitializer
+                or ErrorCode.ERR_PartialConstructorInitializer
+                or ErrorCode.ERR_ExtensionDisallowsName
+                or ErrorCode.ERR_ExtensionDisallowsMember
+                or ErrorCode.ERR_BadExtensionContainingType
+                or ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue
+                or ErrorCode.ERR_ReceiverParameterOnlyOne
+                or ErrorCode.ERR_ExtensionResolutionFailed
+                or ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionParameter
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_UnderspecifiedExtension
+                or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
+                or ErrorCode.ERR_PPIgnoredFollowsToken
+                or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
+                or ErrorCode.ERR_PPIgnoredFollowsIf
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -43,9 +44,9 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             If _lazyPlaceholderToParentMap Is Nothing Then
-                Threading.Interlocked.CompareExchange(_lazyPlaceholderToParentMap,
-                                                      New ConcurrentDictionary(Of BoundValuePlaceholderBase, BoundNode)(concurrencyLevel:=2, capacity:=10, comparer:=ReferenceEqualityComparer.Instance),
-                                                      Nothing)
+                Interlocked.CompareExchange(_lazyPlaceholderToParentMap,
+                                            New ConcurrentDictionary(Of BoundValuePlaceholderBase, BoundNode)(concurrencyLevel:=2, capacity:=10, comparer:=ReferenceEqualityComparer.Instance),
+                                            Nothing)
             End If
 
             Dim knownParent = _lazyPlaceholderToParentMap.GetOrAdd(placeholderOpt, parent)
@@ -445,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                    If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyClassReference, False)
 
             Dim boundReceiver As BoundExpression = If(boundCall.ReceiverOpt, boundCall.MethodGroupOpt?.ReceiverOpt)
-            Dim receiver as IOperation = CreateReceiverOperation(boundReceiver, targetMethod)
+            Dim receiver As IOperation = CreateReceiverOperation(boundReceiver, targetMethod)
             Dim arguments As ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundCall)
 
             Dim syntax As SyntaxNode = boundCall.Syntax
@@ -471,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundArrayAccessOperation(boundArrayAccess As BoundArrayAccess) As IArrayElementReferenceOperation
-            Dim arrayReference as IOperation = Create(boundArrayAccess.Expression)
+            Dim arrayReference As IOperation = Create(boundArrayAccess.Expression)
             Dim indices = CreateFromArray(Of BoundExpression, IOperation)(boundArrayAccess.Indices)
             Dim syntax As SyntaxNode = boundArrayAccess.Syntax
             Dim type As ITypeSymbol = boundArrayAccess.Type
@@ -819,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing OrElse boundObjectCreationExpression.Arguments.IsEmpty())
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
             Dim initializer As IObjectOrCollectionInitializerOperation = DirectCast(Create(boundObjectCreationExpression.InitializerOpt), IObjectOrCollectionInitializerOperation)
-            Dim arguments as ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundObjectCreationExpression)
+            Dim arguments As ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundObjectCreationExpression)
 
             Dim syntax As SyntaxNode = boundObjectCreationExpression.Syntax
             Dim type As ITypeSymbol = boundObjectCreationExpression.Type
@@ -881,7 +882,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim instance As IOperation = CreateReceiverOperation(
                 If(boundPropertyAccess.ReceiverOpt, boundPropertyAccess.PropertyGroupOpt?.ReceiverOpt),
                 [property])
-            Dim arguments as ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundPropertyAccess)
+            Dim arguments As ImmutableArray(Of IArgumentOperation) = DeriveArguments(boundPropertyAccess)
 
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
@@ -1058,9 +1059,9 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundIfStatementOperation(boundIfStatement As BoundIfStatement) As IConditionalOperation
-            Dim condition as IOperation = Create(boundIfStatement.Condition)
-            Dim whenTrue as IOperation = Create(boundIfStatement.Consequence)
-            Dim whenFalse as IOperation = Create(boundIfStatement.AlternativeOpt)
+            Dim condition As IOperation = Create(boundIfStatement.Condition)
+            Dim whenTrue As IOperation = Create(boundIfStatement.Consequence)
+            Dim whenFalse As IOperation = Create(boundIfStatement.AlternativeOpt)
             Dim syntax As SyntaxNode = boundIfStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As ConstantValue = Nothing
@@ -1281,7 +1282,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundCatchBlockOperation(boundCatchBlock As BoundCatchBlock) As ICatchClauseOperation
-            Dim exceptionDeclarationOrExpression as IOperation = CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock)
+            Dim exceptionDeclarationOrExpression As IOperation = CreateBoundCatchBlockExceptionDeclarationOrExpression(boundCatchBlock)
             Dim filter As IOperation = Create(boundCatchBlock.ExceptionFilterOpt)
             Dim handler As IBlockOperation = DirectCast(Create(boundCatchBlock.Body), IBlockOperation)
             Dim exceptionType As ITypeSymbol = If(boundCatchBlock.ExceptionSourceOpt?.Type, DirectCast(_semanticModel.Compilation, VisualBasicCompilation).GetWellKnownType(WellKnownType.System_Exception))
@@ -1417,8 +1418,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                     DirectCast(_semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), TypeSymbol),
                                                     SynthesizedLocalKind.LockTaken,
                                                     syntaxOpt:=boundSyncLockStatement.LockExpression.Syntax))
-            Dim lockedValue as IOperation = Create(boundSyncLockStatement.LockExpression)
-            Dim body as IOperation = Create(boundSyncLockStatement.Body)
+            Dim lockedValue As IOperation = Create(boundSyncLockStatement.LockExpression)
+            Dim body As IOperation = Create(boundSyncLockStatement.Body)
             Dim syntax As SyntaxNode = boundSyncLockStatement.Syntax
             Dim isImplicit As Boolean = boundSyncLockStatement.WasCompilerGenerated
             Return New LockOperation(lockedValue, body, lockTakenSymbol, _semanticModel, syntax, isImplicit)
@@ -1664,7 +1665,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                         GetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault), MethodSymbol)
 
             If method IsNot Nothing Then
-                Dim receiver as IOperation = CreateReceiverOperation(boundNullableIsTrueOperator.Operand, method)
+                Dim receiver As IOperation = CreateReceiverOperation(boundNullableIsTrueOperator.Operand, method)
                 Return New InvocationOperation(method.AsMember(DirectCast(boundNullableIsTrueOperator.Operand.Type, NamedTypeSymbol)), constrainedToType:=Nothing,
                                                               receiver,
                                                               isVirtual:=False,

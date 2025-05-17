@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -79,7 +78,7 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
     private static bool IsValidForTaskLikeTypeOnlyContext(ISymbol symbol, TSyntaxContext context)
     {
         // We want to allow all namespaces as the user may be typing a namespace name to get to a task-like type.
-        if (symbol.IsNamespace())
+        if (symbol is INamespaceSymbol)
             return true;
 
         if (symbol is not INamedTypeSymbol namedType ||
@@ -104,11 +103,8 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
 
     private static bool IsValidForGenericConstraintContext(ISymbol symbol)
     {
-        if (symbol.IsNamespace() ||
-            symbol.IsKind(SymbolKind.TypeParameter))
-        {
+        if (symbol is INamespaceSymbol or ITypeParameterSymbol)
             return true;
-        }
 
         if (symbol is not INamedTypeSymbol namedType ||
             symbol.IsDelegateType() ||

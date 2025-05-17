@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Roslyn.Utilities;
 using VSLangProj80;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Utilities

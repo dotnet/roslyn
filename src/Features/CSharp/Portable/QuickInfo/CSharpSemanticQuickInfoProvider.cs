@@ -163,10 +163,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
         // Don't show on-the-fly-docs for namespace symbols.
-        if (symbol is null || symbol.IsNamespace())
-        {
+        if (symbol is null or INamespaceSymbol)
             return null;
-        }
 
         if (symbol.MetadataToken != 0)
         {
@@ -195,14 +193,21 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             }
         }
 
-        var maxLength = 1000;
-        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        var solution = document.Project.Solution;
+        var declarationCode = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
             var span = reference.Span;
-            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
-            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+            var syntaxReferenceDocument = solution.GetDocument(reference.SyntaxTree);
+            if (syntaxReferenceDocument is not null)
+            {
+                return new OnTheFlyDocsRelevantFileInfo(syntaxReferenceDocument, span);
+            }
+
+            return null;
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
+        var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
+
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), declarationCode, symbol.Language, hasContentExcluded, additionalContext);
     }
 }

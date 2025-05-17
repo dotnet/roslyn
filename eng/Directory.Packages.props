@@ -12,7 +12,6 @@
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-    <_MicrosoftTestPlatformVersion>17.5.0</_MicrosoftTestPlatformVersion>
     <!--
       VS .NET Runtime
 
@@ -22,6 +21,8 @@
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
+    <!-- HumanizerVersion is referenced from the Text.Analyzers.Package.csproj -->
+    <HumanizerVersion>2.14.1</HumanizerVersion>
   </PropertyGroup>
 
   <!--
@@ -108,7 +109,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.13.226" />
@@ -119,13 +120,12 @@
     <PackageVersion Include="Nerdbank.Streams" Version="2.11.79" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="StreamJsonRpc" Version="2.21.10" />
-    
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.13.0-beta.24561.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1110101-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1110101-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.13.0-beta.25105.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1121201-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1121201-preview" />
 
     <!--
       VS .NET Runtime
@@ -144,9 +144,9 @@
     -->
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
-    <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(_MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(_MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24555.12" />
+    <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftNETTestSdkVersion)" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.25064.4" />
 
     <!--
       Analyzers
@@ -161,7 +161,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" />
 
     <!--
@@ -235,9 +234,13 @@
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.provider.dynamic_cdecl" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.linux" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.osx" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="$(SqliteVersion)" />
+    <PackageVersion Include="SQLitePCLRaw.provider.e_sqlite3.net45" Version="$(SqliteVersion)" />
 
-    <PackageVersion Include="Humanizer.Core" Version="2.14.1" />
-    <PackageVersion Include="ICSharpCode.Decompiler" Version="8.1.1.7464" />
+    <PackageVersion Include="Humanizer.Core" Version="$(HumanizerVersion)" />
+    <PackageVersion Include="ICSharpCode.Decompiler" Version="8.2.0.7535" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Elfie" Version="1.0.0" />
 
     <!--
@@ -247,10 +250,15 @@
     <PackageVersion Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0" />
     <PackageVersion Include="BasicUndo" Version="0.9.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" Version="2.0.0-pre-20160714" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
@@ -313,7 +321,6 @@
     <PackageVersion Include="MSBuild.StructuredLogger" Version="2.1.858" />
     <!-- </Metalama> -->
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
-    <PackageVersion Include="RichCodeNav.EnvVarDump" Version="0.1.1643-alpha" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsNugetPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
     <PackageVersion Include="RoslynTools.VSIXExpInstaller" Version="1.1.0-beta3.22474.1" />
@@ -330,5 +337,15 @@
     <!-- <Metalama> -->
     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
     <!-- </Metalama> -->
-  </ItemGroup>
+  <!--
+      The version of Roslyn used in the RoslynAnalyzers varies. These are defaults that
+      will be overridden in the RoslynAnalyzer project files.
+    -->
+    <!--<PackageVersion Include="Microsoft.CodeAnalysis" Version="4.1.0" /> -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.1.0" />
+ </ItemGroup>
 </Project>

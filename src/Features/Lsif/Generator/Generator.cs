@@ -466,19 +466,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             IdFactory idFactory,
             LsifDocument documentVertex)
         {
+            var cancellationToken = CancellationToken.None;
+
             // Compute colorization data.
             //
             // Unlike the mainline LSP scenario, where we control both the syntactic colorizer (in-proc syntax tagger)
             // and the semantic colorizer (LSP semantic tokens) LSIF is more likely to be consumed by clients which may
             // have different syntactic classification behavior than us, resulting in missing colors. To avoid this, we
             // include syntax tokens in the generated data.
+            var text = await document.GetTextAsync(cancellationToken);
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 // Just get the pure-lsp semantic tokens here.
                 document,
-                spans: [],
+                spans: [text.Lines.GetLinePositionSpan(new TextSpan(0, text.Length))],
                 supportsVisualStudioExtensions: true,
                 options: Classification.ClassificationOptions.Default,
-                cancellationToken: CancellationToken.None);
+                cancellationToken);
 
             var semanticTokensResult = new SemanticTokensResult(new SemanticTokens { Data = data }, idFactory);
             var semanticTokensEdge = Edge.Create(Methods.TextDocumentSemanticTokensFullName, documentVertex.GetId(), semanticTokensResult.GetId(), idFactory);

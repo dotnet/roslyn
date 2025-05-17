@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -28,7 +29,8 @@ internal abstract partial class AbstractExtractMethodService<
         protected static readonly SyntaxAnnotation s_firstTokenAnnotation = new();
         protected static readonly SyntaxAnnotation s_lastTokenAnnotation = new();
 
-        private bool? _createAsyncMethod;
+        private bool? _containsAwaitExpression;
+        private bool? _containsConfigureAwaitFalse;
 
         public SemanticDocument SemanticDocument { get; private set; } = document;
         public TextSpan FinalSpan { get; } = finalSpan;
@@ -45,8 +47,6 @@ internal abstract partial class AbstractExtractMethodService<
         /// </summary>
         private ControlFlowAnalysis? _statementControlFlowAnalysis;
 
-        protected abstract bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken);
-
         public abstract TExecutableStatementSyntax GetFirstStatementUnderContainer();
         public abstract TExecutableStatementSyntax GetLastStatementUnderContainer();
 
@@ -59,7 +59,7 @@ internal abstract partial class AbstractExtractMethodService<
 
         public abstract ImmutableArray<TExecutableStatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> jumpsOutOfRegion);
         public abstract bool IsFinalSpanSemanticallyValidSpan(ImmutableArray<TExecutableStatementSyntax> returnStatements, CancellationToken cancellationToken);
-        public abstract bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
+        public abstract bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints);
 
         protected abstract OperationStatus ValidateLanguageSpecificRules(CancellationToken cancellationToken);
 
@@ -119,59 +119,54 @@ internal abstract partial class AbstractExtractMethodService<
             return token.GetRequiredAncestor<TExecutableStatementSyntax>();
         }
 
-        public bool CreateAsyncMethod()
+        /// <summary>
+        /// Checks all of the nodes within the user's selection to see if any of them satisfy the supplied <paramref
+        /// name="predicate"/>. Will not descend into local functions or lambdas.
+        /// </summary>
+        /// <param name="predicate"></param>
+        private bool CheckNodesInSelection(Func<ISyntaxFacts, SyntaxNode, bool> predicate)
         {
-            _createAsyncMethod ??= CreateAsyncMethodWorker();
-            return _createAsyncMethod.Value;
-
-            bool CreateAsyncMethodWorker()
-            {
-                var firstToken = GetFirstTokenInSelection();
-                var lastToken = GetLastTokenInSelection();
-                var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                for (var currentToken = firstToken;
-                    currentToken.Span.End < lastToken.SpanStart;
-                    currentToken = currentToken.GetNextToken())
-                {
-                    // [|
-                    //     async () => await ....
-                    // |]
-                    //
-                    // for the case above, even if the selection contains "await", it doesn't belong to the enclosing block
-                    // which extract method is applied to
-                    if (syntaxFacts.IsAwaitKeyword(currentToken)
-                        && !UnderAnonymousOrLocalMethod(currentToken, firstToken, lastToken))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
-        public bool ShouldCallConfigureAwaitFalse()
-        {
-            var syntaxFacts = SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            var firstToken = GetFirstTokenInSelection();
-            var lastToken = GetLastTokenInSelection();
-
+            var firstToken = this.GetFirstTokenInSelection();
+            var lastToken = this.GetLastTokenInSelection();
             var span = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
 
-            foreach (var node in SemanticDocument.Root.DescendantNodesAndSelf())
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+            stack.Push(this.GetContainingScope());
+
+            var syntaxFacts = this.SemanticDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            while (stack.TryPop(out var current))
             {
-                if (!node.Span.OverlapsWith(span))
+                // Don't dive into lambdas and local functions.  They reset the async/await context.
+                if (syntaxFacts.IsAnonymousOrLocalFunction(current))
                     continue;
 
-                if (IsConfigureAwaitFalse(node) && !UnderAnonymousOrLocalMethod(node.GetFirstToken(), firstToken, lastToken))
+                if (predicate(syntaxFacts, current))
                     return true;
+
+                // Only dive into child nodes within the span being extracted.
+                foreach (var childNode in current.ChildNodes())
+                {
+                    if (childNode.Span.OverlapsWith(span))
+                        stack.Push(childNode);
+                }
             }
 
             return false;
+        }
 
-            bool IsConfigureAwaitFalse(SyntaxNode node)
+        public bool ContainsAwaitExpression()
+        {
+            return _containsAwaitExpression ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => syntaxFacts.IsAwaitExpression(node));
+        }
+
+        public bool ContainsConfigureAwaitFalse()
+        {
+            return _containsConfigureAwaitFalse ??= CheckNodesInSelection(
+                static (syntaxFacts, node) => IsConfigureAwaitFalse(syntaxFacts, node));
+
+            static bool IsConfigureAwaitFalse(ISyntaxFacts syntaxFacts, SyntaxNode node)
             {
                 if (!syntaxFacts.IsInvocationExpression(node))
                     return false;
@@ -220,9 +215,6 @@ internal abstract partial class AbstractExtractMethodService<
                 return this.SemanticDocument.SemanticModel.AnalyzeControlFlow(firstStatement, lastStatement);
             }
         }
-
-        public bool IsEndOfSelectionReachable()
-            => this.IsExtractMethodOnExpression || GetStatementControlFlowAnalysis().EndPointIsReachable;
 
         /// <summary>f
         /// convert text span to node range for the flow analysis API
@@ -289,7 +281,7 @@ internal abstract partial class AbstractExtractMethodService<
                 return false;
 
             // check something like continue, break, yield break, yield return, and etc
-            if (ContainsNonReturnExitPointsStatements(controlFlowAnalysisData.ExitPoints))
+            if (ContainsUnsupportedExitPointsStatements(controlFlowAnalysisData.ExitPoints))
                 return false;
 
             // okay, there is no branch out, check whether next statement can be executed normally

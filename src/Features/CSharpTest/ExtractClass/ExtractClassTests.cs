@@ -38,7 +38,7 @@ public class ExtractClassTests
 
         protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
         {
-            var service = new TestExtractClassOptionsService(DialogSelection, SameFile, IsClassDeclarationSelection)
+            var service = new TestExtractClassOptionsService(DialogSelection, WorkspaceKind != CodeAnalysis.WorkspaceKind.MiscellaneousFiles ? SameFile : true, IsClassDeclarationSelection)
             {
                 FileName = FileName
             };
@@ -131,10 +131,24 @@ public class ExtractClassTests
                 }
             }
             """;
+        var expected = """
+            internal class MyBase
+            {
+                int Method()
+                {
+                    return 1 + 1;
+                }
+            }
+
+            class Test : MyBase
+            {
+            }
+            """;
 
         await new Test
         {
             TestCode = input,
+            FixedCode = expected,
             WorkspaceKind = WorkspaceKind.MiscellaneousFiles
         }.RunAsync();
     }

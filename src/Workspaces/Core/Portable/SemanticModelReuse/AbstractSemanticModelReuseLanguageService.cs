@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
@@ -106,26 +106,58 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         }
         else
         {
-            using var pooledCurrentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
-            var currentMembers = pooledCurrentMembers.Object;
+            // Walk up the ancestor nodes of currentBodyNode, finding child indexes up to the root.
+            using var _ = ArrayBuilder<int>.GetInstance(out var indexPath);
+            GetNodeChildIndexPathToRootReversed(currentBodyNode, indexPath);
 
-            var index = currentMembers.IndexOf(currentBodyNode);
-            if (index < 0)
+            // Then use those indexes to walk back down the previous tree to find the equivalent node.
+            var previousNode = previousRoot;
+            for (var i = indexPath.Count - 1; i >= 0; i--)
             {
-                Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
-                return null;
+                var childIndex = indexPath[i];
+                var children = previousNode.ChildNodesAndTokens();
+
+                if (children.Count <= childIndex)
+                {
+                    Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
+                    return null;
+                }
+
+                var childAsNode = children[childIndex].AsNode();
+                if (childAsNode is null)
+                {
+                    Debug.Fail("Child at indicated index should be a node as there were no top level edits.");
+                    return null;
+                }
+
+                previousNode = childAsNode;
             }
 
-            using var pooledPreviousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
-            var previousMembers = pooledPreviousMembers.Object;
+            return previousNode;
+        }
+    }
 
-            if (currentMembers.Count != previousMembers.Count)
+    private static void GetNodeChildIndexPathToRootReversed(SyntaxNode node, ArrayBuilder<int> path)
+    {
+        var current = node;
+        var parent = current.Parent;
+
+        while (parent != null)
+        {
+            var childIndex = 0;
+            foreach (var child in parent.ChildNodesAndTokens())
             {
-                Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
-                return null;
+                if (child.AsNode() == current)
+                {
+                    path.Add(childIndex);
+                    break;
+                }
+
+                childIndex++;
             }
 
-            return previousMembers[index];
+            current = parent;
+            parent = current.Parent;
         }
     }
 

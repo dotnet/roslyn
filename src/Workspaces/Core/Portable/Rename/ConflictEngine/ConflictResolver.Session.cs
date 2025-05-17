@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
@@ -535,11 +534,12 @@ internal static partial class ConflictResolver
 
                         hasConflict = true;
 
-                        var newLocations = newReferencedSymbols
-                            .Select(symbol => GetSymbolLocation(solution, symbol, _cancellationToken))
+                        var newLocations = (await newReferencedSymbols
+                            .SelectAsArrayAsync(static (symbol, solution, cancellationToken) => GetSymbolLocationAsync(solution, symbol, cancellationToken), solution, _cancellationToken).ConfigureAwait(false))
                             .WhereNotNull()
                             .Where(loc => loc.IsInSource)
                             .ToArray();
+
                         foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                         {
                             var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
@@ -580,7 +580,7 @@ internal static partial class ConflictResolver
                             break;
                         }
 
-                        var newLocation = GetSymbolLocation(solution, symbol, _cancellationToken);
+                        var newLocation = await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false);
                         if (newLocation != null && conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].IsSourceLocation)
                         {
                             // location was in source before, but not after rename

@@ -211,7 +211,6 @@ public sealed class SymbolEditor
     /// </summary>
     /// <param name="editor">The <see cref="DocumentEditor"/> to apply edits to.</param>
     /// <param name="declaration">The declaration to edit.</param>
-    /// <returns></returns>
     public delegate void DeclarationEditAction(DocumentEditor editor, SyntaxNode declaration);
 
     /// <summary>
@@ -220,7 +219,6 @@ public sealed class SymbolEditor
     /// <param name="editor">The <see cref="DocumentEditor"/> to apply edits to.</param>
     /// <param name="declaration">The declaration to edit.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns></returns>
     public delegate Task AsyncDeclarationEditAction(DocumentEditor editor, SyntaxNode declaration, CancellationToken cancellationToken);
 
     /// <summary>

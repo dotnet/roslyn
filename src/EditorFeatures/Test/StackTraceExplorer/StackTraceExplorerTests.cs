@@ -32,8 +32,7 @@ public class StackTraceExplorerTests
         var reparsedResult = await StackTraceAnalyzer.AnalyzeAsync(stackFrame.ToString(), CancellationToken.None);
         Assert.Single(reparsedResult.ParsedFrames);
 
-        var reparsedFrame = reparsedResult.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(reparsedFrame);
+        var reparsedFrame = Assert.IsType<ParsedStackFrame>(reparsedResult.ParsedFrames[0]);
         StackFrameUtils.AssertEqual(stackFrame.Root, reparsedFrame.Root);
 
         // Get the definition for the parsed frame
@@ -820,9 +819,9 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync(line, CancellationToken.None);
         Assert.Equal(1, result.ParsedFrames.Length);
 
-        var parsedFame = result.ParsedFrames.OfType<ParsedStackFrame>().Single();
+        var parsedFrame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
-        var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFame, StackFrameSymbolPart.Method, CancellationToken.None);
+        var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, parsedFrame, StackFrameSymbolPart.Method, CancellationToken.None);
         Assert.Null(definition);
     }
 
@@ -850,13 +849,89 @@ class C
         var result = await StackTraceAnalyzer.AnalyzeAsync("at System.String.ToLower()", CancellationToken.None);
         Assert.Single(result.ParsedFrames);
 
-        var frame = result.ParsedFrames[0] as ParsedStackFrame;
-        AssertEx.NotNull(frame);
-
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
         var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         var definition = await service.TryFindDefinitionAsync(workspace.CurrentSolution, frame, StackFrameSymbolPart.Method, CancellationToken.None);
 
         AssertEx.NotNull(definition);
         Assert.Equal("String.ToLower", definition.NameDisplayParts.ToVisibleDisplayString(includeLeftToRightMarker: false));
+    }
+
+    [Fact]
+    public async Task TestAdditionalFileExactMatchAsync()
+    {
+        using var workspace = TestWorkspace.Create(
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+                        class C
+                        {
+                            void M() {}
+                        }
+                    </Document>
+                    <AdditionalDocument FilePath="C:/path/to/Component.razor">
+                        @page "/"
+
+                        @code 
+                        {
+                            void M()
+                            {
+                            }
+                        }
+                    </AdditionalDocument>
+                </Project>
+            </Workspace>
+            """);
+
+        var result = await StackTraceAnalyzer.AnalyzeAsync("at Path.To.Component.M() in C:/path/to/Component.razor:line 5", CancellationToken.None);
+        Assert.Single(result.ParsedFrames);
+
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
+        var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+        var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
+        Assert.Equal(5, line);
+
+        AssertEx.NotNull(document);
+        Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
+    }
+
+    [Fact]
+    public async Task TestAdditionalFileNameMatchAsync()
+    {
+        using var workspace = TestWorkspace.Create(
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+                        class C
+                        {
+                            void M() {}
+                        }
+                    </Document>
+                    <AdditionalDocument FilePath="C:/path/to/Component.razor" Name="Component.razor">
+                        @page "/"
+
+                        @code 
+                        {
+                            void M()
+                            {
+                            }
+                        }
+                    </AdditionalDocument>
+                </Project>
+            </Workspace>
+            """);
+
+        var result = await StackTraceAnalyzer.AnalyzeAsync("at Path.To.Component.M() in Component.razor:line 5", CancellationToken.None);
+        Assert.Single(result.ParsedFrames);
+
+        var frame = Assert.IsType<ParsedStackFrame>(result.ParsedFrames[0]);
+        var service = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
+        var (document, line) = service.GetDocumentAndLine(workspace.CurrentSolution, frame);
+        Assert.Equal(5, line);
+
+        AssertEx.NotNull(document);
+        Assert.Equal(@"C:/path/to/Component.razor", document.FilePath);
     }
 }

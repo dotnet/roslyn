@@ -16,21 +16,47 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"/>
-
-    <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
-                      ReferenceOutputAssembly="false"
-                      Private="false" />
+    <!-- Include just the logger; pulling in the full project carries along a lot of dependencies -->
+    <Compile Include="..\..\Workspaces\CoreTestUtilities\Logging\TestOutputLoggerProvider.cs" Link="TestOutputLoggerProvider.cs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" />
+    <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+
+    <ProjectReference Include="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" ReferenceOutputAssembly="false" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" />
+  </ItemGroup>
+
+  <!--
+    Copy files contained in the project to a RoslynLSP subdirectory to emulate deployment of the language server.
+  -->
+  <Target Name="_CopyLanguageServerFiles" AfterTargets="ResolveProjectReferences">
+    <MSBuild Projects="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj" Targets="GetTargetPath">
+      <Output TaskParameter="TargetOutputs" ItemName="_LanguageServerFilePath" />
+    </MSBuild>
+
+    <PropertyGroup>
+      <_LanguageServerOutputPath>$([System.IO.Path]::GetDirectoryName(%(_LanguageServerFilePath.Identity)))</_LanguageServerOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_LanguageServerOutputPath)' != ''">
+      <_LanguageServerFile Include="$(_LanguageServerOutputPath)\**\*.*" />
+      <_LanguageServerFile Remove="$(_LanguageServerOutputPath)\**\*.mef-composition" />
+      <Content Include="@(_LanguageServerFile)" Link="RoslynLSP\%(RecursiveDir)\%(_LanguageServerFile.Filename)%(_LanguageServerFile.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <!--
     Copy files contained in the NPM package to a DevKit subdirectory to emulate deployment of the DevKit extension in VS Code.
   -->
   <Target Name="_CopyDevKitExtensionFiles" AfterTargets="ResolveProjectReferences">
-    <MSBuild Projects="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj"
-             Targets="GetPackInputs">
-      <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile"/>
+    <MSBuild Projects="..\..\VisualStudio\DevKit\Impl\Microsoft.VisualStudio.LanguageServices.DevKit.csproj" Targets="GetPackInputs">
+      <Output TaskParameter="TargetOutputs" ItemName="_DevKitExtensionFile" />
     </MSBuild>
 
     <ItemGroup>

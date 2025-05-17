@@ -24,7 +24,7 @@ internal static class SymbolCompletionItem
 
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolEncoding = AddSymbolEncoding;
     private static readonly Action<ImmutableArray<ISymbol>, ArrayBuilder<KeyValuePair<string, string>>> s_addSymbolInfo = AddSymbolInfo;
-    private static readonly char[] s_projectSeperators = [';'];
+    private const char ProjectSeperatorChar = ';';
 
     private static CompletionItem CreateWorker(
         string displayText,
@@ -236,11 +236,43 @@ internal static class SymbolCompletionItem
         {
             return new SupportedPlatformData(
                 solution,
-                [.. invalidProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s)))],
-                candidateProjects.Split(s_projectSeperators).Select(s => ProjectId.CreateFromSerialized(Guid.Parse(s))).ToList());
+                SplitIntoProjectIds(invalidProjects),
+                SplitIntoProjectIds(candidateProjects));
         }
 
         return null;
+    }
+
+    private static ImmutableArray<ProjectId> SplitIntoProjectIds(string projectIds)
+    {
+        // Does the equivalent of string.Split, with fewer allocations
+        var start = 0;
+        var current = 0;
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var builder);
+
+        while (current < projectIds.Length)
+        {
+            if (projectIds[current] == ProjectSeperatorChar)
+            {
+                if (start != current)
+                {
+                    var projectGuid = Guid.Parse(projectIds.Substring(start, current - start));
+                    builder.Add(ProjectId.CreateFromSerialized(projectGuid));
+                }
+
+                start = current + 1;
+            }
+
+            current++;
+        }
+
+        if (start != current)
+        {
+            var projectGuid = Guid.Parse(projectIds.Substring(start, current - start));
+            builder.Add(ProjectId.CreateFromSerialized(projectGuid));
+        }
+
+        return builder.ToImmutableAndClear();
     }
 
     public static int GetContextPosition(CompletionItem item)

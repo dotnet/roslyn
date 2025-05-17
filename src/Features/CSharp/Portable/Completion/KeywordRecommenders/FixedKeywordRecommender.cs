@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class FixedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class FixedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.FixedKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -20,11 +20,6 @@ internal class FixedKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
         SyntaxKind.PrivateKeyword,
         SyntaxKind.UnsafeKeyword,
     };
-
-    public FixedKeywordRecommender()
-        : base(SyntaxKind.FixedKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         => IsUnsafeStatementContext(context) || IsMemberDeclarationContext(context, cancellationToken);

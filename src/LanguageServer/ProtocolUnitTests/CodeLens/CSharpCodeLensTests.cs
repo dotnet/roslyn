@@ -386,8 +386,8 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         };
 
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParamsDoc1, CancellationToken.None);
-        var firstCodeLens = actualCodeLenses.First();
-        var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString(), ProtocolConversions.LspJsonSerializerOptions);
+        var firstCodeLens = actualCodeLenses!.First();
+        var data = JsonSerializer.Deserialize<CodeLensResolveData>(firstCodeLens.Data!.ToString()!, ProtocolConversions.LspJsonSerializerOptions);
         AssertEx.NotNull(data);
 
         // Update the document so the syntax version changes
@@ -412,10 +412,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
         await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableReferencesCodeLens, LanguageNames.CSharp, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableReferencesCodeLens, LanguageNames.CSharp, false)
         });
         var actualCodeLenses = await GetCodeLensAsync(testLspServer);
         AssertEx.Empty(actualCodeLenses);
@@ -446,10 +443,7 @@ namespace Test
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
         });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_Test, FeaturesResources.Debug_Test);
     }
@@ -479,10 +473,7 @@ namespace Test
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, false)
         });
         await VerifyTestCodeLensAsync(testLspServer, FeaturesResources.Run_All_Tests, FeaturesResources.Debug_All_Tests);
     }
@@ -512,10 +503,7 @@ namespace Test
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true)
         });
         await VerifyTestCodeLensMissingAsync(testLspServer);
     }
@@ -545,10 +533,7 @@ namespace Test
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
             ClientCapabilities = CapabilitiesWithVSExtensions,
-            OptionUpdater = (globalOptions) =>
-            {
-                globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableTestsCodeLens, LanguageNames.CSharp, false);
-            }
+            OptionUpdater = (globalOptions) => globalOptions.SetGlobalOption(LspOptionsStorage.LspEnableTestsCodeLens, LanguageNames.CSharp, false)
         });
         await VerifyTestCodeLensMissingAsync(testLspServer);
     }

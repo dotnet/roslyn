@@ -81,11 +81,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.ProjectContext
 
             await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace);
 
-            // Ensure the documents are open so we can change contexts
-            foreach (var document in testLspServer.TestWorkspace.Documents)
-            {
-                _ = document.GetOpenTextContainer();
-            }
+            // Ensure all the linked documents are open so we can change contexts
+            var document = testLspServer.TestWorkspace.Documents.First();
+            await testLspServer.OpenDocumentInWorkspaceAsync(document.Id, openAllLinkedDocuments: true);
 
             var documentUri = testLspServer.GetLocations("caret").Single().Uri;
 

@@ -559,9 +559,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             while (symbol != null)
             {
-                if (symbol.Kind == SymbolKind.Namespace)
+                if (symbol is INamespaceSymbol namespaceSymbol)
                 {
-                    if (!includeNamespaces || ((INamespaceSymbol)symbol).IsGlobalNamespace)
+                    if (!includeNamespaces || namespaceSymbol.IsGlobalNamespace)
                     {
                         break;
                     }
@@ -582,15 +582,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
                 builder.Append(current.Name);
 
-                if (current.Kind == SymbolKind.NamedType)
+                if (includeGenerics && current is INamedTypeSymbol { Arity: > 0 } namedType)
                 {
-                    var namedType = (INamedTypeSymbol)current;
-                    if (includeGenerics && namedType.Arity > 0)
-                    {
-                        builder.Append('<');
-                        builder.Append(',', namedType.Arity - 1);
-                        builder.Append('>');
-                    }
+                    builder.Append('<');
+                    builder.Append(',', namedType.Arity - 1);
+                    builder.Append('>');
                 }
 
                 first = false;

@@ -93,6 +93,26 @@ These type of errors, when not paired with a `Debug.Assert` failure, are almost 
 
 Note: when you encounter a case where the log file does not have an actionable description of why a build failed, strongly consider sending a PR that fixes this. This approach is why the log is such a valuable tool for tracking down bootstrap failures. 
 
+### Reproducing locally
+
+Locally reproducing and attaching a debugger to a bootstrap build failure is fairly simple with use of `src/Tools/Replay`, which can replay a binlog with the checked-out Roslyn compiler source. To do this, run a build locally with the `-bl` flag to get a binary log, then use replay to replay the binary log:
+
+**Windows**
+
+```powershell
+.\build.ps1 -bl
+dotnet run --framework net9.0 src\Tools\Replay\ artifacts\log\Debug\Build.binlog -w
+```
+
+**Linux**
+
+```sh
+./build.sh -bl
+dotnet run --framework net9.0 src/Tools/Replay/ artifacts/log/Debug/Build.binlog -w
+```
+
+The `-w` flag will cause replay to print the process ID of the compiler and wait until you hit a key, so that you can attach a debugger to the process and set breakpoints for exceptions you are interested in.
+
 ## Debugging
 
 To debug a bootstrap build failure locally do the following. 

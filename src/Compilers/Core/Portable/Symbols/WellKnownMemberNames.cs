@@ -406,5 +406,10 @@ namespace Microsoft.CodeAnalysis
         internal const string CastUpMethodName = "CastUp";
         internal const string MemoryExtensionsTypeFullName = "System.MemoryExtensions";
         internal const string AsSpanMethodName = "AsSpan";
+
+        /// <summary>
+        /// The name of marker method for an extension type.
+        /// </summary>
+        internal const string ExtensionMarkerMethodName = "<Extension>$";
     }
 }

@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)
         Private Shared Function GetMocks(controller As Controller) As ControllerMocks
             Dim result As ControllerMocks = Nothing
-            Roslyn.Utilities.Contract.ThrowIfFalse(s_controllerMocksMap.TryGetValue(controller, result))
+            Contract.ThrowIfFalse(s_controllerMocksMap.TryGetValue(controller, result))
             Return result
         End Function
 

@@ -46,15 +46,11 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
             if (ctor != null)
             {
                 var type = ctor.ContainingType;
-                if (!ctor.Parameters.Any() && type.Name == "FlagsAttribute")
+                if (!ctor.Parameters.Any() &&
+                     type.Name == "FlagsAttribute" &&
+                     type.ContainingSymbol is INamespaceSymbol { Name: "System", ContainingNamespace.IsGlobalNamespace: true })
                 {
-                    var containingSymbol = type.ContainingSymbol;
-                    if (containingSymbol.Kind == SymbolKind.Namespace &&
-                        containingSymbol.Name == "System" &&
-                        ((INamespaceSymbol)containingSymbol.ContainingSymbol).IsGlobalNamespace)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
         }

@@ -109,7 +109,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+
+                // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
+                // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
+                // entries either.
+                allDiagnostics = allDiagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
@@ -194,8 +199,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: includeSuppressionFixes, priorityProvider,
-                    DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                    priorityProvider, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
+                if (!includeSuppressionFixes)
+                    diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
@@ -292,8 +298,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                    document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+                    document, range, diagnosticId, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                     DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+
+                // NOTE(cyrusn): We do not include suppressed diagnostics here as they are effectively hidden from the
+                // user in the editor.  As far as the user is concerned, there is no squiggle for it and no lightbulb
+                // entries either.
+                diagnostics = diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
 
             diagnostics = diagnostics.WhereAsArray(d => d.Severity.IsMoreSevereThanOrEqualTo(minimumSeverity));
@@ -347,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var fixAllService = document.Project.Solution.Services.GetRequiredService<IFixAllGetFixesService>();
 
             var solution = await fixAllService.GetFixAllChangedSolutionAsync(
-                new FixAllContext(fixCollection.FixAllState, progressTracker, cancellationToken)).ConfigureAwait(false);
+                new FixAllContext(fixCollection.FixAllState!, progressTracker, cancellationToken)).ConfigureAwait(false);
             Contract.ThrowIfNull(solution);
 
             return (TDocument)(solution.GetTextDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported));

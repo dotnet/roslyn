@@ -2325,7 +2325,7 @@ class C
         }
 
         [Fact]
-        public void UserDefined_CompountAssignment_01()
+        public void UserDefined_CompoundAssignment_01()
         {
             var source1 = @"
 public class C1
@@ -2545,7 +2545,7 @@ class C
         }
 
         [Fact]
-        public void UserDefined_Lifted_CompountAssignment_01()
+        public void UserDefined_Lifted_CompoundAssignment_01()
         {
             var source1 = @"
 public struct C1
@@ -3457,7 +3457,7 @@ class C
         }
 
         [Fact]
-        public void UserDefined_CompountAssignment_LangVersion_01()
+        public void UserDefined_CompoundAssignment_LangVersion_01()
         {
             var source0 = @"
 public class C1
@@ -3561,7 +3561,7 @@ class C
         }
 
         [Fact]
-        public void UserDefined_Lifted_CompountAssignment_LangVersion_01()
+        public void UserDefined_Lifted_CompoundAssignment_LangVersion_01()
         {
             var source0 = @"
 public struct C1

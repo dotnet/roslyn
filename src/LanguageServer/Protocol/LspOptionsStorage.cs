@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static readonly Option2<bool> LspUsingDevkitFeatures = new("dotnet_lsp_using_devkit", defaultValue: false);
 
         private static readonly OptionGroup s_codeLensOptionGroup = new(name: "code_lens", description: "");
+        private static readonly OptionGroup s_formattingOptionGroup = new(name: "formatting", description: "");
 
         private static readonly OptionGroup s_autoInsertOptionGroup = new(name: "auto_insert", description: "");
 
@@ -48,5 +49,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Flag indicating whether or not auto-insert should be abled by default in LSP.
         /// </summary>
         public static readonly PerLanguageOption2<bool> LspEnableAutoInsert = new("dotnet_enable_auto_insert", defaultValue: true, group: s_autoInsertOptionGroup);
+
+        /// <summary>
+        /// <see langword="true"/> to organize imports as part of LSP's Format Document handler; otherwise, <see langword="false"/>.
+        /// </summary>
+        public static readonly PerLanguageOption2<bool> LspOrganizeImportsOnFormat = new("dotnet_organize_imports_on_format", defaultValue: false, group: s_formattingOptionGroup);
     }
 }

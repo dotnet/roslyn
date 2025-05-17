@@ -19,7 +19,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
         ''' <summary>
         ''' Find all the methods that handle events (though "Handles" clauses).
         ''' </summary>
-        ''' <returns></returns>
         Public Function GetStaticEventBindings(document As Document,
                                                className As String,
                                                objectName As String,

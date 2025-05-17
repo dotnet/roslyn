@@ -10,16 +10,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 internal sealed class LanguageServerTestComposition
 {
-    /// <summary>
-    /// Build places DevKit files to this subdirectory.
-    /// </summary>
-    private const string DevKitExtensionSubdirectory = "DevKit";
-
-    private const string DevKitAssemblyFileName = "Microsoft.VisualStudio.LanguageServices.DevKit.dll";
-
-    private static string GetDevKitExtensionPath()
-        => Path.Combine(AppContext.BaseDirectory, DevKitExtensionSubdirectory, DevKitAssemblyFileName);
-
     public static Task<ExportProvider> CreateExportProviderAsync(
         ILoggerFactory loggerFactory,
         bool includeDevKitComponents,
@@ -28,7 +18,7 @@ internal sealed class LanguageServerTestComposition
         out ServerConfiguration serverConfiguration,
         out IAssemblyLoader assemblyLoader)
     {
-        var devKitDependencyPath = includeDevKitComponents ? GetDevKitExtensionPath() : null;
+        var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
         serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             LogConfiguration: new LogConfiguration(LogLevel.Trace),
             StarredCompletionsPath: null,
@@ -39,7 +29,8 @@ internal sealed class LanguageServerTestComposition
             RazorSourceGenerator: null,
             RazorDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
-            ServerPipeName: null);
+            ServerPipeName: null,
+            UseStdIo: false);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
         return ExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory);

@@ -12286,7 +12286,7 @@ ref struct G<T> where T : class
 
         [Fact]
         [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternNonConstant_UserDefinedImplicit_ConvertionToInputType()
+        public void PatternNonConstant_UserDefinedImplicit_ConversionToInputType()
         {
             var source =
 @"
@@ -12308,7 +12308,7 @@ class C
 
         [Fact]
         [WorkItem(63476, "https://github.com/dotnet/roslyn/issues/63476")]
-        public void PatternNonConstant_UserDefinedExplicit_ConvertionToInputType()
+        public void PatternNonConstant_UserDefinedExplicit_ConversionToInputType()
         {
             var source =
 @"
@@ -12329,7 +12329,7 @@ class C
         }
 
         [Fact]
-        public void PatternReadOnlySpan_ImplicitBuiltInConvertion_ToString()
+        public void PatternReadOnlySpan_ImplicitBuiltInConversion_ToString()
         {
             var source =
 @"
@@ -12343,7 +12343,7 @@ class C
         }
 
         [Fact]
-        public void PatternNoImplicitConvertionToInputType()
+        public void PatternNoImplicitConversionToInputType()
         {
             // Cannot implicitly cast long to byte..
             var source =

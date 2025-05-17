@@ -2587,4 +2587,43 @@ public class ConvertSwitchStatementToExpressionTests
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77081")]
+    public async Task TestTupleSwitch()
+    {
+        await VerifyCS.VerifyCodeFixAsync(
+            """
+            class Program
+            {
+                bool M(int i, string j)
+                {
+                    [|switch|] (i, j)
+                    {
+                    case (0, _):
+                        return true;
+
+                    case (_, null):
+                        return true;
+
+                    default:
+                        return false;
+                    }
+                }
+            }
+            """,
+            """
+            class Program
+            {
+                bool M(int i, string j)
+                {
+                    return (i, j) switch
+                    {
+                        (0, _) => true,
+                        (_, null) => true,
+                        _ => false,
+                    };
+                }
+            }
+            """);
+    }
 }

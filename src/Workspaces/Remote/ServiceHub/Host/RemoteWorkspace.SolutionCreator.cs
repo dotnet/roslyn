@@ -9,10 +9,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.Solution;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -576,23 +574,27 @@ internal partial class RemoteWorkspace
 
             // there is no api to change these once document is created
             Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
-            Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
-            Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
             Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
             Contract.ThrowIfFalse(document.State.Attributes.DesignTimeOnly == newDocumentInfo.DesignTimeOnly);
+
+            if (document.State.Attributes.Name != newDocumentInfo.Name)
+                document = document.Project.Solution.WithDocumentName(document.Id, newDocumentInfo.Name).GetRequiredDocument(document.Id);
+
+            if (document.State.Attributes.FilePath != newDocumentInfo.FilePath)
+                document = document.Project.Solution.WithDocumentFilePath(document.Id, newDocumentInfo.FilePath).GetRequiredDocument(document.Id);
 
             if (document.State.Attributes.Folders != newDocumentInfo.Folders)
             {
                 // additional document can't change folder once created
                 Contract.ThrowIfFalse(document is Document);
-                document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id)!;
+                document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetRequiredDocument(document.Id);
             }
 
             if (document.State.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
                 // additional document can't change sourcecode kind once created
                 Contract.ThrowIfFalse(document is Document);
-                document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetDocument(document.Id)!;
+                document = document.Project.Solution.WithDocumentSourceCodeKind(document.Id, newDocumentInfo.SourceCodeKind).GetRequiredDocument(document.Id);
             }
 
             return document;

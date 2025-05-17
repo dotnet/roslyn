@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
                      ERRID.ERR_SymbolDefinedInAssembly
                     ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    ' and TestIsBuildOnlyDiagnostic in src\Compilers\VisualBasic\Test\Semantic\Diagnostics\DiagnosticTests.vb
                     ' whenever new values are added here.
                     Return True
                 Case ERRID.Void,

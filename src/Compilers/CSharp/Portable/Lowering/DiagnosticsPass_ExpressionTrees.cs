@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
-                _staticLocalOrAnonymousFunction = node.Symbol;
+                _staticLocalOrAnonymousFunction = (SourceMethodSymbol)node.Symbol;
             }
             var result = base.VisitLocalFunctionStatement(node);
             _staticLocalOrAnonymousFunction = outerLocalFunction;
@@ -441,7 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.MemberSymbol is PropertySymbol property)
             {
-                CheckRefReturningPropertyAccess(node, property);
+                if (_inExpressionLambda && property.GetIsNewExtensionMember())
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
+                }
+                else
+                {
+                    CheckRefReturningPropertyAccess(node, property);
+                }
             }
 
             return base.VisitObjectInitializerMember(node);
@@ -508,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
-            if (_inExpressionLambda && node.AddMethod.IsStatic)
+            if (_inExpressionLambda && (node.AddMethod.IsStatic || node.AddMethod.GetIsNewExtensionMember()))
             {
                 Error(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, node);
             }
@@ -549,9 +556,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckRefReturningPropertyAccess(node, property);
             CheckReceiverIfField(node.ReceiverOpt);
 
-            if (_inExpressionLambda && (property.IsAbstract || property.IsVirtual) && property.IsStatic)
+            if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                if ((property.IsAbstract || property.IsVirtual) && property.IsStatic)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                }
+                else if (property.GetIsNewExtensionMember())
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess, node);
+                }
             }
 
             return base.VisitPropertyAccess(node);
@@ -639,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outerLocalFunction = _staticLocalOrAnonymousFunction;
             if (node.Symbol.IsStatic)
             {
-                _staticLocalOrAnonymousFunction = node.Symbol;
+                _staticLocalOrAnonymousFunction = (SourceMethodSymbol)node.Symbol;
             }
             var result = base.VisitLambda(node);
             _staticLocalOrAnonymousFunction = outerLocalFunction;

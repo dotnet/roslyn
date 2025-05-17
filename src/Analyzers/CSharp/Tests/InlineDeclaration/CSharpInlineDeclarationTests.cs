@@ -2696,4 +2696,73 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             }
             """, options: ExplicitTypeEverywhere());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
+    public async Task TestReferencedInSwitchArms1()
+    {
+        await TestMissingAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
+                {
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    [|int|] price; // IDE0018 
+                    bool found = args[0] switch
+                    {
+                        "First" => dict.TryGetValue(1, out price),
+                        "Second" => dict.TryGetValue(2, out price),
+                        _ => dict.TryGetValue(3, out price)
+                    };
+
+                    return found ? -1 : price;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40650")]
+    public async Task TestReferencedInSwitchArms2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
+                {
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    [|int|] price;
+                    bool found = args[0] switch
+                    {
+                        "First" => dict.TryGetValue(1, out price) ? price == 1 : false,
+                        _ => false,
+                    };
+
+                    return found;
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                private static int Main(string[] args)
+                {
+                    Dictionary<int, int> dict = new Dictionary<int, int> { /* ... */ };
+                    bool found = args[0] switch
+                    {
+                        "First" => dict.TryGetValue(1, out int price) ? price == 1 : false,
+                        _ => false,
+                    };
+
+                    return found;
+                }
+            }
+            """);
+    }
 }

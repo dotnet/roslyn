@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -117,11 +118,14 @@ namespace Microsoft.CodeAnalysis
                 return finalState.RootedSymbolSet.ContainsAssemblyOrModuleOrDynamic(symbol, primary, out compilation, out referencedThrough);
             }
 
+            ICompilationTracker ICompilationTracker.Fork(ProjectState newProjectState, TranslationAction? translate)
+                => Fork(newProjectState, translate);
+
             /// <summary>
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
             /// </summary>
-            public ICompilationTracker Fork(
+            public RegularCompilationTracker Fork(
                 ProjectState newProjectState,
                 TranslationAction? translate)
             {
@@ -708,7 +712,10 @@ namespace Microsoft.CodeAnalysis
                 return finalState.HasSuccessfullyLoaded;
             }
 
-            public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
+            ICompilationTracker ICompilationTracker.WithCreateCreationPolicy(bool forceRegeneration)
+                => WithCreateCreationPolicy(forceRegeneration);
+
+            public RegularCompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
             {
                 var state = this.ReadState();
 
@@ -764,7 +771,10 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy()
+            ICompilationTracker ICompilationTracker.WithDoNotCreateCreationPolicy()
+                => WithDoNotCreateCreationPolicy();
+
+            public RegularCompilationTracker WithDoNotCreateCreationPolicy()
             {
                 var state = this.ReadState();
 
@@ -1036,7 +1046,6 @@ namespace Microsoft.CodeAnalysis
 
             private AsyncLazy<VersionStamp>? _lazyDependentVersion;
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
-            private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(
                 SolutionCompilationState compilationState, CancellationToken cancellationToken)
@@ -1113,56 +1122,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return version;
-            }
-
-            public Task<Checksum> GetDependentChecksumAsync(
-                SolutionCompilationState compilationState, CancellationToken cancellationToken)
-            {
-                if (_lazyDependentChecksum == null)
-                {
-                    // note: solution is captured here, but it will go away once GetValueAsync executes.
-                    Interlocked.CompareExchange(
-                        ref _lazyDependentChecksum,
-                        AsyncLazy.Create(static (arg, c) =>
-                            arg.self.ComputeDependentChecksumAsync(arg.SolutionState, c),
-                            arg: (self: this, compilationState.SolutionState)),
-                        null);
-                }
-
-                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
-            }
-
-            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
-            {
-                using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
-
-                // Get the checksum for the project itself.
-                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                tempChecksumArray.Add(projectChecksum);
-
-                // Calculate a checksum this project and for each dependent project that could affect semantics for
-                // this project. Ensure that the checksum calculation orders the projects consistently so that we get
-                // the same checksum across sessions of VS.  Note: we use the project filepath+name as a unique way
-                // to reference a project.  This matches the logic in our persistence-service implemention as to how
-                // information is associated with a project.
-                var transitiveDependencies = solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
-                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
-                {
-                    var depProject = solution.GetRequiredProjectState(id);
-                    return (depProject.FilePath, depProject.Name);
-                });
-
-                foreach (var projectId in orderedProjectIds)
-                {
-                    var referencedProject = solution.GetRequiredProjectState(projectId);
-
-                    // Note that these checksums should only actually be calculated once, if the project is unchanged
-                    // the same checksum will be returned.
-                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                    tempChecksumArray.Add(referencedProjectChecksum);
-                }
-
-                return Checksum.Create(tempChecksumArray);
             }
 
             #endregion

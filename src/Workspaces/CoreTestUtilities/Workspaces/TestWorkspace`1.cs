@@ -14,17 +14,13 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
@@ -34,7 +30,7 @@ using RuntimeMetadataReferenceResolver = SCRIPTING::Microsoft.CodeAnalysis.Scrip
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace, ILspWorkspace
+    public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Workspace
         where TDocument : TestHostDocument
         where TProject : TestHostProject<TDocument>
         where TSolution : TestHostSolution<TDocument>
@@ -56,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
         private readonly string _workspaceKind;
-        private readonly bool _supportsLspMutation;
 
         internal TestWorkspace(
             TestComposition? composition = null,
@@ -64,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Guid solutionTelemetryId = default,
             bool disablePartialSolutions = true,
             bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
-            WorkspaceConfigurationOptions? configurationOptions = null,
-            bool supportsLspMutation = false)
+            WorkspaceConfigurationOptions? configurationOptions = null)
             : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
         {
             this.Composition = composition;
@@ -92,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
-            _supportsLspMutation = supportsLspMutation;
             this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
@@ -334,18 +327,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public TServiceInterface GetService<TServiceInterface>()
             => ExportProvider.GetExportedValue<TServiceInterface>();
 
-        public TServiceInterface GetService<TServiceInterface>(string contentType)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, ContentTypeMetadata>();
-            return values.Single(value => value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
-        public TServiceInterface GetService<TServiceInterface>(string contentType, string name)
-        {
-            var values = ExportProvider.GetExports<TServiceInterface, OrderableContentTypeMetadata>();
-            return values.Single(value => value.Metadata.Name == name && value.Metadata.ContentTypes.Contains(contentType)).Value;
-        }
-
         public override bool CanApplyChange(ApplyChangesKind feature)
         {
             switch (feature)
@@ -485,8 +466,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(this._supportsLspMutation);
-
             var testDocument = this.GetTestDocument(documentId);
             Contract.ThrowIfNull(testDocument);
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
@@ -593,13 +572,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             => true;
 
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
-        {
-            // VisualStudioWorkspace asserts the main thread for this call, so do the same thing here to catch tests
-            // that fail to account for this possibility.
-            var threadingContext = ExportProvider.GetExportedValue<IThreadingContext>();
-            Contract.ThrowIfFalse(threadingContext.HasMainThread && threadingContext.JoinableTaskContext.IsOnMainThread);
-            return true;
-        }
+            => true;
 
         internal void InitializeDocuments(
             string language,
@@ -801,15 +774,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
             // so that we can validate OOP scenarios involving analyzers.
-            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
-            {
-                if (analyzer is AnalyzerImageReference analyzerImageReference)
-                {
 #pragma warning disable CA1416 // Validate platform compatibility
-                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+            SerializerService.TestAccessor.AddAnalyzerImageReferences(this.CurrentSolution.AnalyzerReferences);
 #pragma warning restore CA1416 // Validate platform compatibility
-                }
-            }
 
             return result;
         }

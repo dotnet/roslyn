@@ -18,7 +18,7 @@
     <MetalamaNetRoslyn>net6.0;net8.0</MetalamaNetRoslyn>
     <!-- </Metalama> -->
     <NetVS>net8.0</NetVS>
-    <NetVSCode>net8.0</NetVSCode>
+    <NetVSCode>net9.0</NetVSCode>
     <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>

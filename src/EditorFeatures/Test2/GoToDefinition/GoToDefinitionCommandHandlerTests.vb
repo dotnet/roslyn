@@ -56,9 +56,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
@@ -98,9 +96,7 @@ int y = x$$</Document>
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
@@ -143,9 +139,7 @@ class C
                 Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
                 Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
                 Dim handler = New GoToDefinitionCommandHandler(
-                    workspace.GetService(Of IGlobalOptionService),
                     workspace.GetService(Of IThreadingContext),
-                    workspace.GetService(Of IUIThreadOperationExecutor),
                     provider)
 
                 Dim snapshot = document.GetTextBuffer().CurrentSnapshot

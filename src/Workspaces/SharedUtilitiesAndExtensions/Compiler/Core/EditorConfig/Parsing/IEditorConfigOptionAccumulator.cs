@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditorConfig.Parsing;
@@ -12,6 +11,6 @@ internal interface IEditorConfigOptionAccumulator<TResults, TResult>
     where TResults : EditorConfigFile<TResult>
     where TResult : EditorConfigOption
 {
-    void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties);
+    void ProcessSection(Section section, IReadOnlyDictionary<string, string> values, IReadOnlyDictionary<string, TextLine> lines);
     TResults Complete(string? filePath);
 }

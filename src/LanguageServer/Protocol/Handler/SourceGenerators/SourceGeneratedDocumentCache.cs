@@ -30,7 +30,7 @@ internal sealed class SourceGeneratedDocumentCache(string uniqueKey) : Versioned
         return SpecializedTasks.Null<object>();
     }
 
-    public override Checksum ComputeChecksum(SourceText? data)
+    public override Checksum ComputeChecksum(SourceText? data, string language)
     {
         return data is null ? Checksum.Null : Checksum.From(data.GetChecksum());
     }

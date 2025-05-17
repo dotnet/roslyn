@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
@@ -23,13 +22,9 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedValuesCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
-public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
+public sealed class RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
+    : RemoveUnusedValuesTestsBase(logger)
 {
-    public RemoveUnusedValueAssignmentTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     private protected override OptionsCollection PreferNone
         => Option(CSharpCodeStyleOptions.UnusedValueAssignment,
                new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.None));
@@ -10091,5 +10086,106 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
                 }
             }
             """);
+    }
+
+    [Fact]
+    public async Task TestWriteIntoPropertyOfRefStructParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                internal sealed class C
+                {
+                    private static void M(ref int destinationIndex, Span<byte> buffer)
+                    {
+                        buffer[destinationIndex++] = (byte)0;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWriteIntoPropertyOfRefStructParameterThenWriteTheParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                internal sealed class C
+                {
+                    private static void M(ref int destinationIndex, Span<byte> buffer)
+                    {
+                        buffer[destinationIndex++] = (byte)0;
+                        // /0/Test0.cs(8,9): info IDE0059: Unnecessary assignment of a value to 'buffer'
+                        {|IDE0059:buffer|} = default;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestWriteIntoPropertyOfStructParameter()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                internal struct S
+                {
+                    public byte this[int index] { get => 0; set => _ = value; }
+                }
+
+                internal sealed class C
+                {
+                    private static void M(ref int destinationIndex, S buffer)
+                    {
+                        // Don't want to report IDE0059 here.  This write might be necessary as the struct might be wrapping
+                        // memory visible elsewhere.
+                        buffer[destinationIndex++] = (byte)0;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77258")]
+    public async Task TestWriteIntoStructIndexer()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                int[] a = new int[5];
+                MyStruct m = new MyStruct(a);
+                m[0] = 1;
+                Console.WriteLine(a[0]);
+
+                struct MyStruct(int[] a)
+                {
+                    private int[] array = a;
+
+                    public int this[int index]
+                    {
+                        get => array[index];
+                        set => array[index] = value;
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            LanguageVersion = LanguageVersion.CSharp12,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
     }
 }

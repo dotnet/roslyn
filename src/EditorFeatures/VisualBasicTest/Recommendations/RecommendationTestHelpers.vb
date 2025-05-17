@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
                                       .OrderBy(Function(recommendation) recommendation) _
                                       .ToArray()
 
-            Assert.Equal(0, recommendedKeywords.Length)
+            Assert.Empty(recommendedKeywords)
         End Sub
 
         Private Function GetSourceCodeKind(testSource As XElement) As SourceCodeKind

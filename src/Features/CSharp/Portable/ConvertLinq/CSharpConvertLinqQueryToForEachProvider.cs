@@ -243,7 +243,6 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
         /// Checks if the location of the query expression allows to convert it at least to a local function.
         /// It still does not guarantees that the conversion can be performed. There can be bail outs of later stages.
         /// </summary>
-        /// <returns></returns>
         private bool CanTryConvertToLocalFunction()
         {
             SyntaxNode currentNode = _source;
