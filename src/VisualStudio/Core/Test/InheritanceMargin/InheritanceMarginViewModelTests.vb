@@ -8,6 +8,7 @@ Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Documents
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InheritanceMargin
