@@ -13,9 +13,37 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 [DataContract]
 internal readonly record struct SymbolSearchOptions()
 {
+    /// <summary>
+    /// Search for symbols contained in the starting project/compilation.  These are source or metadata symbols that can
+    /// be referenced just by adding a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchReferencedProjectSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for source symbols in non-referenced projects.  These are source symbols that can be referenced by adding
+    /// a project reference as well as a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchUnreferencedProjectSourceSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for source symbols in non-referenced metadata assemblies (that are referenced by other projects).  These
+    /// are source symbols that can be referenced by adding a metadata reference as well as a using/import.
+    /// </summary>
+    [DataMember]
+    public bool SearchUnreferencedMetadataSymbols { get; init; } = true;
+
+    /// <summary>
+    /// Search for well known symbols in the common set of .Net reference assemblies.  We have an index for these and
+    /// they are common enough to want to always search.
+    /// </summary>
     [DataMember]
     public bool SearchReferenceAssemblies { get; init; } = true;
 
+    /// <summary>
+    /// Search for symbols in the NuGet package index.
+    /// </summary>
     [DataMember]
     public bool SearchNuGetPackages { get; init; } = true;
 

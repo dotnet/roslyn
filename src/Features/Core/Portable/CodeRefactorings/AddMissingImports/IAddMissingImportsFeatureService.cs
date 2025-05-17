@@ -15,22 +15,28 @@ namespace Microsoft.CodeAnalysis.AddMissingImports;
 internal interface IAddMissingImportsFeatureService : ILanguageService
 {
     /// <summary>
-    /// Attempts to add missing imports to the document within the textspan provided. The imports added will not add
-    /// assembly references to the project. In case of failure, null is returned. Failure can happen if there are
-    /// ambiguous imports, no known resolutions to import, or if no imports that would be provided would be added
-    /// without adding a reference for the project. 
-    /// </summary>
-    Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Analyzes the document inside the texstpan to determine if imports can be added.
+    /// Analyzes the document inside the <paramref name="textSpan"/> to determine if imports can be added.
     /// </summary>
     Task<ImmutableArray<AddImportFixData>> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Performs the same action as <see cref="AddMissingImportsAsync(Document, TextSpan,
-    /// IProgress{CodeAnalysisProgress}, CancellationToken)"/> but with a predetermined analysis of the input instead of
-    /// recalculating it.
+    /// Performs the same action as <see cref="IAddMissingImportsFeatureServiceExtensions.AddMissingImportsAsync"/> but
+    /// with a predetermined analysis of the input instead of recalculating it.
     /// </summary>
     Task<Document> AddMissingImportsAsync(Document document, ImmutableArray<AddImportFixData> analysisResult, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+}
+
+internal static class IAddMissingImportsFeatureServiceExtensions
+{
+    /// <summary>
+    /// Attempts to add missing imports to the document within the provided <paramref name="textSpan"/>. The imports
+    /// added will not add references to the project. 
+    /// </summary>
+    public static async Task<Document> AddMissingImportsAsync(
+        this IAddMissingImportsFeatureService service, Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    {
+        var analysisResult = await service.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        return await service.AddMissingImportsAsync(
+            document, analysisResult, progressTracker, cancellationToken).ConfigureAwait(false);
+    }
 }
