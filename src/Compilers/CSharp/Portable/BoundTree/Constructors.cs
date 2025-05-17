@@ -454,39 +454,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundUserDefinedConditionalLogicalOperator
-    {
-        public BoundUserDefinedConditionalLogicalOperator(
-            SyntaxNode syntax,
-            BinaryOperatorKind operatorKind,
-            BoundExpression left,
-            BoundExpression right,
-            MethodSymbol logicalOperator,
-            MethodSymbol trueOperator,
-            MethodSymbol falseOperator,
-            TypeSymbol? constrainedToTypeOpt,
-            LookupResultKind resultKind,
-            ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
-            TypeSymbol type,
-            bool hasErrors = false)
-            : this(
-                syntax,
-                operatorKind,
-                logicalOperator,
-                trueOperator,
-                falseOperator,
-                constrainedToTypeOpt,
-                resultKind,
-                originalUserDefinedOperatorsOpt,
-                left,
-                right,
-                type,
-                hasErrors)
-        {
-            Debug.Assert(operatorKind.IsUserDefined() && operatorKind.IsLogical());
-        }
-    }
-
     internal sealed partial class BoundParameter
     {
         public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, bool hasErrors = false)

@@ -501,6 +501,15 @@
     <Field Name="LogicalOperator" Type="MethodSymbol"/>
     <Field Name="TrueOperator" Type="MethodSymbol"/>
     <Field Name="FalseOperator" Type="MethodSymbol"/>
+
+    <!-- Used as an operand to bind TrueFalseOperandConversion -->
+    <Field Name="TrueFalseOperandPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!--
+    Could be a BoundConversion or, in some cases of an identity conversion, the OperandPlaceholder, or null for no conversion case
+    If the node survives lowering, this property in it must be null.
+    -->
+    <Field Name="TrueFalseOperandConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+
     <Field Name="ConstrainedToTypeOpt" Type="TypeSymbol?" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <!--The set of method symbols from which this operator's method was chosen.
