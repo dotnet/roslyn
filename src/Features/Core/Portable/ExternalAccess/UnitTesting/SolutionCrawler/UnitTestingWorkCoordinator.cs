@@ -498,7 +498,8 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 {
                     foreach (var document in project.Documents)
                     {
-                        list.Add(new UnitTestingWorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null, EmptyAsyncToken.Instance));
+                        list.Add(new UnitTestingWorkItem(document.Id, document.Project.Language, UnitTestingInvocationReasons.DocumentAdded, isLowPriority: false, activeMember: null,
+                            NullAsynchronousOperationListenerProvider.Token));
                     }
                 }
 
