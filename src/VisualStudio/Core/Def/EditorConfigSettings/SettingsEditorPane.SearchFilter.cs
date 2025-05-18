@@ -20,7 +20,7 @@ internal sealed partial class SettingsEditorPane
         public SearchFilter(IVsSearchQuery searchQuery, IWpfTableControl control)
         {
             _searchTokens = SearchUtilities.ExtractSearchTokens(searchQuery);
-            _searchTokens ??= Array.Empty<IVsSearchToken>();
+            _searchTokens ??= [];
 
             var newVisibleColumns = new List<ITableColumnDefinition>();
             foreach (var c in control.ColumnStates)

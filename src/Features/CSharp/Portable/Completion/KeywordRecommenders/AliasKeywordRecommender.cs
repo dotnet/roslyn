@@ -9,13 +9,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class AliasKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class AliasKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.AliasKeyword)
 {
-    public AliasKeywordRecommender()
-        : base(SyntaxKind.AliasKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // cases:

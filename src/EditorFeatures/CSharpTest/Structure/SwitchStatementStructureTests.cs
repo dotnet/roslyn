@@ -11,11 +11,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
-public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
+[Trait(Traits.Feature, Traits.Features.Outlining)]
+public sealed class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTests<SwitchStatementSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new SwitchStatementStructureProvider();
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    [Fact]
     public async Task TestSwitchStatement1()
     {
         var code = """
@@ -34,7 +35,7 @@ public class SwitchStatementStructureTests : AbstractCSharpSyntaxNodeStructureTe
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
-    [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+    [Fact]
     public async Task TestSwitchStatement2()
     {
         var code = """

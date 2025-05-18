@@ -16311,9 +16311,6 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS1661: Cannot convert anonymous method to type 'E' because the parameter types do not match the delegate parameter types
-                //       E e = delegate(out int i) { };   // CS1676
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "E").WithLocation(7, 13),
                 // (7,30): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //       E e = delegate(out int i) { };   // CS1676
                 Diagnostic(ErrorCode.ERR_BadParamRef, "i").WithArguments("1", "ref").WithLocation(7, 30),
@@ -16338,18 +16335,12 @@ class Errors
 ";
             var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (7,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d = delegate(out int i) { };   // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(7, 15),
                 // (7,32): error CS1677: Parameter 1 should not be declared with the 'out' keyword
                 //         D d = delegate(out int i) { };   // CS1677
                 Diagnostic(ErrorCode.ERR_BadParamExtraRef, "i").WithArguments("1", "out").WithLocation(7, 32),
                 // (8,11): error CS0128: A local variable or function named 'd' is already defined in this scope
                 //         D d = delegate(ref int j) { }; // CS1677
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "d").WithArguments("d").WithLocation(8, 11),
-                // (8,15): error CS1661: Cannot convert anonymous method to type 'D' because the parameter types do not match the delegate parameter types
-                //         D d = delegate(ref int j) { }; // CS1677
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "delegate").WithArguments("anonymous method", "D").WithLocation(8, 15),
                 // (8,32): error CS1677: Parameter 1 should not be declared with the 'ref' keyword
                 //         D d = delegate(ref int j) { }; // CS1677
                 Diagnostic(ErrorCode.ERR_BadParamExtraRef, "j").WithArguments("1", "ref").WithLocation(8, 32),

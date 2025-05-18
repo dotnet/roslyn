@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,12 +23,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
-internal class CSharpSyntaxFacts : ISyntaxFacts
+internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
-
-    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
-    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
 
     protected CSharpSyntaxFacts()
     {
@@ -76,6 +74,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options)
         => options.LanguageVersion() >= LanguageVersion.CSharp10;
 
+    public bool SupportsFieldExpression(ParseOptions options)
+        => options.LanguageVersion().IsCSharp14OrAbove();
+
+    public bool SupportsNullConditionalAssignment(ParseOptions options)
+        => options.LanguageVersion().IsCSharp14OrAbove();
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 
@@ -103,7 +107,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
         return
             (SyntaxFacts.IsAnyUnaryExpression(kind) &&
-                (token.Parent is PrefixUnaryExpressionSyntax || token.Parent is PostfixUnaryExpressionSyntax || token.Parent is OperatorDeclarationSyntax)) ||
+                (token.Parent is PrefixUnaryExpressionSyntax or PostfixUnaryExpressionSyntax or OperatorDeclarationSyntax)) ||
             (SyntaxFacts.IsBinaryExpression(kind) && (token.Parent is BinaryExpressionSyntax or OperatorDeclarationSyntax or RelationalPatternSyntax)) ||
             (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind) && token.Parent is AssignmentExpressionSyntax);
     }
@@ -728,13 +732,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     }
 
     public bool IsTopLevelNodeWithMembers([NotNullWhen(true)] SyntaxNode? node)
-    {
-        return node is BaseNamespaceDeclarationSyntax or
-               TypeDeclarationSyntax or
-               EnumDeclarationSyntax;
-    }
-
-    private const string dotToken = ".";
+        => node is BaseNamespaceDeclarationSyntax or BaseTypeDeclarationSyntax;
 
     public string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null)
     {
@@ -758,7 +756,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
             }
         }
 
-        var names = ArrayBuilder<string?>.GetInstance();
+        using var _ = ArrayBuilder<string?>.GetInstance(out var names);
         // containing type(s)
         var parent = node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
         while (parent is TypeDeclarationSyntax)
@@ -782,7 +780,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
             if (name != null)
             {
                 builder.Append(name);
-                builder.Append(dotToken);
+                builder.Append('.');
             }
         }
 
@@ -798,7 +796,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         return pooled.ToStringAndFree();
     }
 
-    private static string? GetName(SyntaxNode node, DisplayNameOptions options)
+    private string? GetName(SyntaxNode node, DisplayNameOptions options)
     {
         const string missingTokenPlaceholder = "?";
 
@@ -816,99 +814,79 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
                 return GetName(((BaseNamespaceDeclarationSyntax)node).Name, options);
             case SyntaxKind.QualifiedName:
                 var qualified = (QualifiedNameSyntax)node;
-                return GetName(qualified.Left, options) + dotToken + GetName(qualified.Right, options);
+                return $"{GetName(qualified.Left, options)}.{GetName(qualified.Right, options)}";
         }
 
-        string? name = null;
         if (node is MemberDeclarationSyntax memberDeclaration)
         {
-            if (memberDeclaration.Kind() == SyntaxKind.ConversionOperatorDeclaration)
+            if (memberDeclaration is ConversionOperatorDeclarationSyntax conversionOperator)
+                return ConvertToSingleLine(conversionOperator.Type).ToString();
+
+            var nameToken = memberDeclaration.GetNameToken();
+            if (nameToken != default)
             {
-                name = (memberDeclaration as ConversionOperatorDeclarationSyntax)?.Type.ToString();
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+                if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
+                    builder.Append('~');
+
+                builder.Append(nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text);
+
+                if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
+                    AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
+
+                return builder.ToString();
+            }
+            else if (memberDeclaration is ExtensionDeclarationSyntax extensionDeclaration)
+            {
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+                builder.Append("extension");
+
+                if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
+                    AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
+
+                AppendParameterList(builder, extensionDeclaration.ParameterList);
+                return builder.ToString();
             }
             else
             {
-                var nameToken = memberDeclaration.GetNameToken();
-                if (nameToken != default)
-                {
-                    name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
-                    if (memberDeclaration.Kind() == SyntaxKind.DestructorDeclaration)
-                    {
-                        name = "~" + name;
-                    }
-
-                    if ((options & DisplayNameOptions.IncludeTypeParameters) != 0)
-                    {
-                        var pooled = PooledStringBuilder.GetInstance();
-                        var builder = pooled.Builder;
-                        builder.Append(name);
-                        AppendTypeParameterList(builder, memberDeclaration.GetTypeParameterList());
-                        name = pooled.ToStringAndFree();
-                    }
-                }
-                else
-                {
-                    Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
-                    name = "?";
-                }
+                Debug.Assert(memberDeclaration.Kind() == SyntaxKind.IncompleteMember);
+                return "?";
             }
         }
-        else
+        else if (node is VariableDeclaratorSyntax fieldDeclarator)
         {
-            if (node is VariableDeclaratorSyntax fieldDeclarator)
-            {
-                var nameToken = fieldDeclarator.Identifier;
-                if (nameToken != default)
-                {
-                    name = nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
-                }
-            }
+            var nameToken = fieldDeclarator.Identifier;
+            return nameToken.IsMissing ? missingTokenPlaceholder : nameToken.Text;
         }
 
-        Debug.Assert(name != null, "Unexpected node type " + node.Kind());
-        return name;
-    }
+        Debug.Fail("Unexpected node type " + node.Kind());
+        return null;
 
-    private static void AppendTypeParameterList(StringBuilder builder, TypeParameterListSyntax typeParameterList)
-    {
-        if (typeParameterList != null && typeParameterList.Parameters.Count > 0)
+        static void AppendTypeParameterList(StringBuilder builder, TypeParameterListSyntax? typeParameterList)
         {
-            builder.Append('<');
-            builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
-            for (var i = 1; i < typeParameterList.Parameters.Count; i++)
+            if (typeParameterList != null)
             {
-                builder.Append(", ");
-                builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
+                builder.Append('<');
+                builder.Append(string.Join(", ", typeParameterList.Parameters.Select(static p => p.Identifier.ValueText)));
+                builder.Append('>');
             }
-
-            builder.Append('>');
         }
-    }
 
-    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: true, methodLevel: true);
-
-        return pooledObject;
-    }
-
-    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
-    {
-        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
-        var list = pooledObject.Object;
-
-        AppendMembers(root, list, topLevel: false, methodLevel: true);
-
-        return pooledObject;
+        void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
+        {
+            if (parameterList != null)
+            {
+                builder.Append('(');
+                builder.Append(string.Join(", ", parameterList.Parameters.Select(p => ConvertToSingleLine(p.Type))));
+                builder.Append(')');
+            }
+        }
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
+    protected override void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 
@@ -935,52 +913,18 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
     {
         if (node.Span.IsEmpty)
-        {
             return default;
-        }
 
         var member = GetContainingMemberDeclaration(node, node.SpanStart);
         if (member == null)
-        {
             return default;
-        }
 
         // TODO: currently we only support method for now
-        if (member is BaseMethodDeclarationSyntax method)
-        {
-            if (method.Body == null)
-            {
-                return default;
-            }
-
-            return GetBlockBodySpan(method.Body);
-        }
+        if (member is BaseMethodDeclarationSyntax { Body: not null } method)
+            return TextSpan.FromBounds(method.Body.OpenBraceToken.Span.End, method.Body.CloseBraceToken.SpanStart);
 
         return default;
     }
-
-    public bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span)
-    {
-        switch (node)
-        {
-            case ConstructorDeclarationSyntax constructor:
-                return (constructor.Body != null && GetBlockBodySpan(constructor.Body).Contains(span)) ||
-                       (constructor.Initializer != null && constructor.Initializer.Span.Contains(span));
-            case BaseMethodDeclarationSyntax method:
-                return method.Body != null && GetBlockBodySpan(method.Body).Contains(span);
-            case BasePropertyDeclarationSyntax property:
-                return property.AccessorList != null && property.AccessorList.Span.Contains(span);
-            case EnumMemberDeclarationSyntax @enum:
-                return @enum.EqualsValue != null && @enum.EqualsValue.Span.Contains(span);
-            case BaseFieldDeclarationSyntax field:
-                return field.Declaration != null && field.Declaration.Span.Contains(span);
-        }
-
-        return false;
-    }
-
-    private static TextSpan GetBlockBodySpan(BlockSyntax body)
-        => TextSpan.FromBounds(body.OpenBraceToken.Span.End, body.CloseBraceToken.SpanStart);
 
     public SyntaxNode? TryGetBindableParent(SyntaxToken token)
     {

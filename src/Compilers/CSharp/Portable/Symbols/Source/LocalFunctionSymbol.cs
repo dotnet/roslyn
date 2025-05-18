@@ -202,6 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
+            foreach (var parameter in this.Syntax.ParameterList.Parameters)
+            {
+                WithTypeParametersBinder.ReportFieldContextualKeywordConflictIfAny(parameter, diagnostics);
+            }
+
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
             var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
@@ -459,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ImmutableArray.Create(location),
                         ImmutableArray.Create(parameter.GetReference()));
 
+                _binder.ReportFieldContextualKeywordConflictIfAny(typeParameter, parameter, identifier, diagnostics);
                 result.Add(typeParameter);
             }
 

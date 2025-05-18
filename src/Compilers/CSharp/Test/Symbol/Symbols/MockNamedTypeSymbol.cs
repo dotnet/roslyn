@@ -201,6 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal override string ExtensionName
+            => throw ExceptionUtilities.Unreachable();
+
         public sealed override bool IsReadOnly
         {
             get
@@ -335,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool IsRecordStruct => false;
         internal override bool HasPossibleWellKnownCloneMethod() => false;
         internal override bool IsInterpolatedStringHandlerType => false;
+        internal sealed override ParameterSymbol ExtensionParameter => null;
 
         internal sealed override IEnumerable<(MethodSymbol Body, MethodSymbol Implemented)> SynthesizedInterfaceMethodImpls()
         {

@@ -3961,15 +3961,12 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                    // (12,29): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                    //             Create(o1, (o2, object o3, object? o4) => { });
-                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object").WithLocation(12, 29),
-                    // (12,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                    //             Create(o1, (o2, object o3, object? o4) => { });
-                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "object?").WithLocation(12, 40),
-                    // (13,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-                    //             Create(o1, (object o2, object? o3, o4) => { });
-                    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "o4").WithLocation(13, 48));
+                // (12,25): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //             Create(o1, (o2, object o3, object? o4) => { });
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "o2").WithLocation(12, 25),
+                // (13,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //             Create(o1, (object o2, object? o3, o4) => { });
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "o4").WithLocation(13, 48));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();

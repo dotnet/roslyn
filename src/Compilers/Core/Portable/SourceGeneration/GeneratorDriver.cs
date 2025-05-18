@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis
                     var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(
-                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, compilation.CatchAnalyzerExceptions);
+                        inputBuilder, outputBuilder, this.SyntaxHelper, this.SourceExtension, this.EmbeddedAttributeDefinition, compilation.CatchAnalyzerExceptions);
 
                     Exception? ex = null;
                     try
@@ -461,6 +461,8 @@ namespace Microsoft.CodeAnalysis
         internal abstract SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken);
 
         internal abstract string SourceExtension { get; }
+
+        internal abstract string EmbeddedAttributeDefinition { get; }
 
         internal abstract ISyntaxHelper SyntaxHelper { get; }
     }

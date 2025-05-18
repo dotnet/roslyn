@@ -10,10 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -66,27 +64,6 @@ internal sealed partial class CSharpExtractMethodService
             return node is RefExpressionSyntax refExpression
                 ? refExpression.Expression
                 : node;
-        }
-
-        protected override bool UnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-            => IsUnderAnonymousOrLocalMethod(token, firstToken, lastToken);
-
-        public static bool IsUnderAnonymousOrLocalMethod(SyntaxToken token, SyntaxToken firstToken, SyntaxToken lastToken)
-        {
-            for (var current = token.Parent; current != null; current = current.Parent)
-            {
-                if (current is MemberDeclarationSyntax)
-                    return false;
-
-                if (current is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax)
-                {
-                    // make sure the selection contains the lambda
-                    return firstToken.SpanStart <= current.GetFirstToken().SpanStart &&
-                        current.GetLastToken().Span.End <= lastToken.Span.End;
-                }
-            }
-
-            return false;
         }
 
         public override StatementSyntax GetFirstStatementUnderContainer()
@@ -153,8 +130,8 @@ internal sealed partial class CSharpExtractMethodService
             return last.Parent.Parent;
         }
 
-        public override bool ContainsNonReturnExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
-            => exitPoints.Any(n => n is not ReturnStatementSyntax);
+        public override bool ContainsUnsupportedExitPointsStatements(ImmutableArray<SyntaxNode> exitPoints)
+            => exitPoints.Any(n => n is not (BreakStatementSyntax or ContinueStatementSyntax or ReturnStatementSyntax));
 
         public override ImmutableArray<StatementSyntax> GetOuterReturnStatements(SyntaxNode commonRoot, ImmutableArray<SyntaxNode> exitPoints)
             => exitPoints.OfType<ReturnStatementSyntax>().ToImmutableArray().CastArray<StatementSyntax>();
@@ -162,22 +139,8 @@ internal sealed partial class CSharpExtractMethodService
         public override bool IsFinalSpanSemanticallyValidSpan(
             ImmutableArray<StatementSyntax> returnStatements, CancellationToken cancellationToken)
         {
-            // return statement shouldn't contain any return value
-            if (returnStatements.Cast<ReturnStatementSyntax>().Any(r => r.Expression != null))
-                return false;
-
-            var container = returnStatements.First().AncestorsAndSelf().FirstOrDefault(n => n.IsReturnableConstruct());
-            if (container == null)
-                return false;
-
-            var body = container.GetBlockBody();
-            if (body == null)
-                return false;
-
-            // make sure that next token of the last token in the selection is the close braces of containing block
-            if (body.CloseBraceToken != GetLastTokenInSelection().GetNextToken(includeZeroWidth: true))
-                return false;
-
+            // Once we've gotten this far, everything is valid for us to return.  Only VB has special additional logic
+            // it needs to apply at this point.
             return true;
         }
     }

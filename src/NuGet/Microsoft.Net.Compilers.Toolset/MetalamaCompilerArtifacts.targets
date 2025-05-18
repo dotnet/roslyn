@@ -39,9 +39,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all">
-            <GeneratePathProperty>true</GeneratePathProperty>
-    </PackageReference>
     <PackageReference Include="System.Threading.Channels" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
@@ -55,7 +52,7 @@
       <CommonMetalamaCompilerBinArtifact Include="$(PkgHumanizer_Core)\lib\netstandard1.0\Humanizer.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_DiaSymReader)\lib\netstandard2.0\Microsoft.DiaSymReader.dll"/>
       <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_CodeAnalysis_Elfie)\lib\netstandard2.0\Microsoft.CodeAnalysis.Elfie.dll"/>
-      <CommonMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_CodeAnalysis_AnalyzerUtilities)\lib\netstandard2.0\Microsoft.CodeAnalysis.AnalyzerUtilities.dll"/>
+      <CommonMetalamaCompilerBinArtifact Include="$(ArtifactsBinDir)\Microsoft.CodeAnalysis.AnalyzerUtilities\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.AnalyzerUtilities.dll"/>
     </ItemGroup>
 
     <ItemGroup>

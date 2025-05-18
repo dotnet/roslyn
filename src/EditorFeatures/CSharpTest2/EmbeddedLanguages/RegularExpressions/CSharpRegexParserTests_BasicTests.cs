@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[11..11)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[11..11)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[12..12)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..10)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[12..12)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..22)" Text="a{2147483647}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false, allowOutOfMemory: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1906,13 +1906,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..22)" Text="a{2147483648}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1940,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..23)" Text="a{2147483647,}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false, allowOutOfMemory: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -1965,13 +1965,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[11..21)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..23)" Text="a{2147483648,}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483647}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2026,13 +2026,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
+                    <Diagnostic Message="{{FeaturesResources.Quantifier_and_capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue}}" Span="[13..23)" Text="2147483648" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..24)" Text="a{0,2147483648}" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, runSubTreeTests: false);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -2479,7 +2479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{string.Format(FeaturesResources.Quantifier_0_following_nothing, '{')}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="{1}" />
@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{string.Format(FeaturesResources.Quantifier_0_following_nothing, '{')}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..15)" Text="{1,2}" />
@@ -2594,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="*" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '*')}" Span="[9..10)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="*" />
@@ -2625,7 +2625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="*" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '*')}" Span="[10..11)" Text="*" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(*)" />
@@ -2682,7 +2682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="+" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '+')}" Span="[9..10)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="+" />
@@ -2713,7 +2713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="+" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '+')}" Span="[10..11)" Text="+" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(+)" />
@@ -2770,7 +2770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[9..10)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[9..10)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..10)" Text="?" />
@@ -2801,7 +2801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[10..11)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[10..11)" Text="?" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="(?)" />
@@ -2863,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[9..10)" Text="{" />
+                    <Diagnostic Message="{{string.Format(FeaturesResources.Quantifier_0_following_nothing, '{')}}" Span="[9..10)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..12)" Text="{0}" />
@@ -2897,7 +2897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{{FeaturesResources.Quantifier_x_y_following_nothing}}" Span="[10..11)" Text="{" />
+                    <Diagnostic Message="{{string.Format(FeaturesResources.Quantifier_0_following_nothing, '{')}}" Span="[10..11)" Text="{" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..14)" Text="({0})" />
@@ -3722,7 +3722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\x" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\x" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\x" />
@@ -3752,7 +3752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\x" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\x" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\x " />
@@ -3779,7 +3779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\x0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\x0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\x0" />
@@ -3809,7 +3809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\x0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\x0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="\x0 " />
@@ -4016,7 +4016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\x" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\x" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="\xgg" />
@@ -4072,7 +4072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\u" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\u" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..12)" Text="\u" />
@@ -4099,7 +4099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\u0" />
@@ -4126,7 +4126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..14)" Text="\u00" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..14)" Text="\u00" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="\u00" />
@@ -4153,7 +4153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..15)" Text="\u000" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..15)" Text="\u000" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..15)" Text="\u000" />
@@ -4234,7 +4234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\u" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\u" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..13)" Text="\u " />
@@ -4264,7 +4264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..13)" Text="\u0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..14)" Text="\u0 " />
@@ -4294,7 +4294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[10..12)" Text="\u" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[10..12)" Text="\u" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..16)" Text="\ugggg" />
@@ -8138,13 +8138,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[13..13)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..12)" Text="(?&lt;" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..13)" Text="(?&lt;-" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8178,7 +8179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..14)" Text="(?&lt;-0" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8211,7 +8212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..15)" Text="(?&lt;-0)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8244,7 +8245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..15)" Text="(?&lt;-0&gt;" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8274,7 +8275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..16)" Text="(?&lt;-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8314,7 +8315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..17)" Text="(?&lt;-0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8360,7 +8361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..18)" Text="(?&lt;- 0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8400,7 +8401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..17)" Text="(?&lt;- 0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8430,7 +8431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..17)" Text="(?&lt;-00&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8458,6 +8459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character}" Span="[14..14)" Text="" />
+                    <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[9..12)" Text="(?&lt;" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[14..14)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -8466,7 +8468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..14)" Text="(?&lt;a-" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8502,7 +8504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..15)" Text="(?&lt;a-0" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8537,7 +8539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..16)" Text="(?&lt;a-0)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8572,7 +8574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..16)" Text="(?&lt;a-0&gt;" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8604,7 +8606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?&lt;a-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8646,7 +8648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..18)" Text="(?&lt;a-0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8694,7 +8696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..19)" Text="(?&lt;a- 0 &gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8736,7 +8738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..18)" Text="(?&lt;a- 0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8768,7 +8770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..18)" Text="(?&lt;a-00&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8801,7 +8803,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..16)" Text="(?&lt;-1&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8837,7 +8839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="1" Span="[9..11)" Text="()" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8873,7 +8875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="1" Span="[16..18)" Text="()" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8914,7 +8916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..15)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8955,7 +8957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[16..22)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -8995,7 +8997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="4" Span="[9..15)" Text="(?&lt;4&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9035,7 +9037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="4" Span="[16..22)" Text="(?&lt;4&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9098,7 +9100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="b" Span="[15..21)" Text="(?&lt;b&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9176,7 +9178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="2" Span="[11..13)" Text="()" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9259,7 +9261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[11..17)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9342,7 +9344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..15)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9430,7 +9432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="b" Span="[15..21)" Text="(?&lt;b&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9508,7 +9510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="2" Span="[39..41)" Text="()" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9585,7 +9587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[39..40)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[40..41)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[40..41)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[41..41)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -9593,7 +9595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="1" Span="[37..39)" Text="()" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9676,7 +9678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[39..45)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9759,7 +9761,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[37..43)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9840,7 +9842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 2)}" Span="[27..28)" Text="2" />
                     <Diagnostic Message="{string.Format(FeaturesResources.Reference_to_undefined_group_number_0, 3)}" Span="[34..35)" Text="3" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[43..44)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[44..45)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[44..45)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[45..45)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -9849,7 +9851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[37..43)" Text="(?&lt;a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9937,7 +9939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="b" Span="[43..49)" Text="(?&lt;b&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -9982,7 +9984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="b" Span="[17..25)" Text="(?&lt;b-a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10025,7 +10027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?&lt;a-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10057,7 +10059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?&lt;a-a&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10117,7 +10119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[9..16)" Text="(?'-0')" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10149,7 +10151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?'a-0')" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10188,7 +10190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?&lt;a-0')" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10227,7 +10229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="a" Span="[9..17)" Text="(?'a-0&gt;)" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.IgnorePatternWhitespace, allowIndexOutOfRange: true);
+                """, RegexOptions.IgnorePatternWhitespace);
         }
 
         [Fact]
@@ -10285,7 +10287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Malformed}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, 0)}" Span="[12..13)" Text="0" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[13..13)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -10585,7 +10587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Malformed}" Span="[12..13)" Text="0" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_is_missing_a_closing_parenthesis_after_the_group_number_0, 0)}" Span="[12..13)" Text="0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(0 )" />
@@ -10616,7 +10618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Reference_to_undefined_group}" Span="[12..13)" Text="1" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Conditional_alternation_refers_to_an_undefined_group_number_0, 1)}" Span="[12..13)" Text="1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[9..15)" Text="(?(1))" />
@@ -11163,7 +11165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Unterminated_regex_comment}" Span="[11..14)" Text="(?#" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[14..14)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -11207,7 +11209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Alternation_conditions_cannot_be_comments}" Span="[9..10)" Text="(" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[15..15)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -11251,7 +11253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   <Diagnostics>
                     <Diagnostic Message="{FeaturesResources.Alternation_conditions_cannot_be_comments}" Span="[9..10)" Text="(" />
                     <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[11..12)" Text="(" />
-                    <Diagnostic Message="{FeaturesResources.Quantifier_x_y_following_nothing}" Span="[12..13)" Text="?" />
+                    <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, '?')}" Span="[12..13)" Text="?" />
                     <Diagnostic Message="{FeaturesResources.Not_enough_close_parens}" Span="[16..16)" Text="" />
                   </Diagnostics>
                   <Captures>
@@ -13868,7 +13870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..16)" Text="[a-\-]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -14065,18 +14067,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                       <CharacterClass>
                         <OpenBracketToken>[</OpenBracketToken>
                         <Sequence>
-                          <CharacterClassRange>
-                            <PosixProperty>
-                              <TextToken>[:x:]</TextToken>
-                            </PosixProperty>
-                            <MinusToken>-</MinusToken>
-                            <Text>
-                              <TextToken>a</TextToken>
-                            </Text>
-                          </CharacterClassRange>
+                          <Text>
+                            <TextToken>[:x:</TextToken>
+                          </Text>
                         </Sequence>
                         <CloseBracketToken>]</CloseBracketToken>
                       </CharacterClass>
+                      <Text>
+                        <TextToken>-a]</TextToken>
+                      </Text>
                     </Sequence>
                     <EndOfFile />
                   </CompilationUnit>
@@ -14312,8 +14311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[11..14)" Text="\u0" />
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[15..18)" Text="\u1" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[11..14)" Text="\u0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[15..18)" Text="\u1" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..19)" Text="[\u0-\u1]" />
@@ -14354,8 +14353,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <EndOfFile />
                   </CompilationUnit>
                   <Diagnostics>
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[11..14)" Text="\u1" />
-                    <Diagnostic Message="{FeaturesResources.Insufficient_hexadecimal_digits}" Span="[15..18)" Text="\u0" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[11..14)" Text="\u1" />
+                    <Diagnostic Message="{FeaturesResources.Insufficient_or_invalid_hexadecimal_digits}" Span="[15..18)" Text="\u0" />
                   </Diagnostics>
                   <Captures>
                     <Capture Name="0" Span="[10..19)" Text="[\u1-\u0]" />
@@ -15634,7 +15633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..16)" Text="[a-\-]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15675,7 +15674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="[a-\-b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15720,7 +15719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[a-\-\-b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15761,7 +15760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..17)" Text="[b-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15806,7 +15805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[b-\-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15848,7 +15847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[a-\-\D]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15894,7 +15893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..20)" Text="[a-\-\-\D]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15936,7 +15935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..19)" Text="[a -\-\b]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -15980,7 +15979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     <Capture Name="0" Span="[10..18)" Text="[ab-\-a]" />
                   </Captures>
                 </Tree>
-                """, RegexOptions.None, allowDiagnosticsMismatch: true);
+                """, RegexOptions.None);
         }
 
         [Fact]
@@ -19237,6 +19236,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                   </CompilationUnit>
                   <Captures>
                     <Capture Name="0" Span="[10..29)" Text="pa[5\$s]{2}w[o0]rd$" />
+                  </Captures>
+                </Tree>
+                """, RegexOptions.None);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
+        public void TestCategoryWithNumber()
+        {
+            Test("""
+                @"[\p{IsLatin-1Supplement}]"
+                """, """
+                <Tree>
+                  <CompilationUnit>
+                    <Sequence>
+                      <CharacterClass>
+                        <OpenBracketToken>[</OpenBracketToken>
+                        <Sequence>
+                          <CategoryEscape>
+                            <BackslashToken>\</BackslashToken>
+                            <TextToken>p</TextToken>
+                            <OpenBraceToken>{</OpenBraceToken>
+                            <EscapeCategoryToken>IsLatin-1Supplement</EscapeCategoryToken>
+                            <CloseBraceToken>}</CloseBraceToken>
+                          </CategoryEscape>
+                        </Sequence>
+                        <CloseBracketToken>]</CloseBracketToken>
+                      </CharacterClass>
+                    </Sequence>
+                    <EndOfFile />
+                  </CompilationUnit>
+                  <Captures>
+                    <Capture Name="0" Span="[10..35)" Text="[\p{IsLatin-1Supplement}]" />
+                  </Captures>
+                </Tree>
+                """, RegexOptions.None);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76731")]
+        public void TestCategoryWithUnderscore()
+        {
+            Test("""
+                @"[\p{_xmlW}]"
+                """, """
+                <Tree>
+                  <CompilationUnit>
+                    <Sequence>
+                      <CharacterClass>
+                        <OpenBracketToken>[</OpenBracketToken>
+                        <Sequence>
+                          <CategoryEscape>
+                            <BackslashToken>\</BackslashToken>
+                            <TextToken>p</TextToken>
+                            <OpenBraceToken>{</OpenBraceToken>
+                            <EscapeCategoryToken>_xmlW</EscapeCategoryToken>
+                            <CloseBraceToken>}</CloseBraceToken>
+                          </CategoryEscape>
+                        </Sequence>
+                        <CloseBracketToken>]</CloseBracketToken>
+                      </CharacterClass>
+                    </Sequence>
+                    <EndOfFile />
+                  </CompilationUnit>
+                  <Captures>
+                    <Capture Name="0" Span="[10..21)" Text="[\p{_xmlW}]" />
+                  </Captures>
+                </Tree>
+                """, RegexOptions.None);
+        }
+
+        [Fact]
+        public void TestMinusAsCharacterClassStart()
+        {
+            Test("""
+                @"[-[:L:]"
+                """, """
+                <Tree>
+                  <CompilationUnit>
+                    <Sequence>
+                      <CharacterClass>
+                        <OpenBracketToken>[</OpenBracketToken>
+                        <Sequence>
+                          <Text>
+                            <TextToken>-[:L:</TextToken>
+                          </Text>
+                        </Sequence>
+                        <CloseBracketToken>]</CloseBracketToken>
+                      </CharacterClass>
+                    </Sequence>
+                    <EndOfFile />
+                  </CompilationUnit>
+                  <Captures>
+                    <Capture Name="0" Span="[10..17)" Text="[-[:L:]" />
                   </Captures>
                 </Tree>
                 """, RegexOptions.None);

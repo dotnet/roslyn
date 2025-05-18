@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private int RunLocalCompilation(string[] arguments, BuildPaths buildPaths, TextWriter textWriter)
         {
-            var loader = new DefaultAnalyzerAssemblyLoader();
+            var loader = new AnalyzerAssemblyLoader();
             return _compileFunc(arguments, buildPaths, textWriter, loader);
         }
 

@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -43,7 +42,8 @@ internal sealed class LanguageServerWorkspaceFactory
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
             DynamicFileInfoProviders: [.. dynamicFileInfoProviders],
-            new HostDiagnosticAnalyzerProvider(razorSourceGenerator));
+            new HostDiagnosticAnalyzerProvider(razorSourceGenerator),
+            AnalyzerAssemblyRedirectors: []);
 
         TargetFrameworkManager = projectTargetFrameworkManager;
     }

@@ -5,17 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
@@ -26,11 +25,6 @@ public abstract class EditingTestBase : CSharpTestBase
 using System.Runtime.CompilerServices;
 namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
 ";
-
-    internal static CSharpEditAndContinueAnalyzer CreateAnalyzer()
-    {
-        return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
-    }
 
     internal enum MethodKind
     {
@@ -184,7 +178,8 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
         var methodMatch = GetMethodMatch(src1, src2, kind);
-        return EditAndContinueTestVerifier.GetMethodMatches(CreateAnalyzer(), methodMatch);
+        var analyzer = EditAndContinueTestVerifier.CreateAnalyzer(faultInjector: null, LanguageNames.CSharp);
+        return EditAndContinueTestVerifier.GetMethodMatches(analyzer, methodMatch);
     }
 
     public static MatchingPairs ToMatchingPairs(Match<SyntaxNode> match)

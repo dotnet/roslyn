@@ -5,7 +5,6 @@
 using System;
 using System.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 

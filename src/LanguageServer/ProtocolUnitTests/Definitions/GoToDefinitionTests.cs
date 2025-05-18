@@ -4,10 +4,10 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
                 Uri = ProtocolConversions.CreateAbsoluteUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
                 Range = new LSP.Range { Start = position, End = position }
             });
-            AssertLocationsEqual(ImmutableArray.Create(TestSpanMapper.MappedFileLocation), results);
+            AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
         }
 
         [Theory, CombinatorialData]
@@ -200,6 +200,53 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
                 }
                 """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionPartialEvents(bool mutatingLspWorkspace)
+        {
+            var markup = """
+                using System;
+
+                public partial class C
+                {
+                    partial event Action {|caret:|}E;
+                }
+
+                public partial class C
+                {
+                    partial event Action {|definition:E|} { add { } remove { } }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionPartialConstructors(bool mutatingLspWorkspace)
+        {
+            var markup = """
+                using System;
+
+                public partial class C
+                {
+                    partial {|caret:|}C();
+                }
+
+                public partial class C
+                {
+                    partial {|definition:C|}() { }
+                }
+                """;
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+            {
+                ParseOptions = TestOptions.RegularPreview,
+            });
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             AssertLocationsEqual(testLspServer.GetLocations("definition"), results);

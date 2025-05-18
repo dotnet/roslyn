@@ -509,9 +509,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             switch (this.TypeKind)
             {
-                // These checks don't make sense for enums and delegates:
+                // These checks don't make sense for enums, delegates or extensions:
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
+                case TypeKind.Extension:
                     return;
 
                 case TypeKind.Class:
@@ -1384,8 +1385,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#scoped-mismatch
             // The compiler will report a diagnostic for _unsafe scoped mismatches_ across overrides, interface implementations, and delegate conversions when:
-            // - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
+            // - The method has a `ref` or `out` parameter of `ref struct` type with a mismatch of adding `[UnscopedRef]` (not removing `scoped`).
+            //   (In this case, a silly cyclic assignment is possible, hence no other parameters are necessary.)
             // ...
+            if (parameters.Any(static p =>
+                    p is { EffectiveScope: ScopedKind.None, RefKind: RefKind.Ref } or { EffectiveScope: ScopedKind.ScopedRef, RefKind: RefKind.Out } &&
+                    p.Type.IsRefLikeOrAllowsRefLikeType()))
+            {
+                return true;
+            }
+
+            // ...
+            // - Or both of these are true:
+            //   - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
+            //   ...
             int nRefParametersRequired;
             if (method.ReturnType.IsRefLikeOrAllowsRefLikeType() ||
                 (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
@@ -1401,8 +1414,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            // ...
-            // - The method has at least one additional `ref`, `in`, `ref readonly`, or `out` parameter, or a parameter of `ref struct` type.
+            //   ...
+            //   - The method has at least one additional `ref`, `in`, `ref readonly`, or `out` parameter, or a parameter of `ref struct` type.
             int nRefParameters = parameters.Count(p => p.RefKind is RefKind.Ref or RefKind.In or RefKind.RefReadOnlyParameter or RefKind.Out);
             if (nRefParameters >= nRefParametersRequired)
             {

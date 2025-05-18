@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests

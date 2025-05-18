@@ -1048,6 +1048,11 @@ namespace Microsoft.Cci
                 }
             }
 
+            if (method != null && (context.Module.PEEntryPoint == method || context.Module.DebugEntryPoint == method))
+            {
+                return true;
+            }
+            
             // <Metalama>
 
             if (member.GetInternalSymbol() is { } symbol)

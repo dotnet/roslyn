@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ExtractInterface;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Notification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal.ExtractInterface;
 
@@ -24,17 +20,15 @@ internal sealed class OmniSharpExtractInterfaceOptionsService(
     private readonly IOmniSharpExtractInterfaceOptionsService _omniSharpExtractInterfaceOptionsService = omniSharpExtractInterfaceOptionsService;
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
-        List<ISymbol> extractableMembers,
+        Document document,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        string languageName,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
-        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(extractableMembers, defaultInterfaceName);
+        var result = _omniSharpExtractInterfaceOptionsService.GetExtractInterfaceOptions(
+            [.. extractableMembers], defaultInterfaceName);
         return new(
             result.IsCancelled,
             result.IncludedMembers,

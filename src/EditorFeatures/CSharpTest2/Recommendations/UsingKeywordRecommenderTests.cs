@@ -587,5 +587,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 [assembly: Call()]
                 """);
         }
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+        }
     }
 }

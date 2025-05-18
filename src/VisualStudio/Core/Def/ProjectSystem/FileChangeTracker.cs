@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using IVsAsyncFileChangeEx2 = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeEx2;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 

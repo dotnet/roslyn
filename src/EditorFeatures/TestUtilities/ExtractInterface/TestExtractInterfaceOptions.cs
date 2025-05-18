@@ -6,12 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Notification;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 
@@ -20,9 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class TestExtractInterfaceOptionsService() : IExtractInterfaceOptionsService
 {
-    public IEnumerable<ISymbol> AllExtractableMembers { get; private set; }
+    public ImmutableArray<ISymbol> AllExtractableMembers { get; private set; }
     public string DefaultInterfaceName { get; private set; }
-    public List<string> ConflictingTypeNames { get; private set; }
+    public ImmutableArray<string> ConflictingTypeNames { get; private set; }
     public string DefaultNamespace { get; private set; }
     public string GeneratedNameTypeParameterSuffix { get; set; }
 
@@ -33,15 +31,12 @@ internal sealed class TestExtractInterfaceOptionsService() : IExtractInterfaceOp
     public bool SameFile { get; set; }
 
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
-        ISyntaxFactsService syntaxFactsService,
-        INotificationService notificationService,
-        List<ISymbol> extractableMembers,
+        Document document,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        string languageName,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
         this.AllExtractableMembers = extractableMembers;
         this.DefaultInterfaceName = defaultInterfaceName;

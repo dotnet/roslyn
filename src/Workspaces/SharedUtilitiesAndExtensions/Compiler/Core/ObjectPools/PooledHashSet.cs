@@ -13,4 +13,8 @@ internal sealed partial class PooledHashSet<T> : IPooled, IReadOnlySet<T>
         instance = GetInstance();
         return new PooledDisposer<PooledHashSet<T>>(instance);
     }
+
+    // Nothing special to do here.
+    void IPooled.Free(bool discardLargeInstance)
+        => this.Free();
 }

@@ -122,7 +122,6 @@ internal sealed class DotnetCliHelper
     /// Based on https://github.com/dotnet/msbuild/blob/main/src/Utilities/ToolTask.cs#L1259
     /// We also do not include DOTNET_ROOT here, see https://github.com/dotnet/runtime/issues/88754
     /// </summary>
-    /// <returns></returns>
     internal string GetDotNetPathOrDefault()
     {
         var (fileName, sep) = PlatformInformation.IsWindows

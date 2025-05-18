@@ -57,6 +57,7 @@ internal static partial class ISymbolExtensions2
                 {
                     switch (((INamedTypeSymbol)symbol).TypeKind)
                     {
+                        case TypeKind.Extension:
                         case TypeKind.Class:
                             publicIcon = Glyph.ClassPublic;
                             break;

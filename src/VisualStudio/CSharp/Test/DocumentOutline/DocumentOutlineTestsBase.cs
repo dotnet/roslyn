@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -9,17 +10,17 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
@@ -94,7 +95,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             }
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace)
+        private async Task<EditorTestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace)
         {
             var solution = workspace.CurrentSolution;
 
@@ -118,8 +119,23 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             solution = solution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]);
             await workspace.ChangeSolutionAsync(solution);
 
-            var server = await TestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
+            var server = await EditorTestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
             return server;
+        }
+
+        internal class EditorTestLspServer : AbstractTestLspServer<EditorTestWorkspace, EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+        {
+            private EditorTestLspServer(EditorTestWorkspace testWorkspace, Dictionary<string, IList<LanguageServer.Protocol.Location>> locations, InitializationOptions options, AbstractLspLogger logger) : base(testWorkspace, locations, options, logger)
+            {
+            }
+
+            public static async Task<EditorTestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
+            {
+                var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+                var server = new EditorTestLspServer(testWorkspace, locations, initializationOptions, logger);
+                await server.InitializeAsync();
+                return server;
+            }
         }
 
         [DataContract]

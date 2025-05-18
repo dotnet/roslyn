@@ -446,8 +446,7 @@ class Class
                 var analyzerReference = new AnalyzerImageReference([new CSharpCompilerDiagnosticAnalyzer()]);
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-                var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
-                var incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace);
+                var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
                 var suppressionProvider = CreateDiagnosticProviderAndFixer(workspace).Item2;
                 var suppressionProviderFactory = new Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>(() => suppressionProvider,
                     new CodeChangeProviderMetadata("SuppressionProvider", languages: [LanguageNames.CSharp]));
@@ -457,7 +456,8 @@ class Class
                     fixers: [],
                     [suppressionProviderFactory]);
                 var document = GetDocumentAndSelectSpan(workspace, out var span);
-                var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None);
+                var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
+                    document, span, DiagnosticKind.All, CancellationToken.None);
                 Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
                 var allFixes = (await fixService.GetFixesAsync(document, span, CancellationToken.None))

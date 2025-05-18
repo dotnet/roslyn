@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     public abstract class RecommenderTests : TestBase
     {
         protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+        protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+        protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
 
         protected abstract string KeywordText { get; }
         internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>>? RecommendKeywordsAsync;

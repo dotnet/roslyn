@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         ''' Note: the returned syntax node might be modified, which means its parent information might be missing.
         ''' </summary>
         Public Function GetReuseableSyntaxNodeForSymbol(Of T As SyntaxNode)(symbol As ISymbol, options As CodeGenerationContextInfo) As T
-            ThrowIfNull(symbol)
+            Contract.ThrowIfNull(symbol)
 
             If options.Context.ReuseSyntax AndAlso symbol.DeclaringSyntaxReferences.Length = 1 Then
                 Dim reusableNode = symbol.DeclaringSyntaxReferences(0).GetSyntax()

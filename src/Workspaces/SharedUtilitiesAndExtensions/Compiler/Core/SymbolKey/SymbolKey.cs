@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -149,13 +148,14 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
         if (IsBodyLevelSymbol(symbol))
         {
             var locations = BodyLevelSymbolKey.GetBodyLevelSourceLocations(symbol, cancellationToken);
-            if (locations.Length == 0)
+            var firstNonNull = locations.FirstOrDefault(l => l != null);
+            if (firstNonNull is null)
                 return false;
 
             // Ensure that the tree we're looking at is actually in this compilation.  It may not be in the
             // compilation in the case of work done with a speculative model.
             var compilation = ((ISourceAssemblySymbol)symbol.ContainingAssembly).Compilation;
-            return compilation.SyntaxTrees.Contains(locations.First().SourceTree);
+            return compilation.SyntaxTrees.Contains(firstNonNull.SourceTree);
         }
 
         return true;

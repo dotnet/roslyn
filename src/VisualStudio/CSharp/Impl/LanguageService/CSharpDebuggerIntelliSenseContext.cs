@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     internal class CSharpDebuggerIntelliSenseContext : AbstractDebuggerIntelliSenseContext
     {
+        private const string StatementTerminator = ";";
+
         public CSharpDebuggerIntelliSenseContext(
             IWpfTextView view,
             IVsTextView vsTextView,
@@ -60,12 +62,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
         }
 
-        protected override int GetAdjustedContextPoint(int contextPoint, Document document)
+        protected override IProjectionBuffer GetAdjustedBuffer(int contextPoint, Document document, ITrackingSpan debuggerMappedSpan)
         {
             // Determine the position in the buffer at which to end the tracking span representing
             // the part of the imaginary buffer before the text in the view. 
             var tree = document.GetSyntaxTreeSynchronously(CancellationToken.None);
             var token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None);
+
+            // Typically, the separator between the text before adjustedStart and debuggerMappedSpan is
+            // a semicolon (StatementTerminator), unless a specific condition outlined later in the
+            // method is encountered.
+            var separatorBeforeDebuggerMappedSpan = StatementTerminator;
+            var adjustedStart = token.FullSpan.End;
 
             // Special case to handle class designer because it asks for debugger IntelliSense using
             // spans between members.
@@ -74,40 +82,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 token.Parent.IsKind(SyntaxKind.Block) &&
                 token.Parent.Parent is MemberDeclarationSyntax)
             {
-                return contextPoint;
+                adjustedStart = contextPoint;
             }
-
-            if (token.IsKindOrHasMatchingText(SyntaxKind.CloseBraceToken) &&
+            else if (token.IsKindOrHasMatchingText(SyntaxKind.CloseBraceToken) &&
                 token.Parent.IsKind(SyntaxKind.Block))
             {
-                return token.SpanStart;
+                adjustedStart = token.SpanStart;
+            }
+            else if (token.IsKindOrHasMatchingText(SyntaxKind.SemicolonToken) &&
+                token.Parent is StatementSyntax)
+            {
+                // If the context is at a semicolon terminated statement, then we use the start of
+                // that statement as the adjusted context position. This is to ensure the placement
+                // of debuggerMappedSpan is in the same block as token originally was. For example,
+                // 
+                // for (int i = 0; i < 10; i++)
+                //   [Console.WriteLine(i);]
+                //
+                // where [] denotes CurrentStatementSpan, should use the start of CurrentStatementSpan
+                // as the adjusted context, and should not place a semicolon before debuggerMappedSpan.
+                // Not doing either of those would place debuggerMappedSpan outside the for loop.
+                // We use a space as the separator in this case (instead of an empty string) to help
+                // the vs editor out and not have a projection seam at the location they will bring
+                // up completion.
+                separatorBeforeDebuggerMappedSpan = " ";
+                adjustedStart = token.Parent.SpanStart;
             }
 
-            return token.FullSpan.End;
-        }
+            var beforeAdjustedStart = ContextBuffer.CurrentSnapshot.CreateTrackingSpan(Span.FromBounds(0, adjustedStart), SpanTrackingMode.EdgeNegative);
+            var afterAdjustedStart = ContextBuffer.CurrentSnapshot.CreateTrackingSpanFromIndexToEnd(adjustedStart, SpanTrackingMode.EdgePositive);
 
-        protected override ITrackingSpan GetPreviousStatementBufferAndSpan(int contextPoint, Document document)
-        {
-            var previousTrackingSpan = ContextBuffer.CurrentSnapshot.CreateTrackingSpan(Span.FromBounds(0, contextPoint), SpanTrackingMode.EdgeNegative);
-
-            // terminate the previous expression/statement
-            var buffer = ProjectionBufferFactoryService.CreateProjectionBuffer(
-                projectionEditResolver: null,
-                sourceSpans: [previousTrackingSpan, this.StatementTerminator],
-                options: ProjectionBufferOptions.None,
-                contentType: this.ContentType);
-
-            return buffer.CurrentSnapshot.CreateTrackingSpan(0, buffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeNegative);
+            return ProjectionBufferFactoryService.CreateProjectionBuffer(
+                    projectionEditResolver: null,
+                    sourceSpans: [beforeAdjustedStart, separatorBeforeDebuggerMappedSpan, debuggerMappedSpan, StatementTerminator, afterAdjustedStart],
+                    options: ProjectionBufferOptions.None,
+                    contentType: ContentType);
         }
 
         public override bool CompletionStartsOnQuestionMark
         {
             get { return false; }
-        }
-
-        protected override string StatementTerminator
-        {
-            get { return ";"; }
         }
     }
 }

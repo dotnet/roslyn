@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer
 using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler

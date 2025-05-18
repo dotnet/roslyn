@@ -70,9 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                         Dim expression = DirectCast(Me.SelectionResult.GetContainingScope(), ExpressionSyntax)
 
-                        Dim statement As StatementSyntax
-                        If Me.AnalyzerResult.HasReturnType Then
-                            statement = SyntaxFactory.ReturnStatement(expression:=expression)
+                        If Me.AnalyzerResult.CoreReturnType.SpecialType <> SpecialType.System_Void Then
+                            Return ImmutableArray.Create(Of StatementSyntax)(SyntaxFactory.ReturnStatement(expression))
                         Else
                             ' we have expression for void method (Sub). make the expression as call
                             ' statement if possible we can create call statement only from invocation
@@ -83,10 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                 Return ImmutableArray(Of StatementSyntax).Empty
                             End If
 
-                            statement = SyntaxFactory.ExpressionStatement(expression:=expression)
+                            Return ImmutableArray.Create(Of StatementSyntax)(SyntaxFactory.ExpressionStatement(expression))
                         End If
-
-                        Return ImmutableArray.Create(statement)
                     End Function
 
                     Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
@@ -113,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         ' after rewriting the enclosing statement.
                         Dim sourceNodeAnnotation = New SyntaxAnnotation()
                         Dim enclosingStatementAnnotation = New SyntaxAnnotation()
-                        Dim newEnclosingStatement = enclosingStatement _
-                            .ReplaceNode(sourceNode, sourceNode.WithAdditionalAnnotations(sourceNodeAnnotation)) _
-                            .WithAdditionalAnnotations(enclosingStatementAnnotation)
+                        Dim newEnclosingStatement = enclosingStatement.
+                            ReplaceNode(sourceNode, sourceNode.WithAdditionalAnnotations(sourceNodeAnnotation)).
+                            WithAdditionalAnnotations(enclosingStatementAnnotation)
 
                         Dim updatedDocument = Await Me.SemanticDocument.Document.ReplaceNodeAsync(enclosingStatement, newEnclosingStatement, cancellationToken).ConfigureAwait(False)
                         Dim updatedRoot = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)

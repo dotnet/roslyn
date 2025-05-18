@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -21,10 +19,10 @@ internal abstract partial class AbstractExtractMethodService<
         {
             private readonly List<ITypeParameterSymbol> _typeParameters = [];
 
-            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol typeSymbol)
+            public static IEnumerable<ITypeParameterSymbol> Collect(ITypeSymbol? typeSymbol)
             {
                 var collector = new TypeParameterCollector();
-                typeSymbol.Accept(collector);
+                typeSymbol?.Accept(collector);
 
                 return collector._typeParameters;
             }

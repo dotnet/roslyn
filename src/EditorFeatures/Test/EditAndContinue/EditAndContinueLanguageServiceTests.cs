@@ -46,6 +46,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
     private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(ServiceBrokerProvider))
             .AddParts(
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockManagedHotReloadService),
@@ -87,7 +88,9 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
     public async Task Test(bool commitChanges)
     {
         var localComposition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
-            .AddExcludedPartTypes(typeof(EditAndContinueService))
+            .AddExcludedPartTypes(
+                typeof(EditAndContinueService),
+                typeof(ServiceBrokerProvider))
             .AddParts(
                 typeof(NoCompilationLanguageService),
                 typeof(MockHostWorkspaceProvider),

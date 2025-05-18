@@ -1439,10 +1439,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
             Dim result = DirectCast(MyBase.VisitLoweredConditionalAccess(node), BoundLoweredConditionalAccess)
 
-            If Not result.CaptureReceiver AndAlso Not node.ReceiverOrCondition.Type.IsBooleanType() AndAlso
-               node.ReceiverOrCondition.Kind <> result.ReceiverOrCondition.Kind Then
+            If Not result.CaptureReceiver AndAlso
+               node.Receiver.Kind <> result.Receiver.Kind Then
                 ' It looks like the receiver got lifted into a closure, we cannot assume that it will not change between null check and the following access.
-                Return result.Update(result.ReceiverOrCondition, True, result.PlaceholderId, result.WhenNotNull, result.WhenNullOpt, result.Type)
+                Return result.Update(result.Receiver, True, result.PlaceholderId, result.WhenNotNull, result.WhenNullOpt, result.Type)
             Else
                 Return result
             End If

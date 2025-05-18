@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up (_factory.CompilationState.Type?)
                     }
                     else
                     {
@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the original call is to an instance method, and the interceptor is an extension method,
             // we need to take special care to intercept with the extension method as though it is being called in reduced form.
             Debug.Assert(receiverOpt is not BoundTypeExpression || method.IsStatic);
-            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod;
-            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor;
+            var needToReduce = receiverOpt is not (null or BoundTypeExpression) && interceptor.IsExtensionMethod; // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
+            var symbolForCompare = needToReduce ? ReducedExtensionMethodSymbol.Create(interceptor, receiverOpt!.Type, _compilation, out _) : interceptor; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test interceptors
 
             if (!MemberSignatureComparer.InterceptorsComparer.Equals(method, symbolForCompare))
             {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod)
+            if (invokedAsExtensionMethod && interceptor.IsStatic && !interceptor.IsExtensionMethod) // Tracked by https://github.com/dotnet/roslyn/issues/76130: Test this code path with new extensions
             {
                 // Special case when intercepting an extension method call in reduced form with a non-extension.
                 this._diagnostics.Add(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, attributeLocation, method.Parameters[0], method);
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression rewrittenCall;
 
-            if (tryGetReceiver(node, out BoundCall? receiver1))
+            if (TryGetReceiver(node, out BoundCall? receiver1))
             {
                 // Handle long call chain of both instance and extension method invocations.
                 var calls = ArrayBuilder<BoundCall>.GetInstance();
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 calls.Push(node);
                 node = receiver1;
 
-                while (tryGetReceiver(node, out BoundCall? receiver2))
+                while (TryGetReceiver(node, out BoundCall? receiver2))
                 {
                     calls.Push(node);
                     node = receiver2;
@@ -359,26 +359,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return rewrittenCall;
-
-            // Gets the instance or extension invocation receiver if any.
-            static bool tryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
-            {
-                if (node.ReceiverOpt is BoundCall instanceReceiver)
-                {
-                    receiver = instanceReceiver;
-                    return true;
-                }
-
-                if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
-                {
-                    Debug.Assert(node.ReceiverOpt is null);
-                    receiver = extensionReceiver;
-                    return true;
-                }
-
-                receiver = null;
-                return false;
-            }
 
             BoundExpression visitArgumentsAndFinishRewrite(BoundCall node, BoundExpression? rewrittenReceiver)
             {
@@ -434,6 +414,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return rewrittenCall;
             }
+        }
+
+        /// <summary>
+        /// Gets the instance or extension invocation receiver if any.
+        /// </summary>
+        internal static bool TryGetReceiver(BoundCall node, [MaybeNullWhen(returnValue: false)] out BoundCall receiver)
+        {
+            if (node.ReceiverOpt is BoundCall instanceReceiver)
+            {
+                receiver = instanceReceiver;
+                return true;
+            }
+
+            if (node.InvokedAsExtensionMethod && node.Arguments is [BoundCall extensionReceiver, ..])
+            {
+                Debug.Assert(node.ReceiverOpt is null);
+                receiver = extensionReceiver;
+                return true;
+            }
+
+            receiver = null;
+            return false;
         }
 
         private BoundExpression MakeCall(
@@ -1301,15 +1303,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                var receiverNamedType = invokedAsExtensionMethod ?
-                                        ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
-                                        methodOrIndexer.ContainingType;
+                NamedTypeSymbol? receiverNamedType = tryGetReceiverNamedType(methodOrIndexer, invokedAsExtensionMethod);
                 isComReceiver = receiverNamedType is { IsComImport: true };
             }
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !isComReceiver;
+
+            static NamedTypeSymbol? tryGetReceiverNamedType(Symbol methodOrIndexer, bool invokedAsExtensionMethod)
+            {
+                if (invokedAsExtensionMethod)
+                {
+                    return ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol;
+                }
+
+                if (methodOrIndexer.GetIsNewExtensionMember())
+                {
+                    Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is not null);
+                    return methodOrIndexer.ContainingType.ExtensionParameter.Type as NamedTypeSymbol;
+                }
+
+                return (NamedTypeSymbol?)methodOrIndexer.ContainingType;
+            }
         }
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)

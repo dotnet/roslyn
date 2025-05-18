@@ -17,8 +17,8 @@
     <_MetalamaBuildRuntimeDescription>$([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription)</_MetalamaBuildRuntimeDescription>
     <_MetalamaBuildRuntimeVersion>$([System.Text.RegularExpressions.Regex]::Match($(_MetalamaBuildRuntimeDescription), '\d+(\.\d+)+').Value)</_MetalamaBuildRuntimeVersion>
     
-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '8'">netcore</_RoslynTargetDirectoryName>
-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '8'">net8.0</_RoslynTargetDirectoryName>
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &lt; '9'">net8.0</_RoslynTargetDirectoryName>
+    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(_MetalamaBuildRuntimeVersion)' &gt;= '9'">net9.0</_RoslynTargetDirectoryName>
     <!-- </Metalama> -->
     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>
     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>

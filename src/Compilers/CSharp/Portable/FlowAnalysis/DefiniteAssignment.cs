@@ -368,6 +368,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            ParameterSymbol extensionParameter = null;
+            if (TryGetInstanceExtensionParameter(out extensionParameter))
+            {
+                EnterParameter(extensionParameter);
+            }
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If
@@ -378,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 LeaveParameters(methodParameters, null, location);
                 if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, null, location);
+                if ((object)extensionParameter != null) LeaveParameter(extensionParameter, null, location);
 
                 var savedState = this.State;
                 foreach (PendingBranch returnBranch in pendingReturns)
@@ -385,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.State = returnBranch.State;
                     LeaveParameters(methodParameters, returnBranch.Branch.Syntax, null);
                     if ((object)methodThisParameter != null) LeaveParameter(methodThisParameter, returnBranch.Branch.Syntax, null);
+                    if ((object)extensionParameter != null) LeaveParameter(extensionParameter, returnBranch.Branch.Syntax, null);
                     Join(ref savedState, ref this.State);
                 }
 
@@ -392,6 +400,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return pendingReturns;
+        }
+
+        protected bool TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter)
+        {
+            if (_symbol is not null
+                && _symbol.GetIsNewExtensionMember()
+                && !_symbol.IsStatic
+                && _symbol.ContainingType.ExtensionParameter is { } foundExtensionParameter)
+            {
+                extensionParameter = foundExtensionParameter;
+                return true;
+            }
+
+            extensionParameter = null;
+            return false;
         }
 
         protected override ImmutableArray<PendingBranch> RemoveReturns()
@@ -665,14 +688,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 #nullable disable
-
-        private sealed class SameDiagnosticComparer : EqualityComparer<Diagnostic>
-        {
-            public static readonly SameDiagnosticComparer Instance = new SameDiagnosticComparer();
-            public override bool Equals(Diagnostic x, Diagnostic y) => x.Equals(y);
-            public override int GetHashCode(Diagnostic obj) =>
-                Hash.Combine(Hash.CombineValues(obj.Arguments), Hash.Combine(obj.Location.GetHashCode(), obj.Code));
-        }
 
         /// <summary>
         /// Analyze the body, reporting all necessary diagnostics.
@@ -1832,6 +1847,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    if (TryGetInstanceExtensionParameter(out ParameterSymbol extensionParameter))
+                    {
+                        if (extensionParameter.RefKind != RefKind.Out)
+                        {
+                            int slot = GetOrCreateSlot(extensionParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
+                        }
+                    }
                 }
 
                 Symbol containing = current.ContainingSymbol;
@@ -2181,7 +2208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (stmt is BoundLocalFunctionStatement localFunctionStatement)
                     {
                         // Mark attribute arguments as used.
-                        VisitAttributes(localFunctionStatement.Symbol.BindMethodAttributes());
+                        VisitAttributes(((LocalFunctionSymbol)localFunctionStatement.Symbol).BindMethodAttributes());
 
                         VisitAlways(stmt);
                     }
@@ -2329,7 +2356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnusedVariables(ImmutableArray<LocalFunctionSymbol> locals)
+        private void ReportUnusedVariables(ImmutableArray<MethodSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2337,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportIfUnused(LocalFunctionSymbol symbol)
+        private void ReportIfUnused(MethodSymbol symbol)
         {
             if (!_usedLocalFunctions.Contains(symbol))
             {
@@ -2425,7 +2452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.CurrentSymbol = node.Symbol;
 
             // Mark attribute arguments as used.
-            VisitAttributes(node.Symbol.BindMethodAttributes());
+            VisitAttributes(((LambdaSymbol)node.Symbol).BindMethodAttributes());
 
             var oldPending = SavePending(); // we do not support branches into a lambda
 

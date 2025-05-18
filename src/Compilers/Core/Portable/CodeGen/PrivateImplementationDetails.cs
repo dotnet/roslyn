@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // data section string literal holders (key is the full string literal)
         private readonly ConcurrentDictionary<string, DataSectionStringType> _dataSectionStringLiteralTypes = new ConcurrentDictionary<string, DataSectionStringType>();
 
+        // map of data section string literal generated type names (<S> + hash) to the full text
+        private readonly ConcurrentDictionary<string, string> _dataSectionStringLiteralNames = new ConcurrentDictionary<string, string>();
+
         private ImmutableArray<Cci.INestedTypeDefinition> _orderedNestedTypes;
 
         internal PrivateImplementationDetails(
@@ -333,15 +336,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
 
             var @this = moduleBuilder.GetPrivateImplClass(syntaxNode, diagnostics);
-            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (key, arg) =>
+            return @this._dataSectionStringLiteralTypes.GetOrAdd(text, static (text, arg) =>
             {
-                var (@this, data, diagnostics) = arg;
+                var (@this, data, syntaxNode, diagnostics) = arg;
 
-                string name = "<S>" + DataToHexViaXxHash128(data);
+                string name = "<S>" + @this.DataToHexViaXxHash128(data);
 
                 MappedField dataField = @this.GetOrAddDataField(data, alignment: 1);
 
                 Cci.IMethodDefinition bytesToStringHelper = @this.GetOrSynthesizeBytesToStringHelper(diagnostics);
+
+                var previousText = @this._dataSectionStringLiteralNames.GetOrAdd(name, text);
+                if (previousText != text)
+                {
+                    // If there is a hash collision, we cannot fallback to normal string literal emit strategy
+                    // because the selection of which literal would get which emit strategy would not be deterministic.
+                    var messageProvider = @this.ModuleBuilder.CommonCompilation.MessageProvider;
+                    diagnostics.Add(messageProvider.CreateDiagnostic(
+                        messageProvider.ERR_DataSectionStringLiteralHashCollision,
+                        syntaxNode.GetLocation(),
+                        previousText[..Math.Min(previousText.Length, 500)]));
+                }
 
                 return new DataSectionStringType(
                     name: name,
@@ -350,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     bytesToStringHelper: bytesToStringHelper,
                     diagnostics: diagnostics);
             },
-            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), diagnostics)).Field;
+            (@this, ImmutableCollectionsMarshal.AsImmutableArray(data), syntaxNode, diagnostics)).Field;
         }
 
         /// <summary>
@@ -548,8 +563,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return HashToHex(hash.AsSpan());
         }
 
-        private static string DataToHexViaXxHash128(ImmutableArray<byte> data)
+        private string DataToHexViaXxHash128(ImmutableArray<byte> data)
         {
+            if (ModuleBuilder.EmitOptions.TestOnly_DataToHexViaXxHash128 is { } handler)
+            {
+                return handler(data);
+            }
+
             Span<byte> hash = stackalloc byte[sizeof(ulong) * 2];
             int bytesWritten = XxHash128.Hash(data.AsSpan(), hash);
             Debug.Assert(bytesWritten == hash.Length);
@@ -897,13 +917,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 
@@ -1111,13 +1131,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
+            throw ExceptionUtilities.Unreachable();
         }
     }
 

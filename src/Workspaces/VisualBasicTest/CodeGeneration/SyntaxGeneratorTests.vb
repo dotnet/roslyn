@@ -2285,7 +2285,7 @@ End Class
 
         Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
             Dim initialAttributes = Generator.GetAttributes(declaration)
-            Assert.Equal(0, initialAttributes.Count)
+            Assert.Empty(initialAttributes)
 
             Dim withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"))
             Dim attrsAdded = Generator.GetAttributes(withAttribute)
@@ -2293,7 +2293,7 @@ End Class
 
             Dim withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded(0))
             Dim attrsRemoved = Generator.GetAttributes(withoutAttribute)
-            Assert.Equal(0, attrsRemoved.Count)
+            Assert.Empty(attrsRemoved)
         End Sub
 
         <Fact>
@@ -3226,7 +3226,7 @@ End Class").Members(0)
 
             Dim baseListN = Generator.GetBaseAndInterfaceTypes(classN)
             Assert.NotNull(baseListN)
-            Assert.Equal(0, baseListN.Count)
+            Assert.Empty(baseListN)
         End Sub
 
         <Fact>

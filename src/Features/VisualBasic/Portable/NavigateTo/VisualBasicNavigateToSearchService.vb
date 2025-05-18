@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.NavigateTo
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.NavigateTo
     <ExportLanguageService(GetType(INavigateToSearchService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicNavigateToSearchService
+    Friend NotInheritable Class VisualBasicNavigateToSearchService
         Inherits AbstractNavigateToSearchService
 
         <ImportingConstructor>

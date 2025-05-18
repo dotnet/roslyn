@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
             BoundAwaitableInfo? awaitableInfo,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
             BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod, firstRewrittenArgument: firstRewrittenArgument);
+                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod || getEnumeratorInfo.Method.GetIsNewExtensionMember(), firstRewrittenArgument: firstRewrittenArgument);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -602,8 +602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstructionOpt,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             NamedTypeSymbol? collectionType = (NamedTypeSymbol?)collectionExpression.Type;
@@ -898,8 +898,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1047,8 +1047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? elementConversion,
             ImmutableArray<LocalSymbol> iterationVariables,
             BoundForEachDeconstructStep? deconstruction,
-            GeneratedLabelSymbol breakLabel,
-            GeneratedLabelSymbol continueLabel,
+            LabelSymbol breakLabel,
+            LabelSymbol continueLabel,
             BoundStatement rewrittenBody)
         {
             Debug.Assert(collectionExpression.Type is { TypeKind: TypeKind.Array });
@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);
 
-                GeneratedLabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
+                LabelSymbol breakLabelInner = dimension == 0 // outermost for-loop
                     ? breakLabel // i.e. the one that break statements will jump to
                     : new GeneratedLabelSymbol("break"); // Should not affect emitted code since unused
 
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar[dimension], intType);
 
                 BoundStatement body;
-                GeneratedLabelSymbol continueLabelInner;
+                LabelSymbol continueLabelInner;
 
                 if (forLoop == null)
                 {

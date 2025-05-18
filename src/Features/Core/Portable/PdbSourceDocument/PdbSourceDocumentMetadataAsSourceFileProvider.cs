@@ -15,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -301,7 +300,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             sourceDescription);
         var documentTooltip = navigateDocument.FilePath + Environment.NewLine + dllPath;
 
-        return new MetadataAsSourceFile(navigateDocument.FilePath, navigateLocation, documentName, documentTooltip);
+        return new MetadataAsSourceFile(navigateDocument.FilePath!, navigateLocation, documentName, documentTooltip);
     }
 
     private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion, SourceHashAlgorithm checksumAlgorithm)

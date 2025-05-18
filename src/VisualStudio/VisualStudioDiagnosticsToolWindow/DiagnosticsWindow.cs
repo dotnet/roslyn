@@ -5,10 +5,10 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Hosting.Diagnostics.PerfMargin;
-using Roslyn.Utilities;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {

@@ -26,7 +26,7 @@ internal class RemoteWorkspaceManager
         MefHostServices.DefaultAssemblies
             .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
             .Add(typeof(BrokeredServiceBase).Assembly)
-            .Add(typeof(RazorAnalyzerAssemblyResolver).Assembly)
+            .Add(typeof(IRazorLanguageServerTarget).Assembly)
             .Add(typeof(RemoteWorkspacesResources).Assembly);
 
     /// <summary>

@@ -2,146 +2,76 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal partial class DiagnosticAnalyzerService
 {
-    internal partial class DiagnosticIncrementalAnalyzer
+    private partial class DiagnosticIncrementalAnalyzer
     {
         /// <summary>
-        /// This is in charge of anything related to <see cref="StateSet"/>
+        /// This is in charge of anything related to <see cref="DiagnosticAnalyzer"/>
         /// </summary>
-        private partial class StateManager
+        private partial class StateManager(DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
-            private readonly Workspace _workspace;
-            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache;
+            private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = analyzerInfoCache;
 
             /// <summary>
             /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
             /// Maps language name to the analyzers and their state.
             /// </summary>
-            private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap;
+            private ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo> _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerInfoKey, HostAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
             /// ImmutableDictionary used to present a safe, non-immutable view to users.
             /// </summary>
-            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerInfo> _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerInfo>.Empty;
 
             /// <summary>
             /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
             /// duplicated calculations for a project during contentious calls.
             /// </summary>
-            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(1);
+            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(initialCount: 1);
 
             /// <summary>
-            /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
+            /// Return <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>. 
             /// </summary>
-            public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs>? ProjectAnalyzerReferenceChanged;
-
-            public StateManager(Workspace workspace, DiagnosticAnalyzerInfoCache analyzerInfoCache)
+            public async Task<ImmutableArray<DiagnosticAnalyzer>> GetOrCreateAnalyzersAsync(
+                SolutionState solution, ProjectState project, CancellationToken cancellationToken)
             {
-                _workspace = workspace;
-                _analyzerInfoCache = analyzerInfoCache;
-
-                _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
-                _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
+                var hostAnalyzerInfo = await GetOrCreateHostAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+                return hostAnalyzerInfo.OrderedAllAnalyzers.AddRange(projectAnalyzerInfo.Analyzers);
             }
 
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public IEnumerable<StateSet> GetStateSets(ProjectId projectId)
+            public async Task<HostAnalyzerInfo> GetOrCreateHostAnalyzerInfoAsync(
+                SolutionState solution, ProjectState project, CancellationToken cancellationToken)
             {
-                var hostStateSets = GetAllHostStateSets();
-
-                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
-                return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
-                    ? hostStateSets.Concat(entry.StateSetMap.Values)
-                    : hostStateSets;
+                var projectAnalyzerInfo = await GetOrCreateProjectAnalyzerInfoAsync(solution, project, cancellationToken).ConfigureAwait(false);
+                return GetOrCreateHostAnalyzerInfo(solution, project, projectAnalyzerInfo);
             }
 
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// Difference with <see cref="GetStateSets(ProjectId)"/> is that 
-            /// this will only return <see cref="StateSet"/>s that have same language as <paramref name="project"/>.
-            /// </summary>
-            public IEnumerable<StateSet> GetStateSets(Project project)
-                => GetStateSets(project.Id).Where(s => s.Language == project.Language);
-
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
-            /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
-            /// </summary>
-            public async Task<ImmutableArray<StateSet>> GetOrCreateStateSetsAsync(Project project, CancellationToken cancellationToken)
-            {
-                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
-            }
-
-            /// <summary>
-            /// Return <see cref="StateSet"/> for the given <see cref="DiagnosticAnalyzer"/> in the context of <see cref="Project"/>.
-            /// This will either return already created <see cref="StateSet"/> for the specific snapshot of <see cref="Project"/> or
-            /// it will create new <see cref="StateSet"/> for the <see cref="Project"/>. and update internal state.
-            /// </summary>
-            public async Task<StateSet?> GetOrCreateStateSetAsync(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
-            {
-                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
-                if (projectStateSets.StateSetMap.TryGetValue(analyzer, out var stateSet))
-                {
-                    return stateSet;
-                }
-
-                var hostStateSetMap = GetOrCreateHostStateSets(project, projectStateSets).StateSetMap;
-                if (hostStateSetMap.TryGetValue(analyzer, out stateSet))
-                {
-                    return stateSet;
-                }
-
-                return null;
-            }
-
-            public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
-            {
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                {
-                    removed |= stateSet.OnProjectRemoved(projectId);
-                }
-
-                lock (_projectAnalyzerStateMap)
-                {
-                    _projectAnalyzerStateMap = _projectAnalyzerStateMap.Remove(projectId);
-                }
-
-                return removed;
-            }
-
-            private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
-                => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
-
-            private static ImmutableDictionary<DiagnosticAnalyzer, StateSet> CreateStateSetMap(
-                string language,
+            private static (ImmutableHashSet<DiagnosticAnalyzer> hostAnalyzers, ImmutableHashSet<DiagnosticAnalyzer> allAnalyzers) PartitionAnalyzers(
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> projectAnalyzerCollection,
                 IEnumerable<ImmutableArray<DiagnosticAnalyzer>> hostAnalyzerCollection,
                 bool includeWorkspacePlaceholderAnalyzers)
             {
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, StateSet>();
+                using var _1 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var hostAnalyzers);
+                using var _2 = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var allAnalyzers);
 
                 if (includeWorkspacePlaceholderAnalyzers)
                 {
-                    builder.Add(FileContentLoadAnalyzer.Instance, new StateSet(language, FileContentLoadAnalyzer.Instance, isHostAnalyzer: true));
-                    builder.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance, new StateSet(language, GeneratorDiagnosticsPlaceholderAnalyzer.Instance, isHostAnalyzer: true));
+                    hostAnalyzers.Add(FileContentLoadAnalyzer.Instance);
+                    hostAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
+                    allAnalyzers.Add(FileContentLoadAnalyzer.Instance);
+                    allAnalyzers.Add(GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
                 }
 
                 foreach (var analyzers in projectAnalyzerCollection)
@@ -149,17 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var analyzer in analyzers)
                     {
                         Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
-
-                        // TODO: 
-                        // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
-                        // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
-                        //     if user deliberately put same analyzer twice.
-                        if (builder.ContainsKey(analyzer))
-                        {
-                            continue;
-                        }
-
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: false));
+                        allAnalyzers.Add(analyzer);
                     }
                 }
 
@@ -168,48 +88,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     foreach (var analyzer in analyzers)
                     {
                         Debug.Assert(analyzer != FileContentLoadAnalyzer.Instance && analyzer != GeneratorDiagnosticsPlaceholderAnalyzer.Instance);
-
-                        // TODO: 
-                        // #1, all de-duplication should move to DiagnosticAnalyzerInfoCache
-                        // #2, not sure whether de-duplication of analyzer itself makes sense. this can only happen
-                        //     if user deliberately put same analyzer twice.
-                        if (builder.ContainsKey(analyzer))
-                        {
-                            continue;
-                        }
-
-                        builder.Add(analyzer, new StateSet(language, analyzer, isHostAnalyzer: true));
+                        allAnalyzers.Add(analyzer);
+                        hostAnalyzers.Add(analyzer);
                     }
                 }
 
-                return builder.ToImmutable();
+                return (hostAnalyzers.ToImmutableHashSet(), allAnalyzers.ToImmutableHashSet());
             }
 
-            private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
-            {
-                public HostAnalyzerStateSetKey(string language, bool hasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> analyzerReferences)
-                {
-                    Language = language;
-                    HasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers;
-                    AnalyzerReferences = analyzerReferences;
-                }
-
-                public string Language { get; }
-                public bool HasSdkCodeStyleAnalyzers { get; }
-                public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
-
-                public bool Equals(HostAnalyzerStateSetKey other)
-                    => Language == other.Language &&
-                       HasSdkCodeStyleAnalyzers == other.HasSdkCodeStyleAnalyzers &&
-                       AnalyzerReferences == other.AnalyzerReferences;
-
-                public override bool Equals(object? obj)
-                    => obj is HostAnalyzerStateSetKey key && Equals(key);
-
-                public override int GetHashCode()
-                    => Hash.Combine(Language.GetHashCode(),
-                       Hash.Combine(HasSdkCodeStyleAnalyzers.GetHashCode(), AnalyzerReferences.GetHashCode()));
-            }
+            private readonly record struct HostAnalyzerInfoKey(
+                string Language, bool HasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> AnalyzerReferences);
         }
     }
 }

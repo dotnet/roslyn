@@ -43,11 +43,5 @@ internal class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserve
         OnUserCodeExceptionImpl?.Invoke(exception);
         return ValueTaskFactory.CompletedTask;
     }
-
-    public ValueTask OnCompilationFailureAsync(ImmutableArray<QueryCompilationError> errors, CancellationToken cancellationToken)
-    {
-        OnCompilationFailureImpl?.Invoke(errors);
-        return ValueTaskFactory.CompletedTask;
-    }
 }
 

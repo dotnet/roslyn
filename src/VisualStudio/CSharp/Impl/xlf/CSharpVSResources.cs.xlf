@@ -142,6 +142,11 @@
         <target state="translated">Upřednostňovat implicitní vytvoření objektu, pokud je typ zřejmý</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_implicitly_typed_lambda_expression">
+        <source>Prefer implicitly typed lambda expression</source>
+        <target state="new">Prefer implicitly typed lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_pattern_matching">
         <source>Prefer pattern matching</source>
         <target state="translated">Upřednostňovat porovnávání vzorů</target>

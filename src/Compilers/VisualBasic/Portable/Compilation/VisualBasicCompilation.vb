@@ -2487,6 +2487,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 SynthesizedMetadataCompiler.ProcessSynthesizedMembers(Me, moduleBeingBuilt, cancellationToken)
+
+                If moduleBeingBuilt.OutputKind.IsApplication() Then
+                    Dim entryPoint = GetEntryPointAndDiagnostics(cancellationToken)
+                    diagnostics.AddRange(entryPoint.Diagnostics)
+                    If entryPoint.MethodSymbol IsNot Nothing AndAlso Not entryPoint.Diagnostics.HasAnyErrors() Then
+                        moduleBeingBuilt.SetPEEntryPoint(entryPoint.MethodSymbol, diagnostics)
+                    Else
+                        Return False
+                    End If
+                End If
             Else
                 ' start generating PDB checksums if we need to emit PDBs
                 If (emittingPdb OrElse moduleBuilder.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage)) AndAlso

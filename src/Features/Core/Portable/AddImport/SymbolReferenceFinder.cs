@@ -336,10 +336,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
         {
-            return namedType.GetMembers(fieldOrPropertyName)
-                            .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
-                                      m.IsStatic &&
-                                      m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
+            return namedType
+                .GetMembers(fieldOrPropertyName)
+                .Any(static (m, self) =>
+                    m is IFieldSymbol or IPropertySymbol &&
+                    m.IsStatic &&
+                    m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
         }
 
         /// <summary>

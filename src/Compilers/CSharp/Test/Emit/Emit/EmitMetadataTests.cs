@@ -3176,6 +3176,27 @@ public class Child : Parent, IParent
         }
 
         [Fact]
+        public void DataSectionStringLiterals_HashCollision()
+        {
+            var emitOptions = new EmitOptions
+            {
+                // Take only the first byte of each string as its hash to simulate collisions.
+                TestOnly_DataToHexViaXxHash128 = static (data) => data[0].ToString(),
+            };
+            var source = """
+                System.Console.Write("a");
+                System.Console.Write("b");
+                System.Console.Write("aa");
+                """;
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyEmitDiagnostics(emitOptions,
+                    // (3,22): error CS9274: Cannot emit this string literal into the data section because it has XXHash128 collision with another string literal: a
+                    // System.Console.Write("aa");
+                    Diagnostic(ErrorCode.ERR_DataSectionStringLiteralHashCollision, @"""aa""").WithArguments("a").WithLocation(3, 22));
+        }
+
+        [Fact]
         public void DataSectionStringLiterals_SynthesizedTypes()
         {
             var source = """
@@ -3506,6 +3527,225 @@ public class Child : Parent, IParent
                 .VerifyDiagnostics(
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe()
+        {
+            CompileAndVerify("""
+                System.Console.WriteLine("a");
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>$");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.Yield();
+                        System.Console.WriteLine("a");
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_NoMain()
+        {
+            var emitResult = CreateCompilation("""
+                class Program;
+                """,
+                options: TestOptions.ReleaseExe)
+                .Emit(new MemoryStream(), options: EmitOptions.Default.WithEmitMetadataOnly(true));
+            Assert.False(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers()
+        {
+            CompileAndVerify("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.Main");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void EmitMetadataOnly_Exe_PrivateMain_ExcludePrivateMembers_AsyncMain()
+        {
+            CompileAndVerify("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: EmitOptions.Default
+                    .WithEmitMetadataOnly(true)
+                    .WithIncludePrivateMembers(false),
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    Assert.NotEqual(0, module.GetMetadata().Module.PEReaderOpt.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+                    var main = module.GlobalNamespace.GetMember<MethodSymbol>("Program.<Main>");
+                    Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                })
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                static class Program
+                {
+                    private static void Main() { }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var main = comp.GetMember<MethodSymbol>("Program.Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_PrivateMain_AsyncMain()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+            var comp = CreateCompilation("""
+                using System.Threading.Tasks;
+                static class Program
+                {
+                    private static async Task Main()
+                    {
+                        await Task.Yield();
+                    }
+                }
+                """,
+                options: TestOptions.ReleaseExe);
+            var emitResult = comp.Emit(
+                peStream: peStream,
+                metadataPEStream: metadataStream,
+                options: EmitOptions.Default.WithIncludePrivateMembers(false));
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            verify(peStream);
+            verify(metadataStream);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            static void verify(Stream stream)
+            {
+                stream.Position = 0;
+                Assert.NotEqual(0, new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress);
+
+                stream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(stream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var main = comp.GetMember<MethodSymbol>("Program.<Main>");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]
+        public void ExcludePrivateMembers_DebugEntryPoint()
+        {
+            using var peStream = new MemoryStream();
+            using var metadataStream = new MemoryStream();
+
+            {
+                var comp = CreateCompilation("""
+                    static class Program
+                    {
+                        static void M1() { }
+                        static void M2() { }
+                    }
+                    """).VerifyDiagnostics();
+                var emitResult = comp.Emit(
+                    peStream: peStream,
+                    metadataPEStream: metadataStream,
+                    debugEntryPoint: comp.GetMember<MethodSymbol>("Program.M1").GetPublicSymbol(),
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false));
+                Assert.True(emitResult.Success);
+                emitResult.Diagnostics.Verify();
+            }
+
+            {
+                // M1 should be emitted (it's the debug entry-point), M2 shouldn't (private members are excluded).
+                metadataStream.Position = 0;
+                var reference = AssemblyMetadata.CreateFromStream(metadataStream).GetReference();
+                var comp = CreateCompilation("", references: [reference],
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+                var m1 = comp.GetMember<MethodSymbol>("Program.M1");
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+                Assert.Null(comp.GetMember<MethodSymbol>("Program.M2"));
+            }
         }
     }
 }

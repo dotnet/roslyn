@@ -10,19 +10,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForLambdasAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public UseExpressionBodyForLambdasAnalyzerTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new UseExpressionBodyForLambdaDiagnosticAnalyzer(), new UseExpressionBodyForLambdaCodeFixProvider());
 
@@ -1468,5 +1465,28 @@ public class UseExpressionBodyForLambdasAnalyzerTests : AbstractCSharpDiagnostic
                 }
             }
             """, options: UseBlockBody);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76645")]
+    public async Task TestMethodOverloadResolutionChange()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void Goo(int result, Func<int> function)
+                {
+                    Execute(() [|=>|]
+                    {
+                        result = function();
+                    });
+                }
+
+                void Execute(Action action) { }
+                void Execute(Func<int> function) { }
+            }
+            """, new(options: UseExpressionBody));
     }
 }

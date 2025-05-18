@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,12 +32,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService;
+    private readonly CopilotGenerateDocumentationCommentManager _generateDocumentationCommentManager;
 
     protected AbstractDocumentationCommentCommandHandler(
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         ITextUndoHistoryRegistry undoHistoryRegistry,
         IEditorOperationsFactoryService editorOperationsFactoryService,
-        EditorOptionsService editorOptionsService)
+        EditorOptionsService editorOptionsService,
+        CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
     {
         Contract.ThrowIfNull(uiThreadOperationExecutor);
         Contract.ThrowIfNull(undoHistoryRegistry);
@@ -46,6 +49,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         _undoHistoryRegistry = undoHistoryRegistry;
         _editorOperationsFactoryService = editorOperationsFactoryService;
         _editorOptionsService = editorOptionsService;
+        _generateDocumentationCommentManager = generateDocumentationCommentManager;
     }
 
     protected abstract string ExteriorTriviaText { get; }
@@ -97,13 +101,17 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
+                var oldSnapshot = subjectBuffer.CurrentSnapshot;
+                var oldCaret = textView.Caret.Position.VirtualBufferPosition;
+
                 returnValue = true;
+
+                _generateDocumentationCommentManager.TriggerDocumentationCommentProposalGeneration(document, snippet, oldSnapshot, oldCaret, textView, cancellationToken);
             }
         }
 
         return returnValue;
     }
-
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
         => nextHandler();
 

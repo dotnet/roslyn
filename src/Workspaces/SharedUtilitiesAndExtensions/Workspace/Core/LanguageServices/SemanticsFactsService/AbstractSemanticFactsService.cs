@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,7 +90,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     /// could cause a compiler error if its name is re-used at that location.
     /// </summary>
     protected virtual IEnumerable<ISymbol> GetCollidableSymbols(SemanticModel semanticModel, SyntaxNode location, SyntaxNode container, CancellationToken cancellationToken)
-        => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetExistingSymbols(container, cancellationToken));
+        => semanticModel.LookupSymbols(location.SpanStart).Concat(semanticModel.GetAllDeclaredSymbols(container, cancellationToken));
 
     public SyntaxToken GenerateUniqueName(string baseName, IEnumerable<string> usedNames)
     {
@@ -256,6 +257,9 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
 
     public IPreprocessingSymbol GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
         => SemanticFacts.GetPreprocessingSymbol(semanticModel, node);
+
+    public bool TryGetPrimaryConstructor(INamedTypeSymbol typeSymbol, [NotNullWhen(true)] out IMethodSymbol primaryConstructor)
+        => SemanticFacts.TryGetPrimaryConstructor(typeSymbol, out primaryConstructor);
 
 #if !CODE_STYLE
 

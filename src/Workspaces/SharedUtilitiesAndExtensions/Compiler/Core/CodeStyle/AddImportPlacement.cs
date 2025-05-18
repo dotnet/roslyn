@@ -17,5 +17,10 @@ internal enum AddImportPlacement
     /// <summary>
     /// Place imports outside the namespace definition.
     /// </summary>
-    OutsideNamespace
+    OutsideNamespace,
+
+    /// <summary>
+    /// Place imports outside the namespace definition, ignoring import aliases (which can stay inside the namespace).
+    /// </summary>
+    OutsideNamespaceIgnoringAliases
 }

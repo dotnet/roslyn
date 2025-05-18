@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         public bool SupportsMarkdownDocumentation { get; }
         public ISet<CompletionItemKind> SupportedItemKinds { get; }
         public ISet<CompletionItemTag> SupportedItemTags { get; }
+        public ISet<InsertTextMode> SupportedInsertTextModes { get; }
 
         public CompletionCapabilityHelper(ClientCapabilities clientCapabilities)
             : this(supportsVSExtensions: clientCapabilities.HasVisualStudioLspCapability(),
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             SupportDefaultCommitCharacters = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
             SupportedItemKinds = completionSetting?.CompletionItemKind?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemKind>();
             SupportedItemTags = completionSetting?.CompletionItem?.TagSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemTag>();
+            SupportedInsertTextModes = completionSetting?.CompletionItem?.InsertTextModeSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<InsertTextMode>();
 
             // internal VS LSP
             if (supportsVSExtensions)

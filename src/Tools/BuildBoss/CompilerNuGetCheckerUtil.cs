@@ -352,7 +352,6 @@ namespace BuildBoss
         /// properly update this package.
         /// </summary>
         /// <param name="textWriter"></param>
-        /// <returns></returns>
         private bool CheckExternalApis(TextWriter textWriter)
         {
             var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
@@ -126,12 +125,10 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return false;
         }
 
-        if (symbol.Kind == SymbolKind.Property)
+        if (symbol is IPropertySymbol property &&
+            !IsSymbolAccessible(property.SetMethod, document))
         {
-            if (!IsSymbolAccessible(((IPropertySymbol)symbol).SetMethod, document))
-            {
-                return false;
-            }
+            return false;
         }
 
         // Public and protected constructors are accessible.  Internal constructors are

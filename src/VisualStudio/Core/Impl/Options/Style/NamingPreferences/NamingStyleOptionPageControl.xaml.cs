@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -139,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         internal override void OnSave()
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
-            var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
+            var namingRules = ArrayBuilder<NamingRule>.GetInstance();
             var namingStyles = ArrayBuilder<NamingStyle>.GetInstance();
 
             foreach (var item in _viewModel.CodeStyleItems)
@@ -149,12 +148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                     continue;
                 }
 
-                var rule = new SerializableNamingRule()
-                {
-                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Severity,
-                    NamingStyleID = item.SelectedStyle.ID,
-                    SymbolSpecificationID = item.SelectedSpecification.ID
-                };
+                var rule = new NamingRule(
+                    item.SelectedSpecification,
+                    item.SelectedStyle.NamingStyle,
+                    item.SelectedNotificationPreference.Notification.Severity);
 
                 namingRules.Add(rule);
             }

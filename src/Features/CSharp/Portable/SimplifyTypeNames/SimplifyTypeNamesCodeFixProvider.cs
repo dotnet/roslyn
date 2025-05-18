@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 

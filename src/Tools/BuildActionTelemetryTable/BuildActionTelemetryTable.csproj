@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(NetVS)-windows</TargetFramework>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 
@@ -20,15 +20,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs" Link="Utilities\Hash.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="Utilities\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\Workspaces\Core\Portable\Shared\Extensions\TelemetryExtensions.cs" Link="Utilities\TelemetryExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\CodeStyle\EditorConfigSeverityStrings.cs" Link="Utilities\EditorConfigSeverityStrings.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\DiagnosticDescriptorExtensions.cs" Link="Utilities\DiagnosticDescriptorExtensions.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="Utilities\Contract.InterpolatedStringHandlers.cs" />
   </ItemGroup>
+
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 
 </Project>

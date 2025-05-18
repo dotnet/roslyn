@@ -20,7 +20,7 @@ internal abstract class AbstractLanguageDetector<TOptions>(
     where TOptions : struct, Enum
 {
     protected readonly EmbeddedLanguageInfo Info = info;
-    protected readonly EmbeddedLanguageDetector Detector = new EmbeddedLanguageDetector(info, languageIdentifiers, commentDetector);
+    protected readonly EmbeddedLanguageDetector Detector = new(info, languageIdentifiers, commentDetector);
 
     /// <summary>
     /// Whether or not this is an argument to a well known api for this language (like Regex.Match or JToken.Parse).

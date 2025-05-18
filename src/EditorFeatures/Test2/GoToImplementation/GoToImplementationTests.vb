@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 host,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
                     Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-                    Dim options = New TestOptionsProvider(Of ClassificationOptions)(ClassificationOptions.Default)
+                    Dim options = TestOptionsProvider.Create(ClassificationOptions.Default)
                     Await findUsagesService.FindImplementationsAsync(context, document, position, options, CancellationToken.None).ConfigureAwait(False)
                 End Function,
                 shouldSucceed,

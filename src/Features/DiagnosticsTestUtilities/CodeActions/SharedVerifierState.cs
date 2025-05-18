@@ -4,8 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeActions;

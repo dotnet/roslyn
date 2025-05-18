@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
@@ -1109,9 +1110,6 @@ internal sealed partial class SolutionCompilationState
     public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
 
-    public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
-        => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
-
     public bool TryGetCompilation(ProjectId projectId, [NotNullWhen(returnValue: true)] out Compilation? compilation)
     {
         this.SolutionState.CheckContainsProject(projectId);
@@ -1221,6 +1219,17 @@ internal sealed partial class SolutionCompilationState
     {
         try
         {
+            // Getting a metadata reference from a 'module' is not supported from the compilation layer.  Nor is
+            // emitting a 'metadata-only' stream for it (a 'skeleton' reference).  So we just bail here.  Note: this is
+            // not a common user scenario (they have to be explicitly creating 'modules' which are a feature practically
+            // never used anymore). So it's not worthwhile trying to merge the referenced module into the current
+            // compilation in any fashion.
+            //
+            // Note: ProjectSystemProjectFactory.CanConvertMetadataReferenceToProjectReference attempts to prevent this
+            // scenario from arising.  However, this code just acts as a final failsafe to ensure we don't crash.
+            if (tracker.ProjectState.CompilationOptions?.OutputKind == OutputKind.NetModule)
+                return null;
+
             // If same language then we can wrap the other project's compilation into a compilation reference
             if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
             {
@@ -1381,7 +1390,12 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
+                    // We should never be wrapping a WithFrozenSourceGeneratedDocumentsCompilationTracker with another
+                    // WithFrozenSourceGeneratedDocumentsCompilationTracker.  If we do, that's a straight bug that
+                    // should fail immediately.  So blind casting is here is appropriate.
+                    var regularCompilationTracker = (RegularCompilationTracker)existingTracker;
+                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(
+                        regularCompilationTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),

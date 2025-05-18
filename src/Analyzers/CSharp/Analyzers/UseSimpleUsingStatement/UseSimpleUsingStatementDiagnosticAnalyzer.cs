@@ -141,7 +141,7 @@ internal sealed class UseSimpleUsingStatementDiagnosticAnalyzer()
         {
             foreach (var statement in CSharpBlockFacts.Instance.GetExecutableBlockStatements(parentBlockLike))
             {
-                foreach (var symbol in semanticModel.GetExistingSymbols(statement, cancellationToken))
+                foreach (var symbol in semanticModel.GetAllDeclaredSymbols(statement, cancellationToken))
                     symbolNameToExistingSymbol.MultiAdd(symbol.Name, symbol);
             }
 

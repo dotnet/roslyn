@@ -7,7 +7,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -22,7 +21,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         internal sealed class Control : InternalOptionsControl
         {
             public Control(OptionStore optionStore)
-                : base(Array.Empty<IOption2>(), optionStore)
+                : base([], optionStore)
             {
             }
 

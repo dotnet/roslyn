@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
     internal sealed class PythiaRemoteServiceCallbackDispatcherRegistry : IRemoteServiceCallbackDispatcherProvider
     {
-        public static readonly PythiaRemoteServiceCallbackDispatcherRegistry Empty = new(Array.Empty<(Type, PythiaRemoteServiceCallbackDispatcher)>());
+        public static readonly PythiaRemoteServiceCallbackDispatcherRegistry Empty = new([]);
 
         private readonly ImmutableDictionary<Type, PythiaRemoteServiceCallbackDispatcher> _lazyDispatchers;
 

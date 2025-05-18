@@ -76,7 +76,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var (preMatches, postMatches) = analyzer.Analyze(
+        var (preMatches, postMatches, _) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
         if (preMatches.IsDefault || postMatches.IsDefault)

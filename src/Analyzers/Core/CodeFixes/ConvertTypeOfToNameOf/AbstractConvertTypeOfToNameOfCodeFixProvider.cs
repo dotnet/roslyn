@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,6 +18,7 @@ internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider<
 {
     protected abstract string GetCodeFixTitle();
 
+    protected abstract SyntaxNode ConvertToUnboundGeneric(ParseOptions options, SyntaxNode nameOfSyntax);
     protected abstract SyntaxNode GetSymbolTypeExpression(SemanticModel model, TMemberAccessExpressionSyntax node, CancellationToken cancellationToken);
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -48,10 +48,16 @@ internal abstract class AbstractConvertTypeOfToNameOfCodeFixProvider<
     /// <Summary>
     ///  Method converts typeof(...).Name to nameof(...)
     /// </Summary>
-    public void ConvertTypeOfToNameOf(SemanticModel semanticModel, SyntaxEditor editor, TMemberAccessExpressionSyntax nodeToReplace, CancellationToken cancellationToken)
+    private void ConvertTypeOfToNameOf(
+        SemanticModel semanticModel,
+        SyntaxEditor editor,
+        TMemberAccessExpressionSyntax nodeToReplace,
+        CancellationToken cancellationToken)
     {
         var typeExpression = GetSymbolTypeExpression(semanticModel, nodeToReplace, cancellationToken);
         var nameOfSyntax = editor.Generator.NameOfExpression(typeExpression);
-        editor.ReplaceNode(nodeToReplace, nameOfSyntax);
+        editor.ReplaceNode(
+            nodeToReplace,
+            ConvertToUnboundGeneric(semanticModel.SyntaxTree.Options, nameOfSyntax));
     }
 }
