@@ -428,6 +428,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Conversions.HasIdentityConversion(op1.OperandType, op2.OperandType))
             {
+                // SPEC: If Mp is a non-generic method and Mq is a generic method, then Mp is better than Mq.
+                if (op1.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    if (op2.Method?.GetMemberArityIncludingExtension() > 0)
+                    {
+                        return BetterResult.Left;
+                    }
+                }
+                else if (op2.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    return BetterResult.Right;
+                }
+
                 // SPEC: If Mp has more specific parameter types than Mq then Mp is better than Mq.
 
                 // Under what circumstances can two unary operators with identical signatures be "more specific"

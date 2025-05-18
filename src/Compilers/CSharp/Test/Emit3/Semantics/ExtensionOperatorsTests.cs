@@ -1179,6 +1179,120 @@ class Program
         }
 
         [Fact]
+        public void Unary_020_Consumption_Generic_Worse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>)
+    {
+        public static S1<T> operator +(S1<T> x)
+        {
+            System.Console.Write("[S1<T>]");
+            return x;
+        }
+    }
+
+    extension<T>(S1<T>?)
+    {
+        public static S1<T>? operator +(S1<T>? x)
+        {
+            System.Console.Write("[S1<T>?]");
+            return x;
+        }
+    }
+
+    extension(S1<int>)
+    {
+        public static S1<int> operator +(S1<int> x)
+        {
+            System.Console.Write("[S1<int>]");
+            return x;
+        }
+    }
+
+    extension<T>(S2<T>)
+    {
+        public static S2<T> operator +(in S2<T> x) => throw null;
+
+        public static S2<T> operator +(S2<T> x)
+        {
+            System.Console.Write("[S2<T>]");
+            return x;
+        }
+    }
+
+    extension(S2<int>)
+    {
+        public static S2<int> operator +(in S2<int> x)
+        {
+            System.Console.Write("[in S2<int>]");
+            return x;
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+public struct S2<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1<int>();
+        s11 = +s11;
+        Extensions1.op_UnaryPlus(s11);
+
+        System.Console.WriteLine();
+
+        var s12 = new S1<byte>();
+        s12 = +s12;
+        Extensions1.op_UnaryPlus(s12);
+
+        System.Console.WriteLine();
+
+        var s21 = new S2<int>();
+        s21 = +s21;
+        Extensions1.op_UnaryPlus(s21);
+
+        System.Console.WriteLine();
+
+        var s22 = new S2<byte>();
+        s22 = +s22;
+        Extensions1.op_UnaryPlus(s22);
+
+        System.Console.WriteLine();
+
+        S1<int>? s13 = new S1<int>();
+        s13 = +s13;
+        s13 = null;
+        s13 = +s13;
+
+        System.Console.WriteLine();
+
+        S1<byte>? s14 = new S1<byte>();
+        s14 = +s14;
+        s14 = null;
+        s14 = +s14;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"
+[S1<int>][S1<int>]
+[S1<T>][S1<T>]
+[in S2<int>][in S2<int>]
+[S2<T>][S2<T>]
+[S1<int>]
+[S1<T>?][S1<T>?]
+").VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Unary_021_Consumption_Generic_ConstraintsViolation()
         {
             var src = $$$"""
@@ -4693,6 +4807,120 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "System.Int32System.Int32System.Int32:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_027_Consumption_Generic_Worse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>)
+    {
+        public static S1<T> operator +(S1<T> x, S1<T> y)
+        {
+            System.Console.Write("[S1<T>]");
+            return x;
+        }
+    }
+
+    extension<T>(S1<T>?)
+    {
+        public static S1<T>? operator +(S1<T>? x, S1<T>? y)
+        {
+            System.Console.Write("[S1<T>?]");
+            return x;
+        }
+    }
+
+    extension(S1<int>)
+    {
+        public static S1<int> operator +(S1<int> x, S1<int> y)
+        {
+            System.Console.Write("[S1<int>]");
+            return x;
+        }
+    }
+
+    extension<T>(S2<T>)
+    {
+        public static S2<T> operator +(in S2<T> x, S2<T> y) => throw null;
+
+        public static S2<T> operator +(S2<T> x, S2<T> y)
+        {
+            System.Console.Write("[S2<T>]");
+            return x;
+        }
+    }
+
+    extension(S2<int>)
+    {
+        public static S2<int> operator +(in S2<int> x, S2<int> y)
+        {
+            System.Console.Write("[in S2<int>]");
+            return x;
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+public struct S2<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1<int>();
+        s11 = s11 + s11;
+        Extensions1.op_Addition(s11, s11);
+
+        System.Console.WriteLine();
+
+        var s12 = new S1<byte>();
+        s12 = s12 + s12;
+        Extensions1.op_Addition(s12, s12);
+
+        System.Console.WriteLine();
+
+        var s21 = new S2<int>();
+        s21 = s21 + s21;
+        Extensions1.op_Addition(s21, s21);
+
+        System.Console.WriteLine();
+
+        var s22 = new S2<byte>();
+        s22 = s22 + s22;
+        Extensions1.op_Addition(s22, s22);
+
+        System.Console.WriteLine();
+
+        S1<int>? s13 = new S1<int>();
+        s13 = s13 + s13;
+        s13 = null;
+        s13 = s13 + s13;
+
+        System.Console.WriteLine();
+
+        S1<byte>? s14 = new S1<byte>();
+        s14 = s14 + s14;
+        s14 = null;
+        s14 = s14 + s14;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"
+[S1<int>][S1<int>]
+[S1<T>][S1<T>]
+[in S2<int>][in S2<int>]
+[S2<T>][S2<T>]
+[S1<int>]
+[S1<T>?][S1<T>?]
+").VerifyDiagnostics();
         }
 
         [Fact]
