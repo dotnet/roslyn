@@ -66,8 +66,30 @@ internal static class SymbolSearchOptionsStorage
         isEditorConfigOption: true,
         group: s_optionGroup);
 
+    public static PerLanguageOption2<bool> SearchReferencedProjectSymbols = new(
+        "dotnet_unsupported_search_referenced_project_systems",
+        SymbolSearchOptions.Default.SearchReferencedProjectSymbols,
+        isEditorConfigOption: false,
+        group: s_optionGroup);
+
+    public static PerLanguageOption2<bool> SearchUnreferencedProjectSourceSymbols = new(
+        "dotnet_unsupported_search_unreferenced_project_systems",
+        SymbolSearchOptions.Default.SearchUnreferencedProjectSourceSymbols,
+        isEditorConfigOption: true,
+        group: s_optionGroup);
+
+    public static PerLanguageOption2<bool> SearchUnreferencedMetadataSymbols = new(
+        "dotnet_unsupported_search_unreferenced_metadata_systems",
+        SymbolSearchOptions.Default.SearchUnreferencedMetadataSymbols,
+        isEditorConfigOption: true,
+        group: s_optionGroup);
+
     public static readonly ImmutableArray<IOption2> EditorConfigOptions = [SearchReferenceAssemblies];
-    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [SearchNuGetPackages];
+    public static readonly ImmutableArray<IOption2> UnsupportedOptions = [
+        SearchNuGetPackages,
+        SearchReferencedProjectSymbols,
+        SearchUnreferencedProjectSourceSymbols,
+        SearchUnreferencedMetadataSymbols];
 }
 
 internal static class SymbolSearchOptionsProviders
@@ -76,7 +98,10 @@ internal static class SymbolSearchOptionsProviders
         => new()
         {
             SearchReferenceAssemblies = options.GetOption(SymbolSearchOptionsStorage.SearchReferenceAssemblies, language),
-            SearchNuGetPackages = options.GetOption(SymbolSearchOptionsStorage.SearchNuGetPackages, language)
+            SearchNuGetPackages = options.GetOption(SymbolSearchOptionsStorage.SearchNuGetPackages, language),
+            SearchReferencedProjectSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchReferencedProjectSymbols, language),
+            SearchUnreferencedProjectSourceSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedProjectSourceSymbols, language),
+            SearchUnreferencedMetadataSymbols = options.GetOption(SymbolSearchOptionsStorage.SearchUnreferencedMetadataSymbols, language),
         };
 
     public static async ValueTask<SymbolSearchOptions> GetSymbolSearchOptionsAsync(this Document document, CancellationToken cancellationToken)
