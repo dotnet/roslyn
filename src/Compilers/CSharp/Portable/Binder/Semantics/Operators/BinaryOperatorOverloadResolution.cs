@@ -1234,6 +1234,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (Conversions.HasIdentityConversion(op1.LeftType, op2.LeftType) &&
                 Conversions.HasIdentityConversion(op1.RightType, op2.RightType))
             {
+                // SPEC: If Mp is a non-generic method and Mq is a generic method, then Mp is better than Mq.
+                if (op1.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    if (op2.Method?.GetMemberArityIncludingExtension() > 0)
+                    {
+                        return BetterResult.Left;
+                    }
+                }
+                else if (op2.Method?.GetMemberArityIncludingExtension() is null or 0)
+                {
+                    return BetterResult.Right;
+                }
+
                 // NOTE: The native compiler does not follow these rules; effectively, the native 
                 // compiler checks for liftedness first, and then for specificity. For example:
                 // struct S<T> where T : struct {
