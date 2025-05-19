@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             => TextView.Caret.Position;
 
         /// <summary>
-        /// Used in synchronous methods to ensure all outstanding <see cref="IAsyncToken"/> work has been
+        /// Used in synchronous methods to ensure all outstanding work has been
         /// completed.
         /// </summary>
         public void AssertNoAsynchronousOperationsRunning()

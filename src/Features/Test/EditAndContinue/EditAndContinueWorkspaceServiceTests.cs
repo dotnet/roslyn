@@ -153,9 +153,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EnterBreakState(debuggingSession);
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"P.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
     }
@@ -595,9 +595,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // an error occurred so we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
@@ -642,9 +642,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         // an error occurred so we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1006: {string.Format(FeaturesResources.UnableToReadSourceFileOrPdb, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         fileLock.Dispose();
 
@@ -1168,9 +1168,9 @@ class C { int Y => 2; }
 
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // update the file to match the build:
         sourceFile.WriteAllText(source0, Encoding.UTF8);
@@ -1594,17 +1594,11 @@ class C { int Y => 2; }
         EndDebuggingSession(debuggingSession);
     }
 
-    public enum DocumentKind
-    {
-        Source,
-        Additional,
-        AnalyzerConfig,
-    }
-
     [Theory, CombinatorialData]
-    public async Task HasChanges_Documents(DocumentKind documentKind)
+    public async Task HasChanges_Documents(TextDocumentKind documentKind)
     {
         using var _ = CreateWorkspace(out var solution, out var service);
+        var log = new TraceLog("Test");
 
         var pathX = Path.Combine(TempRoot.Root, "X.cs");
         var pathA = Path.Combine(TempRoot.Root, "A.cs");
@@ -1616,15 +1610,15 @@ class C { int Y => 2; }
             {
                 switch (documentKind)
                 {
-                    case DocumentKind.Source:
+                    case TextDocumentKind.Document:
                         context.AddSource("Generated.cs", context.Compilation.SyntaxTrees.SingleOrDefault(t => t.FilePath.EndsWith("X.cs"))?.ToString() ?? "none");
                         break;
 
-                    case DocumentKind.Additional:
+                    case TextDocumentKind.AdditionalDocument:
                         context.AddSource("Generated.cs", context.AdditionalFiles.FirstOrDefault()?.GetText().ToString() ?? "none");
                         break;
 
-                    case DocumentKind.AnalyzerConfig:
+                    case TextDocumentKind.AnalyzerConfigDocument:
                         var syntaxTree = context.Compilation.SyntaxTrees.Single(t => t.FilePath.EndsWith("A.cs"));
                         var content = context.AnalyzerConfigOptions.GetOptions(syntaxTree).TryGetValue("x", out var optionValue) ? optionValue.ToString() : "none";
 
@@ -1662,9 +1656,9 @@ class C { int Y => 2; }
         var documentId = DocumentId.CreateNewId(projectId);
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.AddDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
-            DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
-            DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText([("x", "1")]), filePath: pathX),
+            TextDocumentKind.Document => solution.AddDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
+            TextDocumentKind.AdditionalDocument => solution.AddAdditionalDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
+            TextDocumentKind.AnalyzerConfigDocument => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText([("x", "1")]), filePath: pathX),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1677,12 +1671,12 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         AssertEx.Equal([generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1695,9 +1689,9 @@ class C { int Y => 2; }
 
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx")),
-            DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "1")])),
+            TextDocumentKind.Document => solution.WithDocumentText(documentId, CreateText("xxx")),
+            TextDocumentKind.AdditionalDocument => solution.WithAdditionalDocumentText(documentId, CreateText("xxx")),
+            TextDocumentKind.AnalyzerConfigDocument => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "1")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1706,10 +1700,10 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         // source generator infrastructure compares content and reuses state if it matches (SourceGeneratedDocumentState.WithUpdatedGeneratedContent):
-        AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : [],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? new[] { documentId } : [],
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         Assert.Empty(changedOrAddedDocuments);
 
@@ -1723,20 +1717,20 @@ class C { int Y => 2; }
         oldSolution = solution;
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx-changed")),
-            DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx-changed")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "2")])),
+            TextDocumentKind.Document => solution.WithDocumentText(documentId, CreateText("xxx-changed")),
+            TextDocumentKind.AdditionalDocument => solution.WithAdditionalDocumentText(documentId, CreateText("xxx-changed")),
+            TextDocumentKind.AnalyzerConfigDocument => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "2")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, pathX, CancellationToken.None));
 
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId],
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
-        AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
+        AssertEx.Equal(documentKind == TextDocumentKind.Document ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
 
@@ -1748,9 +1742,9 @@ class C { int Y => 2; }
         oldSolution = solution;
         solution = documentKind switch
         {
-            DocumentKind.Source => solution.RemoveDocument(documentId),
-            DocumentKind.Additional => solution.RemoveAdditionalDocument(documentId),
-            DocumentKind.AnalyzerConfig => solution.RemoveAnalyzerConfigDocument(documentId),
+            TextDocumentKind.Document => solution.RemoveDocument(documentId),
+            TextDocumentKind.AdditionalDocument => solution.RemoveAdditionalDocument(documentId),
+            TextDocumentKind.AnalyzerConfigDocument => solution.RemoveAnalyzerConfigDocument(documentId),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1759,9 +1753,9 @@ class C { int Y => 2; }
         Assert.Equal(0, generatorExecutionCount);
 
         AssertEx.Equal([generatedDocumentId],
-            await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+            await EditSession.GetChangedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Empty(diagnostics);
         AssertEx.Equal([generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
@@ -1772,6 +1766,8 @@ class C { int Y => 2; }
     public async Task HasChanges_SourceGeneratorFailure()
     {
         using var _ = CreateWorkspace(out var solution, out var service);
+
+        var log = new TraceLog("Test");
 
         var pathA = Path.Combine(TempRoot.Root, "A.txt");
 
@@ -1829,10 +1825,10 @@ class C { int Y => 2; }
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
 
         // No changed source documents since the generator failed:
-        AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+        AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(log, oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
         var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(log, oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
         Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().Diagnostics.Single().GetMessage());
         AssertEx.Empty(changedOrAddedDocuments);
 
@@ -2316,8 +2312,8 @@ class G
 
         // since the document is out-of-sync we need to call update to determine whether we have changes to apply or not:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
-        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
+        Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
+        AssertEx.Equal([$"test.csproj: (0,0)-(0,0): Error ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFile.Path)}"], InspectDiagnostics(emitDiagnostics));
 
         // undo:
         solution = solution.WithDocumentText(documentId, CreateText(source1));
@@ -3113,6 +3109,44 @@ class C { int Y => 1; }
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    public async Task ValidInsignificantChange()
+    {
+        var sourceV1 = "class C1 { void M() { /* System.Console.WriteLine(1); */ } }";
+        var sourceV2 = "class C1 { void M() { /* System.Console.WriteLine(2); */ } }";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+        (solution, var document1) = AddDefaultTestProject(solution, sourceV1);
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(sourceV1);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // change the source (valid edit):
+        solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+        var document2 = solution.GetDocument(document1.Id);
+
+        var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+        AssertEx.Empty(diagnostics1);
+
+        // validate solution update status and emit:
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(emitDiagnostics);
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+
+        // solution has been updated:
+        var text = await debuggingSession.LastCommittedSolution.GetRequiredProject(document1.Project.Id).GetDocument(document1.Id).GetTextAsync();
+        Assert.Equal(sourceV2, text.ToString());
+
+        EndDebuggingSession(debuggingSession);
+
+        AssertEx.SequenceEqual(
+        [
+            "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
+            "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=True|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=0|ProjectIdsWithAppliedChanges=|ProjectIdsWithUpdatedBaselines="
+        ], _telemetryLog);
     }
 
     [Fact]

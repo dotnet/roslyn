@@ -9029,14 +9029,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class BoundLoweredConditionalAccess
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiverOrCondition.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
+        Public Sub New(syntax As SyntaxNode, receiver As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            MyBase.New(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors OrElse receiver.NonNullAndHasErrors() OrElse whenNotNull.NonNullAndHasErrors() OrElse whenNullOpt.NonNullAndHasErrors())
 
-            Debug.Assert(receiverOrCondition IsNot Nothing, "Field 'receiverOrCondition' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(receiver IsNot Nothing, "Field 'receiver' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(whenNotNull IsNot Nothing, "Field 'whenNotNull' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
-            Me._ReceiverOrCondition = receiverOrCondition
+            Me._Receiver = receiver
             Me._CaptureReceiver = captureReceiver
             Me._PlaceholderId = placeholderId
             Me._WhenNotNull = whenNotNull
@@ -9049,10 +9049,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
 
-        Private ReadOnly _ReceiverOrCondition As BoundExpression
-        Public ReadOnly Property ReceiverOrCondition As BoundExpression
+        Private ReadOnly _Receiver As BoundExpression
+        Public ReadOnly Property Receiver As BoundExpression
             Get
-                Return _ReceiverOrCondition
+                Return _Receiver
             End Get
         End Property
 
@@ -9089,9 +9089,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitLoweredConditionalAccess(Me)
         End Function
 
-        Public Function Update(receiverOrCondition As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
-            If receiverOrCondition IsNot Me.ReceiverOrCondition OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiverOrCondition, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
+        Public Function Update(receiver As BoundExpression, captureReceiver As Boolean, placeholderId As Integer, whenNotNull As BoundExpression, whenNullOpt As BoundExpression, type As TypeSymbol) As BoundLoweredConditionalAccess
+            If receiver IsNot Me.Receiver OrElse captureReceiver <> Me.CaptureReceiver OrElse placeholderId <> Me.PlaceholderId OrElse whenNotNull IsNot Me.WhenNotNull OrElse whenNullOpt IsNot Me.WhenNullOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundLoweredConditionalAccess(Me.Syntax, receiver, captureReceiver, placeholderId, whenNotNull, whenNullOpt, type, Me.HasErrors)
                 result.CopyAttributes(Me)
                 Return result
             End If
@@ -12013,7 +12013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-            Me.Visit(node.ReceiverOrCondition)
+            Me.Visit(node.Receiver)
             Me.Visit(node.WhenNotNull)
             Me.Visit(node.WhenNullOpt)
             Return Nothing
@@ -13097,11 +13097,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess) As BoundNode
-            Dim receiverOrCondition As BoundExpression = DirectCast(Me.Visit(node.ReceiverOrCondition), BoundExpression)
+            Dim receiver As BoundExpression = DirectCast(Me.Visit(node.Receiver), BoundExpression)
             Dim whenNotNull As BoundExpression = DirectCast(Me.Visit(node.WhenNotNull), BoundExpression)
             Dim whenNullOpt As BoundExpression = DirectCast(Me.Visit(node.WhenNullOpt), BoundExpression)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(receiverOrCondition, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, type)
+            Return node.Update(receiver, node.CaptureReceiver, node.PlaceholderId, whenNotNull, whenNullOpt, type)
         End Function
 
         Public Overrides Function VisitComplexConditionalAccessReceiver(node As BoundComplexConditionalAccessReceiver) As BoundNode
@@ -14554,7 +14554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitLoweredConditionalAccess(node As BoundLoweredConditionalAccess, arg As Object) As TreeDumperNode
             Return New TreeDumperNode("loweredConditionalAccess", Nothing, New TreeDumperNode() {
-                New TreeDumperNode("receiverOrCondition", Nothing, new TreeDumperNode() {Visit(node.ReceiverOrCondition, Nothing)}),
+                New TreeDumperNode("receiver", Nothing, new TreeDumperNode() {Visit(node.Receiver, Nothing)}),
                 New TreeDumperNode("captureReceiver", node.CaptureReceiver, Nothing),
                 New TreeDumperNode("placeholderId", node.PlaceholderId, Nothing),
                 New TreeDumperNode("whenNotNull", Nothing, new TreeDumperNode() {Visit(node.WhenNotNull, Nothing)}),

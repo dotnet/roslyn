@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal static class QuickInfoUtilities
 {
+    /// <summary>
+    /// Display variable name only.
+    /// </summary>
+    private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new SymbolDisplayFormat();
+
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, onTheFlyDocsInfo: null, cancellationToken);
 
@@ -136,8 +141,8 @@ internal static class QuickInfoUtilities
 
         var nullableMessage = flowState switch
         {
-            NullableFlowState.MaybeNull => string.Format(FeaturesResources._0_may_be_null_here, symbol.Name),
-            NullableFlowState.NotNull => string.Format(FeaturesResources._0_is_not_null_here, symbol.Name),
+            NullableFlowState.MaybeNull => string.Format(FeaturesResources._0_may_be_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
+            NullableFlowState.NotNull => string.Format(FeaturesResources._0_is_not_null_here, symbol.ToDisplayString(s_nullableDisplayFormat)),
             _ => null
         };
 

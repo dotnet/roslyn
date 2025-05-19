@@ -38,103 +38,170 @@ public class UseExpressionBodyForOperatorsRefactoringTests : AbstractCSharpCodeA
     public async Task TestNotOfferedIfUserPrefersExpressionBodiesAndInBlockBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        [||]Bar();
-    }
-}", parameters: new TestParameters(options: UseExpressionBody));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesWithoutDiagnosticAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2) => Bar();
-}", parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesAndInBlockBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        [||]Bar();
-    }
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2) => Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [||]Bar();
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedInLambda()
     {
         await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        return () => { [||] };
-    }
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return () => { [||] };
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestNotOfferedIfUserPrefersBlockBodiesAndInExpressionBody()
     {
         await TestMissingAsync(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}", parameters: new TestParameters(options: UseBlockBody));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersBlockBodiesWithoutDiagnosticAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        return Bar();
-    }
-}", parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBodyDisabledDiagnostic));
     }
 
     [Fact]
     public async Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
     {
         await TestInRegularAndScript1Async(
-@"class C
-{
-    public static bool operator +(C c1, C c2) => [||]Bar();
-}",
-@"class C
-{
-    public static bool operator +(C c1, C c2)
-    {
-        return Bar();
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => [||]Bar();
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    return Bar();
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBody));
     }
-}", parameters: new TestParameters(options: UseExpressionBody));
+
+    [Fact]
+    public async Task TestOfferedWithSelectionInsideBlockBody()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [|Bar()|];
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2) => Bar();
+            }
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
+    }
+
+    [Fact]
+    public async Task TestNotOfferedWithSelectionOutsideBlockBody()
+    {
+        await TestMissingAsync(
+            """
+            class C
+            {
+                public static bool operator +(C c1, C c2)
+                {
+                    [|Bar();
+                }
+            }|]
+            """,
+            parameters: new TestParameters(options: UseBlockBody));
     }
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -351,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // Claim its all changed
                     Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, "Invalid Snapshots");
-                    return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldTextLength), this.Length));
+                    return [new TextChangeRange(new TextSpan(0, oldTextLength), this.Length)];
                 }
                 else if (AreSameReiteratedVersion(oldImage, newImage))
                 {

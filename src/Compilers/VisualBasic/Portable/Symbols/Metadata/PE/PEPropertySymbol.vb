@@ -4,14 +4,14 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
-Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Runtime.CompilerServices
+Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
-Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -270,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Friend Sub SetIsWithEvents(value As Boolean)
             Dim newValue = If(value, ThreeState.True, ThreeState.False)
-            Dim origValue = Threading.Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
+            Dim origValue = Interlocked.CompareExchange(Me._isWithEvents, newValue, ThreeState.Unknown)
             Debug.Assert(origValue = ThreeState.Unknown OrElse origValue = newValue, "Tried changing already known IsWithEvent value.")
         End Sub
 

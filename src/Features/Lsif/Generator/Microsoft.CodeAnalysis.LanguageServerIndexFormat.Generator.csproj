@@ -39,7 +39,7 @@
            subdirectories -->
 
       <!-- HACK: Setting SatelliteResourceLanguages still seems to be bringing satellite resources from other project references along,
-           so we'll filter this in the condition here. --> 
+           so we'll filter this in the condition here. -->
       <TfmSpecificPackageFile Include="@(ReferenceCopyLocalPaths)"
                               PackagePath="tools\$(TargetFramework)\any\%(ReferenceCopyLocalPaths.DestinationSubDirectory)"
                               Condition="'%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' and '%(Extension)' != '.pdb' and '%(Extension)' != '.xml'" />
@@ -55,7 +55,6 @@
   </Target>
 
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
     <Compile Include="..\..\..\Workspaces\Remote\Core\VisualStudioMefHostServices.cs" Link="VisualStudioMefHostServices.cs" />
   </ItemGroup>
 
@@ -80,7 +79,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />

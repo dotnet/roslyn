@@ -6029,11 +6029,7 @@ End Interface
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(
-                        semanticEdits:=
-                        {
-                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of MethodSymbol)("C.F").PartialImplementationPart, deletedSymbolContainerProvider:=Function(c) c.GetMember("C"), partialType:="C")
-                        }),
+                    DocumentResults(),
                     DocumentResults(
                         semanticEdits:=
                         {

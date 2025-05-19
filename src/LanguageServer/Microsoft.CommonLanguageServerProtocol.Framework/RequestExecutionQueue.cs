@@ -10,13 +10,11 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -239,6 +237,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
+
+                    using var loggerScope = _logger.CreateContext(work.MethodName);
 
                     // Serially in the queue determine which language is appropriate for handling the request (based on the request URI).
                     //

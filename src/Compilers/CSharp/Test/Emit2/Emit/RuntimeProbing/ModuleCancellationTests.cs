@@ -2783,4 +2783,28 @@ public sealed class ModuleCancellationTests : CSharpTestBase
         var verifier = CompileAndVerify(source);
         AssertNotInstrumentedWithTokenLoad(verifier, "C<T>.G<S>(T, S, System.Threading.CancellationToken)");
     }
+
+    [Fact]
+    public void FlowPass()
+    {
+        var source = """
+            using System.Threading;
+            using System.Collections.Generic;
+
+            class C
+            {
+                IEnumerable<int> F()
+                {
+                    var x = G() as string;
+                    yield return (x != null) ? 1 : 0;
+                }
+
+                object G(CancellationToken token = default)
+                    => "";
+            }
+            """;
+
+        // definite assignment flow pass doesn't fail
+        CompileAndVerify(source).VerifyDiagnostics();
+    }
 }

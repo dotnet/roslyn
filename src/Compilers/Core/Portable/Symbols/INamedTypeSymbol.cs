@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IMethodSymbol> StaticConstructors { get; }
 
         /// <summary>
-        /// Get the both instance and static constructors for this type.
+        /// Get both instance and static constructors for this type.
         /// </summary>
         ImmutableArray<IMethodSymbol> Constructors { get; }
 

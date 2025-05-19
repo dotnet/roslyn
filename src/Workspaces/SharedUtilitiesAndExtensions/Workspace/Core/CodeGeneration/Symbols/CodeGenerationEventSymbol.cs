@@ -59,5 +59,11 @@ internal sealed class CodeGenerationEventSymbol(
 
     public IEventSymbol? OverriddenEvent => null;
 
+    public IEventSymbol? PartialImplementationPart => null;
+
+    public IEventSymbol? PartialDefinitionPart => null;
+
+    public bool IsPartialDefinition => false;
+
     public static ImmutableArray<CustomModifier> TypeCustomModifiers => [];
 }

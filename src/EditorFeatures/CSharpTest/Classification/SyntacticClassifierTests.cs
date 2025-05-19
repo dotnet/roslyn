@@ -1504,8 +1504,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
 
         var expected = new[]
         {
-            PPKeyword("#"),
-            PPText("!/usr/bin/env scriptcs"),
+            Comment("#!/usr/bin/env scriptcs"),
             Identifier("System"),
             Operators.Dot,
             Identifier("Console"),
@@ -1708,6 +1707,89 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             XmlDoc.Delimiter(">"),
             Keyword("class"),
             Class("Bar"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory]
+    [InlineData(TestHost.InProcess, "true", false)]
+    [InlineData(TestHost.OutOfProcess, "true", false)]
+    [InlineData(TestHost.InProcess, "return", true)]
+    [InlineData(TestHost.OutOfProcess, "return", true)]
+    [InlineData(TestHost.InProcess, "with", false)]
+    [InlineData(TestHost.OutOfProcess, "with", false)]
+    public async Task XmlDocComment_LangWordAttribute_Keywords(TestHost testHost, string langword, bool isControlKeyword)
+    {
+        await TestAsync(
+            $$"""
+            /// <summary>
+            /// <see langword="{{langword}}"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """,
+            testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            isControlKeyword ? ControlKeyword(langword) : Keyword(langword),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task XmlDocComment_LangWordAttribute_NonKeyword(TestHost testHost)
+    {
+        await TestAsync(
+            """
+            /// <summary>
+            /// <see langword="MyWord"/>
+            /// </summary>
+            class MyClass
+            {
+            }
+            """, testHost,
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("<"),
+            XmlDoc.Name("see"),
+            XmlDoc.AttributeName("langword"),
+            XmlDoc.Delimiter("="),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.AttributeValue("MyWord"),
+            XmlDoc.AttributeQuotes("\""),
+            XmlDoc.Delimiter("/>"),
+            XmlDoc.Delimiter("///"),
+            XmlDoc.Text(" "),
+            XmlDoc.Delimiter("</"),
+            XmlDoc.Name("summary"),
+            XmlDoc.Delimiter(">"),
+            Keyword("class"),
+            Class("MyClass"),
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
     }

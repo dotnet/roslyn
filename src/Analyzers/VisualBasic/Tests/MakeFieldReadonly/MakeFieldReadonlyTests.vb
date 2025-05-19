@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeFieldReadonly
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)>
-    Public Class MakeFieldReadonlyTests
+    Public NotInheritable Class MakeFieldReadonlyTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Private Shared ReadOnly s_strictFeatureFlag As ParseOptions = VisualBasicParseOptions.Default.WithFeatures({New KeyValuePair(Of String, String)("strict", "true")})
@@ -1154,7 +1154,7 @@ end class
 ", parseOptions:=s_strictFeatureFlag)
         End Function
 
-        <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47197")>
         Public Async Function StrictFeatureFlagAssignment2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "
@@ -1171,7 +1171,7 @@ end class
 ", New TestParameters(parseOptions:=s_strictFeatureFlag))
         End Function
 
-        <Fact, WorkItem(47197, "https://github.com/dotnet/roslyn/issues/47197")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47197")>
         Public Async Function StrictFeatureFlagAssignment3() As Task
             Await TestMissingAsync(
 "
@@ -1185,6 +1185,76 @@ class C(Of T)
         C(Of string).s_value = nothing
     end sub
 end class
+")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")>
+        Public Async Function TestIndexedAndAssignedField_StructType() As Task
+            Await TestMissingAsync(
+"
+friend class GreenNode
+end class
+
+friend structure SyntaxListBuilder(of TNode as GreenNode)
+    Default Public ReadOnly Property Item(ByVal index as Integer) As GreenNode
+        Get
+            return nothing
+        End Get
+    End Property
+end structure
+
+Friend Class SkippedTriviaBuilder
+    Private [|_triviaListBuilder|] As SyntaxListBuilder(Of GreenNode)
+
+    Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
+        _triviaListBuilder(0) = trivia
+    End Sub
+End Class
+")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47198")>
+        Public Async Function TestIndexedAndAssignedField_ClassType() As Task
+            Await TestInRegularAndScript1Async(
+"
+friend class GreenNode
+end class
+
+friend class SyntaxListBuilder(of TNode as GreenNode)
+    Default Public ReadOnly Property Item(ByVal index as Integer) As GreenNode
+        Get
+            return nothing
+        End Get
+    End Property
+end class
+
+Friend Class SkippedTriviaBuilder
+    Private [|_triviaListBuilder|] As SyntaxListBuilder(Of GreenNode)
+
+    Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
+        _triviaListBuilder(0) = trivia
+    End Sub
+End Class
+",
+"
+friend class GreenNode
+end class
+
+friend class SyntaxListBuilder(of TNode as GreenNode)
+    Default Public ReadOnly Property Item(ByVal index as Integer) As GreenNode
+        Get
+            return nothing
+        End Get
+    End Property
+end class
+
+Friend Class SkippedTriviaBuilder
+    Private ReadOnly _triviaListBuilder As SyntaxListBuilder(Of GreenNode)
+
+    Public Sub AddSkippedTrivia(ByVal trivia As GreenNode)
+        _triviaListBuilder(0) = trivia
+    End Sub
+End Class
 ")
         End Function
     End Class

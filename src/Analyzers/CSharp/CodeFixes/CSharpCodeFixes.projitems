@@ -111,6 +111,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseExplicitTypeForConst\UseExplicitTypeForConstCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeActionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseExpressionBodyForLambda\UseExpressionBodyForLambdaCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseImplicitlyTypedLambdaExpression\CSharpUseImplicitObjectCreationCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInterpolatedVerbatimString\CSharpUseInterpolatedVerbatimStringCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\CSharpUseLocalFunctionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInAttribute\CSharpUseNameofInAttributeCodeFixProvider.cs" />

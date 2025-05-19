@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         {
             var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
             Assert.NotNull(tree);
-            Roslyn.Utilities.Contract.ThrowIfNull(tree);
+            Contract.ThrowIfNull(tree);
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
             Assert.Equal(expected.Replace("\"", "\"\""), actualTree);
 

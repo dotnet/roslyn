@@ -89,6 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private DocumentationCommentParser? _xmlParser;
         private DirectiveParser? _directiveParser;
 
+        private SyntaxListBuilder _leadingTriviaCache;
+        private SyntaxListBuilder _trailingTriviaCache;
+        private SyntaxListBuilder? _directiveTriviaCache;
+
         internal struct TokenInfo
         {
             // scanned values
@@ -116,11 +120,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(options != null);
 
             _options = options;
-            _builder = new StringBuilder();
-            _identBuffer = new char[32];
-            _cache = new LexerCache();
             _allowPreprocessorDirectives = allowPreprocessorDirectives;
             _interpolationFollowedByColon = interpolationFollowedByColon;
+
+            // Obtain pooled items
+            _cache = LexerCache.GetInstance();
+            _builder = _cache.StringBuilder;
+            _identBuffer = _cache.IdentBuffer;
+            _leadingTriviaCache = _cache.LeadingTriviaCache;
+            _trailingTriviaCache = _cache.TrailingTriviaCache;
         }
 
         public override void Dispose()
@@ -280,10 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     throw ExceptionUtilities.UnexpectedValue(ModeOf(_mode));
             }
         }
-
-        private SyntaxListBuilder _leadingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder _trailingTriviaCache = new SyntaxListBuilder(10);
-        private SyntaxListBuilder? _directiveTriviaCache;
 
         private static int GetFullWidth(SyntaxListBuilder? builder)
         {
@@ -782,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (TextWindow.PeekChar(1) is '$' or '@' or '"')
             {
                 // $$ - definitely starts a raw interpolated string.
-                // $@ - definitely starts an interplated string.
+                // $@ - definitely starts an interpolated string.
                 //
                 // This will also match for $@@.  This is an error case when the user thinks they can mix verbatim and raw
                 // interpolations together.  This will be properly handled in ScanInterpolatedStringLiteral
@@ -2594,6 +2598,11 @@ top:
                 case '-':
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.MinusToken;
+                    break;
+
+                case ':':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.ColonToken;
                     break;
 
                 case '!':

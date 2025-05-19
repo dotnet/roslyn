@@ -139,17 +139,13 @@ internal static partial class SemanticModelExtensions
         //
         // Only GetTypeInfo will return any information for XEventHandler.  So, in this
         // case, we upgrade the type to be the symbol we return.
-        if (type != null && allSymbols.Length == 0)
+        if (type is INamedTypeSymbol namedType && allSymbols.Length == 0)
         {
-            if (type.Kind == SymbolKind.NamedType)
+            if (namedType.TypeKind == TypeKind.Delegate ||
+                namedType.AssociatedSymbol != null)
             {
-                var namedType = (INamedTypeSymbol)type;
-                if (namedType.TypeKind == TypeKind.Delegate ||
-                    namedType.AssociatedSymbol != null)
-                {
-                    allSymbols = [type];
-                    type = null;
-                }
+                allSymbols = [type];
+                type = null;
             }
         }
 

@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class ShortKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class ShortKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()
@@ -350,9 +350,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact]
-        public async Task TestNotAfterNestedPartial()
+        public async Task TestAfterNestedPartial()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
                 """
                 class C {
                     partial $$
@@ -958,10 +958,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterRefInClassInterfaceStructRecord(string type)
         {
             await VerifyKeywordAsync(
-$@"{type} N
-{{
-    ref $$
-}}");
+                $$"""
+                {{type}} N
+                {
+                    ref $$
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -972,10 +974,12 @@ $@"{type} N
         public async Task TestAfterReadonlyInClassInterfaceStructRecord(string type)
         {
             await VerifyKeywordAsync(
-$@"{type} N
-{{
-    readonly $$
-}}");
+                $$"""
+                {{type}} N
+                {
+                    readonly $$
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -986,10 +990,27 @@ $@"{type} N
         public async Task TestAfterRefReadonlyInClassInterfaceStructRecord(string type)
         {
             await VerifyKeywordAsync(
-$@"{type} N
-{{
-    ref readonly $$
-}}");
+                $$"""
+                {{type}} N
+                {
+                    ref readonly $$
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
         }
     }
 }

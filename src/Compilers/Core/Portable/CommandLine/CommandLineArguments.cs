@@ -315,6 +315,10 @@ namespace Microsoft.CodeAnalysis
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
+        internal CommandLineArguments()
+        {
+        }
+
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
         /// </summary>

@@ -4583,6 +4583,147 @@ class X
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
+        public void PublicAPI_01()
+        {
+            // target-typed object creation
+            var source = """
+                static A Do()
+                {
+                    return new("ASD");
+                }
+
+                public record class A(string Id, int Count);
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (1,10): warning CS8321: The local function 'Do' is declared but never used
+                // static A Do()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Do").WithArguments("Do").WithLocation(1, 10),
+                // (3,12): error CS7036: There is no argument given that corresponds to the required parameter 'Count' of 'A.A(string, int)'
+                //     return new("ASD");
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, @"new(""ASD"")").WithArguments("Count", "A.A(string, int)").WithLocation(3, 12));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("A", typeInfo.Type.ToTestDisplayString());
+
+            var members = model.GetMemberGroup(node).SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.SequenceEqual(["A..ctor(System.String Id, System.Int32 Count)"], members);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
+        public void PublicAPI_02()
+        {
+            // target-typed object creation with syntax errors
+            var source = """
+                static A Do()
+                {
+                    return new("ASD",);
+                }
+
+                public record class A(string Id, int Count);
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (1,10): warning CS8321: The local function 'Do' is declared but never used
+                // static A Do()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Do").WithArguments("Do").WithLocation(1, 10),
+                // (3,22): error CS1525: Invalid expression term ')'
+                //     return new("ASD",);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 22));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("A", typeInfo.Type.ToTestDisplayString());
+
+            var members = model.GetMemberGroup(node).SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.SequenceEqual(["A..ctor(System.String Id, System.Int32 Count)"], members);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
+        public void PublicAPI_03()
+        {
+            // explicitly-typed object creation with syntax errors
+            var source = """
+                static A Do()
+                {
+                    return new A("ASD",);
+                }
+
+                public record class A(string Id, int Count);
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics(
+                // (1,10): warning CS8321: The local function 'Do' is declared but never used
+                // static A Do()
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Do").WithArguments("Do").WithLocation(1, 10),
+                // (3,24): error CS1525: Invalid expression term ')'
+                //     return new A("ASD",);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(3, 24));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("A", typeInfo.Type.ToTestDisplayString());
+
+            var members = model.GetMemberGroup(node).SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.SequenceEqual(["A..ctor(System.String Id, System.Int32 Count)"], members);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76499")]
+        public void Repro_76499_2()
+        {
+            // explicit and target-typed object creation with syntax errors
+            // using non-records and overloaded constructors
+            var source = """
+                class C
+                {
+                    public C(int x, int y) { }
+                    public C(int x, int y, int z) { }
+
+                    public static void M()
+                    {
+                        C c1 = new C(1,);
+                        C c2 = new(1,);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyEmitDiagnostics(
+                // (8,24): error CS1525: Invalid expression term ')'
+                //         C c1 = new C(1,);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 24),
+                // (9,22): error CS1525: Invalid expression term ')'
+                //         C c2 = new(1,);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(9, 22));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            var members = model.GetMemberGroup(node).SelectAsArray(m => m.ToTestDisplayString());
+            string[] expectedMembers = ["C..ctor(System.Int32 x, System.Int32 y)", "C..ctor(System.Int32 x, System.Int32 y, System.Int32 z)"];
+            AssertEx.SequenceEqual(expectedMembers, members);
+
+            var explicitCreationNode = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+            members = model.GetMemberGroup(explicitCreationNode).SelectAsArray(m => m.ToTestDisplayString());
+            AssertEx.SequenceEqual(expectedMembers, members);
+        }
+
         [Fact]
         [WorkItem(50489, "https://github.com/dotnet/roslyn/issues/50489")]
         public void InEarlyWellknownAttribute_01()

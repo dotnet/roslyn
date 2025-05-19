@@ -8305,6 +8305,82 @@ End Class"
                 matchingFilters:=New List(Of CompletionFilter) From {FilterSet.MethodFilter})
         End Function
 
+        <InlineData("IGoo", New String() {"Goo", "GooDerived", "GooGeneric"})>
+        <InlineData("IGoo()", New String() {"IGoo", "IGooGeneric", "Goo", "GooAbstract", "GooDerived", "GooGeneric"})>
+        <InlineData("IGooGeneric(Of Integer)", New String() {"GooGeneric"})>
+        <InlineData("IGooGeneric(Of Integer)()", New String() {"IGooGeneric", "GooGeneric"})>
+        <InlineData("IOther", New String() {})>
+        <InlineData("Goo", New String() {"Goo"})>
+        <InlineData("GooAbstract", New String() {"GooDerived"})>
+        <InlineData("GooDerived", New String() {"GooDerived"})>
+        <InlineData("GooGeneric(Of Integer)", New String() {"GooGeneric"})>
+        <InlineData("object", New String() {"C", "Goo", "GooDerived", "GooGeneric"})>
+        <Theory, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)>
+        Public Async Function TestTargetTypeFilter_InCreationContext(targetType As String, expectedItems As String()) As Task
+            ShowTargetTypedCompletionFilter = True
+            Dim markup =
+$"Interface IGoo
+End Interface
+
+Interface IGooGeneric(Of T)
+    Inherits IGoo
+End Interface
+
+Interface IOther
+End Interface
+
+Class Goo
+    Implements IGoo
+End Class
+
+MustInherit Class GooAbstract
+    Implements IGoo
+End Class
+
+Class GooDerived
+    Inherits GooAbstract
+End Class
+
+Class GooGeneric(Of T)
+    Implements IGooGeneric(Of T)
+End Class
+
+Class C
+    Sub M1(arg As {targetType})
+    End Sub
+
+    Sub M2()
+        M1(New $$)
+    End Sub
+End Class"
+            Dim types As New List(Of (Name As String, IsClass As Boolean, DisplaySuffix As String)) From {
+                ("IGoo", False, Nothing),
+                ("IGooGeneric", False, "(Of …)"),
+                ("IOther", False, Nothing),
+                ("Goo", True, Nothing),
+                ("GooAbstract", True, Nothing),
+                ("GooDerived", True, Nothing),
+                ("GooGeneric", True, "(Of …)"),
+                ("C", True, Nothing)
+            }
+
+            For Each item In types.Where(Function(t) t.IsClass AndAlso expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.ClassFilter, FilterSet.TargetTypedFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) t.IsClass AndAlso Not expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.ClassFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) Not t.IsClass AndAlso expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.InterfaceFilter, FilterSet.TargetTypedFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+
+            For Each item In types.Where(Function(t) Not t.IsClass AndAlso Not expectedItems.Contains(t.Name))
+                Await VerifyItemExistsAsync(markup, item.Name, matchingFilters:=New List(Of CompletionFilter) From {FilterSet.InterfaceFilter}, displayTextSuffix:=item.DisplaySuffix)
+            Next
+        End Function
+
         <Theory, MemberData(NameOf(ValidEnumUnderlyingTypeNames))>
         Public Async Function TestEnumBaseList1(underlyingType As String) As Task
             Dim markup = "Enum MyEnum As $$"

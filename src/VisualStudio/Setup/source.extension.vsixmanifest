@@ -47,7 +47,6 @@
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.CSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.EditorFeatures.dll" />
@@ -68,10 +67,9 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.LiveShare.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CommonLanguageServerProtocol.Framework.dll" />
-    <!-- ServiceHub assets are added by msbuild target -->
-    <!--#SERVICEHUB_ASSETS#-->
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />

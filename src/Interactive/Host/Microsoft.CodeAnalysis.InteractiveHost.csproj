@@ -36,20 +36,11 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NonCopyableAttribute.cs" Link="Utilities\NonCopyableAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\VoidResult.cs" Link="Utilities\VoidResult.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\TestHooks\IExpeditableDelaySource.cs" Link="Utilities\IExpeditableDelaySource.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="Utilities\Contract.cs" />
-    <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="Utilities\Contract.InterpolatedStringHandlers.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\TaskExtensions.cs" Link="Utilities\TaskExtensions.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy.cs" Link="Utilities\AsyncLazy.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" Link="Utilities\InterpolatedStringHandlerArgumentAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" Link="Utilities\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="Utilities\NullableAttributes.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs" Link="Utilities\ExceptionUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FailFast.cs" Link="Utilities\FailFast.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs" Link="Utilities\FatalError.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
@@ -61,6 +52,8 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="Utilities\PathUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="Utilities\PathKind.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Utilities\ArrayBuilderExtensions.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\PooledDisposer.cs" Link="Utilities\PooledDisposer.cs" />
+    <Compile Include="..\..\Dependencies\PooledObjects\IPooled.cs" Link="Utilities\IPooled.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.cs" Link="Utilities\ArrayBuilder.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\ArrayBuilder.Enumerator.cs" Link="Utilities\ArrayBuilder.Enumerator.cs" />
     <Compile Include="..\..\Dependencies\PooledObjects\ObjectPool`1.cs" Link="Utilities\ObjectPool`1.cs" />
@@ -76,4 +69,7 @@
   <ItemGroup>
     <EmbeddedResource Update="InteractiveHostResources.resx" GenerateSource="true" />
   </ItemGroup>
+  <Import Project="..\..\Dependencies\Threading\Microsoft.CodeAnalysis.Threading.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

@@ -15,10 +15,8 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
@@ -92,17 +90,17 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             if (_service.IsConstructorInitializerGeneration(_document, node, cancellationToken))
             {
-                if (!TryInitializeConstructorInitializerGeneration(node, cancellationToken))
+                if (!(await TryInitializeConstructorInitializerGenerationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else if (_service.IsSimpleNameGeneration(_document, node, cancellationToken))
             {
-                if (!TryInitializeSimpleNameGeneration(node, cancellationToken))
+                if (!(await TryInitializeSimpleNameGenerationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else if (_service.IsImplicitObjectCreation(_document, node, cancellationToken))
             {
-                if (!TryInitializeImplicitObjectCreation(node, cancellationToken))
+                if (!(await TryInitializeImplicitObjectCreationAsync(node, cancellationToken).ConfigureAwait(false)))
                     return false;
             }
             else
@@ -195,8 +193,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             for (var i = allParameters.Length; i > 0; i--)
             {
-                var parameters = allParameters.TakeAsArray(i);
-                var expressions = allExpressions.TakeAsArray(i);
+                var parameters = allParameters[0..i];
+                var expressions = allExpressions[0..i];
                 var result = FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.InstanceConstructors, cancellationToken) ??
                              FindConstructorToDelegateTo(parameters, expressions, TypeToGenerateIn.BaseType.InstanceConstructors, cancellationToken);
                 if (result != null)
@@ -298,7 +296,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 .RemoveUnnamedErrorTypes(compilation);
         }
 
-        private bool TryInitializeConstructorInitializerGeneration(
+        private async ValueTask<bool> TryInitializeConstructorInitializerGenerationAsync(
             SyntaxNode constructorInitializer, CancellationToken cancellationToken)
         {
             if (_service.TryInitializeConstructorInitializerGeneration(
@@ -311,13 +309,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
                 var semanticInfo = _document.SemanticModel.GetSymbolInfo(constructorInitializer, cancellationToken);
                 if (semanticInfo.Symbol == null)
-                    return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+                    return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
         }
 
-        private bool TryInitializeImplicitObjectCreation(SyntaxNode implicitObjectCreation, CancellationToken cancellationToken)
+        private async ValueTask<bool> TryInitializeImplicitObjectCreationAsync(SyntaxNode implicitObjectCreation, CancellationToken cancellationToken)
         {
             if (_service.TryInitializeImplicitObjectCreation(
                     _document, implicitObjectCreation, cancellationToken,
@@ -328,13 +326,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
                 var semanticInfo = _document.SemanticModel.GetSymbolInfo(implicitObjectCreation, cancellationToken);
                 if (semanticInfo.Symbol == null)
-                    return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+                    return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
             }
 
             return false;
         }
 
-        private bool TryInitializeSimpleNameGeneration(
+        private async ValueTask<bool> TryInitializeSimpleNameGenerationAsync(
             SyntaxNode simpleName,
             CancellationToken cancellationToken)
         {
@@ -361,14 +359,13 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return TryDetermineTypeToGenerateIn(typeToGenerateIn, cancellationToken);
+            return await TryDetermineTypeToGenerateInAsync(typeToGenerateIn, cancellationToken).ConfigureAwait(false);
         }
 
         private static bool IsValidAttributeParameterType(ITypeSymbol type)
         {
-            if (type.Kind == SymbolKind.ArrayType)
+            if (type is IArrayTypeSymbol arrayType)
             {
-                var arrayType = (IArrayTypeSymbol)type;
                 if (arrayType.Rank != 1)
                 {
                     return false;
@@ -400,10 +397,10 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             }
         }
 
-        private bool TryDetermineTypeToGenerateIn(
+        private async ValueTask<bool> TryDetermineTypeToGenerateInAsync(
             INamedTypeSymbol original, CancellationToken cancellationToken)
         {
-            var definition = SymbolFinderInternal.FindSourceDefinition(original, _document.Project.Solution, cancellationToken);
+            var definition = await SymbolFinderInternal.FindSourceDefinitionAsync(original, _document.Project.Solution, cancellationToken).ConfigureAwait(false);
             TypeToGenerateIn = definition as INamedTypeSymbol;
 
             return TypeToGenerateIn?.TypeKind is (TypeKind?)TypeKind.Class or (TypeKind?)TypeKind.Struct;

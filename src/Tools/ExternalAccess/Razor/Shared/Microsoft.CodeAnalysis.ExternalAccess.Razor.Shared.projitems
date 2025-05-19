@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>4853a78a-4ec4-4d86-9f02-d0ddeae85520</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Razor.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorClientLanguageServerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentExcerptService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentOperationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentPropertiesService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDocumentServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorDynamicFileInfoProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorClassificationOptionsWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorClientLanguageServerManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentExcerptServiceWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentPropertiesServiceWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentServiceProviderWrapper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDynamicFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptMode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorExcerptResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorMappedSpanResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorMappingServiceWrapper.cs" />
+  </ItemGroup>
+</Project>

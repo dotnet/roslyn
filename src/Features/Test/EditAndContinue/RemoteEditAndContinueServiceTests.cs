@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue;
@@ -257,7 +256,7 @@ public class RemoteEditAndContinueServiceTests
         mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
         {
             AssertEx.Equal(new[] { documentId, inProcOnlyDocumentId }, documentIds);
-            return [ImmutableArray.Create(activeStatementSpan1)];
+            return [[activeStatementSpan1]];
         };
 
         var baseActiveSpans = await sessionProxy.GetBaseActiveStatementSpansAsync(localWorkspace.CurrentSolution, [documentId, inProcOnlyDocumentId], CancellationToken.None);

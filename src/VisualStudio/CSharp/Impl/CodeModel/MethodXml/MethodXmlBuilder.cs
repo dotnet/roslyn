@@ -484,22 +484,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
             using (NameRefTag(GetVariableKind(symbol)))
             {
                 var leftHandSymbol = SemanticModel.GetSymbolInfo(memberAccessExpression.Expression).Symbol;
-                if (leftHandSymbol != null)
-                {
-                    if (leftHandSymbol.Kind == SymbolKind.Alias)
-                    {
-                        leftHandSymbol = ((IAliasSymbol)leftHandSymbol).Target;
-                    }
-                }
+                if (leftHandSymbol is IAliasSymbol alias)
+                    leftHandSymbol = alias.Target;
 
                 // If the left-hand side is a named type, we generate a literal expression
                 // with the type name. Otherwise, we generate the expression normally.
-                if (leftHandSymbol != null && leftHandSymbol.Kind == SymbolKind.NamedType)
+                if (leftHandSymbol is INamedTypeSymbol namedType)
                 {
                     using (ExpressionTag())
                     using (LiteralTag())
                     {
-                        GenerateType((ITypeSymbol)leftHandSymbol);
+                        GenerateType(namedType);
                     }
                 }
                 else if (!TryGenerateExpression(memberAccessExpression.Expression))

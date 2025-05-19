@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export, Shared]
 internal sealed class ProjectInitializationHandler : IDisposable
 {
-    private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
+    internal const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
     private readonly IServiceBroker _serviceBroker;
     private readonly ServiceBrokerClient _serviceBrokerClient;

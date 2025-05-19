@@ -870,7 +870,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
 
             if (convertedType != null)
             {
-                convertedType = SymbolFinder.FindSourceDefinition(convertedType, document.Project.Solution, cancellationToken)
+                convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
                     ?? convertedType;
             }
 

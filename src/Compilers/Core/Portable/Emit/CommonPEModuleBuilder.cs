@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return _synthesizedTypeMembers.GetOrAdd(container, _ => new SynthesizedDefinitions());
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IMethodDefinition method)
         {
             Debug.Assert(method != null);
 
@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Methods.Enqueue(method);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IPropertyDefinition property)
         {
             Debug.Assert(property != null);
 
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Properties.Enqueue(property);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.IFieldDefinition field)
         {
             Debug.Assert(field != null);
 
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.Emit
             defs.Fields.Enqueue(field);
         }
 
-        public void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
+        public virtual void AddSynthesizedDefinition(TNamedTypeSymbol container, Cci.INestedTypeDefinition nestedType)
         {
             Debug.Assert(nestedType != null);
 

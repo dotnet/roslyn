@@ -38,7 +38,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Simulate building for source-build"
-  echo "  --solution                 Soluton to build (Default is Metalama.Compiler.slnf)"
+  echo "  --solution                 Solution to build (Default is Metalama.Compiler.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -209,7 +209,7 @@ function MakeBootstrapBuild {
   mkdir -p $dir
 
   local package_name="Microsoft.Net.Compilers.Toolset"
-  local project_path=src/NuGet/$package_name/$package_name.Package.csproj
+  local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
   dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"

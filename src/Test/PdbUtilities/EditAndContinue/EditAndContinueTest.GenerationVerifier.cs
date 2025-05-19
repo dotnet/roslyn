@@ -11,7 +11,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
                 });
 
@@ -91,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EntityHandle>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
                 });
 
@@ -99,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
                 });
 
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<EntityHandle>(),
+                        expected ?? [],
                         MetadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
                 });
 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 => Verify(() =>
                 {
                     AssertEx.Equal(
-                        expected ?? Array.Empty<CustomAttributeRow>(),
+                        expected ?? [],
                         MetadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
                 });
 

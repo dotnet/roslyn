@@ -7,6 +7,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -15,14 +16,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentFormattingName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class FormatDocumentHandler() : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]?>
+    internal sealed class FormatDocumentHandler(IGlobalOptionService globalOptions) : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]?>
     {
+        private readonly IGlobalOptionService _globalOptions = globalOptions;
+
         public override LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
 
         public override Task<LSP.TextEdit[]?> HandleRequestAsync(
             LSP.DocumentFormattingParams request,
             RequestContext context,
             CancellationToken cancellationToken)
-            => GetTextEditsAsync(context, request.Options, cancellationToken);
+            => GetTextEditsAsync(context, request.Options, _globalOptions, cancellationToken);
     }
 }

@@ -303,7 +303,6 @@ internal sealed class CodeMarkers
     /// Converts a string into a byte buffer including a zero terminator (needed for proper ETW message formatting)
     /// </summary>
     /// <param name="stringData">String to be converted to bytes</param>
-    /// <returns></returns>
     internal static byte[] StringToBytesZeroTerminated(string stringData)
     {
         var encoding = System.Text.Encoding.Unicode;

@@ -1991,6 +1991,10 @@ empty_token
   : /* see lexical specification */
   ;
 
+character_literal_token
+  : /* see lexical specification */
+  ;
+
 date_literal_token
   : /* see lexical specification */
   ;
@@ -2000,10 +2004,6 @@ decimal_literal_token
   ;
 
 floating_literal_token
-  : /* see lexical specification */
-  ;
-
-character_literal_token
   : /* see lexical specification */
   ;
 

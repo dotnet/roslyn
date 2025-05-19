@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -763,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As Threading.CancellationToken)
+                Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
                     Throw ExceptionUtilities.Unreachable
                 End Sub
 

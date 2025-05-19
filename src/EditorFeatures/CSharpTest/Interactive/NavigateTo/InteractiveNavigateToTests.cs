@@ -641,7 +641,7 @@ public class InteractiveNavigateToTests : AbstractNavigateToTests
 
             var items = await _aggregator.GetItemsAsync("GK");
 
-            Assert.Equal(expecteditems.Count(), items.Count());
+            Assert.Equal(expecteditems.Count, items.Count());
 
             VerifyNavigateToResultItems(expecteditems, items);
         });

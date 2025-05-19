@@ -633,7 +633,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new Exception($"Failed to extract PDB information. PdbToXmlConverter returned:{Environment.NewLine}{actualPdbXml}");
                 }
 
-                var methodDef = (Cci.IMethodDefinition)methodData.Method.GetCciAdapter();
+                var method = methodData.Method.PartialDefinitionPart ?? methodData.Method;
+                var methodDef = (Cci.IMethodDefinition)method.GetCciAdapter();
                 var methodToken = MetadataTokens.GetToken(_testData.MetadataWriter.GetMethodDefinitionOrReferenceHandle(methodDef));
                 var xmlDocument = XElement.Parse(actualPdbXml);
                 var xmlMethod = ILValidation.GetMethodElement(xmlDocument, methodToken);

@@ -1,0 +1,1157 @@
+﻿{
+  "$schema": "http://json.schemastore.org/sarif-1.0.0",
+  "version": "1.0.0",
+  "runs": [
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.Analyzers",
+        "version": "4.14.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS1001": {
+          "id": "RS1001",
+          "shortDescription": "Missing diagnostic analyzer attribute",
+          "fullDescription": "Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticAnalyzerAttributeAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1004": {
+          "id": "RS1004",
+          "shortDescription": "Recommend adding language support to diagnostic analyzer",
+          "fullDescription": "Diagnostic analyzer is marked as supporting only one language, but the analyzer assembly doesn't seem to refer to any language specific CodeAnalysis assemblies, and so is likely to work for more than one language. Consider adding an additional language argument to DiagnosticAnalyzerAttribute.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticAnalyzerAttributeAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1007": {
+          "id": "RS1007",
+          "shortDescription": "Provide localizable arguments to diagnostic descriptor constructor",
+          "fullDescription": "If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisLocalization",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1009": {
+          "id": "RS1009",
+          "shortDescription": "Only internal implementations of this interface are allowed",
+          "fullDescription": "The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCompatibility",
+            "isEnabledByDefault": true,
+            "typeName": "InternalImplementationOnlyAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "RS1010": {
+          "id": "RS1010",
+          "shortDescription": "Create code actions should have a unique EquivalenceKey for FixAll occurrences support",
+          "fullDescription": "A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Correctness",
+            "isEnabledByDefault": true,
+            "typeName": "FixerWithFixAllAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1011": {
+          "id": "RS1011",
+          "shortDescription": "Use code actions that have a unique EquivalenceKey for FixAll occurrences support",
+          "fullDescription": "A CodeFixProvider that intends to support fix all occurrences must classify the registered code actions into equivalence classes by assigning it an explicit, non-null equivalence key which is unique for each kind of code action created by this fixer. This enables the FixAllProvider to fix all diagnostics in the required scope by applying code actions from this fixer that are in the equivalence class of the trigger code action.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Correctness",
+            "isEnabledByDefault": true,
+            "typeName": "FixerWithFixAllAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1014": {
+          "id": "RS1014",
+          "shortDescription": "Do not ignore values returned by methods on immutable objects",
+          "fullDescription": "Many objects exposed by Roslyn are immutable. The return value from a method invocation on these objects should not be ignored.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ImmutableObjectMethodAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1015": {
+          "id": "RS1015",
+          "shortDescription": "Provide non-null 'helpLinkUri' value to diagnostic descriptor constructor",
+          "fullDescription": "The 'helpLinkUri' value is used to show information when this diagnostic in the error list. Every analyzer should have a helpLinkUri specified which points to a help page that does not change over time.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDocumentation",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1016": {
+          "id": "RS1016",
+          "shortDescription": "Code fix providers should provide FixAll support",
+          "fullDescription": "A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Correctness",
+            "isEnabledByDefault": true,
+            "typeName": "FixerWithFixAllAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1017": {
+          "id": "RS1017",
+          "shortDescription": "DiagnosticId for analyzers must be a non-null constant",
+          "fullDescription": "DiagnosticId for analyzers must be a non-null constant.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1018": {
+          "id": "RS1018",
+          "shortDescription": "DiagnosticId for analyzers must be in specified format",
+          "fullDescription": "DiagnosticId for analyzers must be in specified format.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1019": {
+          "id": "RS1019",
+          "shortDescription": "DiagnosticId must be unique across analyzers",
+          "fullDescription": "DiagnosticId must be unique across analyzers.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1020": {
+          "id": "RS1020",
+          "shortDescription": "Category for analyzers must be from the specified values",
+          "fullDescription": "Category for analyzers must be from the specified values.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1021": {
+          "id": "RS1021",
+          "shortDescription": "Invalid entry in analyzer category and diagnostic ID range specification file",
+          "fullDescription": "Invalid entry in analyzer category and diagnostic ID range specification file.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1024": {
+          "id": "RS1024",
+          "shortDescription": "Symbols should be compared for equality",
+          "fullDescription": "Symbols should be compared for equality, not identity. Use an overload accepting an 'IEqualityComparer' and pass 'SymbolEqualityComparer'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CompareSymbolsCorrectlyAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1025": {
+          "id": "RS1025",
+          "shortDescription": "Configure generated code analysis",
+          "fullDescription": "Configure generated code analysis",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ConfigureGeneratedCodeAnalysisAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1026": {
+          "id": "RS1026",
+          "shortDescription": "Enable concurrent execution",
+          "fullDescription": "Enable concurrent execution",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "EnableConcurrentExecutionAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1027": {
+          "id": "RS1027",
+          "shortDescription": "Types marked with DiagnosticAnalyzerAttribute(s) should inherit from DiagnosticAnalyzer",
+          "fullDescription": "Inherit type '{0}' from DiagnosticAnalyzer or remove the DiagnosticAnalyzerAttribute(s)",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "ClassIsNotDiagnosticAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1028": {
+          "id": "RS1028",
+          "shortDescription": "Provide non-null 'customTags' value to diagnostic descriptor constructor",
+          "fullDescription": "The 'customTags' value is used as a way to enable specific actions and filters on diagnostic descriptors based on the specific values of the tags. Every Roslyn analyzer should have at least one tag from the 'WellKnownDiagnosticTags' class.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDocumentation",
+            "isEnabledByDefault": false,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1029": {
+          "id": "RS1029",
+          "shortDescription": "Do not use reserved diagnostic IDs",
+          "fullDescription": "DiagnosticId for analyzers should not use reserved IDs.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1030": {
+          "id": "RS1030",
+          "shortDescription": "Do not invoke Compilation.GetSemanticModel() method within a diagnostic analyzer",
+          "fullDescription": "'GetSemanticModel' is an expensive method to invoke within a diagnostic analyzer because it creates a completely new semantic model, which does not share compilation data with the compiler or other analyzers. This incurs an additional performance cost during semantic analysis. Instead, consider registering a different analyzer action which allows used of a shared 'SemanticModel', such as 'RegisterOperationAction', 'RegisterSyntaxNodeAction', or 'RegisterSemanticModelAction'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotUseCompilationGetSemanticModelAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1031": {
+          "id": "RS1031",
+          "shortDescription": "Define diagnostic title correctly",
+          "fullDescription": "The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1032": {
+          "id": "RS1032",
+          "shortDescription": "Define diagnostic message correctly",
+          "fullDescription": "The diagnostic message should not contain any line return character nor any leading or trailing whitespaces and should either be a single sentence without a trailing period or a multi-sentences with a trailing period",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1033": {
+          "id": "RS1033",
+          "shortDescription": "Define diagnostic description correctly",
+          "fullDescription": "The diagnostic description should be one or multiple sentences ending with a punctuation sign and should not have any leading or trailing whitespaces",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1034": {
+          "id": "RS1034",
+          "shortDescription": "Prefer 'IsKind' for checking syntax kinds",
+          "fullDescription": "Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "PreferIsKindAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1037": {
+          "id": "RS1037",
+          "shortDescription": "Add \"CompilationEnd\" custom tag to compilation end diagnostic descriptor",
+          "fullDescription": "'DiagnosticDescriptor' assigned to field is used to report a compilation end diagnostic, but the 'DiagnosticDescriptor' constructor used to initialize it does not pass in the required custom tag \"CompilationEnd\". See documentation for 'WellKnownDiagnosticTags.CompilationEnd' for details.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisDesign",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1038": {
+          "id": "RS1038",
+          "shortDescription": "Compiler extensions should be implemented in assemblies with compiler-provided references",
+          "fullDescription": "Types which implement compiler extension points should not be declared in assemblies that contain references to assemblies which are not provided by all compilation scenarios. Doing so may cause the feature to behave unpredictably.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1038.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CompilerExtensionStrictApiAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1041": {
+          "id": "RS1041",
+          "shortDescription": "Compiler extensions should be implemented in assemblies targeting netstandard2.0",
+          "fullDescription": "Types which implement compiler extension points should only be declared in assemblies targeting netstandard2.0. More specific target frameworks are only available in a subset of supported compilation scenarios, so targeting them may cause the feature to behave unpredictably.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1041.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CompilerExtensionTargetFrameworkAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1042": {
+          "id": "RS1042",
+          "shortDescription": "Implementations of this interface are not allowed",
+          "fullDescription": "The author of this interface has deprecated implementing this interface.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCompatibility",
+            "isEnabledByDefault": true,
+            "typeName": "ImplementationIsObsoleteAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "RS1043": {
+          "id": "RS1043",
+          "shortDescription": "Do not use file types for implementing analyzers, generators, and code fixers",
+          "fullDescription": "Using a 'file' type is not allowed for implementing analyzers, generators, or code fixers. This can break analyzer loading on some platforms.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "DoNotUseFileTypesForAnalyzersOrGenerators",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
+        "RS2000": {
+          "id": "RS2000",
+          "shortDescription": "Add analyzer diagnostic IDs to analyzer release",
+          "fullDescription": "All supported analyzer diagnostic IDs should be part of an analyzer release.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2001": {
+          "id": "RS2001",
+          "shortDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release",
+          "fullDescription": "Ensure up-to-date entry for analyzer diagnostic IDs are added to analyzer release.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2002": {
+          "id": "RS2002",
+          "shortDescription": "Do not add removed analyzer diagnostic IDs to unshipped analyzer release",
+          "fullDescription": "Entries for analyzer diagnostic IDs that are no longer reported and never shipped can be removed from unshipped analyzer release.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2003": {
+          "id": "RS2003",
+          "shortDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file",
+          "fullDescription": "Shipped diagnostic IDs that are no longer reported should have an entry in the 'Removed Rules' table in unshipped file.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2004": {
+          "id": "RS2004",
+          "shortDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers",
+          "fullDescription": "Diagnostic IDs marked as removed in analyzer release file should not be reported by analyzers.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2005": {
+          "id": "RS2005",
+          "shortDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release",
+          "fullDescription": "Remove duplicate entries for diagnostic ID in the same analyzer release.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2006": {
+          "id": "RS2006",
+          "shortDescription": "Remove duplicate entries for diagnostic ID between analyzer releases",
+          "fullDescription": "Remove duplicate entries for diagnostic ID between analyzer releases.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2007": {
+          "id": "RS2007",
+          "shortDescription": "Invalid entry in analyzer release file",
+          "fullDescription": "Invalid entry in analyzer release file.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS2008": {
+          "id": "RS2008",
+          "shortDescription": "Enable analyzer release tracking",
+          "fullDescription": "Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/src/RoslynAnalyzers/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisReleaseTracking",
+            "isEnabledByDefault": true,
+            "typeName": "DiagnosticDescriptorCreationAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.CSharp.Analyzers",
+        "version": "4.14.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS1002": {
+          "id": "RS1002",
+          "shortDescription": "Missing kind argument when registering an analyzer action",
+          "fullDescription": "You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRegisterActionAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1003": {
+          "id": "RS1003",
+          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action",
+          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRegisterActionAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1005": {
+          "id": "RS1005",
+          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor",
+          "fullDescription": "ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpReportDiagnosticAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1006": {
+          "id": "RS1006",
+          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method",
+          "fullDescription": "DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's 'TLanguageKindEnumName' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRegisterActionAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1008": {
+          "id": "RS1008",
+          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer",
+          "fullDescription": "Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using 'AnalysisContext.RegisterCompilationStartAction' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDiagnosticAnalyzerFieldsAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1012": {
+          "id": "RS1012",
+          "shortDescription": "Start action has no registered actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000a2. If required, define and initialize state in the start action.\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000a4. If required, register an end action to report diagnostics based on the final state.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRegisterActionAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1013": {
+          "id": "RS1013",
+          "shortDescription": "Start action has no registered non-end actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000a2. If required, define and initialize state in the start action.\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000a4. If required, register an end action to report diagnostics based on the final state.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpRegisterActionAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1022": {
+          "id": "RS1022",
+          "shortDescription": "Do not use types from Workspaces assembly in an analyzer",
+          "fullDescription": "Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1022.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpDiagnosticAnalyzerApiUsageAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1023": {
+          "id": "RS1023",
+          "shortDescription": "Upgrade MSBuildWorkspace",
+          "fullDescription": "MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://go.microsoft.com/fwlink/?linkid=874285",
+          "properties": {
+            "category": "Library",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpUpgradeMSBuildWorkspaceAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1035": {
+          "id": "RS1035",
+          "shortDescription": "Do not use APIs banned for analyzers",
+          "fullDescription": "The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedInAnalyzersAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1036": {
+          "id": "RS1036",
+          "shortDescription": "Specify analyzer banned API enforcement setting",
+          "fullDescription": "A project containing analyzers or source generators should specify the property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSymbolIsBannedInAnalyzersAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1039": {
+          "id": "RS1039",
+          "shortDescription": "This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'",
+          "fullDescription": "Calling 'SemanticModel.GetDeclaredSymbol' with on certain types inheriting from 'SyntaxNode', for example 'GlobalStatementSyntax' and 'IncompleteMemberSyntax' will always return 'null'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1040": {
+          "id": "RS1040",
+          "shortDescription": "This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null'",
+          "fullDescription": "Calling 'SemanticModel.GetDeclaredSymbol' with an argument of type 'FieldDeclarationSyntax' or 'EventFieldDeclarationSyntax' will always return 'null'. Call 'GetDeclaredSymbol' with the variable declarators from the field instead.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "CSharpSemanticModelGetDeclaredSymbolAlwaysReturnsNullAnalyzer",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "tool": {
+        "name": "Microsoft.CodeAnalysis.VisualBasic.Analyzers",
+        "version": "4.14.0",
+        "language": "en-US"
+      },
+      "rules": {
+        "RS1002": {
+          "id": "RS1002",
+          "shortDescription": "Missing kind argument when registering an analyzer action",
+          "fullDescription": "You must specify at least one syntax, symbol or operation kind when registering a syntax, symbol, or operation analyzer action respectively. Otherwise, the registered action will never be invoked during analysis.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRegisterActionAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1003": {
+          "id": "RS1003",
+          "shortDescription": "Unsupported SymbolKind argument when registering a symbol analyzer action",
+          "fullDescription": "SymbolKind '{0}' is not supported for symbol analyzer actions",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRegisterActionAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1005": {
+          "id": "RS1005",
+          "shortDescription": "ReportDiagnostic invoked with an unsupported DiagnosticDescriptor",
+          "fullDescription": "ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicReportDiagnosticAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1006": {
+          "id": "RS1006",
+          "shortDescription": "Invalid type argument for DiagnosticAnalyzer's Register method",
+          "fullDescription": "DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's 'TLanguageKindEnumName' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRegisterActionAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1008": {
+          "id": "RS1008",
+          "shortDescription": "Avoid storing per-compilation data into the fields of a diagnostic analyzer",
+          "fullDescription": "Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiated in a compilation start action, registered using 'AnalysisContext.RegisterCompilationStartAction' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicDiagnosticAnalyzerFieldsAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1012": {
+          "id": "RS1012",
+          "shortDescription": "Start action has no registered actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000a2. If required, define and initialize state in the start action.\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000a4. If required, register an end action to report diagnostics based on the final state.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRegisterActionAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1013": {
+          "id": "RS1013",
+          "shortDescription": "Start action has no registered non-end actions",
+          "fullDescription": "An analyzer start action enables performing stateful analysis over a given code unit, such as a code block, compilation, etc. Careful design is necessary to achieve efficient analyzer execution without memory leaks. Use the following guidelines for writing such analyzers:\u000a1. Define a new scope for the registered start action, possibly with a private nested type for analyzing each code unit.\u000a2. If required, define and initialize state in the start action.\u000a3. Register at least one non-end action that refers to this state in the start action. If no such action is necessary, consider replacing the start action with a non-start action. For example, a CodeBlockStartAction with no registered actions or only a registered CodeBlockEndAction should be replaced with a CodeBlockAction.\u000a4. If required, register an end action to report diagnostics based on the final state.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisPerformance",
+            "isEnabledByDefault": true,
+            "typeName": "BasicRegisterActionAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1022": {
+          "id": "RS1022",
+          "shortDescription": "Do not use types from Workspaces assembly in an analyzer",
+          "fullDescription": "Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.",
+          "defaultLevel": "warning",
+          "helpUri": "https://github.com/dotnet/roslyn/blob/main/docs/roslyn-analyzers/rules/RS1022.md",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicDiagnosticAnalyzerApiUsageAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "CompilationEnd",
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1023": {
+          "id": "RS1023",
+          "shortDescription": "Upgrade MSBuildWorkspace",
+          "fullDescription": "MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.",
+          "defaultLevel": "warning",
+          "helpUri": "https://go.microsoft.com/fwlink/?linkid=874285",
+          "properties": {
+            "category": "Library",
+            "isEnabledByDefault": true,
+            "typeName": "VisualBasicUpgradeMSBuildWorkspaceAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1035": {
+          "id": "RS1035",
+          "shortDescription": "Do not use APIs banned for analyzers",
+          "fullDescription": "The symbol has been marked as banned for use in analyzers, and an alternate should be used instead.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedInAnalyzersAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        },
+        "RS1036": {
+          "id": "RS1036",
+          "shortDescription": "Specify analyzer banned API enforcement setting",
+          "fullDescription": "A project containing analyzers or source generators should specify the property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCorrectness",
+            "isEnabledByDefault": true,
+            "typeName": "BasicSymbolIsBannedInAnalyzersAnalyzer",
+            "languages": [
+              "Visual Basic"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

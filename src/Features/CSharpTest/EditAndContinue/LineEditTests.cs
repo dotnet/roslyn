@@ -6,7 +6,6 @@
 #pragma warning disable IDE0055 // Collection expression formatting
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;

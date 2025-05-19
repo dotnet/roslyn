@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Threading;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspaces.ProjectSystem.ProjectSystemProjectFactory;
 
@@ -651,7 +653,7 @@ internal sealed partial class ProjectSystemProject
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
 
             // Give the host the opportunity to check if those files are open
-            if (documentFileNamesAdded.Count() > 0)
+            if (documentFileNamesAdded.Length > 0)
                 await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded).ConfigureAwait(false);
 
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
@@ -1126,7 +1128,41 @@ internal sealed partial class ProjectSystemProject
             return GetMappedRazorSourceGenerator(fullPath);
         }
 
+        if (TryRedirectAnalyzerAssembly(fullPath) is { } redirectedPath)
+        {
+            return OneOrMany.Create(redirectedPath);
+        }
+
         return OneOrMany.Create(fullPath);
+    }
+
+    private string? TryRedirectAnalyzerAssembly(string fullPath)
+    {
+        string? redirectedPath = null;
+
+        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
+        {
+            try
+            {
+                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
+                {
+                    if (redirectedPath == null)
+                    {
+                        redirectedPath = currentlyRedirectedPath;
+                    }
+                    else if (redirectedPath != currentlyRedirectedPath)
+                    {
+                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
+                    }
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+                // Ignore if the external redirector throws.
+            }
+        }
+
+        return redirectedPath;
     }
 
     private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
@@ -1154,9 +1190,9 @@ internal sealed partial class ProjectSystemProject
 
     private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
     {
-        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetAnalyzerReferencesInExtensions().SelectAsArray(
+        var vsixRazorAnalyzers = _hostInfo.HostDiagnosticAnalyzerProvider.GetRazorAssembliesInExtensions().SelectAsArray(
             predicate: item => item.extensionId == RazorVsixExtensionId,
-            selector: item => item.reference.FullPath);
+            selector: item => item.path);
 
         if (!vsixRazorAnalyzers.IsEmpty)
         {

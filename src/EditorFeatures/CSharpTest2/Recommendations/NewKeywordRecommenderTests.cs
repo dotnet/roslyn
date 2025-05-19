@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class NewKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class NewKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot()
@@ -1327,5 +1327,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         #endregion
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyAbsenceAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+        }
     }
 }

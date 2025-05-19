@@ -57,15 +57,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (type.IsVoidType())
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax?.Location ?? this.GetFirstLocation());
+                diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, getTypeErrorLocation());
             }
             else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
+                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, getTypeErrorLocation(), type);
             }
             else if (type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !containingType.IsRefLikeType))
             {
-                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, getTypeErrorLocation(), type);
+            }
+            else if (!this.IsStatic && (ContainingType.IsRecord || ContainingType.IsRecordStruct) && type.IsPointerOrFunctionPointer())
+            {
+                // The type '{0}' may not be used for a field of a record.
+                diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, getTypeErrorLocation(), type);
             }
             else if (IsConst && !type.CanBeConst())
             {
@@ -96,6 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             diagnostics.Add(this.ErrorLocation, useSiteInfo);
+
+            Location getTypeErrorLocation()
+            {
+                return TypeSyntax?.Location ?? this.GetFirstLocation();
+            }
         }
 
         public abstract bool HasInitializer { get; }
@@ -183,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
                 isOrdinaryMethod: false, isForInterfaceMember: isInterface,
-                modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
+                modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors, out _);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
             {

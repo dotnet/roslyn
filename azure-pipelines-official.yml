@@ -5,7 +5,9 @@ trigger:
     - main-vs-deps
     - release/dev16.*-vs-deps
     - release/dev17.*
+    - release/dev18.*
     - features/lsp_tools_host
+    - features/runtime-async
     exclude:
     - release/dev17.0
 pr: none
@@ -16,6 +18,11 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  pipelines:
+    - pipeline: profilingInputs
+      source: dotnet-vscode-csharp-profiling
+      branch: main
+      trigger: none
 
 parameters:
 - name: IbcDrop
@@ -89,6 +96,9 @@ variables:
   - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
     - name: enableSourceIndex
       value: true
+  - name: VSCodeOptimizationDataRoot
+    value: $(Pipeline.Workspace)/profilingInputs/merged mibc
+
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
@@ -121,11 +131,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.13') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.14') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.13
+            MirrorBranch: release/dev17.14
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -154,7 +164,7 @@ extends:
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
-            condition: succeeded()
+            condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
             targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
@@ -202,6 +212,9 @@ extends:
             ArtifactName: AssetManifests
 
         steps:
+        - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
+          displayName: Disable Real-time Monitoring
+          
         - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
@@ -266,22 +279,16 @@ extends:
             useGlobalJson: true
             workingDirectory: '$(Build.SourcesDirectory)'
 
-        # Needed to restore the Microsoft.DevDiv.Optimization.Data.PowerShell package
-        - task: NuGetCommand@2
-          displayName: Restore internal tools
-          inputs:
-            command: restore
-            feedsToUse: config
-            restoreSolution: 'eng\common\internal\Tools.csproj'
-            nugetConfigPath: 'NuGet.config'
-            restoreDirectory: '$(Build.SourcesDirectory)\.packages'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: $(SignType)
             zipSources: false
             feedSource: https://dnceng.pkgs.visualstudio.com/_packaging/MicroBuildToolset/nuget/v3/index.json
           condition: and(succeeded(), in(variables['SignType'], 'test', 'real'))
+
+        - download: profilingInputs
+          artifact: merged mibc
+          displayName: Download VSCode optimization inputs
 
         - task: PowerShell@2
           displayName: Build
@@ -298,17 +305,17 @@ extends:
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
                        -officialSkipTests $(SkipTests)
-                       -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                       -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
                        -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
+                       /p:VSCodeOptimizationDataRoot="$(VSCodeOptimizationDataRoot)"
                        /p:DotNetSignType=$(SignType)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
-                       /p:ForceAzureComSources=true
           condition: succeeded()
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self

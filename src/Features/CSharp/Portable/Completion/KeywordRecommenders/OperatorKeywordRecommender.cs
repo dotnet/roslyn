@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class OperatorKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class OperatorKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OperatorKeyword)
 {
-    public OperatorKeywordRecommender()
-        : base(SyntaxKind.OperatorKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         // cases:
@@ -22,7 +17,6 @@ internal class OperatorKeywordRecommender : AbstractSyntacticSingleKeywordRecomm
         var token = context.TargetToken;
 
         return
-            token.Kind() is SyntaxKind.ImplicitKeyword or
-            SyntaxKind.ExplicitKeyword;
+            token.Kind() is SyntaxKind.ImplicitKeyword or SyntaxKind.ExplicitKeyword;
     }
 }

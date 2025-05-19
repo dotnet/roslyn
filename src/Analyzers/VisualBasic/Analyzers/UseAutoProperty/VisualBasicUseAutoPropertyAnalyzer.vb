@@ -34,17 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
-        Protected Overrides Function SupportsFieldExpression(compilation As Compilation) As Boolean
-            ' 'field' keyword not supported in VB.
-            Return False
-        End Function
-
         Protected Overrides ReadOnly Property CanExplicitInterfaceImplementationsBeFixed As Boolean = True
         Protected Overrides ReadOnly Property SupportsFieldAttributesOnProperties As Boolean = False
-
-        Protected Overrides Function ContainsFieldExpression(propertyDeclaration As PropertyBlockSyntax, cancellationToken As CancellationToken) As Boolean
-            Return False
-        End Function
 
         Protected Overrides Sub RecordIneligibleFieldLocations(
                 fieldNames As HashSet(Of String),

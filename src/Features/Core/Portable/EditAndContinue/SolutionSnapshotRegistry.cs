@@ -8,7 +8,6 @@ using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.Client;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 

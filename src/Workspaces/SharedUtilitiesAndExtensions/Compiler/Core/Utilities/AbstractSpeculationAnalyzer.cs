@@ -556,7 +556,6 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Checks whether the semantic symbols for the <see cref="OriginalExpression"/> and <see cref="ReplacedExpression"/> are non-null and compatible.
     /// </summary>
-    /// <returns></returns>
     public bool SymbolsForOriginalAndReplacedNodesAreCompatible()
     {
         if (this.SpeculativeSemanticModel == null)
@@ -874,10 +873,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     }
 
     private static bool IsDelegateInvoke(ISymbol symbol)
-    {
-        return symbol.Kind == SymbolKind.Method &&
-            ((IMethodSymbol)symbol).MethodKind == MethodKind.DelegateInvoke;
-    }
+        => symbol is IMethodSymbol { MethodKind: MethodKind.DelegateInvoke };
 
     private static bool IsAnonymousDelegateInvoke(ISymbol symbol)
     {

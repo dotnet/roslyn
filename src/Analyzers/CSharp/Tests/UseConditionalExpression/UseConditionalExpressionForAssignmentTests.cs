@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,7 +24,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 public sealed partial class UseConditionalExpressionForAssignmentTests
 {
     private static async Task TestMissingAsync(
-        string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null)
     {
@@ -37,8 +39,8 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
     }
 
     private static async Task TestInRegularAndScript1Async(
-        string testCode,
-        string fixedCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string testCode,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedCode,
         LanguageVersion languageVersion = LanguageVersion.CSharp8,
         OptionsCollection? options = null,
         string? equivalenceKey = null)
@@ -2143,5 +2145,383 @@ public sealed partial class UseConditionalExpressionForAssignmentTests
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58897")]
+    public async Task TestCommentsOnElse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write;
+
+                    [|if|] (containsHighBits)
+                    {
+                        write = 0;
+                    }
+                    // Comment on else
+                    else
+                    {
+                        write = 1;
+                    }
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                void M(bool containsHighBits)
+                {
+                    int write = containsHighBits
+                        ? 0
+                        // Comment on else
+                        : 1;
+                }
+            }
+            """, LanguageVersion.CSharp9);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60859")]
+    public async Task UnnecessaryWithinConditionalBranch2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            public class IssueClass
+            {
+                double ID;
+
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o;
+                    [|if|] (value is IssueClass issue)
+                    {
+                        o = (decimal)issue.ID;
+                    }
+                    else
+                    {
+                        o = -1m;
+                    }
+                }
+            }
+            """,
+            """
+            public class IssueClass
+            {
+                double ID;
+            
+                public void ConvertFieldValueForStorage(object value)
+                {
+                    object o = value is IssueClass issue ? (decimal)issue.ID : -1m;
+                }
+            }
+            """, LanguageVersion.CSharp13);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck1()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test != null && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck1_B()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (null != test && test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck2()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is not null && test.Field is null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """, LanguageVersion.CSharp9);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck3()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { })
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck4()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is { } x)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck5()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck6()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    if (test is Test t)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75200")]
+    public async Task TestNullCheck7()
+    {
+        await TestMissingAsync("""
+            using System;
+            public class Program
+            {
+                public void N(object[] parent, int i, object value)
+                {
+                    if (parent is { })
+                    {
+                        parent[i] = value;
+                    }
+                    else throw new Exception();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63441")]
+    public async Task TestNullCheck_Positive1()
+    {
+        await TestInRegularAndScript1Async("""
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    [|if|] (test.Field == null)
+                    {
+                        test.Field = string.Empty;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException();
+                    }
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """, """
+            using System;
+            public class Program
+            {
+                public static void TestMethod(Test test)
+                {
+                    test.Field = test.Field == null ? string.Empty : throw new InvalidOperationException();
+                }
+                public class Test
+                {
+                    public string Field;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72464")]
+    public async Task TestMissingWithVariableCollisions()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            public class IssueClass
+            {
+                public void Convert(Type type, string body)
+                {
+                    object o;
+                    if (type == typeof(bool))
+                    {
+                         o = bool.TryParse(body, out bool value) ? 0 : 1;
+                    }
+                    else
+                    {
+                        o = int.TryParse(body, out int value) ? 2 : 3;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestOnNullConditionalAssignment1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    [|if|] (true)
+                    {
+                        c?.i = 0;
+                    }
+                    else
+                    {
+                        c?.i = 1;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                int i;
+
+                void M(C c)
+                {
+                    c?.i = true ? 0 : 1;
+                }
+            }
+            """,
+            languageVersion: LanguageVersionExtensions.CSharpNext);
     }
 }

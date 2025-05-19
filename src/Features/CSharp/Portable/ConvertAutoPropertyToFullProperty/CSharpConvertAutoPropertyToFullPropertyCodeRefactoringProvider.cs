@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty;
@@ -24,6 +25,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 
 using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
 [method: ImportingConstructor]
@@ -44,73 +46,81 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
     }
 
     protected override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-        CSharpCodeGenerationContextInfo info, PropertyDeclarationSyntax property,
-        string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken)
+        CSharpCodeGenerationContextInfo info,
+        PropertyDeclarationSyntax property,
+        string fieldName,
+        CancellationToken cancellationToken)
+    {
+        // Replace the bodies with bodies that reference the new field name.
+        return GetNewAccessors(info, property, fieldName.ToIdentifierName(), cancellationToken);
+    }
+
+    private static (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
+        CSharpCodeGenerationContextInfo info,
+        PropertyDeclarationSyntax property,
+        ExpressionSyntax backingFieldExpression,
+        CancellationToken cancellationToken)
     {
         // C# might have trivia with the accessors that needs to be preserved.  
         // so we will update the existing accessors instead of creating new ones
         var accessorListSyntax = property.AccessorList;
         var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
-        var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-        var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement, cancellationToken);
+        var getAccessorStatement = ReturnStatement(backingFieldExpression);
+        var newGetter = GetUpdatedAccessor(getAccessor, getAccessorStatement);
 
         var newSetter = setAccessor;
         if (newSetter != null)
         {
-            var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
-                generator.IdentifierName(fieldName),
-                generator.IdentifierName("value")));
-            newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement, cancellationToken);
+            var setAccessorStatement = ExpressionStatement(AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                backingFieldExpression,
+                IdentifierName("value")));
+            newSetter = GetUpdatedAccessor(setAccessor, setAccessorStatement);
         }
 
         return (newGetter, newSetter);
+
+        AccessorDeclarationSyntax GetUpdatedAccessor(AccessorDeclarationSyntax accessor, StatementSyntax statement)
+        {
+            if (accessor.Body != null || accessor.ExpressionBody != null)
+                return ReplaceFieldExpression(accessor);
+
+            var accessorDeclarationSyntax = accessor.WithBody(Block(
+                OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
+                [statement],
+                CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
+
+            var preference = info.Options.PreferExpressionBodiedAccessors.Value;
+            if (preference == ExpressionBodyPreference.Never)
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+
+            if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
+                    out var arrowExpression, out _))
+            {
+                return accessorDeclarationSyntax.WithSemicolonToken(default);
+            }
+
+            return accessorDeclarationSyntax
+                .WithExpressionBody(arrowExpression)
+                .WithBody(null)
+                .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
+                .WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        AccessorDeclarationSyntax ReplaceFieldExpression(AccessorDeclarationSyntax accessor)
+        {
+            return accessor.ReplaceNodes(
+                accessor.DescendantNodes().OfType<FieldExpressionSyntax>(),
+                (oldNode, _) => backingFieldExpression.WithTriviaFrom(oldNode));
+        }
     }
 
     private static (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
         GetExistingAccessors(AccessorListSyntax accessorListSyntax)
         => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
             accessorListSyntax.Accessors.FirstOrDefault(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration));
-
-    private static AccessorDeclarationSyntax GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
-        AccessorDeclarationSyntax accessor, SyntaxNode statement, CancellationToken cancellationToken)
-    {
-        if (accessor.Body != null || accessor.ExpressionBody != null)
-            return accessor;
-
-        var newAccessor = AddStatement(accessor, statement);
-        var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
-
-        var preference = info.Options.PreferExpressionBodiedAccessors.Value;
-        if (preference == ExpressionBodyPreference.Never)
-        {
-            return accessorDeclarationSyntax.WithSemicolonToken(default);
-        }
-
-        if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference, cancellationToken,
-                out var arrowExpression, out _))
-        {
-            return accessorDeclarationSyntax.WithSemicolonToken(default);
-        }
-
-        return accessorDeclarationSyntax
-            .WithExpressionBody(arrowExpression)
-            .WithBody(null)
-            .WithSemicolonToken(accessorDeclarationSyntax.SemicolonToken)
-            .WithAdditionalAnnotations(Formatter.Annotation);
-    }
-
-    internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
-    {
-        var blockSyntax = SyntaxFactory.Block(
-            OpenBraceToken.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
-            new SyntaxList<StatementSyntax>((StatementSyntax)statement),
-            CloseBraceToken
-                .WithTrailingTrivia(((AccessorDeclarationSyntax)accessor).SemicolonToken.TrailingTrivia));
-
-        return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);
-    }
 
     protected override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
         CSharpCodeGenerationContextInfo info, SyntaxNode property)
@@ -119,9 +129,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
 
         var preference = info.Options.PreferExpressionBodiedProperties.Value;
         if (preference == ExpressionBodyPreference.Never)
-        {
-            return propertyDeclaration.WithSemicolonToken(default);
-        }
+            return propertyDeclaration;
 
         // if there is a get accessors only, we can move the expression body to the property
         if (propertyDeclaration.AccessorList?.Accessors.Count == 1 &&
@@ -136,15 +144,31 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
             }
         }
 
-        return propertyDeclaration.WithSemicolonToken(default);
+        return propertyDeclaration;
     }
 
     protected override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
         => syntaxNode;
 
-    protected override SyntaxNode GetInitializerValue(SyntaxNode property)
-        => ((PropertyDeclarationSyntax)property).Initializer?.Value;
+    protected override SyntaxNode GetInitializerValue(PropertyDeclarationSyntax property)
+        => property.Initializer?.Value;
 
-    protected override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
-        => ((PropertyDeclarationSyntax)property).WithInitializer(null);
+    protected override PropertyDeclarationSyntax GetPropertyWithoutInitializer(PropertyDeclarationSyntax property)
+        => property.WithInitializer(null);
+
+    protected override async Task<Document> ExpandToFieldPropertyAsync(
+        Document document, PropertyDeclarationSyntax property, CancellationToken cancellationToken)
+    {
+        var info = (CSharpCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        // Update the getter/setter to reference the 'field' expression instead.
+        var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, FieldExpression(), cancellationToken);
+
+        var finalProperty = CreateFinalProperty(document, property, info, newGetAccessor, newSetAccessor);
+        var finalRoot = root.ReplaceNode(property, finalProperty);
+
+        return document.WithSyntaxRoot(finalRoot);
+    }
 }

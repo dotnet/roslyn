@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ColorSchemes;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -59,11 +60,11 @@ internal sealed class RoslynPackage : AbstractPackage
     private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
     private const byte BackgroundAnalysisScopeOptionVersion = 1;
 
-    private static RoslynPackage? _lazyInstance;
+    private static RoslynPackage? s_lazyInstance;
 
     private RuleSetEventHandler? _ruleSetEventHandler;
     private ColorSchemeApplier? _colorSchemeApplier;
-    private IDisposable? _solutionEventMonitor;
+    private SolutionEventMonitor? _solutionEventMonitor;
 
     private BackgroundAnalysisScope? _analysisScope;
 
@@ -94,7 +95,7 @@ internal sealed class RoslynPackage : AbstractPackage
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
-        if (_lazyInstance is null)
+        if (s_lazyInstance is null)
         {
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -104,11 +105,11 @@ internal sealed class RoslynPackage : AbstractPackage
 
             if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
             {
-                _lazyInstance = (RoslynPackage)package;
+                s_lazyInstance = (RoslynPackage)package;
             }
         }
 
-        return _lazyInstance;
+        return s_lazyInstance;
     }
 
     protected override void OnLoadOptions(string key, Stream stream)

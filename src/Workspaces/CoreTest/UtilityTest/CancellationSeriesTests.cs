@@ -11,6 +11,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Threading;
 using Xunit;
 
 namespace Roslyn.Utilities

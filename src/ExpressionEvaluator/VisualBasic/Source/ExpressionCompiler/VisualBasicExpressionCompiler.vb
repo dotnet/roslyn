@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Friend Overrides Function CreateTypeContext(
             appDomain As DkmClrAppDomain,
             metadataBlocks As ImmutableArray(Of MetadataBlock),
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             typeToken As Integer,
             useReferencedModulesOnly As Boolean) As EvaluationContextBase
 
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 appDomain,
                 Function(ad) ad.GetMetadataContext(Of VisualBasicMetadataContext)(),
                 metadataBlocks,
-                moduleVersionId,
+                moduleId,
                 typeToken,
                 GetMakeAssemblyReferencesKind(useReferencedModulesOnly))
         End Function
@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             appDomain As TAppDomain,
             getMetadataContext As GetMetadataContextDelegate(Of TAppDomain),
             metadataBlocks As ImmutableArray(Of MetadataBlock),
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             typeToken As Integer,
             kind As MakeAssemblyReferencesKind) As EvaluationContext
 
@@ -64,14 +64,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
-                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleId)
                 Return EvaluationContext.CreateTypeContext(
                     compilation,
-                    moduleVersionId,
+                    moduleId,
                     typeToken)
             End If
 
-            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim contextId = MetadataContextId.GetContextId(moduleId, kind)
             Dim previous = getMetadataContext(appDomain)
             Dim previousMetadataContext As VisualBasicMetadataContext = Nothing
             If previous.Matches(metadataBlocks) Then
@@ -80,11 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             ' Re-use the previous compilation if possible.
             compilation = If(previousMetadataContext.Compilation,
-                metadataBlocks.ToCompilation(moduleVersionId, kind))
+                metadataBlocks.ToCompilation(moduleId, kind))
 
             Dim context = EvaluationContext.CreateTypeContext(
                 compilation,
-                moduleVersionId,
+                moduleId,
                 typeToken)
 
             ' New type context is not attached to the AppDomain since it is less
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             methodToken As Integer,
             methodVersion As Integer,
             ilOffset As UInteger,
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 metadataBlocks,
                 lazyAssemblyReaders,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 ilOffset,
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             metadataBlocks As ImmutableArray(Of MetadataBlock),
             lazyAssemblyReaders As Lazy(Of ImmutableArray(Of AssemblyReaders)),
             symReader As Object,
-            moduleVersionId As Guid,
+            moduleId As ModuleId,
             methodToken As Integer,
             methodVersion As Integer,
             ilOffset As UInteger,
@@ -143,19 +143,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If kind = MakeAssemblyReferencesKind.DirectReferencesOnly Then
                 ' Avoid using the cache for referenced assemblies only
                 ' since this should be the exceptional case.
-                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleVersionId)
+                compilation = metadataBlocks.ToCompilationReferencedModulesOnly(moduleId)
                 Return EvaluationContext.CreateMethodContext(
                     compilation,
                     lazyAssemblyReaders,
                     symReader,
-                    moduleVersionId,
+                    moduleId,
                     methodToken,
                     methodVersion,
                     offset,
                     localSignatureToken)
             End If
 
-            Dim contextId = MetadataContextId.GetContextId(moduleVersionId, kind)
+            Dim contextId = MetadataContextId.GetContextId(moduleId, kind)
             Dim previous = getMetadataContext(appDomain)
             Dim assemblyContexts = If(previous.Matches(metadataBlocks), previous.AssemblyContexts, ImmutableDictionary(Of MetadataContextId, VisualBasicMetadataContext).Empty)
             Dim previousMetadataContext As VisualBasicMetadataContext = Nothing
@@ -168,18 +168,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim previousContext = previousMetadataContext.EvaluationContext
                 If previousContext IsNot Nothing AndAlso
                     previousContext.MethodContextReuseConstraints.HasValue AndAlso
-                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleVersionId, methodToken, methodVersion, offset) Then
+                    previousContext.MethodContextReuseConstraints.GetValueOrDefault().AreSatisfied(moduleId, methodToken, methodVersion, offset) Then
                     Return previousContext
                 End If
             Else
-                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind)
+                compilation = metadataBlocks.ToCompilation(moduleId, kind)
             End If
 
             Dim context = EvaluationContext.CreateMethodContext(
                 compilation,
                 lazyAssemblyReaders,
                 symReader,
-                moduleVersionId,
+                moduleId,
                 methodToken,
                 methodVersion,
                 offset,

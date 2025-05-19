@@ -34,7 +34,6 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
     /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
     /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
     /// <param name="convertToQuery">Flag indicating if a query expression should be generated</param>
-    /// <returns></returns>
     protected ExpressionSyntax CreateQueryExpressionOrLinqInvocation(
         ExpressionSyntax selectExpression,
         IEnumerable<SyntaxToken> leadingTokensForSelect,
@@ -52,7 +51,6 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
     /// <param name="selectExpression">expression to be used into the last 'select ...' in the query expression</param>
     /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
     /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
-    /// <returns></returns>
     private QueryExpressionSyntax CreateQueryExpression(
         ExpressionSyntax selectExpression,
         IEnumerable<SyntaxToken> leadingTokensForSelect,
@@ -121,7 +119,6 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
     /// <param name="selectExpression">expression to be used in the last 'Select' invocation</param>
     /// <param name="leadingTokensForSelect">extra leading tokens to be added to the select clause</param>
     /// <param name="trailingTokensForSelect">extra trailing tokens to be added to the select clause</param>
-    /// <returns></returns>
     private ExpressionSyntax CreateLinqInvocationOrSimpleExpression(
         ExpressionSyntax selectExpression,
         IEnumerable<SyntaxToken> leadingTokensForSelect,

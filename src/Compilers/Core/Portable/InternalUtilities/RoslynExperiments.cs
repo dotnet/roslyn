@@ -17,4 +17,7 @@ internal static class RoslynExperiments
 
     internal const string GeneratorHostOutputs = "RSEXPERIMENTAL004";
     internal const string GeneratorHostOutputs_Url = "https://github.com/dotnet/roslyn/issues/74753";
+
+    internal const string IgnoredDirectives = "RSEXPERIMENTAL005";
+    internal const string IgnoredDirectives_Url = "https://github.com/dotnet/roslyn/issues/77697";
 }

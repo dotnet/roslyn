@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,9 +27,7 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
 
         return FixAllProvider.Create(
             async (fixAllContext, document, fixAllSpans) =>
-            {
-                return await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
-            },
+                await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
             SupportedFixAllScopes);
     }
 

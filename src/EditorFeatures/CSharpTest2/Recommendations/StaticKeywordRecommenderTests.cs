@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-    public class StaticKeywordRecommenderTests : KeywordRecommenderTests
+    public sealed class StaticKeywordRecommenderTests : KeywordRecommenderTests
     {
         [Fact]
         public async Task TestAtRoot_Interactive()
@@ -700,9 +700,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterUsingKeywordBeforeTopLevelStatement()
         {
             await VerifyKeywordAsync("""
-using $$
-var i = 1;
-""");
+                using $$
+                var i = 1;
+                """);
+        }
+
+        [Fact]
+        public async Task TestWithinExtension()
+        {
+            await VerifyKeywordAsync(
+                """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """, CSharpNextParseOptions);
         }
     }
 }

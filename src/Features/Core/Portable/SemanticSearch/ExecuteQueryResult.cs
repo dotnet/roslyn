@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 /// <summary>
 /// The result of Semantic Search query execution.
 /// </summary>
+/// <param name="compilationErrors">Compilation errors.</param>
 /// <param name="ErrorMessage">An error message if the execution failed.</param>
 /// <param name="ErrorMessageArgs">
 /// Arguments to be substituted to <paramref name="ErrorMessage"/>.
@@ -20,7 +22,8 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 /// <param name="ExecutionTime">Time it took to execute the query.</param>
 [DataContract]
 internal readonly record struct ExecuteQueryResult(
-    [property: DataMember(Order = 0)] string? ErrorMessage,
-    [property: DataMember(Order = 1)] string[]? ErrorMessageArgs = null,
-    [property: DataMember(Order = 2)] TimeSpan EmitTime = default,
-    [property: DataMember(Order = 3)] TimeSpan ExecutionTime = default);
+    [property: DataMember(Order = 0)] ImmutableArray<QueryCompilationError> compilationErrors,
+    [property: DataMember(Order = 1)] string? ErrorMessage,
+    [property: DataMember(Order = 2)] string[]? ErrorMessageArgs = null,
+    [property: DataMember(Order = 3)] TimeSpan EmitTime = default,
+    [property: DataMember(Order = 4)] TimeSpan ExecutionTime = default);

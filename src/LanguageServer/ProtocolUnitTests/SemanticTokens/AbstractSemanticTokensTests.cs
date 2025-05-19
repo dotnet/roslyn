@@ -27,6 +27,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         private protected static IReadOnlyDictionary<string, int> GetTokenTypeToIndex(TestLspServer server)
             => SemanticTokensSchema.GetSchema(server.ClientCapabilities.HasVisualStudioLspCapability()).TokenTypeToIndex;
 
+        private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensFullAsync(TestLspServer testLspServer, LSP.Location caret)
+        {
+            var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensFullParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
+                CreateSemanticTokensFullParams(caret), CancellationToken.None);
+            Contract.ThrowIfNull(result);
+            return result;
+        }
+
         private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensRangeAsync(TestLspServer testLspServer, LSP.Location caret, LSP.Range range)
         {
             var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensRangeName,
@@ -42,6 +50,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
             Contract.ThrowIfNull(result);
             return result;
         }
+
+        private static LSP.SemanticTokensFullParams CreateSemanticTokensFullParams(LSP.Location caret)
+            => new LSP.SemanticTokensFullParams
+            {
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri }
+            };
 
         private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location caret, LSP.Range range)
             => new LSP.SemanticTokensRangeParams

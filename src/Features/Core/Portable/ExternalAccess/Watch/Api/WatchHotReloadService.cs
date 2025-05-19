@@ -190,7 +190,9 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        // If the changes fail to apply dotnet-watch fails.
+        // We don't support discarding the changes and letting the user retry.
+        if (!results.ModuleUpdates.Updates.IsEmpty)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }
@@ -241,6 +243,9 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     {
         public DebuggingSessionId SessionId
             => instance._sessionId;
+
+        public IEditAndContinueService EncService
+            => instance._encService;
     }
 }
 #endif

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -19,13 +20,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MisplacedUsingDirectives;
 
-public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class MisplacedUsingDirectivesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public MisplacedUsingDirectivesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new MisplacedUsingDirectivesDiagnosticAnalyzer(), new MisplacedUsingDirectivesCodeFixProvider());
 
@@ -41,43 +38,54 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
     internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceOption =
         new(AddImportPlacement.OutsideNamespace, NotificationOption2.Error);
 
-    protected const string ClassDefinition = """
+    internal static readonly CodeStyleOption2<AddImportPlacement> OutsideNamespaceIgnoringAliasesOption =
+        new(AddImportPlacement.OutsideNamespaceIgnoringAliases, NotificationOption2.Error);
+
+    private const string ClassDefinition = """
         public class TestClass
         {
         }
         """;
 
-    protected const string StructDefinition = """
+    private const string StructDefinition = """
         public struct TestStruct
         {
         }
         """;
 
-    protected const string InterfaceDefinition = """
+    private const string InterfaceDefinition = """
         public interface TestInterface
         {
         }
         """;
 
-    protected const string EnumDefinition = """
+    private const string EnumDefinition = """
         public enum TestEnum
         {
             TestValue
         }
         """;
 
-    protected const string DelegateDefinition = @"public delegate void TestDelegate();";
+    private const string DelegateDefinition = @"public delegate void TestDelegate();";
 
     private TestParameters GetTestParameters(CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => new(options: new OptionsCollection(GetLanguage()) { { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredPlacementOption } });
 
-    private protected Task TestDiagnosticMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+    private Task TestDiagnosticMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => TestDiagnosticMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
-    private protected Task TestMissingAsync(string initialMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
+    private Task TestMissingAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption)
         => TestMissingAsync(initialMarkup, GetTestParameters(preferredPlacementOption));
 
-    private protected Task TestInRegularAndScriptAsync(string initialMarkup, string expectedMarkup, CodeStyleOption2<AddImportPlacement> preferredPlacementOption, bool placeSystemNamespaceFirst)
+    private Task TestInRegularAndScriptAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        CodeStyleOption2<AddImportPlacement> preferredPlacementOption,
+        bool placeSystemNamespaceFirst)
     {
         var options = new OptionsCollection(GetLanguage())
         {
@@ -711,6 +719,98 @@ public class MisplacedUsingDirectivesTests : AbstractCSharpDiagnosticProviderBas
             """;
 
         return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceOption, placeSystemNamespaceFirst: true);
+    }
+
+    #endregion
+
+    #region OutsideNamespaceIgnoringAliases
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved()
+    {
+        var testCode = """
+            namespace TestNamespace
+            {
+                [|using System;
+                using System.Threading;|]
+                using SCG = System.Collections.Generic;
+            }
+            """;
+        var fixedTestCode = """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+            }
+            """;
+
+        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_InnerType()
+    {
+        var testCode = """
+            namespace TestNamespace
+            {
+                [|using System;
+                using System.Threading;|]
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """;
+        var fixedTestCode = """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """;
+
+        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43271")]
+    public Task WhenOutsideIgnoringAliasesPreferred_UsingsInNamespace_UsingsMoved_AliasInMiddle()
+    {
+        var testCode = """
+            namespace TestNamespace
+            {
+                [|using System;
+                using SCG = System.Collections.Generic;
+                using System.Threading;|]
+
+                class C
+                {
+                }
+            }
+            """;
+        var fixedTestCode = """
+            {|Warning:using System;|}
+            {|Warning:using System.Threading;|}
+
+            namespace TestNamespace
+            {
+                using SCG = System.Collections.Generic;
+
+                class C
+                {
+                }
+            }
+            """;
+
+        return TestInRegularAndScriptAsync(testCode, fixedTestCode, OutsideNamespaceIgnoringAliasesOption, placeSystemNamespaceFirst: true);
     }
 
     #endregion

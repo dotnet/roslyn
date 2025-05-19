@@ -174,7 +174,7 @@ End Class
             Assert.NotNull(Await Record.ExceptionAsync(Function() TestAsync(codeWithMarkup, indentation, indentStyle:=indentStyle)))
         End Function
 
-        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Threading.Tasks.Task
+        Private Shared Async Function TestAsync(codeWithMarkup As String, indentation As Integer, Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart) As Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(codeWithMarkup, code, position)

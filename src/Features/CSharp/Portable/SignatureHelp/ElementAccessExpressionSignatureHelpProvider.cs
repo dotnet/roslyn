@@ -295,7 +295,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         internal static TextSpan GetTextSpan(SyntaxToken openBracket)
         {
             Contract.ThrowIfFalse(openBracket.Parent is BracketedArgumentListSyntax &&
-                (openBracket.Parent.Parent is ElementAccessExpressionSyntax || openBracket.Parent.Parent is ElementBindingExpressionSyntax));
+                openBracket.Parent.Parent is ElementAccessExpressionSyntax or ElementBindingExpressionSyntax);
             return SignatureHelpUtilities.GetSignatureHelpSpan((BracketedArgumentListSyntax)openBracket.Parent);
         }
 

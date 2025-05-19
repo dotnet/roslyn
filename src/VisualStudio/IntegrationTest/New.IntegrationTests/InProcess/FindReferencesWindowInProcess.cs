@@ -82,7 +82,7 @@ internal partial class FindReferencesWindowInProcess
 
         // Dig through to get the Find References control.
         var toolWindowType = toolWindow.GetType();
-        var toolWindowControlField = toolWindowType.GetField("Control");
+        var toolWindowControlField = toolWindowType.GetField("_control") ?? toolWindowType.GetField("Control");
         var toolWindowControl = toolWindowControlField.GetValue(toolWindow);
 
         // Dig further to get the results table (as opposed to the toolbar).

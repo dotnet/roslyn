@@ -1567,9 +1567,6 @@ class C
 {
     async partial event
 ",
-                // (4,19): error CS1519: Invalid token 'event' in class, record, struct, or interface member declaration
-                //     async partial event
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "event").WithArguments("event").WithLocation(4, 19),
                 // (4,24): error CS1031: Type expected
                 //     async partial event
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 24),
@@ -1589,16 +1586,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
                     N(SyntaxKind.EventDeclaration);
                     {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.EventKeyword);
                         M(SyntaxKind.IdentifierName);
                         {

@@ -23,22 +23,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed class CachingSemanticModelProvider : SemanticModelProvider
     {
+        // Provide access to CachingSemanticModelProvider through a singleton. The inner CWT is static
+        // to avoid leak potential -- see https://github.com/dotnet/runtime/issues/12255.
+        // CachingSemanticModelProvider.s_providerCache -> PerCompilationProvider -> Compilation -> CachingSemanticModelProvider
+        public static CachingSemanticModelProvider Instance { get; } = new CachingSemanticModelProvider();
+
         private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback s_createProviderCallback
             = new ConditionalWeakTable<Compilation, PerCompilationProvider>.CreateValueCallback(compilation => new PerCompilationProvider(compilation));
 
-        private readonly ConditionalWeakTable<Compilation, PerCompilationProvider> _providerCache;
+        private static readonly ConditionalWeakTable<Compilation, PerCompilationProvider> s_providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
 
-        public CachingSemanticModelProvider()
+        private CachingSemanticModelProvider()
         {
-            _providerCache = new ConditionalWeakTable<Compilation, PerCompilationProvider>();
         }
 
         public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options = default)
-            => _providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, options);
+            => s_providerCache.GetValue(compilation, s_createProviderCallback).GetSemanticModel(tree, options);
 
         internal void ClearCache(SyntaxTree tree, Compilation compilation)
         {
-            if (_providerCache.TryGetValue(compilation, out var provider))
+            if (s_providerCache.TryGetValue(compilation, out var provider))
             {
                 provider.ClearCachedSemanticModel(tree);
             }
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ClearCache(Compilation compilation)
         {
-            _providerCache.Remove(compilation);
+            s_providerCache.Remove(compilation);
         }
 
         private sealed class PerCompilationProvider

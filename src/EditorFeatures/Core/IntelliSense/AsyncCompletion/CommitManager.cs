@@ -278,11 +278,11 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
             updatedCurrentSnapshot = edit.Apply();
         }
 
-        if (change.NewPosition.HasValue)
+        if (change.NewSelection.HasValue)
         {
-            // Roslyn knows how to position the caret in the snapshot we just created.
-            // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
-            view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
+            // Roslyn knows how to set the selection in the snapshot we just created.
+            // If there were more edits made by extensions, TrySetSelectionAndEnsureVisible maps the snapshot point to the most recent one.
+            view.TrySetSelectionAndEnsureVisible(new SnapshotSpan(updatedCurrentSnapshot, change.NewSelection.Value.ToSpan()));
         }
         else
         {

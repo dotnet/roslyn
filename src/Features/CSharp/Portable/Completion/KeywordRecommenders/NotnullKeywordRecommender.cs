@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class NotNullKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
+internal sealed class NotNullKeywordRecommender : IKeywordRecommender<CSharpSyntaxContext>
 {
     public ImmutableArray<RecommendedKeyword> RecommendKeywords(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

@@ -94,7 +94,7 @@ internal abstract class AbstractSnippetInfoService : ISnippetInfoService, IVsExp
         }
     }
 
-    public bool SnippetShortcutExists_NonBlocking(string shortcut)
+    public bool SnippetShortcutExists_NonBlocking(string? shortcut)
     {
         if (shortcut == null)
         {

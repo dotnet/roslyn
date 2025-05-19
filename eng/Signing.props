@@ -61,19 +61,4 @@
     <FileSignInfo Include="Microsoft.VisualStudio.Threading.dll" CertificateName="MicrosoftSHA2" />
     <FileSignInfo Include="StreamJsonRpc.dll" CertificateName="MicrosoftSHA2" />
   </ItemGroup>
-
-  <!--
-    We do not intend to ship the artifacts produced for PR validation build so we can skip signing the artifacts.
-   -->
-  <Choose>
-    <When Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(SignType)' == ''">
-      <ItemGroup>
-        <ItemsToSign Remove="@(ItemsToSign)" />
-      </ItemGroup>
-
-      <PropertyGroup>
-        <AllowEmptySignList>true</AllowEmptySignList>
-      </PropertyGroup>
-    </When>
-  </Choose>
 </Project>

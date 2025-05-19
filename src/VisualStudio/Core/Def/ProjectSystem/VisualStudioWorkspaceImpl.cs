@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +30,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -43,7 +41,6 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -305,7 +302,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
         else
         {
-            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath);
+            return _projectCodeModelFactory.Value.GetOrCreateFileCodeModel(documentId.ProjectId, document.FilePath!);
         }
     }
 
@@ -493,7 +490,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         var originalProject = CurrentSolution.GetRequiredProject(projectId);
         var compilationOptionsService = originalProject.Services.GetRequiredService<ICompilationOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         compilationOptionsService.Apply(originalProject.CompilationOptions!, options, storage);
     }
 
@@ -510,7 +507,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         }
 
         var parseOptionsService = CurrentSolution.GetRequiredProject(projectId).Services.GetRequiredService<IParseOptionsChangingService>();
-        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId), ServiceProvider.GlobalProvider);
+        var storage = ProjectPropertyStorage.Create(TryGetDTEProject(projectId)!, ServiceProvider.GlobalProvider);
         parseOptionsService.Apply(options, storage);
     }
 
@@ -1114,7 +1111,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <param name="filePath">the file path of the file to open.</param>
     /// <param name="projectId">used to retrieve the IVsHierarchy to ensure the file is opened in a matching context.</param>
     /// <param name="frame">the window frame.</param>
-    /// <returns></returns>
     private bool TryGetFrame(string? filePath, ProjectId projectId, [NotNullWhen(returnValue: true)] out IVsWindowFrame? frame)
     {
         frame = null;

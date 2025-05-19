@@ -82,6 +82,16 @@ namespace Microsoft.CodeAnalysis
         bool IsNativeIntegerType { get; }
 
         /// <summary>
+        /// Is this a symbol for an extension declaration.
+        /// </summary>
+        bool IsExtension { get; }
+
+        /// <summary>
+        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
+        /// </summary>
+        IParameterSymbol? ExtensionParameter { get; }
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then <see cref="OriginalDefinition"/> gets the original symbol as it was defined in
         /// source or metadata.

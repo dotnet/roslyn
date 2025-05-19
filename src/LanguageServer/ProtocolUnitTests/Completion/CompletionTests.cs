@@ -1471,6 +1471,62 @@ pub{|caret:|}class";
             Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestHasInsertTextModeIfSupportedAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
+            var capabilities = CreateCoreCompletionCapabilities();
+            capabilities.TextDocument.Completion.CompletionItem = new LSP.CompletionItemSetting
+            {
+                InsertTextModeSupport = new LSP.InsertTextModeSupportSetting { ValueSet = [LSP.InsertTextMode.AsIs] }
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, capabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Equal(LSP.InsertTextMode.AsIs, results.ItemDefaults.InsertTextMode);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDoesNotHaveInsertTextModeIfNotSupportedAsync(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    void M()
+    {
+        {|caret:|}
+    }
+}";
+            var capabilities = CreateCoreCompletionCapabilities();
+            capabilities.TextDocument.Completion.CompletionItem = new LSP.CompletionItemSetting
+            {
+                InsertTextModeSupport = new LSP.InsertTextModeSupportSetting { ValueSet = [] }
+            };
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, capabilities);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results.ItemDefaults.InsertTextMode);
+        }
+
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)
         {
             return testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,

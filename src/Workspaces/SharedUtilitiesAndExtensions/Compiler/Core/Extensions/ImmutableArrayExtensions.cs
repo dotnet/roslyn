@@ -31,15 +31,6 @@ namespace Roslyn.Utilities
             return ImmutableArray.Create<T>(items);
         }
 
-        public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
-        {
-            var result = new FixedSizeArrayBuilder<T>(count);
-            for (var i = 0; i < count; i++)
-                result.Add(array[i]);
-
-            return result.MoveToImmutable();
-        }
-
         public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
         {
             if (builder.Count == 0)
