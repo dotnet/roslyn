@@ -174,6 +174,9 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
 
     private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project oldProject, Project newProject, Document? oldDocument, Document? newDocument, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)
     {
+        Debug.Assert(oldDocument == null || oldDocument.Project == oldProject);
+        Debug.Assert(newDocument == null || newDocument.Project == newProject);
+
         var documentId = oldDocument?.Id ?? newDocument!.Id;
 
         // Do not reuse an analysis of the document unless its snasphot is exactly the same as was used to calculate the results.
