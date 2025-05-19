@@ -541,11 +541,9 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
         var finalCondition = generator.LogicalNotExpression(enumIsDefinedInvocation);
 
-        var invalidEnumArgumentExceptionType = compilation.GetBestTypeByMetadataName(typeof(InvalidEnumArgumentException).FullName!);
-        Contract.ThrowIfNull(invalidEnumArgumentExceptionType);
         var throwStatement = generator.ThrowStatement(
             generator.ObjectCreationExpression(
-                invalidEnumArgumentExceptionType,
+                GetTypeNode(compilation, generator, typeof(InvalidEnumArgumentException)),
                 generator.NameOfExpression(parameterIdentifierName),
                 generator.CastExpression(
                     compilation.GetSpecialType(SpecialType.System_Int32),
@@ -772,12 +770,11 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     private static SyntaxNode GetTypeNode(
         Compilation compilation, SyntaxGenerator generator, Type type)
     {
-        var typeSymbol = compilation.GetTypeByMetadataName(type.FullName!);
+        var fullName = type.FullName!;
+        var typeSymbol = compilation.GetTypeByMetadataName(fullName);
         if (typeSymbol == null)
         {
-            return generator.QualifiedName(
-                generator.IdentifierName(nameof(System)),
-                generator.IdentifierName(type.Name));
+            return generator.ParseTypeName(fullName);
         }
 
         return generator.TypeExpression(typeSymbol);

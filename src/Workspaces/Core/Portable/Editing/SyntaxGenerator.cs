@@ -2414,6 +2414,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// </summary>
     internal abstract SyntaxNode ParseExpression(string stringToParse);
 
+    internal abstract SyntaxNode ParseTypeName(string stringToParse);
+
     internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 
     internal abstract SyntaxNode DocumentationCommentTrivia(IEnumerable<SyntaxNode> nodes, SyntaxTriviaList trailingTrivia, string endOfLineString);
