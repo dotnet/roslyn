@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -33,10 +34,10 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IAsynchronousOperationListenerProvider listenerProvider,
     ProjectLoadTelemetryReporter projectLoadTelemetry,
     ServerConfigurationFactory serverConfigurationFactory,
-    BinlogNamer binlogNamer) : ILspMiscellaneousFilesWorkspaceProviderFactory
+    IBinLogPathProvider binLogPathProvider) : ILspMiscellaneousFilesWorkspaceProviderFactory
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
-        return new FileBasedProgramsProjectSystem(lspServices, metadataAsSourceFileService, workspaceFactory, fileChangeWatcher, globalOptionService, loggerFactory, listenerProvider, projectLoadTelemetry, serverConfigurationFactory, binlogNamer);
+        return new FileBasedProgramsProjectSystem(lspServices, metadataAsSourceFileService, workspaceFactory, fileChangeWatcher, globalOptionService, loggerFactory, listenerProvider, projectLoadTelemetry, serverConfigurationFactory, binLogPathProvider);
     }
 }
