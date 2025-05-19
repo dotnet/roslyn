@@ -235,7 +235,7 @@ internal sealed class ProjectBuildManager
             ? [_msbuildLogger]
             : ImmutableArray<MSB.Framework.ILogger>.Empty;
 
-        // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
+        // Pass empty loggers array to workaround LoggerException when passing binary logger to both evaluation and build. See https://github.com/dotnet/msbuild/issues/11867
         _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
 
         var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
