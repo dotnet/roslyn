@@ -11,11 +11,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -221,7 +219,7 @@ internal sealed class CSharpNavigationBarItemService() : AbstractNavigationBarIt
             // Get only the local functions that are direct descendents of this method.
             var localFunctions = node.DescendantNodes(descendIntoChildren: (n) =>
                 // Always descend from the original node even if its a local function, but do not descend further into descendent local functions.
-                n == node || !CSharpSyntaxFacts.Instance.IsLocalFunctionStatement(n)).Where(n => CSharpSyntaxFacts.Instance.IsLocalFunctionStatement(n));
+                n == node || n is not LocalFunctionStatementSyntax).Where(n => n is LocalFunctionStatementSyntax);
             using var _ = ArrayBuilder<RoslynNavigationBarItem>.GetInstance(out var items);
             foreach (var localFunction in localFunctions)
             {
