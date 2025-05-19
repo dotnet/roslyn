@@ -22,8 +22,7 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
