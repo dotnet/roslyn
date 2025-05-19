@@ -956,7 +956,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Source.vb",
+                startingDocumentName:="Source.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="TargetMethod")
         End Function
@@ -979,7 +979,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="SomeNumbers")
         End Function
@@ -997,7 +997,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S")
         End Function
@@ -1016,7 +1016,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S")
         End Function
@@ -1038,7 +1038,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S")
         End Function
@@ -1058,7 +1058,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S")
         End Function
@@ -1078,7 +1078,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S")
         End Function
@@ -1098,7 +1098,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S",
                 expectedVirtualSpace:=8)
@@ -1119,7 +1119,7 @@ End Class
                     </Project>
                 </Workspace>,
                 host,
-                startingDocumentFilePath:="Code.vb",
+                startingDocumentName:="Code.vb",
                 leftItemToSelectText:="Program",
                 rightItemToSelectText:="S",
                 expectedVirtualSpace:=4)

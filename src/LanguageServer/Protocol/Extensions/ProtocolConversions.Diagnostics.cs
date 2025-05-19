@@ -82,7 +82,7 @@ internal static partial class ProtocolConversions
                 Location = new LSP.Location
                 {
                     Range = GetRange(l),
-                    Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(l.UnmappedFileSpan.Path)
                 },
                 Message = diagnostic.Message
             }).ToArray();

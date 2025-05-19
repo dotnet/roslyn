@@ -11,13 +11,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 
 internal partial class CSharpProjectShim
 {
-    private sealed class OptionsProcessor : ProjectSystemProjectOptionsProcessor
+    private sealed class OptionsProcessor : AbstractLegacyProjectSystemProjectOptionsProcessor
     {
         private readonly ProjectSystemProject _projectSystemProject;
 

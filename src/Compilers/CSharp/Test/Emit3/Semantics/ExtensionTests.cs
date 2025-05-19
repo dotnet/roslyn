@@ -5,12 +5,15 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -21,7 +24,7 @@ using Xunit.Sdk;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 [CompilerTrait(CompilerFeature.Extensions)]
-public class ExtensionTests : CompilingTestBase
+public partial class ExtensionTests : CompilingTestBase
 {
     private static string ExpectedOutput(string output)
     {
@@ -123,10 +126,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -293,10 +296,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -582,10 +585,10 @@ public static class Extensions
             01 00 01 00 00
         )
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -826,10 +829,10 @@ public static partial class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -919,7 +922,7 @@ public static partial class Extensions
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_01()
+    public void ExtensionIndex_TwoExtensions_01()
     {
         var src = """
 public static class Extensions
@@ -1122,10 +1125,10 @@ public static class Extensions
                     extends [netstandard]System.Object
                 {
                     // Methods
-                    .method private hidebysig specialname static 
+                    .method private hidebysig specialname static
                         void '<Extension>$' (
                             class [netstandard]System.Text.StringBuilder ''
-                        ) cil managed 
+                        ) cil managed
                     {
                         .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
@@ -1135,10 +1138,10 @@ public static class Extensions
                         .maxstack 8
                         IL_0000: ret
                     } // end of method '<>E__0'::'<Extension>$'
-                    .method public hidebysig static 
+                    .method public hidebysig static
                         class [netstandard]System.Text.StringBuilder Inspect (
                             class [netstandard]System.Text.StringBuilder sb
-                        ) cil managed 
+                        ) cil managed
                     {
                         // Method begins at RVA 0x20a7
                         // Code size 2 (0x2)
@@ -1156,8 +1159,8 @@ public static class Extensions
                     // Fields
                     .field public class [netstandard]System.Text.StringBuilder sb
                     // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
+                    .method public hidebysig specialname rtspecialname
+                        instance void .ctor () cil managed
                     {
                         // Method begins at RVA 0x2079
                         // Code size 7 (0x7)
@@ -1166,8 +1169,8 @@ public static class Extensions
                         IL_0001: call instance void [netstandard]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<Inspect>b__0' () cil managed 
+                    .method assembly hidebysig
+                        instance void '<Inspect>b__0' () cil managed
                     {
                         // Method begins at RVA 0x20ac
                         // Code size 42 (0x2a)
@@ -1201,10 +1204,10 @@ public static class Extensions
                     } // end of method '<>c__DisplayClass1_0'::'<Inspect>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig static 
+                .method public hidebysig static
                     class [netstandard]System.Text.StringBuilder Inspect (
                         class [netstandard]System.Text.StringBuilder sb
-                    ) cil managed 
+                    ) cil managed
                 {
                     // Method begins at RVA 0x2081
                     // Code size 35 (0x23)
@@ -1286,10 +1289,10 @@ public static class IntExt
                     extends [netstandard]System.Object
                 {
                     // Methods
-                    .method private hidebysig specialname static 
+                    .method private hidebysig specialname static
                         void '<Extension>$' (
                             int32 ''
-                        ) cil managed 
+                        ) cil managed
                     {
                         .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
@@ -1299,8 +1302,8 @@ public static class IntExt
                         .maxstack 8
                         IL_0000: ret
                     } // end of method '<>E__0'::'<Extension>$'
-                    .method public hidebysig static 
-                        class [netstandard]System.Action DoSomething () cil managed 
+                    .method public hidebysig static
+                        class [netstandard]System.Action DoSomething () cil managed
                     {
                         // Method begins at RVA 0x20be
                         // Code size 2 (0x2)
@@ -1318,8 +1321,8 @@ public static class IntExt
                     // Fields
                     .field public int32 b
                     // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
+                    .method public hidebysig specialname rtspecialname
+                        instance void .ctor () cil managed
                     {
                         // Method begins at RVA 0x2073
                         // Code size 7 (0x7)
@@ -1328,8 +1331,8 @@ public static class IntExt
                         IL_0001: call instance void [netstandard]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<DoSomething>b__0' () cil managed 
+                    .method assembly hidebysig
+                        instance void '<DoSomething>b__0' () cil managed
                     {
                         // Method begins at RVA 0x20c4
                         // Code size 35 (0x23)
@@ -1354,8 +1357,8 @@ public static class IntExt
                     } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig static 
-                    class [netstandard]System.Action DoSomething () cil managed 
+                .method public hidebysig static
+                    class [netstandard]System.Action DoSomething () cil managed
                 {
                     // Method begins at RVA 0x207c
                     // Code size 52 (0x34)
@@ -1451,10 +1454,10 @@ public static class IntExt
                     extends [netstandard]System.Object
                 {
                     // Methods
-                    .method private hidebysig specialname static 
+                    .method private hidebysig specialname static
                         void '<Extension>$' (
                             int32 ''
-                        ) cil managed 
+                        ) cil managed
                     {
                         .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
@@ -1464,8 +1467,8 @@ public static class IntExt
                         .maxstack 8
                         IL_0000: ret
                     } // end of method '<>E__0'::'<Extension>$'
-                    .method public hidebysig static 
-                        class [netstandard]System.Action DoSomething () cil managed 
+                    .method public hidebysig static
+                        class [netstandard]System.Action DoSomething () cil managed
                     {
                         // Method begins at RVA 0x20bc
                         // Code size 2 (0x2)
@@ -1483,8 +1486,8 @@ public static class IntExt
                     // Fields
                     .field public int32 b
                     // Methods
-                    .method public hidebysig specialname rtspecialname 
-                        instance void .ctor () cil managed 
+                    .method public hidebysig specialname rtspecialname
+                        instance void .ctor () cil managed
                     {
                         // Method begins at RVA 0x2073
                         // Code size 7 (0x7)
@@ -1493,8 +1496,8 @@ public static class IntExt
                         IL_0001: call instance void [netstandard]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method '<>c__DisplayClass1_0'::.ctor
-                    .method assembly hidebysig 
-                        instance void '<DoSomething>b__0' () cil managed 
+                    .method assembly hidebysig
+                        instance void '<DoSomething>b__0' () cil managed
                     {
                         // Method begins at RVA 0x20c0
                         // Code size 35 (0x23)
@@ -1519,8 +1522,8 @@ public static class IntExt
                     } // end of method '<>c__DisplayClass1_0'::'<DoSomething>b__0'
                 } // end of class <>c__DisplayClass1_0
                 // Methods
-                .method public hidebysig static 
-                    class [netstandard]System.Action DoSomething () cil managed 
+                .method public hidebysig static
+                    class [netstandard]System.Action DoSomething () cil managed
                 {
                     // Method begins at RVA 0x207c
                     // Code size 50 (0x32)
@@ -1560,7 +1563,7 @@ public static class IntExt
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_02()
+    public void ExtensionIndex_TwoExtensions_02()
     {
         var src = """
 public static class Extensions
@@ -1585,12 +1588,12 @@ public static class Extensions
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__2`1", symbol2.MetadataName);
-        Assert.Equal("Extensions.<>E__2<T>", symbol2.ToTestDisplayString());
+        Assert.Equal("<>E__1`1", symbol2.MetadataName);
+        Assert.Equal("Extensions.<>E__1<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_SameSignatures_03()
+    public void ExtensionIndex_TwoExtensions_03()
     {
         var src = """
 extension<T>(T) { }
@@ -1618,12 +1621,12 @@ extension<T>(T) { }
         var extension2 = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Last();
         var symbol2 = model.GetDeclaredSymbol(extension2);
         var sourceExtension2 = symbol2.GetSymbol<SourceNamedTypeSymbol>();
-        Assert.Equal("<>E__2`1", symbol2.MetadataName);
-        Assert.Equal("<>E__2<T>", symbol2.ToTestDisplayString());
+        Assert.Equal("<>E__1`1", symbol2.MetadataName);
+        Assert.Equal("<>E__1<T>", symbol2.ToTestDisplayString());
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_DifferentSignatures_01()
+    public void ExtensionIndex_TwoExtensions_05()
     {
         var src = """
 public static class Extensions
@@ -1652,7 +1655,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void ExtensionIndex_TwoExtensions_DifferentSignatures_02()
+    public void ExtensionIndex_TwoExtensions_06()
     {
         var src = """
 public static class Extensions
@@ -1695,6 +1698,7 @@ public static class Extensions
     extension<T8>(T8 o8) { }
     extension<T9>(T9 o9) { }
     extension<T10>(T10 o10) { }
+    class C { }
     extension<T11>(T11 o11) { }
 }
 """;
@@ -1740,10 +1744,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -1753,8 +1757,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig 
-            instance void M () cil managed 
+        .method private hidebysig
+            instance void M () cil managed
         {
             // Method begins at RVA 0x2069
             // Code size 2 (0x2)
@@ -1764,10 +1768,10 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         void M (
             object o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -1846,10 +1850,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -1859,8 +1863,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig static 
-            void M () cil managed 
+        .method private hidebysig static
+            void M () cil managed
         {
             // Method begins at RVA 0x2069
             // Code size 2 (0x2)
@@ -1870,8 +1874,8 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
-        void M () cil managed 
+    .method private hidebysig static
+        void M () cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 1 (0x1)
@@ -1967,10 +1971,10 @@ public static class Extensions
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -1980,8 +1984,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname 
-            instance int32 get_Property () cil managed 
+        .method private hidebysig specialname
+            instance int32 get_Property () cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -1989,10 +1993,10 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_Property
-        .method private hidebysig specialname 
+        .method private hidebysig specialname
             instance void set_Property (
                 int32 'value'
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2008,10 +2012,10 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         int32 get_Property (
             object o
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
@@ -2019,11 +2023,11 @@ public static class Extensions
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Property
-    .method private hidebysig static 
+    .method private hidebysig static
         void set_Property (
             object o,
             int32 'value'
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
@@ -2136,10 +2140,10 @@ extends [netstandard]System.Object
         extends [netstandard]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -2149,8 +2153,8 @@ extends [netstandard]System.Object
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname static 
-            int32 get_Property () cil managed 
+        .method private hidebysig specialname static
+            int32 get_Property () cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2158,10 +2162,10 @@ extends [netstandard]System.Object
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_Property
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void set_Property (
                 int32 'value'
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2177,8 +2181,8 @@ extends [netstandard]System.Object
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
-        int32 get_Property () cil managed 
+    .method private hidebysig static
+        int32 get_Property () cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
@@ -2186,10 +2190,10 @@ extends [netstandard]System.Object
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Property
-    .method private hidebysig static 
+    .method private hidebysig static
         void set_Property (
             int32 'value'
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
@@ -2275,10 +2279,10 @@ public static class Extensions
             01 00 04 49 74 65 6d 00 00
         )
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -2288,10 +2292,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig specialname 
+        .method private hidebysig specialname
             instance int32 get_Item (
                 int32 i
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2299,11 +2303,11 @@ public static class Extensions
             IL_0000: ldnull
             IL_0001: throw
         } // end of method '<>E__0'::get_Item
-        .method private hidebysig specialname 
+        .method private hidebysig specialname
             instance void set_Item (
                 int32 i,
                 int32 'value'
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x206d
             // Code size 2 (0x2)
@@ -2321,11 +2325,11 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         int32 get_Item (
             object o,
             int32 i
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 3 (0x3)
@@ -2333,12 +2337,12 @@ public static class Extensions
         IL_0000: ldc.i4.s 42
         IL_0002: ret
     } // end of method Extensions::get_Item
-    .method private hidebysig static 
+    .method private hidebysig static
         void set_Item (
             object o,
             int32 i,
             int32 'value'
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x206b
         // Code size 1 (0x1)
@@ -2727,7 +2731,7 @@ public static class Extensions
         var src = """
 public static class Extensions
 {
-    extension(object o) 
+    extension(object o)
     {
         public object M() { return o; }
     }
@@ -2880,7 +2884,7 @@ int.M();
 
 public static class Extensions
 {
-    extension<T>(int) 
+    extension<T>(int)
     {
         public static void M() { }
     }
@@ -2892,7 +2896,7 @@ public static class Extensions
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
             // (5,18): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T>(int) 
+            //     extension<T>(int)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
     }
 
@@ -2904,7 +2908,7 @@ int.M();
 
 public static class Extensions
 {
-    extension<T1, T2>(T1) 
+    extension<T1, T2>(T1)
     {
         public static void M() { }
     }
@@ -2916,7 +2920,7 @@ public static class Extensions
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
             // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
-            //     extension<T1, T2>(T1) 
+            //     extension<T1, T2>(T1)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
     }
 
@@ -3298,7 +3302,7 @@ System.Console.Write(i);
 
 public static class Extensions
 {
-    extension(ref int i) 
+    extension(ref int i)
     {
         public void M() { System.Console.Write(i); i = 43; }
     }
@@ -3515,7 +3519,7 @@ i.M();
 
 public static class Extensions
 {
-    extension(ref readonly int i) 
+    extension(ref readonly int i)
     {
         public void M() { System.Console.Write(i); }
     }
@@ -3937,23 +3941,49 @@ static class Extensions
             );
     }
 
-    [Fact]
-    public void ReceiverParameter_RefScope()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+    public void ReceiverParameter_RefScope_01()
     {
         var src = """
+int i = 42;
+i.M();
+
 static class Extensions
 {
     extension(scoped ref int receiver)
     {
+        public void M() => System.Console.Write(receiver);
     }
 }
 """;
         var comp = CreateCompilation(src);
 
-        CompileAndVerify(comp, symbolValidator: (m) =>
+        CompileAndVerify(comp, expectedOutput: "42", symbolValidator: (m) =>
         {
             AssertEx.Equal(ScopedKind.ScopedRef, m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__0.<Extension>$").Parameters[0].EffectiveScope);
         }).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78491")]
+    public void ReceiverParameter_RefScope_02()
+    {
+        var src = """
+int i = 42;
+i.M();
+
+static class Extensions
+{
+    extension(scoped ref int receiver)
+    {
+        public ref int M() => ref receiver;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (8,35): error CS9075: Cannot return a parameter by reference 'receiver' because it is scoped to the current method
+            //         public ref int M() => ref receiver;
+            Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "receiver").WithArguments("receiver").WithLocation(8, 35));
     }
 
     [Fact]
@@ -3981,7 +4011,11 @@ static class Extensions
             AssertEx.Equal("System.String?", m.GlobalNamespace.GetMember<MethodSymbol>("Extensions.<>E__1.<Extension>$").Parameters[0].TypeWithAnnotations.ToTestDisplayString());
         }).VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : verify nullability in GetDeclaredSymbol and GetSymbolInfo
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var parameters = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().ToArray();
+        Assert.Equal("System.String? receiver", model.GetDeclaredSymbol(parameters[0]).ToTestDisplayString(includeNonNullable: true));
+        Assert.Equal("System.String?", model.GetDeclaredSymbol(parameters[1]).ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]
@@ -4040,12 +4074,10 @@ class C {}
             // (5,21): error CS0051: Inconsistent accessibility: parameter type 'C' is less accessible than method 'Extensions.extension(C).M()'
             //         public void M() {}
             Diagnostic(ErrorCode.ERR_BadVisParamType, "M").WithArguments("Extensions.extension(C).M()", "C").WithLocation(5, 21),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Error wording, this isn't an indexer
-            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer 'Extensions.extension(C).P'
+            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(C).P", "C").WithLocation(6, 20),
-            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer 'Extensions.extension(C).this[int]'
+            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'C' is less accessible than indexer or property 'Extensions.extension(C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(C).this[int]", "C").WithLocation(7, 20)
             );
@@ -4099,22 +4131,19 @@ public static class Extensions
             // (5,21): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M()'
             //         public void M() {}
             Diagnostic(ErrorCode.ERR_BadVisParamType, "M").WithArguments("Extensions.extension(Extensions.C).M()", "Extensions.C").WithLocation(5, 21),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Error wording, this isn't an indexer
-
-            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P'
+            // (6,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P'
             //         public int P { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P").WithArguments("Extensions.extension(Extensions.C).P", "Extensions.C").WithLocation(6, 20),
-            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).this[int]'
+            // (7,20): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[int]'
             //         public int this[int i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[int]", "Extensions.C").WithLocation(7, 20),
             // (13,23): error CS0051: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than method 'Extensions.extension(Extensions.C).M2()'
             //         internal void M2() {}
             Diagnostic(ErrorCode.ERR_BadVisParamType, "M2").WithArguments("Extensions.extension(Extensions.C).M2()", "Extensions.C").WithLocation(13, 23),
-            // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).P2'
+            // (14,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).P2'
             //         internal int P2 { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "P2").WithArguments("Extensions.extension(Extensions.C).P2", "Extensions.C").WithLocation(14, 22),
-            // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer 'Extensions.extension(Extensions.C).this[byte]'
+            // (15,22): error CS0055: Inconsistent accessibility: parameter type 'Extensions.C' is less accessible than indexer or property 'Extensions.extension(Extensions.C).this[byte]'
             //         internal int this[byte i] { get => 0; set {}}
             Diagnostic(ErrorCode.ERR_BadVisIndexerParam, "this").WithArguments("Extensions.extension(Extensions.C).this[byte]", "Extensions.C").WithLocation(15, 22)
             );
@@ -4534,7 +4563,7 @@ public class C
         _ = GetInt().P;
     }
 
-    static int GetInt() => 0; 
+    static int GetInt() => 0;
 }
 
 static class Extensions
@@ -4578,23 +4607,24 @@ public class C
         _ = GetInt().P;
     }
 
-    static int GetInt() => 0; 
+    static int GetInt() => 0;
 }
 
 static class Extensions
 {
     extension(ref readonly int receiver)
     {
-        public void M1() {}
-        public int P => 0;
+        public void M1() { System.Console.Write("ranM1 "); }
+        public int P { get { System.Console.Write("ranP"); return 0; } }
     }
 
     public static void M2 (this ref readonly int receiver)
     {
+        System.Console.Write("ranM2 ");
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
         comp.VerifyEmitDiagnostics(
             // (5,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
@@ -4608,7 +4638,7 @@ static class Extensions
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetInt()").WithArguments("0").WithLocation(7, 13)
             );
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test emit and execution for a scenario like this
+        CompileAndVerify(comp, expectedOutput: "ranM1 ranM2 ranP");
     }
 
     [Fact]
@@ -4624,25 +4654,25 @@ public class C
         _ = GetInt().P;
     }
 
-    static int GetInt() => 0; 
+    static int GetInt() => 0;
 }
 
 static class Extensions
 {
     extension(in int receiver)
     {
-        public void M1() {}
-        public int P => 0;
+        public void M1() { System.Console.Write("ranM1 "); }
+        public int P { get { System.Console.Write("ranP"); return 0; } }
     }
 
-    public static void M2 (this in int receiver)
+    public static void M2(this in int receiver)
     {
+        System.Console.Write("ranM2 ");
     }
 }
 """;
-        var comp = CreateCompilation(src);
-
-        comp.VerifyEmitDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test emit and execution for a scenario like this
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ranM1 ranM2 ranP").VerifyDiagnostics();
     }
 
     [Fact]
@@ -4676,10 +4706,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -4689,10 +4719,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig 
+        .method private hidebysig
             instance void M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x2079
             // Code size 2 (0x2)
@@ -4702,11 +4732,11 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         void M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -4795,10 +4825,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -4808,10 +4838,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance string M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x207d
             // Code size 2 (0x2)
@@ -4821,11 +4851,11 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -5164,10 +5194,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -5177,10 +5207,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance string M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20ad
             // Code size 2 (0x2)
@@ -5200,11 +5230,11 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -5225,10 +5255,10 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         string '<M>b__1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -5344,10 +5374,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -5357,10 +5387,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance string M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x208e
             // Code size 2 (0x2)
@@ -5379,8 +5409,8 @@ public static class Extensions
         .field public object o
         .field public string s
         // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor () cil managed 
+        .method public hidebysig specialname rtspecialname
+            instance void .ctor () cil managed
         {
             // Method begins at RVA 0x2091
             // Code size 7 (0x7)
@@ -5389,8 +5419,8 @@ public static class Extensions
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0'::.ctor
-        .method assembly hidebysig 
-            instance string '<M>b__0' () cil managed 
+        .method assembly hidebysig
+            instance string '<M>b__0' () cil managed
         {
             // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
@@ -5410,11 +5440,11 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -5532,10 +5562,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -5545,10 +5575,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x2080
             // Code size 2 (0x2)
@@ -5589,10 +5619,10 @@ public static class Extensions
         .field private string s
         .field public string '<>3__s'
         // Methods
-        .method public hidebysig specialname rtspecialname 
+        .method public hidebysig specialname rtspecialname
             instance void .ctor (
                 int32 '<>1__state'
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5610,8 +5640,8 @@ public static class Extensions
             IL_0013: stfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0018: ret
         } // end of method '<M>d__1'::.ctor
-        .method private final hidebysig newslot virtual 
-            instance void System.IDisposable.Dispose () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.IDisposable.Dispose () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5625,8 +5655,8 @@ public static class Extensions
             IL_0003: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0008: ret
         } // end of method '<M>d__1'::System.IDisposable.Dispose
-        .method private final hidebysig newslot virtual 
-            instance bool MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance bool MoveNext () cil managed
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
             // Method begins at RVA 0x20a8
@@ -5672,8 +5702,8 @@ public static class Extensions
             IL_004a: ldc.i4.0
             IL_004b: ret
         } // end of method '<M>d__1'::MoveNext
-        .method private final hidebysig specialname newslot virtual 
-            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5686,8 +5716,8 @@ public static class Extensions
             IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
-        .method private final hidebysig newslot virtual 
-            instance void System.Collections.IEnumerator.Reset () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.Collections.IEnumerator.Reset () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5699,8 +5729,8 @@ public static class Extensions
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         } // end of method '<M>d__1'::System.Collections.IEnumerator.Reset
-        .method private final hidebysig specialname newslot virtual 
-            instance object System.Collections.IEnumerator.get_Current () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance object System.Collections.IEnumerator.get_Current () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5713,8 +5743,8 @@ public static class Extensions
             IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1'::System.Collections.IEnumerator.get_Current
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5754,8 +5784,8 @@ public static class Extensions
             IL_0041: ldloc.0
             IL_0042: ret
         } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -5779,11 +5809,11 @@ public static class Extensions
         }
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -5933,10 +5963,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -5946,10 +5976,10 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
@@ -5972,8 +6002,8 @@ public static class Extensions
         .field public string s
         .field private valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter '<>u__1'
         // Methods
-        .method private final hidebysig newslot virtual 
-            instance void MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void MoveNext () cil managed
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
             // Method begins at RVA 0x20b8
@@ -6063,10 +6093,10 @@ public static class Extensions
             IL_00ac: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00b1: ret
         } // end of method '<M>d__1'::MoveNext
-        .method private final hidebysig newslot virtual 
+        .method private final hidebysig newslot virtual
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -6083,11 +6113,11 @@ public static class Extensions
         } // end of method '<M>d__1'::SetStateMachine
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -6233,10 +6263,10 @@ public class C<T>(string v)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -6246,11 +6276,11 @@ public class C<T>(string v)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance string M<U> (
                 !T t,
                 !!U u
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20a7
             // Code size 2 (0x2)
@@ -6260,12 +6290,12 @@ public class C<T>(string v)
         } // end of method '<>E__0`1'::M
     } // end of class <>E__0`1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M<T, U> (
             class C`1<!!T> o,
             !!T t,
             !!U u
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -6474,10 +6504,10 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -6487,11 +6517,11 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x216f
             // Code size 2 (0x2)
@@ -6512,12 +6542,12 @@ public class C<T>(string val)
         .field public !T t1
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -6550,7 +6580,7 @@ public class C<T>(string val)
         IL_0033: call class C`1<!!1> Extensions::'<M>b__1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
         IL_0038: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         class C`1<!!U> '<M>b__1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
@@ -6558,7 +6588,7 @@ public class C<T>(string val)
             !!Y y2,
             !!Z z2,
             valuetype Extensions/'<>c__DisplayClass1_0`2'<!!T, !!U>& ''
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -6749,10 +6779,10 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -6762,11 +6792,11 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class C`1<!!U> M<U> (
                 !T t1,
                 !!U u1
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20c6
             // Code size 2 (0x2)
@@ -6786,8 +6816,8 @@ public class C<T>(string val)
         .field public !U u1
         .field public !T t1
         // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor () cil managed 
+        .method public hidebysig specialname rtspecialname
+            instance void .ctor () cil managed
         {
             // Method begins at RVA 0x20c9
             // Code size 7 (0x7)
@@ -6796,11 +6826,11 @@ public class C<T>(string val)
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0`2'::.ctor
-        .method assembly hidebysig 
+        .method assembly hidebysig
             instance class C`1<!U> '<M>b__0' (
                 !T t2,
                 !U u2
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20d4
             // Code size 103 (0x67)
@@ -6845,12 +6875,12 @@ public class C<T>(string val)
         } // end of method '<>c__DisplayClass1_0`2'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0`2
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class C`1<!!U> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -7008,10 +7038,10 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -7021,11 +7051,11 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<U> (
                 !T t1,
                 !!U u1
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x209e
             // Code size 2 (0x2)
@@ -7068,10 +7098,10 @@ public class C<T>(string val)
         .field private !T t1
         .field public !T '<>3__t1'
         // Methods
-        .method public hidebysig specialname rtspecialname 
+        .method public hidebysig specialname rtspecialname
             instance void .ctor (
                 int32 '<>1__state'
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7089,8 +7119,8 @@ public class C<T>(string val)
             IL_0013: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>l__initialThreadId'
             IL_0018: ret
         } // end of method '<M>d__1`2'::.ctor
-        .method private final hidebysig newslot virtual 
-            instance void System.IDisposable.Dispose () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.IDisposable.Dispose () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7104,8 +7134,8 @@ public class C<T>(string val)
             IL_0003: stfld int32 class Extensions/'<M>d__1`2'<!T, !U>::'<>1__state'
             IL_0008: ret
         } // end of method '<M>d__1`2'::System.IDisposable.Dispose
-        .method private final hidebysig newslot virtual 
-            instance bool MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance bool MoveNext () cil managed
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
             // Method begins at RVA 0x20c8
@@ -7152,8 +7182,8 @@ public class C<T>(string val)
             IL_005f: ldc.i4.0
             IL_0060: ret
         } // end of method '<M>d__1`2'::MoveNext
-        .method private final hidebysig specialname newslot virtual 
-            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7166,8 +7196,8 @@ public class C<T>(string val)
             IL_0001: ldfld string class Extensions/'<M>d__1`2'<!T, !U>::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1`2'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
-        .method private final hidebysig newslot virtual 
-            instance void System.Collections.IEnumerator.Reset () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.Collections.IEnumerator.Reset () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7179,8 +7209,8 @@ public class C<T>(string val)
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         } // end of method '<M>d__1`2'::System.Collections.IEnumerator.Reset
-        .method private final hidebysig specialname newslot virtual 
-            instance object System.Collections.IEnumerator.get_Current () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance object System.Collections.IEnumerator.get_Current () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7193,8 +7223,8 @@ public class C<T>(string val)
             IL_0001: ldfld string class Extensions/'<M>d__1`2'<!T, !U>::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1`2'::System.Collections.IEnumerator.get_Current
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7238,8 +7268,8 @@ public class C<T>(string val)
             IL_004d: ldloc.0
             IL_004e: ret
         } // end of method '<M>d__1`2'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7263,12 +7293,12 @@ public class C<T>(string val)
         }
     } // end of class <M>d__1`2
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 14 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -7397,10 +7427,10 @@ public class C<T>(string val)
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 class C`1<!T> o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -7410,11 +7440,11 @@ public class C<T>(string val)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method public hidebysig 
+        .method public hidebysig
             instance class [mscorlib]System.Threading.Tasks.Task`1<string> M<U> (
                 !T t1,
                 !!U u1
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
@@ -7438,8 +7468,8 @@ public class C<T>(string val)
         .field public !T t1
         .field private valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter '<>u__1'
         // Methods
-        .method private final hidebysig newslot virtual 
-            instance void MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void MoveNext () cil managed
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
             // Method begins at RVA 0x20d8
@@ -7530,10 +7560,10 @@ public class C<T>(string val)
             IL_00c4: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00c9: ret
         } // end of method '<M>d__1`2'::MoveNext
-        .method private final hidebysig newslot virtual 
+        .method private final hidebysig newslot virtual
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -7550,12 +7580,12 @@ public class C<T>(string val)
         } // end of method '<M>d__1`2'::SetStateMachine
     } // end of class <M>d__1`2
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Threading.Tasks.Task`1<string> M<T, U> (
             class C`1<!!T> o,
             !!T t1,
             !!U u1
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 14 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -7714,10 +7744,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object _
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -7727,11 +7757,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static 
+        .method public hidebysig static
             string M (
                 object o,
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x207d
             // Code size 2 (0x2)
@@ -7741,11 +7771,11 @@ public static class Extensions
         } // end of method '<>E__0'::M
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 19 (0x13)
@@ -8195,10 +8225,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object _
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -8208,11 +8238,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static 
+        .method public hidebysig static
             string M (
                 object o,
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20ad
             // Code size 2 (0x2)
@@ -8232,11 +8262,11 @@ public static class Extensions
         .field public string s
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2068
         // Code size 24 (0x18)
@@ -8254,10 +8284,10 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>b__1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         string '<M>b__1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -8373,10 +8403,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object _
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -8386,11 +8416,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static 
+        .method public hidebysig static
             string M (
                 object o,
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x208e
             // Code size 2 (0x2)
@@ -8409,8 +8439,8 @@ public static class Extensions
         .field public object o
         .field public string s
         // Methods
-        .method public hidebysig specialname rtspecialname 
-            instance void .ctor () cil managed 
+        .method public hidebysig specialname rtspecialname
+            instance void .ctor () cil managed
         {
             // Method begins at RVA 0x2091
             // Code size 7 (0x7)
@@ -8419,8 +8449,8 @@ public static class Extensions
             IL_0001: call instance void [mscorlib]System.Object::.ctor()
             IL_0006: ret
         } // end of method '<>c__DisplayClass1_0'::.ctor
-        .method assembly hidebysig 
-            instance string '<M>b__0' () cil managed 
+        .method assembly hidebysig
+            instance string '<M>b__0' () cil managed
         {
             // Method begins at RVA 0x2099
             // Code size 30 (0x1e)
@@ -8440,11 +8470,11 @@ public static class Extensions
         } // end of method '<>c__DisplayClass1_0'::'<M>b__0'
     } // end of class <>c__DisplayClass1_0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 36 (0x24)
@@ -8559,10 +8589,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object _
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -8572,11 +8602,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static 
+        .method public hidebysig static
             class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
                 object o,
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x2080
             // Code size 2 (0x2)
@@ -8617,10 +8647,10 @@ public static class Extensions
         .field private string s
         .field public string '<>3__s'
         // Methods
-        .method public hidebysig specialname rtspecialname 
+        .method public hidebysig specialname rtspecialname
             instance void .ctor (
                 int32 '<>1__state'
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8638,8 +8668,8 @@ public static class Extensions
             IL_0013: stfld int32 Extensions/'<M>d__1'::'<>l__initialThreadId'
             IL_0018: ret
         } // end of method '<M>d__1'::.ctor
-        .method private final hidebysig newslot virtual 
-            instance void System.IDisposable.Dispose () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.IDisposable.Dispose () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8653,8 +8683,8 @@ public static class Extensions
             IL_0003: stfld int32 Extensions/'<M>d__1'::'<>1__state'
             IL_0008: ret
         } // end of method '<M>d__1'::System.IDisposable.Dispose
-        .method private final hidebysig newslot virtual 
-            instance bool MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance bool MoveNext () cil managed
         {
             .override method instance bool [mscorlib]System.Collections.IEnumerator::MoveNext()
             // Method begins at RVA 0x20a8
@@ -8700,8 +8730,8 @@ public static class Extensions
             IL_004a: ldc.i4.0
             IL_004b: ret
         } // end of method '<M>d__1'::MoveNext
-        .method private final hidebysig specialname newslot virtual 
-            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance string 'System.Collections.Generic.IEnumerator<System.String>.get_Current' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8714,8 +8744,8 @@ public static class Extensions
             IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerator<System.String>.get_Current'
-        .method private final hidebysig newslot virtual 
-            instance void System.Collections.IEnumerator.Reset () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void System.Collections.IEnumerator.Reset () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8727,8 +8757,8 @@ public static class Extensions
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         } // end of method '<M>d__1'::System.Collections.IEnumerator.Reset
-        .method private final hidebysig specialname newslot virtual 
-            instance object System.Collections.IEnumerator.get_Current () cil managed 
+        .method private final hidebysig specialname newslot virtual
+            instance object System.Collections.IEnumerator.get_Current () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8741,8 +8771,8 @@ public static class Extensions
             IL_0001: ldfld string Extensions/'<M>d__1'::'<>2__current'
             IL_0006: ret
         } // end of method '<M>d__1'::System.Collections.IEnumerator.get_Current
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.Generic.IEnumerator`1<string> 'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator' () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8782,8 +8812,8 @@ public static class Extensions
             IL_0041: ldloc.0
             IL_0042: ret
         } // end of method '<M>d__1'::'System.Collections.Generic.IEnumerable<System.String>.GetEnumerator'
-        .method private final hidebysig newslot virtual 
-            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+        .method private final hidebysig newslot virtual
+            instance class [mscorlib]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -8807,11 +8837,11 @@ public static class Extensions
         }
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Collections.Generic.IEnumerable`1<string> M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -8924,10 +8954,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object _
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -8937,11 +8967,11 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig static 
+        .method public hidebysig static
             class [mscorlib]System.Threading.Tasks.Task`1<string> M (
                 object o,
                 string s
-            ) cil managed 
+            ) cil managed
         {
             // Method begins at RVA 0x20b5
             // Code size 2 (0x2)
@@ -8964,8 +8994,8 @@ public static class Extensions
         .field public string s
         .field private valuetype [mscorlib]System.Runtime.CompilerServices.YieldAwaitable/YieldAwaiter '<>u__1'
         // Methods
-        .method private final hidebysig newslot virtual 
-            instance void MoveNext () cil managed 
+        .method private final hidebysig newslot virtual
+            instance void MoveNext () cil managed
         {
             .override method instance void [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine::MoveNext()
             // Method begins at RVA 0x20b8
@@ -9055,10 +9085,10 @@ public static class Extensions
             IL_00ac: call instance void valuetype [mscorlib]System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1<string>::SetResult(!0)
             IL_00b1: ret
         } // end of method '<M>d__1'::MoveNext
-        .method private final hidebysig newslot virtual 
+        .method private final hidebysig newslot virtual
             instance void SetStateMachine (
                 class [mscorlib]System.Runtime.CompilerServices.IAsyncStateMachine stateMachine
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
                 01 00 00 00
@@ -9075,11 +9105,11 @@ public static class Extensions
         } // end of method '<M>d__1'::SetStateMachine
     } // end of class <M>d__1
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         class [mscorlib]System.Threading.Tasks.Task`1<string> M (
             object o,
             string s
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.AsyncStateMachineAttribute::.ctor(class [mscorlib]System.Type) = (
             01 00 12 45 78 74 65 6e 73 69 6f 6e 73 2b 3c 4d
@@ -9214,10 +9244,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -9227,8 +9257,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig specialname 
-            instance string get_P () cil managed 
+        .method public hidebysig specialname
+            instance string get_P () cil managed
         {
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
@@ -9243,10 +9273,10 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string get_P (
             object o
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
@@ -9503,10 +9533,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object ''
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -9516,8 +9546,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig specialname static 
-            string get_P () cil managed 
+        .method public hidebysig specialname static
+            string get_P () cil managed
         {
             // Method begins at RVA 0x2070
             // Code size 2 (0x2)
@@ -9532,8 +9562,8 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static 
-        string get_P () cil managed 
+    .method public hidebysig static
+        string get_P () cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 6 (0x6)
@@ -9714,10 +9744,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -9727,8 +9757,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig specialname 
-            instance string get_P () cil managed 
+        .method public hidebysig specialname
+            instance string get_P () cil managed
         {
             // Method begins at RVA 0x2071
             // Code size 2 (0x2)
@@ -9743,10 +9773,10 @@ public static class Extensions
         }
     } // end of class <>E__0
     // Methods
-    .method public hidebysig static 
+    .method public hidebysig static
         string get_P (
             object o
-        ) cil managed 
+        ) cil managed
     {
         // Method begins at RVA 0x2067
         // Code size 7 (0x7)
@@ -9825,13 +9855,16 @@ static class Extensions
     public void Implementation_DelegateCaching_01()
     {
         var src = """
+42.M2<int, string>();
+
 public static class Extensions
 {
     extension<T>(T o)
     {
-        void M2<U>()
+        public void M2<U>()
         {
-            #pragma warning disable CS8321 // The local function 'local' is declared but never used
+            local<long>()();
+
             System.Func<V> local<V>()
             {
                 return C1.M1<T, U, V>;
@@ -9842,11 +9875,11 @@ public static class Extensions
 
 class C1
 {
-    static public V M1<T, U, V>() => default;
+    static public V M1<T, U, V>() { System.Console.Write((typeof(T), typeof(U), typeof(V))); return default; }
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp, expectedOutput: "(System.Int32, System.String, System.Int64)").VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -9860,23 +9893,23 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2067
+            // Method begins at RVA 0x20e7
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2<U> () cil managed 
+        .method public hidebysig
+            instance void M2<U> () cil managed
         {
-            // Method begins at RVA 0x20a6
+            // Method begins at RVA 0x20e9
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
@@ -9893,26 +9926,29 @@ class C1
         .field public static class [mscorlib]System.Func`1<!V> '<0>__M1'
     } // end of class <local>O__1_0`3
     // Methods
-    .method private hidebysig static 
+    .method public hidebysig static
         void M2<T, U> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
-        // Code size 1 (0x1)
+        // Method begins at RVA 0x2078
+        // Code size 12 (0xc)
         .maxstack 8
-        IL_0000: ret
+        IL_0000: call class [mscorlib]System.Func`1<!!2> Extensions::'<M2>b__1_0'<!!T, !!U, int64>()
+        IL_0005: callvirt instance !0 class [mscorlib]System.Func`1<int64>::Invoke()
+        IL_000a: pop
+        IL_000b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        class [mscorlib]System.Func`1<!!V> '<M2>b__1_0'<T, U, V> () cil managed 
+    .method assembly hidebysig static
+        class [mscorlib]System.Func`1<!!V> '<M2>b__1_0'<T, U, V> () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2069
+        // Method begins at RVA 0x2085
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Func`1<!2> class Extensions/'<local>O__1_0`3'<!!T, !!U, !!V>::'<0>__M1'
@@ -9969,13 +10005,17 @@ class C1
     public void Implementation_DelegateCaching_02()
     {
         var src = """
+
+42.M2();
+
 public static class Extensions
 {
     extension<T>(T o)
     {
-        void M2()
+        public void M2()
         {
-            #pragma warning disable CS8321 // The local function 'local' is declared but never used
+            local()();
+
             System.Action local()
             {
                 return C1.M1<T>;
@@ -9986,11 +10026,11 @@ public static class Extensions
 
 class C1
 {
-    static public void M1<T>() {}
+    static public void M1<T>() { System.Console.Write(typeof(T)); }
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp, expectedOutput: "System.Int32").VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10004,23 +10044,23 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2067
+            // Method begins at RVA 0x20b2
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2 () cil managed 
+        .method public hidebysig
+            instance void M2 () cil managed
         {
-            // Method begins at RVA 0x208e
+            // Method begins at RVA 0x20b4
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
@@ -10037,26 +10077,28 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig static 
+    .method public hidebysig static
         void M2<T> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
-        // Code size 1 (0x1)
+        // Method begins at RVA 0x2078
+        // Code size 11 (0xb)
         .maxstack 8
-        IL_0000: ret
+        IL_0000: call class [mscorlib]System.Action Extensions::'<M2>b__1_0'<!!T>()
+        IL_0005: callvirt instance void [mscorlib]System.Action::Invoke()
+        IL_000a: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        class [mscorlib]System.Action '<M2>b__1_0'<T> () cil managed 
+    .method assembly hidebysig static
+        class [mscorlib]System.Action '<M2>b__1_0'<T> () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2069
+        // Method begins at RVA 0x2084
         // Code size 28 (0x1c)
         .maxstack 8
         IL_0000: ldsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__M1'
@@ -10135,7 +10177,7 @@ class C1
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10149,10 +10191,10 @@ class C1
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10162,8 +10204,8 @@ class C1
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2 () cil managed 
+        .method private hidebysig
+            instance void M2 () cil managed
         {
             // Method begins at RVA 0x208e
             // Code size 2 (0x2)
@@ -10182,10 +10224,10 @@ class C1
         .field public static class [mscorlib]System.Action '<0>__M1'
     } // end of class <>O
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         void M2 (
             object o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10195,8 +10237,8 @@ class C1
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        class [mscorlib]System.Action '<M2>b__1_0' () cil managed 
+    .method assembly hidebysig static
+        class [mscorlib]System.Action '<M2>b__1_0' () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10275,7 +10317,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10289,10 +10331,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10302,8 +10344,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig 
-            instance class [mscorlib]System.Action M2 () cil managed 
+        .method private hidebysig
+            instance class [mscorlib]System.Action M2 () cil managed
         {
             // Method begins at RVA 0x2098
             // Code size 2 (0x2)
@@ -10322,10 +10364,10 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O__1_0`1
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         class [mscorlib]System.Action M2<T> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10344,8 +10386,8 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        void '<M2>b__1_0'<T> () cil managed 
+    .method assembly hidebysig static
+        void '<M2>b__1_0'<T> () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10417,7 +10459,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10431,10 +10473,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10444,8 +10486,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig 
-            instance class [mscorlib]System.Action M2 () cil managed 
+        .method private hidebysig
+            instance class [mscorlib]System.Action M2 () cil managed
         {
             // Method begins at RVA 0x2098
             // Code size 2 (0x2)
@@ -10464,10 +10506,10 @@ public static class Extensions
         .field public static class [mscorlib]System.Action '<0>__local'
     } // end of class <>O
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         class [mscorlib]System.Action M2 (
             object o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10486,8 +10528,8 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
-        void '<M2>b__1_0' () cil managed 
+    .method assembly hidebysig static
+        void '<M2>b__1_0' () cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10542,13 +10584,21 @@ public static class Extensions
     public void Implementation_DynamicCallSite_01()
     {
         var src = """
+42.M2<int, string>();
+
+class D
+{
+    public void M1<T, U, V>(T t, U u, V v) { System.Console.Write((typeof(T), typeof(U), typeof(V))); }
+}
+
 public static class Extensions
 {
     extension<T>(T o)
     {
-        void M2<U>()
+        public void M2<U>()
         {
-            #pragma warning disable CS8321 // The local function 'local' is declared but never used
+            local(new D(), default(T), default(U), 42L);
+
             void local<V>(dynamic d, T t, U u, V v)
             {
                 d.M1(t, u, v);
@@ -10558,7 +10608,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp, expectedOutput: "(System.Int32, System.String, System.Int64)").VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10572,23 +10622,23 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
             )
-            // Method begins at RVA 0x2067
+            // Method begins at RVA 0x2152
             // Code size 1 (0x1)
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2<U> () cil managed 
+        .method public hidebysig
+            instance void M2<U> () cil managed
         {
-            // Method begins at RVA 0x20ea
+            // Method begins at RVA 0x2154
             // Code size 2 (0x2)
             .maxstack 8
             IL_0000: ldnull
@@ -10605,26 +10655,40 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T, !U, !V>> '<>p__0'
     } // end of class <>o__0|1`3
     // Methods
-    .method private hidebysig static 
+    .method public hidebysig static
         void M2<T, U> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
         )
-        // Method begins at RVA 0x2067
-        // Code size 1 (0x1)
-        .maxstack 8
-        IL_0000: ret
+        // Method begins at RVA 0x20a8
+        // Code size 32 (0x20)
+        .maxstack 4
+        .locals init (
+            [0] !!T,
+            [1] !!U
+        )
+        IL_0000: newobj instance void D::.ctor()
+        IL_0005: ldloca.s 0
+        IL_0007: initobj !!T
+        IL_000d: ldloc.0
+        IL_000e: ldloca.s 1
+        IL_0010: initobj !!U
+        IL_0016: ldloc.1
+        IL_0017: ldc.i4.s 42
+        IL_0019: conv.i8
+        IL_001a: call void Extensions::'<M2>b__1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
+        IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void '<M2>b__1_0'<T, U, V> (
             object d,
             !!T t,
             !!U u,
             !!V v
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10633,7 +10697,7 @@ public static class Extensions
             .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = (
                 01 00 00 00
             )
-        // Method begins at RVA 0x206c
+        // Method begins at RVA 0x20d4
         // Code size 114 (0x72)
         .maxstack 9
         IL_0000: ldsfld class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`5<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !0, !1, !2>> class Extensions/'<>o__0|1`3'<!!T, !!U, !!V>::'<>p__0'
@@ -10737,7 +10801,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10751,10 +10815,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 !T o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10764,8 +10828,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0`1'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2 () cil managed 
+        .method private hidebysig
+            instance void M2 () cil managed
         {
             // Method begins at RVA 0x20d4
             // Code size 2 (0x2)
@@ -10784,10 +10848,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`3<class [System.Core]System.Runtime.CompilerServices.CallSite, object, !T>> '<>p__0'
     } // end of class <>o__1`1
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         void M2<T> (
             !!T o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10797,11 +10861,11 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void '<M2>b__1_0'<T> (
             object d,
             !!T t
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -10900,7 +10964,7 @@ public static class Extensions
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics(); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider executing and verifying behavior
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
 
         verifier.VerifyTypeIL("Extensions", """
 .class public auto ansi abstract sealed beforefieldinit Extensions
@@ -10914,10 +10978,10 @@ public static class Extensions
         extends [mscorlib]System.Object
     {
         // Methods
-        .method private hidebysig specialname static 
+        .method private hidebysig specialname static
             void '<Extension>$' (
                 object o
-            ) cil managed 
+            ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                 01 00 00 00
@@ -10927,8 +10991,8 @@ public static class Extensions
             .maxstack 8
             IL_0000: ret
         } // end of method '<>E__0'::'<Extension>$'
-        .method private hidebysig 
-            instance void M2 () cil managed 
+        .method private hidebysig
+            instance void M2 () cil managed
         {
             // Method begins at RVA 0x20c9
             // Code size 2 (0x2)
@@ -10947,10 +11011,10 @@ public static class Extensions
         .field public static class [System.Core]System.Runtime.CompilerServices.CallSite`1<class [mscorlib]System.Action`2<class [System.Core]System.Runtime.CompilerServices.CallSite, object>> '<>p__0'
     } // end of class <>o__1
     // Methods
-    .method private hidebysig static 
+    .method private hidebysig static
         void M2 (
             object o
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -10960,10 +11024,10 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method assembly hidebysig static
         void '<M2>b__1_0' (
             object d
-        ) cil managed 
+        ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
             01 00 00 00
@@ -11295,7 +11359,7 @@ static class Extensions
     extension(C<UseSiteError>) { }
 }
 
-class C1 
+class C1
 {
     void M(UseSiteError x) { }
     void M(C<UseSiteError> x) { }
@@ -11435,7 +11499,7 @@ namespace N2
     {
         extension(object o)
         {
-            public void Method() => throw null;
+            public void Method() { System.Console.Write("ran"); }
         }
     }
 }
@@ -11485,9 +11549,7 @@ namespace N3
         void verify(string src, string extensionName)
         {
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            comp.VerifyEmitDiagnostics();
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-            //CompileAndVerify(comp, expectedOutput: "").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -11527,10 +11589,7 @@ namespace N
 """;
 
         var comp = CreateCompilation([src, eSrc], options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "method");
+        CompileAndVerify(comp, expectedOutput: "method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -11636,9 +11695,7 @@ static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -11694,9 +11751,7 @@ namespace N1
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "E1.Method(42) E2.Method(hello)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -11746,9 +11801,7 @@ namespace N2
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method E1.Method").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "E1.Method E2.Method E1.Method").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -11935,12 +11988,14 @@ static class E
     [Fact]
     public void InstanceMethodInvocation_MatchingExtendedType_TypeParameterWithBaseClass()
     {
-        var src = $$"""
+        var src = """
+D.M(new D());
+
 class C<T> { }
 
-class D
+class D : C<D>
 {
-    void M<T>(T t) where T : C<T>
+    public static void M<T>(T t) where T : C<T>
     {
         t.M2();
     }
@@ -11950,13 +12005,12 @@ static class E
 {
     extension<T>(C<T> c)
     {
-        public void M2() { }
+        public void M2() { System.Console.Write(typeof(C<T>)); }
     }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+        CompileAndVerify(comp, expectedOutput: "C`1[D]").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -12733,17 +12787,18 @@ static class E
     }
 
     [Fact]
-    public void InstanceMethodInvocation_PatternBased_ForEach_NoMethod()
+    public void InstanceMethodInvocation_PatternBased_ForEach_MoveNext()
     {
         var src = """
 foreach (var x in new C())
 {
-    System.Console.Write(x);
-    break;
 }
 
 class C { }
-class D { }
+class D
+{
+    public int Current => 42;
+}
 
 static class E
 {
@@ -12755,6 +12810,50 @@ static class E
     extension(D d)
     {
         public bool MoveNext() => true;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): error CS0117: 'D' does not contain a definition for 'MoveNext'
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("D", "MoveNext").WithLocation(1, 19),
+            // (1,19): error CS0202: foreach requires that the return type 'D' of 'E.extension(C).GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var x in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("D", "E.extension(C).GetEnumerator()").WithLocation(1, 19)
+            );
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).MoveNextMethod);
+        Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_PatternBased_ForEach_Current()
+    {
+        var src = """
+foreach (var x in new C())
+{
+}
+
+class C { }
+class D
+{
+    public bool MoveNext() => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public D GetEnumerator() => new D();
+    }
+
+    extension(D d)
+    {
         public int Current => 42;
     }
 }
@@ -12775,6 +12874,42 @@ static class E
         Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
         Assert.Null(model.GetForEachStatementInfo(loop).MoveNextMethod);
         Assert.Null(model.GetForEachStatementInfo(loop).CurrentProperty);
+    }
+
+    [Fact]
+    public void InstanceMethodInvocation_PatternBased_ForEach_GetEnumerator_Conversion()
+    {
+        var src = """
+foreach (var x in new C())
+{
+    System.Console.Write(x);
+    break;
+}
+
+class C { }
+class D
+{
+    public bool MoveNext() => true;
+    public int Current => 42;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public D GetEnumerator() => new D();
+    }
+}
+""";
+        try
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : assertion in NullableWalker
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+        }
     }
 
     [Fact]
@@ -12807,10 +12942,10 @@ static class E
     [Fact]
     public void InstanceMethodInvocation_Simple_ExpressionTree()
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Verify shape of the tree if we decide to allow
         var source = """
 using System.Linq.Expressions;
 Expression<System.Action> x = () => new C().M(42);
+System.Console.Write(x.Dump());
 System.Action a = x.Compile();
 a();
 
@@ -12823,13 +12958,12 @@ static class E
 {
     extension(C c)
     {
-        public void M(int i) { System.Console.Write("ran"); }
+        public void M(int i) { System.Console.Write(" ran"); }
     }
 }
 """;
-        var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        var comp = CreateCompilation([source, ExpressionTestLibrary]);
+        CompileAndVerify(comp, expectedOutput: "Call(null.[Void M(C, Int32)](New([Void .ctor()]() Type:C), Constant(42 Type:System.Int32)) Type:System.Void) ran").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -15707,7 +15841,7 @@ public class MyCollection : IEnumerable<int>
     }
 
     [Fact]
-    public void ResolveAll_CollectionExpression_ExtensionAddDelegateTypeProperty()
+    public void ResolveAll_CollectionExpression_ExtensionAdd_DelegateTypeProperty()
     {
         var source = """
 using System.Collections;
@@ -15735,6 +15869,74 @@ public class MyCollection : IEnumerable<int>
             // MyCollection c = [42];
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18)
             );
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public System.Action<int> Add => (int i) => { };
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionExpression_ExtensionAdd_DynamicTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public dynamic Add => throw null;
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[42]").WithArguments("MyCollection", "Add").WithLocation(4, 18));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = [42];
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public dynamic Add => throw null;
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,18): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = [42];
+            Diagnostic(ErrorCode.ERR_BadSKknown, "[42]").WithArguments("Add", "property", "method").WithLocation(4, 18));
     }
 
     [Fact]
@@ -16149,6 +16351,86 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "object.M");
         Assert.Equal("System.String E.<>E__0.M { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Where_DelegateTypeProperty()
+    {
+        var src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+System.Console.Write(x);
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public System.Func<System.Func<C, bool>, C> Where => (System.Func<C, bool> f) => { System.Console.Write(f(c)); return c; };
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "TrueC").VerifyDiagnostics();
+
+        src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+System.Console.Write(x);
+
+public class C
+{
+    public System.Func<System.Func<C, bool>, C> Where => (System.Func<C, bool> f) => { System.Console.Write(f(this)); return this; };
+}
+""";
+        comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "TrueC").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ResolveAll_Query_Where_DynamicTypeProperty()
+    {
+        var src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+public class C { }
+
+public static class E
+{
+    extension(C c)
+    {
+        public dynamic Where => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+            //         where i is not null
+            Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "i is not null").WithLocation(2, 15));
+
+        src = """
+var x = from i in new C()
+        where i is not null
+        select i;
+
+public class C
+{
+    public dynamic Where => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,9): error CS1979: Query expressions over source type 'dynamic' or with a join sequence of type 'dynamic' are not allowed
+            //         where i is not null
+            Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
     [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/76130 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
@@ -18264,7 +18546,7 @@ static class E
 """;
 
         // Note: we apply the same conversion requirements even though no conversion on the receiver
-        //   is needed in a static scenario. 
+        //   is needed in a static scenario.
         var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (1,36): error CS0117: 'Span<int>' does not contain a definition for 'M'
@@ -18492,20 +18774,21 @@ static class E
     {
         var src = """
 localFuncRef(ref object.Property);
+System.Console.Write(E.field);
 
-void localFuncRef(ref int i) => throw null;
+void localFuncRef(ref int i) { i++; }
 
 static class E
 {
+    public static int field = 42;
     extension(object)
     {
-        public static ref int Property { get => throw null; }
+        public static ref int Property { get => ref E.field; }
     }
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+        CompileAndVerify(comp, expectedOutput: "43").VerifyDiagnostics();
     }
 
     [Fact]
@@ -19947,6 +20230,165 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_DelegateTypeProperty()
+    {
+        var src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public System.Func<IEnumerator> GetEnumerator => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+
+        src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C
+{
+    public System.Func<IEnumerator> GetEnumerator => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): warning CS0280: 'C' does not implement the 'collection' pattern. 'C.GetEnumerator' has the wrong signature.
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.WRN_PatternBadSignature, "new C()").WithArguments("C", "collection", "C.GetEnumerator").WithLocation(3, 19),
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_GetEnumerator_DynamicTypeProperty()
+    {
+        var src = """
+using System.Collections;
+
+foreach (var x in new C()) { }
+
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public dynamic GetEnumerator => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(3, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Null(model.GetForEachStatementInfo(loop).GetEnumeratorMethod);
+
+        src = """
+foreach (var x in new C()) { }
+
+class C
+{
+    public dynamic GetEnumerator => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,19): warning CS0280: 'C' does not implement the 'collection' pattern. 'C.GetEnumerator' has the wrong signature.
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.WRN_PatternBadSignature, "new C()").WithArguments("C", "collection", "C.GetEnumerator").WithLocation(1, 19),
+            // (1,19): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
+            // foreach (var x in new C()) { }
+            Diagnostic(ErrorCode.ERR_ForEachMissingMember, "new C()").WithArguments("C", "GetEnumerator").WithLocation(1, 19));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ForEach_GetEnumerator_Generic()
+    {
+        var src = """
+using System.Collections.Generic;
+
+foreach (var x in new C()) { System.Console.Write(x); }
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public IEnumerator<T> GetEnumerator()
+        {
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "C").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Equal("System.Collections.Generic.IEnumerator<C> E.<>E__0<C>.GetEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_AwaitForEach_GetAsyncEnumerator()
+    {
+        var src = """
+using System.Collections.Generic;
+
+await foreach (var x in new C()) { System.Console.Write(x); }
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public async IAsyncEnumerator<T> GetAsyncEnumerator()
+        {
+            await System.Threading.Tasks.Task.Yield();
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("C"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+        Assert.Equal("System.Collections.Generic.IAsyncEnumerator<C> E.<>E__0<C>.GetAsyncEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString());
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_PatternBased_Deconstruct_NoMethod()
     {
         var src = """
@@ -19964,7 +20406,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -19972,6 +20413,55 @@ static class E
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
         Assert.Equal("void E.<>E__0.Deconstruct(out System.Int32 i, out System.Int32 j)",
+            model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion()
+    {
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Generic()
+    {
+        var src = """
+var (x, y) = new C();
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
+
+        Assert.Equal("void E.<>E__0<C>.Deconstruct(out System.Int32 i, out System.Int32 j)",
             model.GetDeconstructionInfo(deconstruction).Method.ToTestDisplayString());
     }
 
@@ -20000,7 +20490,6 @@ public static class E2
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
@@ -20037,7 +20526,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit pattern-based deconstruction
         comp.VerifyDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x1'.
             // var (x1, y1) = new C1();
@@ -20133,7 +20621,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based deconstruction
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
 
@@ -20146,7 +20633,29 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Dispose_Async_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_PositionalPattern()
+    {
+        var src = """
+var c = new C();
+if (c is var (x, y))
+    System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_DisposeAsync_NoMethod()
     {
         var src = """
 using System.Threading.Tasks;
@@ -20164,22 +20673,13 @@ static class E
 {
     extension(C1 c)
     {
-        public async Task DisposeAsync()
-        {
-            System.Console.Write("RAN");
-            await Task.Yield();
-        }
+        public Task DisposeAsync() => throw null;
     }
 
-    public static async Task DisposeAsync(this C2 c)
-    {
-        System.Console.Write("RAN");
-        await Task.Yield();
-    }
+    public static Task DisposeAsync(this C2 c) => throw null;
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based disposal
 
         var expectedDiagnostics = new[] {
             // (4,1): error CS8410: 'C1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
@@ -20280,12 +20780,11 @@ static class E
 {
     extension(C c)
     {
-        public System.Func<Task> DisposeAsync => async () => { System.Console.Write("ran2"); await Task.Yield(); };
+        public System.Func<Task> DisposeAsync => async () => { await Task.Yield(); };
     }
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 :(instance) confirm when spec'ing pattern-based disposal
         comp.VerifyEmitDiagnostics(
             // (3,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
             // await using var x = new C();
@@ -20320,7 +20819,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based disposal
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
             // (4,1): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
@@ -20366,7 +20864,44 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_Dispose_RefStruct_DelegateTypeProperty()
+    {
+        var src = """
+using var x1 = new S1();
+
+ref struct S1 { }
+
+static class E
+{
+    extension(S1 s)
+    {
+        public System.Action Dispose => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1));
+
+        src = """
+using var x1 = new S1();
+
+ref struct S1
+{
+    public System.Action Dispose => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (1,1): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
+            // using var x1 = new S1();
+            Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x1 = new S1();").WithArguments("S1").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_01()
     {
         var text = """
 unsafe class C
@@ -20391,13 +20926,40 @@ static class E
 }
 """;
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+        CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoMethod_DelegateTypeProperty()
+    public void ExtensionMemberLookup_PatternBased_Fixed_02_Conversion()
+    {
+        var text = """
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable())
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+class Fixable { }
+
+static class E
+{
+    extension(object o)
+    {
+        public ref int GetPinnableReference() { System.Console.Write("pin "); return ref (new int[] { 1, 2, 3 })[0]; }
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+        CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_03_DelegateTypeProperty()
     {
         var text = @"
 unsafe class C
@@ -20434,7 +20996,6 @@ static class E
 }
 ";
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS8385: The given expression cannot be used in a fixed statement
             //         fixed (int* p = new Fixable1())
@@ -20446,17 +21007,76 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_Fixed_04_DynamicTypeProperty()
+    {
+        var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable1())
+        {
+        }
+    }
+}
+
+class Fixable1 { }
+
+delegate ref int MyDelegate();
+
+static class E
+{
+    extension(Fixable1 f)
+    {
+        public dynamic GetPinnableReference => throw null;
+    }
+}
+";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25));
+
+        text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new Fixable1())
+        {
+        }
+    }
+}
+
+class Fixable1
+{
+    public dynamic GetPinnableReference => throw null;
+}
+
+delegate ref int MyDelegate();
+";
+        comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+        comp.VerifyEmitDiagnostics(
+            // (6,25): error CS8385: The given expression cannot be used in a fixed statement
+            //         fixed (int* p = new Fixable1())
+            Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable1()").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_05()
     {
         var src = """
 unsafe class C
 {
     public static void Main()
     {
+        /*<bind>*/
         fixed (int* p = new Fixable())
         {
             System.Console.WriteLine(p[1]);
         }
+        /*</bind>*/
     }
 }
 
@@ -20474,16 +21094,49 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseExe);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+        CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped).VerifyDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : verify IOperation
+        string expectedOperationTree = """
+IFixedOperation (OperationKind.None, Type: null) (Syntax: 'fixed (int* ... }')
+  Locals: Local_1: System.Int32* p
+  Declaration:
+    IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsImplicit) (Syntax: 'int* p = new Fixable()')
+      IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p = new Fixable()')
+        Declarators:
+            IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = new Fixable()')
+              Initializer:
+                IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new Fixable()')
+                  IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: 'new Fixable()')
+                    Children(1):
+                        IObjectCreationOperation (Constructor: Fixable..ctor()) (OperationKind.ObjectCreation, Type: Fixable) (Syntax: 'new Fixable()')
+                          Arguments(0)
+                          Initializer:
+                            null
+        Initializer:
+          null
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(p[1]);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(p[1])')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'p[1]')
+                  IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'p[1]')
+                    Children(2):
+                        ILocalReferenceOperation: p (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<FixedStatementSyntax>(src, expectedOperationTree, [], targetFramework: TargetFramework.Net70, compilationOptions: TestOptions.UnsafeReleaseExe);
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_Static()
+    public void ExtensionMemberLookup_PatternBased_Fixed_06()
     {
         var text = @"
 unsafe class C
@@ -20508,7 +21161,6 @@ static class E
 ";
 
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based fixed
         comp.VerifyEmitDiagnostics(
             // (6,25): error CS0176: Member 'E.extension(Fixable).GetPinnableReference()' cannot be accessed with an instance reference; qualify it with a type name instead
             //         fixed (int* p = new Fixable())
@@ -20548,18 +21200,105 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
         comp.VerifyEmitDiagnostics(
             // (5,9): error CS0117: 'D' does not contain a definition for 'IsCompleted'
             // int i = await new C();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "IsCompleted").WithLocation(5, 9)
             );
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
     }
 
     [Fact]
     public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+/*<bind>*/
+int i = await new C();
+/*</bind>*/
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public D GetAwaiter() => new D();
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+
+        string expectedOperationTree = """
+IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'int i = await new C();')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int i = await new C()')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'i = await new C()')
+        Initializer:
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= await new C()')
+            IAwaitOperation (OperationKind.Await, Type: System.Int32) (Syntax: 'await new C()')
+              Expression:
+                IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
+                  Arguments(0)
+                  Initializer:
+                    null
+  Initializer:
+    null
+""";
+
+        VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(text, expectedOperationTree, [], targetFramework: TargetFramework.Net70);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_Conversion()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public D GetAwaiter() => new D();
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_DelegateTypeProperty()
     {
         var text = @"
 using System;
@@ -20583,15 +21322,105 @@ static class E
 {
     extension(C c)
     {
-        public D GetAwaiter() => new D();
+        public System.Func<D> GetAwaiter => () => new D();
     }
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("C", "GetAwaiter").WithLocation(5, 9));
+
+        text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public System.Func<D> GetAwaiter => () => new D();
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0118: 'GetAwaiter' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetAwaiter", "property", "method").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetAwaiter_DynamicTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public dynamic GetAwaiter => throw null;
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS1061: 'C' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await new C()").WithArguments("C", "GetAwaiter").WithLocation(5, 9));
+
+        text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public dynamic GetAwaiter => throw null;
+}
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0118: 'GetAwaiter' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetAwaiter", "property", "method").WithLocation(5, 9));
     }
 
     [Fact]
@@ -20624,7 +21453,6 @@ static class E
 }
 ";
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based await
         var comp = CreateCompilation(text);
 
         // The error is consistent with classic extension methods
@@ -20633,10 +21461,166 @@ static class E
             // int i = await new C();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9)
             );
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    public static int GetResult(this D d) => 42;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(4, 9)
+            );
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_IndexIndexer_NoLength()
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult_DelegateTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(D d)
+    {
+        public System.Func<int> GetResult => () => 42;
+    }
+}
+";
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9));
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+    public System.Func<int> GetResult => () => 42;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0118: 'GetResult' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetResult", "property", "method").WithLocation(4, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Await_ExtensionGetResult_DynamicTypeProperty()
+    {
+        var text = @"
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(D d)
+    {
+        public dynamic GetResult => throw null;
+    }
+}
+";
+
+        var comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (5,9): error CS0117: 'D' does not contain a definition for 'GetResult'
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await new C()").WithArguments("D", "GetResult").WithLocation(5, 9));
+
+        text = """
+using System;
+using System.Runtime.CompilerServices;
+
+int i = await new C();
+System.Console.Write(i);
+
+class C
+{
+    public D GetAwaiter() => new D();
+}
+
+class D : INotifyCompletion
+{
+    public void OnCompleted(Action continuation) => throw null;
+    public bool IsCompleted => true;
+    public dynamic GetResult => throw null;
+}
+""";
+
+        comp = CreateCompilation(text);
+        comp.VerifyEmitDiagnostics(
+            // (4,9): error CS0118: 'GetResult' is a property but is used like a method
+            // int i = await new C();
+            Diagnostic(ErrorCode.ERR_BadSKknown, "await new C()").WithArguments("GetResult", "property", "method").WithLocation(4, 9));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_Length()
     {
         var src = """
 var c = new C();
@@ -20647,20 +21631,14 @@ _ = c[^1];
 
 class C
 {
-    public int this[int i]
-    {
-        get { System.Console.Write("indexer "); return 0; }
-    }
+    public int this[int i] => throw null;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Length => throw null;
     }
 }
 """;
@@ -20670,10 +21648,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(4, 7)];
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length indexer");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '_ = c[^1]')
@@ -20689,10 +21664,132 @@ Right:
 """;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoMethod()
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_Count()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Count => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,7): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(2, 7));
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Count => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_IntIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_IndexIndexer_RegularIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[^1]").WithArguments("C").WithLocation(2, 5));
+
+        src = """
+var c = new C();
+_ = c[^1];
+
+class C
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_Slice()
     {
         var src = """
 var c = new C();
@@ -20701,18 +21798,16 @@ var c = new C();
 _ = c[1..^1];
 /*</bind>*/
 
-class C { }
+class C 
+{
+    public int Length => throw null;
+}
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) { System.Console.Write("slice "); return 0; }
-
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Slice(int i, int j) => throw null;
     }
 }
 """;
@@ -20723,10 +21818,7 @@ static class E
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5)];
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         comp.VerifyEmitDiagnostics(expectedDiagnostics);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length slice");
 
         string expectedOperationTree = """
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '_ = c[1..^1]')
@@ -20749,43 +21841,313 @@ Right:
 """;
 
         VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Net70);
+
+        src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+    public int Slice(int i, int j) => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_RangeIndexer_NoApplicableMethod()
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_Length()
     {
         var src = """
 var c = new C();
-
-/*<bind>*/
 _ = c[1..^1];
-/*</bind>*/
 
-class C
+class C 
 {
-    public int Slice(int notApplicable) => throw null; // not applicable
+    public int Slice(int i, int j) => throw null;
 }
 
 static class E
 {
     extension(C c)
     {
-        public int Slice(int i, int j) { System.Console.Write("slice "); return 0; }
-
-        public int Length
-        {
-            get { System.Console.Write("length "); return 42; }
-        }
+        public int Length => throw null;
     }
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit as part of "implicit indexer access" section
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
-            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_RangeIndexer_RegularIndexer()
+    {
+        var src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+
+        src = """
+var c = new C();
+_ = c[1..^1];
+
+class C 
+{
+    public int Length => throw null;
+    public int this[System.Range r] => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_Length()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int this[int i] => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(1, 16),
+            // (1,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(1, 16));
+
+        src = """
+_ = new C() is [1];
+
+class C
+{
+    public int this[int i] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_IntIndexer()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i] => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_ListPattern_RegularIndexer()
+    {
+        var src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Index i] => throw null;
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = new C() is [1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("C").WithLocation(1, 16));
+
+        src = """
+_ = new C() is [1];
+
+class C
+{
+    public int Length => throw null;
+    public int this[System.Index i] => throw null;
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_Length()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Slice(int i, int j) => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[_, .. var x]").WithArguments("C").WithLocation(1, 16),
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+
+        src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Slice(int i, int j) => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_Slice()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_SpreadPattern_RegularIndexer()
+    {
+        var src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int Length => throw null;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[System.Range r] => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS1503: Argument 1: cannot convert from 'System.Range' to 'System.Index'
+            // _ = new C() is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadArgType, ".. var x").WithArguments("1", "System.Range", "System.Index").WithLocation(1, 20));
+
+        src = """
+_ = new C() is [_, .. var x];
+
+class C
+{
+    public int this[System.Index i] => throw null;
+    public int this[System.Range r] => throw null;
+    public int Length => throw null;
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -20793,7 +22155,6 @@ static class E
     {
         var src = """
 var c = new C();
-
 _ = c is { Property: 42 };
 
 class C { }
@@ -20816,6 +22177,30 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var nameColon = GetSyntax<NameColonSyntax>(tree, "Property:");
         Assert.Equal("System.Int32 E.<>E__0.Property { get; }", model.GetSymbolInfo(nameColon.Name).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion()
+    {
+        var src = """
+var c = new C();
+_ = c is { Property: 42 };
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property"); return 42; }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -20854,6 +22239,66 @@ static class E2
     }
 
     [Fact]
+    public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern_Conversion()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property.Property2: 43 };
+
+class C { }
+
+static class E1
+{
+    extension(object o)
+    {
+        public int Property { get { System.Console.Write("property "); return 42; } }
+    }
+}
+
+static class E2
+{
+    extension(int i)
+    {
+        public int Property2 { get { System.Console.Write("property2"); return 43; } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property property2").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern_Conversion_02()
+    {
+        var src = """
+var c = new C();
+
+_ = c is { Property.Property2: 43 };
+
+class C { }
+
+static class E1
+{
+    extension(C c)
+    {
+        public C Property { get { System.Console.Write("property "); return c; } }
+    }
+}
+
+static class E2
+{
+    extension(object o)
+    {
+        public int Property2 { get { System.Console.Write("property2"); return 43; } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property property2").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_Patterns_ListPattern_NoInstanceLength()
     {
         var src = """
@@ -20880,23 +22325,19 @@ static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm that we want extensions to contribute to list-patterns
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want extension Length/Count to contribute to list-patterns
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // System.Console.Write(new C() is ["hi"]);
             Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, @"[""hi""]").WithArguments("C").WithLocation(1, 33)
             );
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "length indexer");
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+    [Fact]
     public void ExtensionMemberLookup_ObjectInitializer()
     {
         var src = """
-/*<bind>*/
 _ = new C() { Property = 42 };
-/*</bind>*/
 
 class C { }
 
@@ -20910,9 +22351,7 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property");
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20920,7 +22359,28 @@ static class E
         Assert.Equal("System.Int32 E.<>E__0.Property { set; }", model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString());
     }
 
-    [ConditionalFact(typeof(NoUsedAssembliesValidation))] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion()
+    {
+        var src = """
+_ = new C() { Property = 42 };
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property { set { System.Console.Write("property"); } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_With()
     {
         var src = """
@@ -20940,10 +22400,7 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : need to decide whether extensions apply here
-        comp.VerifyDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : metadata is undone
-        //CompileAndVerify(comp, expectedOutput: "property");
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -20952,7 +22409,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_CollectionInitializer_NoMethod()
+    public void ExtensionMemberLookup_CollectionInitializer()
     {
         var src = """
 using System.Collections;
@@ -20978,7 +22435,6 @@ static class E
 """;
 
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
 
         string expectedOperationTree = """
@@ -20994,6 +22450,62 @@ Right:
             IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
               Instance Receiver:
                 IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+""";
+        var expectedDiagnostics = DiagnosticDescription.None;
+
+        VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(src, expectedOperationTree, expectedDiagnostics);
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_CollectionInitializer_Conversion()
+    {
+        var src = """
+using System.Collections;
+using System.Collections.Generic;
+
+/*<bind>*/
+_ = new C() { 42 };
+/*</bind>*/
+
+class C : IEnumerable<int>, IEnumerable
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Add(int i) { System.Console.Write("add"); }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
+
+        string expectedOperationTree = """
+ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '_ = new C() { 42 }')
+Left:
+  IDiscardOperation (Symbol: C _) (OperationKind.Discard, Type: C) (Syntax: '_')
+Right:
+  IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C() { 42 }')
+    Arguments(0)
+    Initializer:
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: '{ 42 }')
+        Initializers(1):
+            IInvocationOperation ( void E.<>E__0.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '42')
+              Instance Receiver:
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'C')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                  Operand:
+                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'C')
               Arguments(1):
                   IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '42')
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42) (Syntax: '42')
@@ -21038,7 +22550,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
         CompileAndVerify(comp, expectedOutput: "add").VerifyDiagnostics();
 
@@ -21146,7 +22657,6 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm when spec'ing pattern-based collection initializer
         // Tracked by https://github.com/dotnet/roslyn/issues/76130 : expression trees
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
@@ -21154,6 +22664,104 @@ static class E
             //     System.Linq.Expressions.Expression<System.Func<C>> e = () => new C() { 42 };
             Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(6, 76)
             );
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionInitializer_DelegateTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public System.Action<int> Add => (int i) => { };
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("MyCollection", "Add").WithLocation(4, 39));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public System.Action<int> Add => (int i) => { };
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_BadSKknown, "42").WithArguments("Add", "property", "method").WithLocation(4, 39));
+    }
+
+    [Fact]
+    public void ResolveAll_CollectionInitializer_DynamicTypeProperty()
+    {
+        var source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public dynamic Add => throw null;
+    }
+}
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+""";
+        var comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS1061: 'MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection' could be found (are you missing a using directive or an assembly reference?)
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "42").WithArguments("MyCollection", "Add").WithLocation(4, 39));
+
+        source = """
+using System.Collections;
+using System.Collections.Generic;
+
+MyCollection c = new MyCollection() { 42 };
+
+public class MyCollection : IEnumerable<int>
+{
+    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public dynamic Add => throw null;
+}
+""";
+        comp = CreateCompilation(source);
+        comp.VerifyEmitDiagnostics(
+            // (4,39): error CS0118: 'Add' is a property but is used like a method
+            // MyCollection c = new MyCollection() { 42 };
+            Diagnostic(ErrorCode.ERR_BadSKknown, "42").WithArguments("Add", "property", "method").WithLocation(4, 39));
     }
 
     [Fact]
@@ -21410,7 +23018,7 @@ static class E
   IL_0011:  calli      "delegate*<string, object, void>"
   IL_0016:  nop
   IL_0017:  ret
-} 
+}
 """);
 
         var tree = comp.SyntaxTrees.First();
@@ -21720,7 +23328,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should we get an error as with methods?
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
 
@@ -21728,6 +23335,32 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.Property");
         Assert.Equal("System.String E.<>E__0.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact(Skip = "Assertion in NullableWalker.AsMemberOfType")] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Nullability analysis of properties
+    public void Nameof_Instance_Property_Generic_01()
+    {
+        var src = """
+I<string> i = null;
+System.Console.Write(nameof(i.Property));
+
+interface I<T> { }
+
+static class E
+{
+    extension<T>(I<T> i)
+    {
+        public string Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.Property");
+        Assert.Equal("System.String E.<>E__0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -21783,6 +23416,31 @@ static class E
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Property");
         Assert.Equal("System.String E.<>E__0<T>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Nameof_Static_Property_Generic_03()
+    {
+        var src = """
+System.Console.Write(nameof(I<string>.Property));
+
+interface I<T> { }
+
+static class E
+{
+    extension<T>(I<T> i)
+    {
+        public static string Property => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "Property").VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "I<string>.Property");
+        Assert.Equal("System.String E.<>E__0<System.String>.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
     [Fact]
@@ -22778,14 +24436,14 @@ static class Extensions
     }
 }
 
-class C1<T> {} 
-class C2<T> {} 
-class C3<T> {} 
-class C4<T> {} 
-class C5<T> {} 
-class C6<T> {} 
-class C7<T> {} 
-class C8<T> {} 
+class C1<T> {}
+class C2<T> {}
+class C3<T> {}
+class C4<T> {}
+class C5<T> {}
+class C6<T> {}
+class C7<T> {}
+class C8<T> {}
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
@@ -23377,7 +25035,7 @@ class CTest
     {
         return T(ts);
     }
-    
+
     static int T<U>(U[] ts) => 0;
 }
 ";
@@ -23415,7 +25073,7 @@ class CTest
     {
         return P(P);
     }
-    
+
     static int P(int P) => 0;
 }
 ";
@@ -23945,7 +25603,6 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Despite the fact that we do not complain about M6, should we report an error for M2 (the only difference is receiver ref-ness)?
         comp.VerifyDiagnostics(
             // (10,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
             //         public void M1() {}
@@ -24150,22 +25807,15 @@ static class Extensions
             // (46,28): error CS0111: Type 'Extensions' already defines a member called 'M5' with the same parameter types
             //         static public void M5() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M5").WithArguments("M5", "Extensions").WithLocation(46, 28),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : It feels unfortunate that we generate conflicting signatures, the methods extend different types (refer to M6 and M7 cases)
-
             // (56,28): error CS0111: Type 'Extensions' already defines a member called 'M6' with the same parameter types
             //         static public void M6() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M6").WithArguments("M6", "Extensions").WithLocation(56, 28),
             // (66,28): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
             //         static public long M7() => 0;
-            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28), // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Signatures in metadata are different in this case (return type is different), consider if we want to enable this specific case 
-
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(66, 28),
             // (76,28): error CS0111: Type 'Extensions' already defines a member called 'M8' with the same parameter types
             //         public static void M8() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M8").WithArguments("M8", "Extensions").WithLocation(76, 28),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we comfortable with these four conflicts?
-
             // (86,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
             //         public static void M9(int x) {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(86, 28),
@@ -24517,7 +26167,6 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we report an error for M2 (the only difference is receiver ref-ness)?
         comp.VerifyDiagnostics(
             // (5,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
             //         public void M1() {}
@@ -24646,7 +26295,6 @@ static class Extensions
 """;
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Should we report an error for M2 (the only difference is receiver ref-ness)?
         comp.VerifyDiagnostics(
             // (7,21): error CS0111: Type 'Extensions' already defines a member called 'M1' with the same parameter types
             //         public void M1() {}
@@ -24765,15 +26413,9 @@ static class Extensions
             // (26,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
             //         static public void M4(ref int x) {}
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "in").WithLocation(26, 28),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : It feels unfortunate that we generate conflicting signatures
-
             // (34,27): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
             //         static public int M7() => 0;
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(34, 27),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we comfortable with these two conflicts?
-
             // (44,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
             //         public static void M9(int x) {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(44, 28),
@@ -24889,15 +26531,9 @@ static class Extensions
             // (28,28): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'in'
             //         static public void M4(ref int x) {}
             Diagnostic(ErrorCode.ERR_OverloadRefKind, "M4").WithArguments("Extensions", "method", "ref", "in").WithLocation(28, 28),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : It feels unfortunate that we generate conflicting signatures
-
             // (35,27): error CS0111: Type 'Extensions' already defines a member called 'M7' with the same parameter types
             //         static public int M7() => 0;
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M7").WithArguments("M7", "Extensions").WithLocation(35, 27),
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we comfortable with these two conflicts?
-
             // (40,28): error CS0111: Type 'Extensions' already defines a member called 'M9' with the same parameter types
             //         public static void M9(int x) {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M9").WithArguments("M9", "Extensions").WithLocation(40, 28),
@@ -25045,12 +26681,9 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we comfortable reporting an error like this?
-
             // (8,23): error CS0082: Type 'Extensions' already reserves a member called 'get_P1' with the same parameter types
             //     public static int P1 {set{}}
             Diagnostic(ErrorCode.ERR_MemberReserved, "P1").WithArguments("get_P1", "Extensions").WithLocation(8, 23),
-
             // (11,23): error CS0082: Type 'Extensions' already reserves a member called 'get_P2' with the same parameter types
             //     public static int P2 {set{}}
             Diagnostic(ErrorCode.ERR_MemberReserved, "P2").WithArguments("get_P2", "Extensions").WithLocation(11, 23)
@@ -25077,12 +26710,9 @@ static class Extensions
         var comp = CreateCompilation(src);
 
         comp.VerifyDiagnostics(
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Are we comfortable reporting an error like this?
-
             // (8,23): error CS0082: Type 'Extensions' already reserves a member called 'set_P1' with the same parameter types
             //     public static int P1 => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "P1").WithArguments("set_P1", "Extensions").WithLocation(8, 23),
-
             // (11,23): error CS0082: Type 'Extensions' already reserves a member called 'set_P2' with the same parameter types
             //     public static int P2 => 4;
             Diagnostic(ErrorCode.ERR_MemberReserved, "P2").WithArguments("set_P2", "Extensions").WithLocation(11, 23)
@@ -26598,8 +28228,8 @@ using N;
 
 Color.M2(null);
 
-class Color 
-{ 
+class Color
+{
     public static void M2(Color Color)
     {
         Color.M();
@@ -26648,8 +28278,8 @@ using N;
 
 Color.M2(new Color());
 
-class Color 
-{ 
+class Color
+{
     public static void M2(Color Color)
     {
         Color.M();
@@ -26801,7 +28431,6 @@ interface I<out T> { }
 class C1 { }
 class C2 : C1 { }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want this betterness behavior (for methods and/or properties)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
@@ -26923,7 +28552,6 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want this betterness behavior (for methods and/or properties)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
@@ -26954,7 +28582,6 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want this betterness behavior for methods
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS0121: The call is ambiguous between the following methods or properties: 'E1.extension(int).M<T>(T)' and 'E2.extension<T>(T).M(int)'
@@ -26986,7 +28613,6 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want this betterness behavior for methods when the receiver is a type
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "ran ran2").VerifyDiagnostics();
 
@@ -27342,7 +28968,7 @@ static class E
 Color.M2(new Color(42));
 
 class Color(int i) : Base(i)
-{ 
+{
     public static void M2(Color Color)
     {
         Color.M();
@@ -27400,7 +29026,7 @@ static class E
 Color.M2(new Color(42));
 
 class Color(int i) : Base(i)
-{ 
+{
     public static void M2(Color Color)
     {
         _ = Color.P;
@@ -27505,7 +29131,7 @@ public class C
     {
         dynamic d = 1;
         var result = new C().Test("name", d);
-        System.Console.Write(result);        
+        System.Console.Write(result);
     }
 }
 
@@ -27908,8 +29534,8 @@ short x = 42;
 C.M(x.ToString());
 
 [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
-class C 
-{ 
+class C
+{
     public extern static void M(ref string p);
 }
 """;
@@ -28026,6 +29652,65 @@ static class E
     }
 
     [Fact]
+    public void Nullability_Method_03()
+    {
+        var src = """
+#nullable enable
+
+object oNotNull = new object();
+
+oNotNull.M(out object x1, null).ToString(); // 1
+oNotNull.M(out object x2, oNotNull).ToString();
+
+x1.ToString();
+x2.ToString();
+
+static class E
+{
+    extension<T>(T t1)
+    {
+        public T M<U>(out U u, T t2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // oNotNull.M(out object x1, null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNotNull.M(out object x1, null)").WithLocation(5, 1));
+    }
+
+    [Fact]
+    public void Nullability_Method_04()
+    {
+        var src = """
+#nullable enable
+
+object oNotNull = new object();
+
+"".M(oNotNull, null).ToString(); // 1
+"".M(null, oNotNull).ToString(); // 2
+"".M(oNotNull, oNotNull).ToString();
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public U M<U>(U u1, U u2) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // "".M(oNotNull, null).ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @""""".M(oNotNull, null)").WithLocation(5, 1),
+            // (6,1): warning CS8602: Dereference of a possibly null reference.
+            // "".M(null, oNotNull).ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, @""""".M(null, oNotNull)").WithLocation(6, 1));
+    }
+
+    [Fact]
     public void PropertyAccess_RemoveWorseMembers_01()
     {
         string source = """
@@ -28075,7 +29760,6 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm what betterness behavior we want for static properties
         var comp = CreateCompilation(source);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
@@ -28107,14 +29791,13 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm what betterness behavior we want for properties
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.P");
-        Assert.Equal("System.Int32 E.<>E__0.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("E.extension(I<string>).P", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -28139,14 +29822,13 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm what betterness behavior we want for properties
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "i.P");
-        Assert.Equal("System.Int32 E.<>E__1.P { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        Assert.Equal("E.extension(I<string>).P", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
         Assert.Equal([], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
     }
 
@@ -28171,7 +29853,6 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm what betterness behavior we want for properties
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
 
@@ -28854,20 +30535,20 @@ static class E
         extends System.Object
     {
         // Methods
-        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
         {
             .param [1]
             .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
 
             IL_0000: ret
         }
-        .method public hidebysig instance void M () cil managed 
+        .method public hidebysig instance void M () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
     }
-    .method public hidebysig static void 'M' ( int32[] i ) cil managed 
+    .method public hidebysig static void 'M' ( int32[] i ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
             01 00 00 00
@@ -28924,14 +30605,14 @@ i.M(2);
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
         {
             .param [1]
             .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
 
             IL_0000: ret
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed 
+        .method public hidebysig specialname instance int32 get_P () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
@@ -28941,7 +30622,7 @@ i.M(2);
             .get instance int32 E/'<>E__0'::get_P()
         }
     }
-    .method public hidebysig static int32 'get_P' ( int32[] i ) cil managed 
+    .method public hidebysig static int32 'get_P' ( int32[] i ) cil managed
     {
         .param [1]
         .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00)
@@ -31937,7 +33618,7 @@ public static class Extensions
         public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // Tracked by https://github.com/dotnet/roslyn/issues/76130: Nullable analysis asserts 
+        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // Tracked by https://github.com/dotnet/roslyn/issues/76130: Nullable analysis asserts
 
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
 @"
@@ -32050,6 +33731,248 @@ public static class Extensions
                 //         foreach (var i in new C())
                 Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(7, 27)
                 );
+
+        source = """
+using System;
+public class C
+{
+    public static void Main()
+    {
+        foreach (var i in new C())
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+public static class Extensions
+{
+    public static bool MoveNext(this C.Enumerator e) => false;
+}
+""";
+        CreateCompilation(source)
+            .VerifyDiagnostics(
+                // (6,27): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(6, 27),
+                // (6,27): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+                //         foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(6, 27)
+                );
+    }
+
+    [Fact]
+    public void TestMoveNextPatternViaExtensions_DelegateTypeProperty()
+    {
+        var src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+
+public static class Extensions
+{
+    extension(C.Enumerator e)
+    {
+        public System.Func<bool> MoveNext => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(3, 19),
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+
+        src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Func<bool> MoveNext => throw null;
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void TestMoveNextPatternViaExtensions_DynamicTypeProperty()
+    {
+        var src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+
+public static class Extensions
+{
+    extension(C.Enumerator e)
+    {
+        public System.Func<bool> MoveNext => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNext'
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNext").WithLocation(3, 19),
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+
+        src = """
+using System;
+
+foreach (var i in new C())
+{
+    Console.Write(i);
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Func<bool> MoveNext => throw null;
+    }
+
+    public C.Enumerator GetEnumerator() => new C.Enumerator();
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (3,19): error CS0202: foreach requires that the return type 'C.Enumerator' of 'C.GetEnumerator()' must have a suitable public 'MoveNext' method and public 'Current' property
+            // foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetEnumerator()").WithLocation(3, 19));
+    }
+
+    [Fact]
+    public void TestMoveNextAsyncPatternViaExtensions_01()
+    {
+        var src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+
+public static class E
+{
+    extension(C.Enumerator e)
+    {
+        public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+    }
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,25): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(1, 25),
+            // (1,25): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(1, 25));
+
+        src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+
+public static class E
+{
+    public static System.Threading.Tasks.Task<bool> MoveNextAsync(this C.Enumerator e) => throw null;
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (1,25): error CS0117: 'C.Enumerator' does not contain a definition for 'MoveNextAsync'
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "new C()").WithArguments("C.Enumerator", "MoveNextAsync").WithLocation(1, 25),
+            // (1,25): error CS8412: Asynchronous foreach requires that the return type 'C.Enumerator' of 'C.GetAsyncEnumerator()' must have a suitable public 'MoveNextAsync' method and public 'Current' property
+            // await foreach (var i in new C())
+            Diagnostic(ErrorCode.ERR_BadGetAsyncEnumerator, "new C()").WithArguments("C.Enumerator", "C.GetAsyncEnumerator()").WithLocation(1, 25));
+
+        src = """
+await foreach (var i in new C())
+{
+}
+
+public class C
+{
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public System.Threading.Tasks.Task<bool> MoveNextAsync() => throw null;
+    }
+
+    public C.Enumerator GetAsyncEnumerator() => new C.Enumerator();
+}
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -33085,27 +35008,27 @@ ref struct RS { }
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
             IL_0000: ret
         }
-        .method public hidebysig instance void M3 () cil managed 
+        .method public hidebysig instance void M3 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig static void M4 () cil managed 
+        .method public hidebysig static void M4 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P3 () cil managed 
+        .method public hidebysig specialname instance int32 get_P3 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname static int32 get_P4 () cil managed 
+        .method public hidebysig specialname static int32 get_P4 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
@@ -33119,21 +35042,21 @@ ref struct RS { }
             .get int32 E/'<>E__0'::get_P4()
         }
     }
-    .method public hidebysig static void M3 ( int32 '' ) cil managed 
+    .method public hidebysig static void M3 ( int32 '' ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static void M4 () cil managed 
+    .method public hidebysig static void M4 () cil managed
     {
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P3 ( int32 '' ) cil managed 
+    .method public hidebysig static int32 get_P3 ( int32 '' ) cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
-    .method public hidebysig static int32 get_P4 () cil managed 
+    .method public hidebysig static int32 get_P4 () cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
@@ -35171,6 +37094,243 @@ static class E
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 16));
     }
 
+    [Fact]
+    public void Nullability_Deconstruct_05()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+var (x1, x2) = o;
+x1.ToString(); // 1
+x2.ToString();
+
+var (y1, y2, y3) = o;
+y1.ToString(); // 2
+y2.ToString();
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,1): warning CS8602: Dereference of a possibly null reference.
+            // x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(5, 1),
+            // (9,1): warning CS8602: Dereference of a possibly null reference.
+            // y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(9, 1));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
+    public void Nullability_PositionalPattern_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+if (oNull is var (x1, x2))
+{
+    x1.ToString();
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+    y1.ToString();
+}
+
+if (oNull is var (z1, z2, z3))
+{
+    z1.ToString();
+}
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public void Deconstruct(out T t1, out T t2) => throw null!;
+    }
+
+    public static void Deconstruct<T>(this T t, out T t1, out T t2, out T t3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : verify nullability in the semantic model, possibly in IOperation
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_02()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+if (oNull is var (x1, x2))
+{
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+}
+
+object? oNull2 = null;
+if (oNull2 is var (z1, z2, z3))
+{
+}
+
+if (oNotNull is var (t1, t2, t3))
+{
+}
+
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out int i1, out int i2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : verify nullability in the semantic model, possibly in IOperation
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_03()
+    {
+        var src = """
+#nullable enable
+
+(object?, object?) oNull = default;
+if (oNull is var ((x1, x2), _))
+{
+}
+
+(object, object) oNotNull = (new object(), new object());
+if (oNotNull is var ((y1, y2), _))
+{
+}
+
+(object?, object?) oNull2 = default;
+if (oNull2 is var ((z1, z2, z3), _))
+{
+}
+
+if (oNotNull is var ((t1, t2, t3), _))
+{
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out int i1, out int i2) => throw null!;
+    }
+    public static void Deconstruct(this object o, out int i1, out int i2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_04()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = default;
+if (oNull is var (x1, x2))
+{
+}
+else
+{
+    System.Console.Write("skipped ");
+}
+
+object oNotNull = new object();
+if (oNotNull is var (y1, y2))
+{
+}
+
+object? oNull2 = default;
+if (oNull2 is var (z1, z2, z3))
+{
+}
+else
+{
+    System.Console.Write(" skipped ");
+}
+
+if (oNotNull is var (t1, t2, t3))
+{
+}
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public void Deconstruct(out int i1, out int i2) { System.Console.Write(t is not null); i1 = i2 = 0; }
+    }
+    public static void Deconstruct<T>(this T t, out int i1, out int i2, out int i3) where T : notnull { System.Console.Write(t is not null); i1 = i2 = i3 = 0; }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "skipped True skipped True").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_PositionalPattern_05()
+    {
+        var src = """
+#nullable enable
+
+object o = new object();
+if (o is var (x1, x2))
+{
+    x1.ToString(); // 1
+    x2.ToString();
+}
+
+if (o is var (y1, y2, y3))
+{
+    y1.ToString(); // 2
+    y2.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5),
+            // (12,5): warning CS8602: Dereference of a possibly null reference.
+            //     y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(12, 5));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78022")]
     public void Nullability_ForeachDeconstruct_01()
     {
@@ -35309,6 +37469,45 @@ static class E
             // (5,23): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
             // foreach ((_, _, _) in oNull) { } // 1
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "extension(object)").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void Nullability_ForeachDeconstruct_05()
+    {
+        var src = """
+#nullable enable
+
+object[] o = new object[] { };
+foreach (var (x1, x2) in o)
+{
+    x1.ToString(); // 1
+    x2.ToString();
+}
+
+foreach (var (y1, y2, y3) in o)
+{
+    y1.ToString(); // 2
+    y2.ToString();
+}
+
+static class E
+{
+    extension(object o)
+    {
+        public void Deconstruct(out object? o1, out object o2) => throw null!;
+    }
+
+    public static void Deconstruct(this object o, out object? o1, out object o2, out int i3) => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (6,5): warning CS8602: Dereference of a possibly null reference.
+            //     x1.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(6, 5),
+            // (12,5): warning CS8602: Dereference of a possibly null reference.
+            //     y1.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(12, 5));
     }
 
     [Fact]
@@ -35483,7 +37682,7 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.DisallowNull] object? o)
     {
-        public void M() 
+        public void M()
         {
             o.ToString();
         }
@@ -35513,7 +37712,7 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.DisallowNull] int? i)
     {
-        public void M() 
+        public void M()
         {
             i.Value.ToString();
         }
@@ -35543,7 +37742,7 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.AllowNull] object o)
     {
-        public void M() 
+        public void M()
         {
             o.ToString();
         }
@@ -35575,7 +37774,7 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.NotNull] object? o)
     {
-        public void M() 
+        public void M()
         {
         } // 1
     }
@@ -35613,11 +37812,11 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.NotNull] ref int? o)
     {
-        public void M() 
+        public void M()
         {
         } // 1
 
-        public void M3() 
+        public void M3()
         {
             o = 42;
         }
@@ -35656,7 +37855,7 @@ static class E
 {
     extension([System.Diagnostics.CodeAnalysis.NotNull] ref int? o)
     {
-        public void M(bool b = false) 
+        public void M(bool b = false)
         {
             if (b)
                 return; // 1
@@ -36037,6 +38236,70 @@ static class E
             // (13,73): error CS0103: The name 'P' does not exist in the current context
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
             Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(13, 73));
+
+        src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
+            // (13,73): error CS9286: 'object' does not contain a definition for 'P' and no accessible extension member 'P' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.P").WithArguments("object", "P").WithLocation(13, 73));
+
+        src = """
+#nullable enable
+
+object o = new object();
+if (o.M())
+    o.P.ToString(); // 1
+else
+    o.P.ToString(); // 2
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
+        public bool M() => throw null!;
+
+        public object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(5, 5),
+            // (7,5): warning CS8602: Dereference of a possibly null reference.
+            //     o.P.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o.P").WithLocation(7, 5),
+            // (13,73): error CS8082: Sub-expression cannot be used in an argument to nameof.
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
+            Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new object()").WithLocation(13, 73));
     }
 
     [Fact]
@@ -36266,6 +38529,470 @@ static class E
     }
 
     [Fact]
+    public void Nullability_ForEach_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections.Generic;
+
+object? oNull = null;
+foreach (var x in oNull) { x.ToString(); }
+
+object? oNotNull = new object();
+foreach (var y in oNotNull) { y.ToString(); }
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public IEnumerator<T> GetEnumerator()
+        {
+            yield return t;
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,19): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in oNull) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(5, 19));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : incorrect nullability
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Object>! E.extension<System.Object>(System.Object).GetEnumerator()",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString(includeNonNullable: true));
+
+        src = """
+#nullable enable
+using System.Collections.Generic;
+
+object? oNull = null;
+foreach (var x in oNull) { x.ToString(); }
+
+object? oNotNull = new object();
+foreach (var y in oNotNull) { y.ToString(); }
+
+static class E
+{
+    public static IEnumerator<T> GetEnumerator<T>(this T t)
+    {
+        yield return t;
+    }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,28): warning CS8602: Dereference of a possibly null reference.
+            // foreach (var x in oNull) { x.ToString(); }
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 28));
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78022 : incorrect nullability
+        tree = comp.SyntaxTrees.Single();
+        model = comp.GetSemanticModel(tree);
+        loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().First();
+        Assert.Equal("System.Collections.Generic.IEnumerator<System.Object>! E.GetEnumerator<System.Object>(this System.Object t)",
+            model.GetForEachStatementInfo(loop).GetEnumeratorMethod.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_CollectionInitializer_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = new MyCollection() { oNull, oNotNull };
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public void Add(object o) { }
+    }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,39): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
+            // MyCollection c = new MyCollection() { oNull, oNotNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 39));
+    }
+
+    [Fact]
+    public void Nullability_CollectionExpression_Add_01()
+    {
+        var src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = [oNull, oNotNull];
+
+static class E
+{
+    extension(MyCollection c)
+    {
+        public void Add(object o) { }
+    }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing nullability diagnostic
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+using System.Collections;
+using System.Collections.Generic;
+
+object? oNull = null;
+object oNotNull = new object();
+MyCollection c = [oNull, oNotNull];
+
+static class E
+{
+    public static void Add(this MyCollection c, object o) { }
+}
+
+public class MyCollection : IEnumerable<object>
+{
+    IEnumerator<object> IEnumerable<object>.GetEnumerator() => throw null!;
+    IEnumerator IEnumerable.GetEnumerator() => throw null!;
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/78452 : assertion hit during nullability analysis
+        try
+        {
+            comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { Property = oNull };
+
+object oNotNull = new object();
+_ = new object() { Property = oNotNull };
+
+static class E
+{
+    extension(object o)
+    {
+        public object Property { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new object() { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+    }
+
+    [Fact]
+    public void Nullability_ObjectInitializer_02()
+    {
+        var src = """
+#nullable enable
+
+_ = new object() { Property = 42 };
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
+        Assert.Equal("System.Int32 E.extension<System.Object>(System.Object).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void Nullability_With_01()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new S() with { Property = oNull };
+
+object oNotNull = new object();
+_ = new S() with { Property = oNotNull };
+
+struct S { }
+
+static class E
+{
+    extension(object o)
+    {
+        public object Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,31): warning CS8601: Possible null reference assignment.
+            // _ = new S() with { Property = oNull };
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(4, 31));
+    }
+
+    [Fact]
+    public void Nullability_With_02()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_03()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension(object? o)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_04()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension<T>(T t)
+    { 
+        public int Property { set { } }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_With_05()
+    {
+        var src = """
+#nullable enable
+
+C? cNull = null;
+_ = cNull with { Property = 42 };
+
+C cNotNull = new C();
+_ = cNotNull with { Property = 42 };
+
+record C { }
+
+static class E
+{
+    extension<T>(T t) where T : notnull
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (4,5): warning CS8602: Dereference of a possibly null reference.
+            // _ = cNull with { Property = 42 };
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "cNull").WithLocation(4, 5));
+    }
+
+    [Fact]
+    public void Nullability_Fixed_01()
+    {
+        var src = """
+#nullable enable
+
+unsafe class C
+{
+    public static void M()
+    {
+        fixed (S<object>* p = new Fixable()) { } // 1
+        fixed (S<object?>* p = new Fixable()) { }
+    }
+}
+
+class Fixable { }
+
+struct S<T> { }
+
+static class E
+{
+    extension(Fixable f)
+    {
+        public ref S<object?> GetPinnableReference() => throw null!;
+    }
+}
+""";
+        // We don't yet analyze the nullability of `fixed` statements for extension methods
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+
+        src = """
+#nullable enable
+
+unsafe class C
+{
+    public static void M()
+    {
+        fixed (S<object>* p = new Fixable()) { } // 1
+        fixed (S<object?>* p = new Fixable()) { }
+    }
+}
+
+class Fixable { }
+
+struct S<T> { }
+
+static class E
+{
+    public static ref S<object?> GetPinnableReference(this Fixable f) => throw null!;
+}
+""";
+        comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Await_GetAwaiter_01()
+    {
+        var src = """
+#nullable enable
+
+using System;
+using System.Runtime.CompilerServices;
+
+C? cNull = null;
+_ = await cNull;
+
+C cNotNull = new C();
+_ = await cNotNull;
+
+class C { }
+
+class D : INotifyCompletion
+{
+    public int GetResult() => 42;
+    public void OnCompleted(Action continuation) => throw null!;
+    public bool IsCompleted => true;
+}
+
+static class E
+{
+    extension(C c)
+    {
+        public D GetAwaiter() => new D();
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,11): warning CS8604: Possible null reference argument for parameter 'c' in 'extension(C)'.
+            // _ = await cNull;
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "cNull").WithArguments("c", "extension(C)").WithLocation(7, 11));
+    }
+
+    [Fact]
     public void BuildArgumentsForErrorRecovery_01()
     {
         var src = """
@@ -36421,17 +39148,17 @@ static class E
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed 
+        .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
             IL_0000: ret
         }
-        .method public hidebysig instance void M () cil managed 
+        .method public hidebysig instance void M () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed 
+        .method public hidebysig specialname instance int32 get_P () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
@@ -36441,12 +39168,12 @@ static class E
             .get instance int32 E/'<>E__0'::get_P()
         }
     }
-    .method public hidebysig static void M ( int32 '' ) cil managed 
+    .method public hidebysig static void M ( int32 '' ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P ( int32 '' ) cil managed 
+    .method public hidebysig static int32 get_P ( int32 '' ) cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
@@ -36484,27 +39211,27 @@ _ = 42.P;
     .class nested public auto ansi sealed beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
-        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+        .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
         {
             .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
             IL_0000: ret
         }
-        .method public hidebysig instance void M () cil managed 
+        .method public hidebysig instance void M () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance void M2 () cil managed 
+        .method public hidebysig specialname instance void M2 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig specialname instance int32 get_P () cil managed 
+        .method public hidebysig specialname instance int32 get_P () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
         }
-        .method public hidebysig instance int32 get_P2 () cil managed 
+        .method public hidebysig instance int32 get_P2 () cil managed
         {
             IL_0000: ldnull
             IL_0001: throw
@@ -36518,22 +39245,22 @@ _ = 42.P;
             .get instance int32 E/'<>E__0'::get_P2()
         }
     }
-    .method public hidebysig specialname static void M ( int32 '' ) cil managed 
+    .method public hidebysig specialname static void M ( int32 '' ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static void M2 ( int32 '' ) cil managed 
+    .method public hidebysig static void M2 ( int32 '' ) cil managed
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
         IL_0000: ret
     }
-    .method public hidebysig static int32 get_P ( int32 '' ) cil managed 
+    .method public hidebysig static int32 get_P ( int32 '' ) cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
     }
-    .method public hidebysig specialname static int32 get_P2 ( int32 '' ) cil managed 
+    .method public hidebysig specialname static int32 get_P2 ( int32 '' ) cil managed
     {
         IL_0000: ldc.i4.0
         IL_0001: ret
@@ -37321,5 +40048,267 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         Assert.Equal(["(T, null)", "(T, T)"], PrintXmlNameSymbols(tree, model));
+    }
+
+    [Fact]
+    public void AnalyzerActions_01()
+    {
+        var src = """
+static class E
+{
+    extension<T>([Attr] T t)
+    {
+        [Attr2]
+        public void M() { }
+
+        [Attr3]
+        public int P => 0;
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_01_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "Attr2 -> void E.<>E__0<T>.M()",
+            "M -> void E.<>E__0<T>.M()",
+            "Attr3 -> System.Int32 E.<>E__0<T>.P { get; }",
+            "P -> System.Int32 E.<>E__0<T>.P { get; }",
+            "T -> E.<>E__0<T>",
+            "Attr -> E.<>E__0<T>",
+            "extension -> E.<>E__0<T>"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.ExtensionDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.IdentifierName);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(handle, SyntaxKind.PropertyDeclaration);
+
+            void handle(SyntaxNodeAnalysisContext context)
+            {
+                _results.Enqueue(print(context));
+                Assert.Same(context.Node.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            static string print(SyntaxNodeAnalysisContext context)
+            {
+                var syntaxString = context.Node switch
+                {
+                    ExtensionDeclarationSyntax => "extension",
+                    MethodDeclarationSyntax method => method.Identifier.ValueText,
+                    PropertyDeclarationSyntax property => property.Identifier.ValueText,
+                    _ => context.Node.ToString()
+                };
+
+                return $"{syntaxString} -> {context.ContainingSymbol.ToTestDisplayString()}";
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_02()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M(int i) { }
+        public int P => 0;
+    }
+    extension(__arglist) { }
+    extension(object o1, object o2) { }
+}
+""";
+
+        var analyzer = new AnalyzerActions_02_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "E",
+            "E.<>E__0<T>",
+            "System.Int32 E.<>E__0<T>.P { get; }",
+            "T t",
+            "E.<>E__1",
+            "E.<>E__2",
+            "System.Object o1",
+            "void E.<>E__0<T>.M(System.Int32 i)",
+            "System.Int32 i",
+            "System.Int32 E.<>E__0<T>.P.get"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolAction(handle, SymbolKind.NamedType);
+            context.RegisterSymbolAction(handle, SymbolKind.Parameter);
+            context.RegisterSymbolAction(handle, SymbolKind.TypeParameter);
+            context.RegisterSymbolAction(handle, SymbolKind.Method);
+            context.RegisterSymbolAction(handle, SymbolKind.Property);
+
+            void handle(SymbolAnalysisContext context)
+            {
+                _results.Enqueue(context.Symbol.ToTestDisplayString());
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M() { }
+        public int P { get { return 0; } }
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_03_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "public void M() { } -> void E.<>E__0<T>.M()",
+            "get { return 0; } -> System.Int32 E.<>E__0<T>.P.get"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(handle, OperationKind.MethodBody);
+
+            void handle(OperationAnalysisContext context)
+            {
+                _results.Enqueue($"{context.Operation.Syntax.ToString()} -> {context.ContainingSymbol.ToTestDisplayString()}");
+            }
+        }
+    }
+
+    [Fact]
+    public void AnalyzerActions_04()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T t)
+    {
+        public void M(int i) { }
+        public int P { get { return 0; } }
+    }
+}
+""";
+
+        var analyzer = new AnalyzerActions_04_Analyzer();
+        var comp = CreateCompilation(src);
+        comp.GetAnalyzerDiagnostics([analyzer], null).Verify();
+
+        AssertEx.SetEqual([
+            "Start: E",
+            "Start: E.<>E__0<T>",
+            "Start: void E.<>E__0<T>.M(System.Int32 i)",
+            "Start: System.Int32 E.<>E__0<T>.P { get; }",
+            "Start: System.Int32 E.<>E__0<T>.P.get",
+            "End: System.Int32 E.<>E__0<T>.P { get; }",
+            "End: System.Int32 E.<>E__0<T>.P.get",
+            "End: void E.<>E__0<T>.M(System.Int32 i)",
+            "End: E.<>E__0<T>",
+            "End: E"],
+            analyzer._results.ToArray());
+    }
+
+    private class AnalyzerActions_04_Analyzer : DiagnosticAnalyzer
+    {
+        public ConcurrentQueue<string> _results = new ConcurrentQueue<string>();
+
+        private static readonly DiagnosticDescriptor Descriptor =
+           new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Descriptor];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.NamedType);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Method);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Property);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.Parameter);
+            context.RegisterSymbolStartAction(handleStart, SymbolKind.TypeParameter);
+
+            void handleStart(SymbolStartAnalysisContext context)
+            {
+                _results.Enqueue($"Start: {context.Symbol.ToTestDisplayString()}");
+                context.RegisterSymbolEndAction(handleEnd);
+            }
+
+            void handleEnd(SymbolAnalysisContext context)
+            {
+                _results.Enqueue($"End: {context.Symbol.ToTestDisplayString()}");
+            }
+        }
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78487")]
+    public void Async_01()
+    {
+        string source = """
+await System.Threading.Tasks.Task.FromResult(true).M();
+await System.Threading.Tasks.Task<bool>.M2();
+
+static class E
+{
+    extension<T>(System.Threading.Tasks.Task<T> source)
+    {
+        public async System.Threading.Tasks.Task M()
+        {
+            System.Console.Write(await source);
+            System.Console.Write(" ran ");
+        }
+
+        public static async System.Threading.Tasks.Task M2()
+        {
+            await System.Threading.Tasks.Task.FromResult(default(T));
+            System.Console.Write("ran2");
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(source);
+        CompileAndVerify(comp, expectedOutput: "True ran ran2").VerifyDiagnostics();
     }
 }

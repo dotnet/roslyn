@@ -1163,17 +1163,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, kind == BinaryOperatorKind.LogicalAnd ? falseOperator : trueOperator,
                                 isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
+                        var operandPlaceholder = new BoundValuePlaceholder(resultLeft.Syntax, resultLeft.Type).MakeCompilerGenerated();
+                        var trueFalseParameterType = (resultKind.Operator() == BinaryOperatorKind.And ? falseOperator : trueOperator).Parameters[0].Type;
+                        CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                        var conversion = this.Conversions.ClassifyConversionFromType(resultLeft.Type, trueFalseParameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                        Debug.Assert(conversion.IsImplicit);
+
+                        BoundExpression operandConversion = CreateConversion(
+                            resultLeft.Syntax,
+                            operandPlaceholder,
+                            conversion,
+                            isCast: false,
+                            conversionGroupOpt: null,
+                            trueFalseParameterType,
+                            diagnostics);
+
+                        diagnostics.Add(operandConversion.Syntax, useSiteInfo);
+
                         return new BoundUserDefinedConditionalLogicalOperator(
                             node,
                             resultKind,
-                            resultLeft,
-                            resultRight,
                             signature.Method,
                             trueOperator,
                             falseOperator,
+                            operandPlaceholder,
+                            operandConversion,
                             signature.ConstrainedToTypeOpt,
                             lookupResult,
                             originalUserDefinedOperators,
+                            resultLeft,
+                            resultRight,
                             signature.ReturnType);
                     }
                     else
@@ -1241,8 +1260,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            // Strictly speaking, we probably should be digging through nullable type here to look for an operator
+            // declared by the underlying type. However, it doesn't look like dynamic binder is able to deal with
+            // nullable types while evaluating logical binary operators. Exceptions that it throws look like:
+            //
+            // Microsoft.CSharp.RuntimeBinder.RuntimeBinderException : The type ('S1?') must contain declarations of operator true and operator false
+            // Stack Trace:
+            //     at CallSite.Target(Closure, CallSite, Object, Object)
+            //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
+            //
+            // Microsoft.CSharp.RuntimeBinder.RuntimeBinderException : Operator '&&' cannot be applied to operands of type 'S1' and 'S1?'
+            // Stack Trace:
+            //     at CallSite.Target(Closure, CallSite, Object, Nullable`1)
+            //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
             var namedType = type as NamedTypeSymbol;
             var result = HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteInfo, out userDefinedOperator);
+
+            if (result)
+            {
+                Debug.Assert(userDefinedOperator is not null);
+
+                var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated();
+                TypeSymbol parameterType = userDefinedOperator.Parameters[0].Type;
+
+                implicitConversion = this.Conversions.ClassifyConversionFromType(operandPlaceholder.Type, parameterType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
+                Debug.Assert(implicitConversion.IsImplicit);
+
+                CreateConversion(left.Syntax, operandPlaceholder, implicitConversion, isCast: false, conversionGroupOpt: null, parameterType, diagnostics);
+            }
+
             diagnostics.Add(left.Syntax, useSiteInfo);
 
             return result;

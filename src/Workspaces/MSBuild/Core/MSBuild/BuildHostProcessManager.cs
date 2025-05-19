@@ -25,15 +25,15 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ILogger? _logger;
-    private readonly string? _binaryLogPath;
+    private readonly IBinLogPathProvider? _binaryLogPathProvider;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
 
-    public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, string? binaryLogPath = null, ILoggerFactory? loggerFactory = null)
+    public BuildHostProcessManager(ImmutableDictionary<string, string>? globalMSBuildProperties = null, IBinLogPathProvider? binaryLogPathProvider = null, ILoggerFactory? loggerFactory = null)
     {
         _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
-        _binaryLogPath = binaryLogPath;
+        _binaryLogPathProvider = binaryLogPathProvider;
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<BuildHostProcessManager>();
     }
@@ -244,10 +244,10 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             AddArgument(processStartInfo, globalMSBuildProperty.Key + '=' + globalMSBuildProperty.Value);
         }
 
-        if (_binaryLogPath is not null)
+        if (_binaryLogPathProvider?.GetNewLogPath() is string binaryLogPath)
         {
             AddArgument(processStartInfo, "--binlog");
-            AddArgument(processStartInfo, _binaryLogPath);
+            AddArgument(processStartInfo, binaryLogPath);
         }
 
         AddArgument(processStartInfo, "--locale");

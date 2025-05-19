@@ -752,7 +752,6 @@ class extension
         }
         EOF();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : report error for declaring type named "extension"
         // Note: break from C# 13
         UsingTree("""
 class extension

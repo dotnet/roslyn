@@ -1719,7 +1719,6 @@ namespace Microsoft.Cci
             Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
             PopulateEncTables(typeSystemRowCounts);
 
-            Debug.Assert(mappedFieldDataBuilder == null);
             Debug.Assert(managedResourceDataBuilder == null);
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
@@ -1742,9 +1741,13 @@ namespace Microsoft.Cci
             try
             {
                 ilBuilder.WriteContentTo(ilStream);
+
+                // in EnC delta FieldRVA data are appended to the IL stream:
+                mappedFieldDataBuilder?.WriteContentTo(ilStream);
+
                 metadataBuilder.WriteContentTo(metadataStream);
             }
-            catch (Exception e) when (!(e is OperationCanceledException))
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 throw new PeWritingException(e);
             }
@@ -1844,7 +1847,10 @@ namespace Microsoft.Cci
                 _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisData);
             }
 
-            PopulateTypeSystemTables(methodBodyOffsets, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
+            // in EnC delta the FieldRVA data is stored to IL stream following all the method bodies:
+            int mappedFieldDataStartOffset = IsFullMetadata ? 0 : ilBuilder.Count;
+
+            PopulateTypeSystemTables(methodBodyOffsets, mappedFieldDataStartOffset, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
             dynamicAnalysisData?.Free();
         }
 #nullable disable
@@ -1907,7 +1913,7 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateTypeSystemTables(int[] methodBodyOffsets, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
+        private void PopulateTypeSystemTables(int[] methodBodyOffsets, int mappedFieldDataStartOffset, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -1921,7 +1927,7 @@ namespace Microsoft.Cci
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
             this.PopulateFieldMarshalTableRows();
-            this.PopulateFieldRvaTableRows(out mappedFieldDataWriter);
+            this.PopulateFieldRvaTableRows(mappedFieldDataStartOffset, out mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
             this.PopulateGenericParameters(sortedGenericParameters);
@@ -2329,9 +2335,9 @@ namespace Microsoft.Cci
         }
 
 #nullable enable
-        private void PopulateFieldRvaTableRows(out PooledBlobBuilder? mappedFieldDataWriter)
+        private void PopulateFieldRvaTableRows(int mappedFieldDataStartOffset, out PooledBlobBuilder? mappedFieldDataBuilder)
         {
-            mappedFieldDataWriter = null;
+            mappedFieldDataBuilder = null;
 
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
             {
@@ -2340,19 +2346,26 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                mappedFieldDataWriter ??= PooledBlobBuilder.GetInstance();
+                if (mappedFieldDataBuilder == null)
+                {
+                    mappedFieldDataBuilder = PooledBlobBuilder.GetInstance();
+
+                    // insert alignment bytes as needed:
+                    var alignedStartOffset = BitArithmeticUtilities.Align(mappedFieldDataStartOffset, ManagedPEBuilder.MappedFieldDataAlignment);
+                    mappedFieldDataBuilder.WriteBytes(0, alignedStartOffset - mappedFieldDataStartOffset);
+                }
 
                 // The compiler always aligns each RVA data field to an 8-byte boundary; this accommodates the alignment
                 // needs for all primitive types, regardless of which type is actually being used, at the expense of
                 // potentially wasting up to 7 bytes per field if the alignment needs are less. In the future, this
                 // potentially could be tightened to align each field only as much as is actually required by that
                 // field, saving a few bytes per field.
-                int offset = mappedFieldDataWriter.Count;
+                int offset = mappedFieldDataStartOffset + mappedFieldDataBuilder.Count;
                 Debug.Assert(offset % ManagedPEBuilder.MappedFieldDataAlignment == 0, "Expected last write to end at alignment boundary");
                 Debug.Assert(ManagedPEBuilder.MappedFieldDataAlignment == 8, "Expected alignment to be 8");
 
-                mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
-                mappedFieldDataWriter.Align(ManagedPEBuilder.MappedFieldDataAlignment);
+                mappedFieldDataBuilder.WriteBytes(fieldDef.MappedData);
+                mappedFieldDataBuilder.Align(ManagedPEBuilder.MappedFieldDataAlignment);
 
                 metadata.AddFieldRelativeVirtualAddress(
                     field: GetFieldDefinitionHandle(fieldDef),

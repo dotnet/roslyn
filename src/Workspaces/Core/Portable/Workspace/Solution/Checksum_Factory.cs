@@ -43,6 +43,21 @@ internal readonly partial record struct Checksum
         return From(hash);
     }
 
+    public static Checksum Create(ImmutableArray<string> values)
+    {
+        using var pooledHash = s_incrementalHashPool.GetPooledObject();
+
+        foreach (var value in values)
+        {
+            pooledHash.Object.Append(MemoryMarshal.AsBytes(value.AsSpan()));
+            pooledHash.Object.Append(MemoryMarshal.AsBytes("\0".AsSpan()));
+        }
+
+        Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
+        pooledHash.Object.GetHashAndReset(hash);
+        return From(hash);
+    }
+
     public static Checksum Create(string? value)
     {
         Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
