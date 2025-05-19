@@ -27,12 +27,6 @@ namespace Microsoft.CodeAnalysis.Text
             _checksumAlgorithm = checksumAlgorithm;
         }
 
-        // https://github.com/dotnet/roslyn/issues/40830
-        public override Encoding Encoding
-        {
-            get { return _encoding!; }
-        }
-
         public override SourceText ToSourceText()
         {
             return new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
