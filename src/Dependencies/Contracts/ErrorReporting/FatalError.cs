@@ -2,11 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable enable
+
+#if !MICROSOFT_CODEANALYSIS_CONTRACTS_NO_ERROR_REPORTING
+
 using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ErrorReporting
 {
@@ -221,6 +226,25 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             return ReportAndCatch(exception, severity);
         }
 
+        public static Task ReportNonFatalErrorAsync(this Task task)
+        {
+            _ = task.ContinueWith(p => ReportAndCatchUnlessCanceled(p.Exception!),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
+        }
+
+        public static Task ReportNonFatalErrorUnlessCancelledAsync(this Task task, CancellationToken cancellationToken)
+        {
+            _ = task.ContinueWith(p => ReportAndCatchUnlessCanceled(p.Exception!, cancellationToken),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return task;
+        }
 #endif
 
         // We use a Guid for the marker because it is used as a key in an exceptions Data dictionary, so we must make sure
@@ -312,3 +336,5 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         Critical
     }
 }
+
+#endif

@@ -9,12 +9,12 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
 /// <summary>
-/// Response for the roslyn/extensionRegister request.
+/// Response for the server/_vs_activateExtension request.
 /// </summary>
 /// <param name="WorkspaceMessageHandlers">Names of the registered non-document-specific extension message handlers.</param>
 /// <param name="DocumentMessageHandlers">Names of the registered document-specific extension message handlers.</param>
 /// <param name="ExtensionException">Details of any exceptions that occurred during extension registration.</param>
-internal sealed record class ExtensionRegisterResponse(
+internal sealed record class ActivateExtensionResponse(
     [property: JsonPropertyName("workspaceMessageHandlers")] ImmutableArray<string> WorkspaceMessageHandlers,
     [property: JsonPropertyName("documentMessageHandlers")] ImmutableArray<string> DocumentMessageHandlers,
     [property: JsonPropertyName("extensionException"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] Exception? ExtensionException);

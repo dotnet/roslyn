@@ -43,7 +43,7 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ILoggerFactory LoggerFactory;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
-    private readonly BinlogNamer _binlogNamer;
+    private readonly IBinLogPathProvider _binLogPathProvider;
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
@@ -98,7 +98,7 @@ internal abstract class LanguageServerProjectLoader
         IAsynchronousOperationListenerProvider listenerProvider,
         ProjectLoadTelemetryReporter projectLoadTelemetry,
         ServerConfigurationFactory serverConfigurationFactory,
-        BinlogNamer binlogNamer)
+        IBinLogPathProvider binLogPathProvider)
     {
         ProjectFactory = projectFactory;
         _targetFrameworkManager = targetFrameworkManager;
@@ -108,7 +108,7 @@ internal abstract class LanguageServerProjectLoader
         LoggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectLoader));
         _projectLoadTelemetryReporter = projectLoadTelemetry;
-        _binlogNamer = binlogNamer;
+        _binLogPathProvider = binLogPathProvider;
         var workspace = projectFactory.Workspace;
         var razorDesignTimePath = serverConfigurationFactory.ServerConfiguration?.RazorDesignTimePath;
 
@@ -145,9 +145,7 @@ internal abstract class LanguageServerProjectLoader
 
         // TODO: support configuration switching
 
-        var binaryLogPath = _binlogNamer.GetMSBuildBinaryLogPath();
-
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPath: binaryLogPath, loggerFactory: LoggerFactory);
+        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, binaryLogPathProvider: _binLogPathProvider, loggerFactory: LoggerFactory);
         var toastErrorReporter = new ToastErrorReporter();
 
         try

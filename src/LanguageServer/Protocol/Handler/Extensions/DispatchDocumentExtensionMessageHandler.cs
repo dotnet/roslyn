@@ -12,19 +12,19 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExtensionDocumentMessageHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(DispatchDocumentExtensionMessageHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionDocumentMessageHandler()
-    : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<ExtensionDocumentMessageParams, ExtensionMessageResponse>
+internal sealed class DispatchDocumentExtensionMessageHandler()
+    : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<DispatchDocumentExtensionMessageParams, DispatchExtensionMessageResponse>
 {
-    private const string MethodName = "roslyn/extensionDocumentMessage";
+    private const string MethodName = "textDocument/_vs_dipatchExtensionMessage";
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(ExtensionDocumentMessageParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DispatchDocumentExtensionMessageParams request)
         => request.TextDocument;
 
-    public async Task<ExtensionMessageResponse> HandleRequestAsync(ExtensionDocumentMessageParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchDocumentExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 
@@ -38,6 +38,6 @@ internal sealed class ExtensionDocumentMessageHandler()
         if (exception is not null)
             context.Logger.LogException(exception);
 
-        return new ExtensionMessageResponse(response, extensionWasUnloaded, exception);
+        return new DispatchExtensionMessageResponse(response, extensionWasUnloaded, exception);
     }
 }

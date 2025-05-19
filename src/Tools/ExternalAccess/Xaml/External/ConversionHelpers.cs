@@ -7,15 +7,14 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 internal static class ConversionHelpers
 {
-    public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
-        => ProtocolConversions.CreateAbsoluteDocumentUri(absolutePath);
+    public static Uri CreateAbsoluteUri(string absolutePath)
+        => ProtocolConversions.CreateAbsoluteUri(absolutePath);
 
     public static (string content, bool isMarkdown) CreateMarkdownContent(TextDocument document, QuickInfoItem info, XamlRequestContext context)
     {
