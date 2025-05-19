@@ -48,6 +48,9 @@ internal sealed class RemoteSemanticSearchService(
 
         public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
             => callback.InvokeAsync((callback, cancellationToken) => callback.OnDocumentUpdatedAsync(callbackId, documentId, changes, cancellationToken), cancellationToken);
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+            => callback.InvokeAsync((callback, cancellationToken) => callback.OnLogMessageAsync(callbackId, message, cancellationToken), cancellationToken);
     }
 
     /// <summary>

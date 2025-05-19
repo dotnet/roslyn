@@ -31,8 +31,10 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -41,7 +43,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal abstract partial class AbstractSemanticSearchService : ISemanticSearchService
+internal abstract partial class AbstractSemanticSearchService(
+    IAsynchronousOperationListenerProvider listenerProvider) : ISemanticSearchService
 {
     internal sealed class LoadContext() : AssemblyLoadContext("SemanticSearchLoadContext", isCollectible: true)
     {
@@ -81,7 +84,20 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
     private ImmutableDictionary<CompiledQueryId, CompiledQuery> _compiledQueries = ImmutableDictionary<CompiledQueryId, CompiledQuery>.Empty;
 
+    private readonly AsyncBatchingWorkQueue<(ISemanticSearchResultsObserver observer, string message)> _logQueue = new(
+        delay: TimeSpan.Zero,
+        async (entries, cancellationToken) =>
+        {
+            foreach (var (observer, message) in entries)
+            {
+                await observer.OnLogMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
+        },
+        listenerProvider.GetListener(FeatureAttribute.SemanticSearch),
+        cancellationToken: CancellationToken.None);
+
     protected abstract Compilation CreateCompilation(SourceText query, IEnumerable<MetadataReference> references, SolutionServices services, out SyntaxTree queryTree, CancellationToken cancellationToken);
+    protected abstract ObjectFormatter ObjectFormatter { get; }
 
     public CompileQueryResult CompileQuery(
         SolutionServices services,
@@ -168,10 +184,14 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 var queryAssembly = loadContext.LoadFromStream(query.PEStream, query.PdbStream);
                 SetModuleCancellationToken(queryAssembly, cancellationToken);
 
-                SetToolImplementations(
+                SetExtensionsImplementations(
                     queryAssembly,
                     new ReferencingSyntaxFinder(solution, cancellationToken),
                     new SemanticModelGetter(solution, cancellationToken));
+
+                SetToolsImplementations(
+                    queryAssembly,
+                    print: value => _logQueue.AddWork((observer, ObjectFormatter.FormatObject(value))));
 
                 if (!TryGetQueryFunctions(queryAssembly, out var functions, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
@@ -230,20 +250,28 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         moduleCancellationTokenField.SetValue(null, cancellationToken);
     }
 
-    private static void SetToolImplementations(Assembly queryAssembly, ReferencingSyntaxFinder finder, SemanticModelGetter semanticModelGetter)
+    private static void SetExtensionsImplementations(Assembly queryAssembly, ReferencingSyntaxFinder finder, SemanticModelGetter semanticModelGetter)
+    {
+        var extensionsTypes = queryAssembly.GetType(SemanticSearchUtilities.ExtensionsTypeName, throwOnError: true);
+        Contract.ThrowIfNull(extensionsTypes);
+
+        SetFieldValue(extensionsTypes, SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.Find));
+        SetFieldValue(extensionsTypes, SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
+    }
+
+    private static void SetToolsImplementations(Assembly queryAssembly, Action<object?> print)
     {
         var toolsType = queryAssembly.GetType(SemanticSearchUtilities.ToolsTypeName, throwOnError: true);
         Contract.ThrowIfNull(toolsType);
 
-        SetFieldValue(SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.Find));
-        SetFieldValue(SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
+        SetFieldValue(toolsType, SemanticSearchUtilities.PrintImplName, print);
+    }
 
-        void SetFieldValue(string fieldName, object value)
-        {
-            var field = toolsType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
-            Contract.ThrowIfNull(field);
-            field.SetValue(null, value);
-        }
+    private static void SetFieldValue(Type type, string fieldName, object value)
+    {
+        var field = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+        Contract.ThrowIfNull(field);
+        field.SetValue(null, value);
     }
 
     private static bool TryGetQueryFunctions(

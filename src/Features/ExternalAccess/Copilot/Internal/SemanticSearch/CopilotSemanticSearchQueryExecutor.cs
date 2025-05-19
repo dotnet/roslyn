@@ -58,6 +58,9 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
         public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
             => throw new NotImplementedException(); // TODO
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+            => ValueTaskFactory.CompletedTask; // TODO
     }
 
     /// <summary>

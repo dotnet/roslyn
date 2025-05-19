@@ -21,6 +21,7 @@ internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResults
     public Action<ImmutableArray<QueryCompilationError>>? OnCompilationFailureImpl { get; set; }
     public Action<int>? ItemsCompletedImpl { get; set; }
     public Action<int>? AddItemsImpl { get; set; }
+    public Action<string>? OnLogMessageImpl { get; set; }
 
     public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
     {
@@ -49,6 +50,12 @@ internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResults
     public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
     {
         OnUserCodeExceptionImpl?.Invoke(exception);
+        return ValueTaskFactory.CompletedTask;
+    }
+
+    public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+    {
+        OnLogMessageImpl?.Invoke(message);
         return ValueTaskFactory.CompletedTask;
     }
 }

@@ -4,34 +4,30 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.OrganizeImports;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp;
 
 internal sealed class SemanticSearchQueryExecutor(
     FindUsagesContext presenterContext,
+    Action<string> logMessage,
     IOptionsReader options)
 {
-    private sealed class ResultsObserver(IFindUsagesContext presenterContext, Document? queryDocument) : ISemanticSearchResultsObserver
+    private sealed class ResultsObserver(IFindUsagesContext presenterContext, Action<string> logMessage, Document? queryDocument) : ISemanticSearchResultsObserver
     {
         private readonly Lazy<ConcurrentStack<(DocumentId documentId, ImmutableArray<TextChange> changes)>> _lazyDocumentUpdates = new();
 
@@ -84,6 +80,12 @@ internal sealed class SemanticSearchQueryExecutor(
 
             return newSolution;
         }
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+        {
+            logMessage(message);
+            return ValueTaskFactory.CompletedTask;
+        }
     }
 
     private readonly OptionsProvider<ClassificationOptions> _classificationOptionsProvider =
@@ -108,7 +110,7 @@ internal sealed class SemanticSearchQueryExecutor(
             return solution;
         }
 
-        var resultsObserver = new ResultsObserver(presenterContext, queryDocument);
+        var resultsObserver = new ResultsObserver(presenterContext, logMessage, queryDocument);
         query ??= (await queryDocument!.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
 
         ExecuteQueryResult result = default;

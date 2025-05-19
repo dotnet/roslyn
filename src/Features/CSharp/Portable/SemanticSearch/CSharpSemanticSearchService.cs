@@ -9,8 +9,11 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch.CSharp;
@@ -18,7 +21,8 @@ namespace Microsoft.CodeAnalysis.SemanticSearch.CSharp;
 [ExportLanguageService(typeof(ISemanticSearchService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpSemanticSearchService() : AbstractSemanticSearchService()
+internal sealed class CSharpSemanticSearchService(IAsynchronousOperationListenerProvider listenerProvider)
+    : AbstractSemanticSearchService(listenerProvider)
 {
     protected override Compilation CreateCompilation(
         SourceText query,
@@ -47,6 +51,9 @@ internal sealed class CSharpSemanticSearchService() : AbstractSemanticSearchServ
             references,
             CSharpSemanticSearchUtilities.CompilationOptions);
     }
+
+    protected override ObjectFormatter ObjectFormatter
+        => CSharpObjectFormatter.Instance;
 }
 
 #endif

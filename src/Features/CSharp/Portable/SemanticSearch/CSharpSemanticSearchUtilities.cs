@@ -28,12 +28,14 @@ internal sealed class CSharpSemanticSearchUtilities
             global using System.Threading;
             global using System.Threading.Tasks;
             global using Microsoft.CodeAnalysis;
-
-            public static class {{SemanticSearchUtilities.ToolsTypeName}}
+            global using Microsoft.CodeAnalysis.Text;
+            global using static {{SemanticSearchUtilities.ToolsTypeName}};
+            
+            public static class {{SemanticSearchUtilities.ExtensionsTypeName}}
             {
                 private static Func<ISymbol, IEnumerable<SyntaxNode>> {{SemanticSearchUtilities.FindReferencingSyntaxNodesImplName}};
                 private static Func<SyntaxTree, Task<SemanticModel>> {{SemanticSearchUtilities.GetSemanticModelImplName}};
-
+            
                 /// <summary>
                 /// Returns all syntax nodes that reference the given <paramref name="symbol" />.
                 /// </summary>
@@ -45,6 +47,17 @@ internal sealed class CSharpSemanticSearchUtilities
                 /// </summary>
                 public static Task<SemanticModel> GetSemanticModelAsync(this SyntaxTree tree)
                     => {{SemanticSearchUtilities.GetSemanticModelImplName}}(tree);
+            }
+
+            public static class {{SemanticSearchUtilities.ToolsTypeName}}
+            {
+                private static Action<object?> {{SemanticSearchUtilities.PrintImplName}};
+            
+                /// <summary>
+                /// Prints given <paramref name="value"/> to log.
+                /// </summary>
+                public static void Print(object? value)
+                    => {{SemanticSearchUtilities.PrintImplName}}(value);
             }
             """,
         EditorConfig = """

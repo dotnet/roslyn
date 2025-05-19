@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
 using Microsoft.VisualStudio.Imaging;
@@ -64,6 +65,9 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     private const int ToolBarHeight = 26;
     private const int ToolBarButtonSize = 20;
 
+    private static readonly Guid s_logOutputPainGuid = new("{4C4F1810-C865-493E-98A7-8E1120A9FDE4}");
+    private const string LogOutputPaneName = "Semantic Search Log";
+
     private static readonly Lazy<ControlTemplate> s_buttonTemplate = new(CreateButtonTemplate);
 
     private readonly IContentType _contentType = contentTypeRegistry.GetContentType(CSharpSemanticSearchContentType.Name);
@@ -79,6 +83,9 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     // access interlocked:
     private volatile CancellationTokenSource? _pendingExecutionCancellationSource;
 
+    // Create on UI thread only, access on any thread:
+    private AsyncBatchingWorkQueue<string>? _lazyLogQueue;
+
     // Access on UI thread only:
     private Button? _executeButton;
     private Button? _cancelButton;
@@ -86,6 +93,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
     private ITextBuffer? _textBuffer;
 
     private IRemoteUserControl? _lazyContent;
+    private IVsOutputWindowPane? _lazyLogOutputPane;
 
     public void Dispose()
     {
@@ -383,6 +391,22 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
         UpdateUIState();
 
+        _lazyLogQueue ??= new(
+            delay: TimeSpan.Zero,
+            async (messages, cancellationToken) =>
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+
+                var pane = GetOrCreateLogOutputPane();
+
+                foreach (var message in messages)
+                {
+                    pane.OutputStringThreadSafe(message + Environment.NewLine);
+                }
+            },
+            _asyncListener,
+            cancellationToken: CancellationToken.None);
+
         var (presenterContext, presenterCancellationToken) = resultsPresenter.StartSearch(ServicesVSResources.Semantic_search_results, StreamingFindUsagesPresenterOptions.Default);
         presenterCancellationToken.Register(() => cancellationSource?.Cancel());
 
@@ -398,7 +422,7 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
             try
             {
-                var executor = new SemanticSearchQueryExecutor(presenterContext, globalOptions);
+                var executor = new SemanticSearchQueryExecutor(presenterContext, message => _lazyLogQueue.AddWork(message), globalOptions);
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = await executor.ExecuteAsync(query: null, queryDocument, oldSolution, cancellationToken).ConfigureAwait(false);
 
@@ -478,6 +502,26 @@ internal sealed partial class SemanticSearchToolWindowImpl(
 
             return true;
         });
+
+    private IVsOutputWindowPane GetOrCreateLogOutputPane()
+    {
+        if (_lazyLogOutputPane != null)
+            return _lazyLogOutputPane;
+
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var outputWindow = ServiceProvider.GlobalProvider.GetServiceOnMainThread<SVsOutputWindow, IVsOutputWindow>();
+
+        // Try to get the pane, create if it doesn't exist
+        var guid = s_logOutputPainGuid;
+        if (outputWindow.GetPane(ref guid, out _lazyLogOutputPane) != VSConstants.S_OK || _lazyLogOutputPane == null)
+        {
+            outputWindow.CreatePane(ref guid, LogOutputPaneName, fInitVisible: 1, fClearWithSolution: 1);
+            outputWindow.GetPane(ref guid, out _lazyLogOutputPane);
+        }
+
+        return _lazyLogOutputPane;
+    }
 
     private sealed class CommandFilter : IOleCommandTarget
     {

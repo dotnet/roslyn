@@ -22,6 +22,8 @@ internal interface ISemanticSearchResultsObserver
     /// Invoked on each updated document (at most once).
     /// </summary>
     ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+
+    ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken);
 }
 
 [DataContract]

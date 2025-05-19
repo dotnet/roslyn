@@ -27,6 +27,7 @@ internal interface IRemoteSemanticSearchService
         ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
         ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int itemCount, CancellationToken cancellationToken);
         ValueTask OnDocumentUpdatedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+        ValueTask OnLogMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
     }
 
     ValueTask<CompileQueryResult> CompileQueryAsync(string query, string language, string referenceAssembliesDir, CancellationToken cancellationToken);
@@ -58,6 +59,9 @@ internal static class RemoteSemanticSearchServiceProxy
 
         public ValueTask OnDocumentUpdatedAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
             => ((ServerCallback)GetCallback(callbackId)).OnDocumentUpdatedAsync(documentId, changes, cancellationToken);
+
+        public ValueTask OnLogMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
+            => ((ServerCallback)GetCallback(callbackId)).OnLogMessageAsync(message, cancellationToken);
     }
 
     internal sealed class ServerCallback(Solution solution, ISemanticSearchResultsObserver observer, OptionsProvider<ClassificationOptions> classificationOptions)
@@ -127,6 +131,17 @@ internal static class RemoteSemanticSearchServiceProxy
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ClassificationOptions.Default;
+            }
+        }
+
+        public async ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await observer.OnLogMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
             }
         }
     }

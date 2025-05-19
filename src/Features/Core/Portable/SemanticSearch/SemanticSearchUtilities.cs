@@ -19,13 +19,15 @@ internal static class SemanticSearchUtilities
     public const string ReferenceAssemblyDirectoryName = "SemanticSearchRefs";
     public const string GlobalUsingsAndToolsDocumentName = "GlobalUsings";
     public const string ConfigDocumentName = ".editorconfig";
-    public const string ToolsTypeName = "Tools";
+    public const string ExtensionsTypeName = "SemanticSearchExtensions";
+    public const string ToolsTypeName = "SemanticSearchTools";
 
     // tools:
     public const string FindMethodName = "Find";
     public const string UpdateMethodName = "Update";
     public const string FindReferencingSyntaxNodesImplName = "s_referencingSyntaxNodes";
     public const string GetSemanticModelImplName = "s_getSemanticModelAsync";
+    public const string PrintImplName = "s_print";
 
     public static readonly string QueryProjectName = FeaturesResources.SemanticSearch;
     public static readonly string QueryDocumentName = FeaturesResources.Query;
