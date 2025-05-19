@@ -204,7 +204,7 @@ internal sealed class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoP
             }
 
             return null;
-        }).ToImmutableArray();
+        }).Where(c => c is not null).Cast<OnTheFlyDocsRelevantFileInfo>().ToImmutableArray();
 
         var additionalContext = OnTheFlyDocsUtilities.GetAdditionalOnTheFlyDocsContext(solution, symbol);
 
