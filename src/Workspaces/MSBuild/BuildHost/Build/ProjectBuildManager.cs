@@ -152,6 +152,7 @@ internal sealed class ProjectBuildManager
         {
             var projectCollection = new MSB.Evaluation.ProjectCollection(
                 AllGlobalProperties,
+                // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
                 loggers: [],
                 MSB.Evaluation.ToolsetDefinitionLocations.Default);
             try
@@ -179,6 +180,7 @@ internal sealed class ProjectBuildManager
             {
                 var projectCollection = new MSB.Evaluation.ProjectCollection(
                     AllGlobalProperties,
+                    // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
                     loggers: [],
                     MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
