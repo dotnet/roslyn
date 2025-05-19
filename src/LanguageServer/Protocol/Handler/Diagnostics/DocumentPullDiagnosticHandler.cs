@@ -15,11 +15,10 @@ internal partial class DocumentPullDiagnosticHandler
     : AbstractDocumentPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[], VSInternalDiagnosticReport[]>
 {
     public DocumentPullDiagnosticHandler(
-        IDiagnosticAnalyzerService analyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
-        : base(analyzerService, diagnosticRefresher, diagnosticSourceManager, globalOptions)
+        : base(diagnosticRefresher, diagnosticSourceManager, globalOptions)
     {
     }
 

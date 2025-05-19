@@ -37,10 +37,9 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
+        IGlobalOptionService globalOptions) : base(diagnosticRefresher, globalOptions)
     {
         DiagnosticSourceManager = diagnosticSourceManager;
         _workspaceManager = workspaceManager;

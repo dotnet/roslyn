@@ -17,10 +17,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
-    IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
-    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
+    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
 }
 
@@ -29,9 +28,8 @@ internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptWorkspacePullDiagnosticHandler(
     LspWorkspaceRegistrationService registrationService,
-    IDiagnosticAnalyzerService analyzerService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
-    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
+    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
 }

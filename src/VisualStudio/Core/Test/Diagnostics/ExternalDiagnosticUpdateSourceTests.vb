@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim service = workspace.GetService(Of IDiagnosticAnalyzerService)()
+                Dim service = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)
                 Dim testServiceBroker = workspace.ExportProvider.GetExportedValue(Of TestServiceBroker)
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
