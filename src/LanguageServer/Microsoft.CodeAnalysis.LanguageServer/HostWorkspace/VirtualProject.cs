@@ -2,21 +2,61 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Composition;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-/// <summary>
-/// This will be replaced invoke dotnet run-api command implemented in https://github.com/dotnet/sdk/pull/48749
-/// </summary>
-internal static class VirtualCSharpFileBasedProgramProject
+[Export(typeof(VirtualCSharpFileBasedProgramProject)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VirtualCSharpFileBasedProgramProject(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory)
 {
+    private readonly ILogger<VirtualCSharpFileBasedProgramProject> _logger = loggerFactory.CreateLogger<VirtualCSharpFileBasedProgramProject>();
+
+    internal async Task<(string virtualProjectXml, bool isFileBasedProgram)?> MakeVirtualProjectContentNewAsync(string documentFilePath, SourceText text, CancellationToken cancellationToken)
+    {
+        var workingDirectory = Path.GetDirectoryName(documentFilePath);
+        var process = dotnetCliHelper.Run(["run-api", documentFilePath], workingDirectory, shouldLocalizeOutput: true);
+
+        // TODO: new resource string
+        var stageName = string.Format(LanguageServerResources.Restoring_0, Path.GetFileName(documentFilePath));
+
+        cancellationToken.Register(() =>
+        {
+            process?.Kill();
+        });
+
+        // TODO: replicate input/output model types from SDK.
+        await process.StandardInput.WriteAsync("{}");
+
+        process.ErrorDataReceived += (sender, args) => _logger.LogDebug($"('{documentFilePath}'): {args.Data}");
+        process.BeginErrorReadLine();
+
+        var response = await process.StandardOutput.ReadLineAsync(cancellationToken);
+
+        // TODO: run-api will keep waiting for more requests (input lines).
+        // Once we get our response send a signal that it should shut down gracefully.
+        process.StandardInput.Close();
+        await process.WaitForExitAsync(cancellationToken);
+
+        if (process.ExitCode != 0)
+        {
+            return null;
+        }
+
+        // TODO: deserialize result value from run-api.
+        return null;
+    }
+
     /// <summary>
     /// Adjusts a path to a file-based program for use in passing the virtual project to msbuild.
     /// (msbuild needs the path to end in .csproj to recognize as a C# project and apply all the standard props/targets to it.)
