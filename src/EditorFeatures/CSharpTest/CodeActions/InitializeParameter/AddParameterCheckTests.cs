@@ -1977,7 +1977,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2015,7 +2015,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrWhiteSpace"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check"
         }.RunAsync();
     }
 
@@ -2046,7 +2046,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrWhiteSpace",
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check",
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
@@ -2086,9 +2086,9 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }
+    }   
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19173")]
     public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
@@ -2142,7 +2142,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty",
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check",
             Options =
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
@@ -2740,7 +2740,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2782,7 +2782,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2826,7 +2826,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2867,7 +2867,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2908,7 +2908,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2952,7 +2952,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 

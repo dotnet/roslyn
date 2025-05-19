@@ -119,12 +119,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrEmpty"),
                     cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
-                    $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrEmpty"));
+                    "Add_string_IsNullOrEmpty_check"));
 
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrWhiteSpace"),
                     cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
-                    $"{nameof(FeaturesResources.Add_0_check)};string.IsNullOrWhiteSpace"));
+                    "Add_string_IsNullOrWhiteSpace_check"));
             }
 
             return result.ToImmutableAndClear();
@@ -136,7 +136,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             var action = CodeAction.Create(
                 string.Format(FeaturesResources.Add_0_check, "Enum.IsDefined"),
                 cancellationToken => AddEnumIsDefinedCheckStatementAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, cancellationToken),
-                $"{nameof(FeaturesResources.Add_0_check)};Enum.IsDefined");
+                "Add_Enum_IsDefined_check");
 
             return [action];
         }
