@@ -152,7 +152,7 @@ internal sealed class ProjectBuildManager
         {
             var projectCollection = new MSB.Evaluation.ProjectCollection(
                 AllGlobalProperties,
-                _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                loggers: [],
                 MSB.Evaluation.ToolsetDefinitionLocations.Default);
             try
             {
@@ -179,7 +179,7 @@ internal sealed class ProjectBuildManager
             {
                 var projectCollection = new MSB.Evaluation.ProjectCollection(
                     AllGlobalProperties,
-                    _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    loggers: [],
                     MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
