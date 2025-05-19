@@ -2088,7 +2088,7 @@ public sealed class AddParameterCheckTests
             CodeActionIndex = 1,
             CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
-    }   
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19173")]
     public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
