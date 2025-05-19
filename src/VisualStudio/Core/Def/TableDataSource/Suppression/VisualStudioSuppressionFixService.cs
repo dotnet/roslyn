@@ -18,12 +18,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -267,9 +265,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!documentDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                             documentDiagnosticsPerLanguage,
                             _workspace,
@@ -292,9 +290,9 @@ internal sealed class VisualStudioSuppressionFixService(
                 if (!projectDiagnosticsPerLanguage.IsEmpty)
                 {
                     var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
+                    var suppressionFixAllProvider = suppressionFixer?.GetFixAllProvider();
+                    if (suppressionFixer != null && suppressionFixAllProvider != null)
                     {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
                         newSolution = await _fixMultipleOccurencesService.GetFixAsync(
                              projectDiagnosticsPerLanguage,
                              _workspace,
@@ -486,8 +484,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDocumentDiagnosticsMap);
 
                 var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
-                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestProjectDiagnostics = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                 latestDocumentDiagnosticsMap.Clear();
@@ -576,8 +574,8 @@ internal sealed class VisualStudioSuppressionFixService(
                 RoslynDebug.AssertNotNull(latestDiagnosticsToFix);
 
                 var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
+                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false));
 
                 latestDiagnosticsToFix.Clear();

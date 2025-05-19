@@ -69,7 +69,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
     /// </summary>
-    /// <returns></returns>
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
@@ -83,9 +82,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
     protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
     protected abstract bool SupportsPropertyInitializer(Compilation compilation);
-    protected abstract bool SupportsFieldExpression(Compilation compilation);
-
-    protected abstract bool ContainsFieldExpression(TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken);
 
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
@@ -266,7 +262,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsFieldExpression(semanticModel.Compilation))
+        if (!this.SyntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options))
             return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
@@ -282,7 +278,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsFieldExpression(semanticModel.Compilation))
+        if (!this.SyntaxFacts.SupportsFieldExpression(semanticModel.SyntaxTree.Options))
             return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
@@ -382,8 +378,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             return;
 
         // If the property already contains a `field` expression, then we can't do anything more here.
-        if (SupportsFieldExpression(compilation) && ContainsFieldExpression(propertyDeclaration, cancellationToken))
+        if (this.SyntaxFacts.SupportsFieldExpression(propertyDeclaration.SyntaxTree.Options) &&
+            propertyDeclaration.DescendantNodes().Any(this.SyntaxFacts.IsFieldExpression))
+        {
             return;
+        }
 
         var getterFields = GetGetterFields(semanticModel, property.GetMethod, fieldNames, cancellationToken);
         getterFields = getterFields.Where(
@@ -551,7 +550,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
                 // All the usages were inside the property.  This is ok if we support the `field` keyword as those
                 // usages will be updated to that form.
-                if (!this.SupportsFieldExpression(context.Compilation))
+                if (!this.SyntaxFacts.SupportsFieldExpression(result.PropertyDeclaration.SyntaxTree.Options))
                     continue;
             }
 

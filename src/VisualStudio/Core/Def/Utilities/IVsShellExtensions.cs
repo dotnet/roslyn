@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -19,30 +15,21 @@ internal static class IVsShellExtensions
     /// <summary>
     /// Returns true if devenv is invoked in command line mode for build, e.g. devenv /rebuild MySolution.sln
     /// </summary>
-    public static bool IsInCommandLineMode(JoinableTaskFactory joinableTaskFactory)
+    public static bool IsInCommandLineMode(this IVsShell shell)
     {
-        var result = s_isInCommandLineMode;
-        if (result == 0)
+        if (s_isInCommandLineMode == 0)
         {
-            s_isInCommandLineMode = result = joinableTaskFactory.Run(async () =>
-            {
-                await joinableTaskFactory.SwitchToMainThreadAsync();
-
-                var shell = ServiceProvider.GlobalProvider.GetService<SVsShell, IVsShell>(joinableTaskFactory);
-                return
-                    (shell != null) &&
-                    ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)) &&
-                    (bool)result ? 1 : -1;
-            });
+            s_isInCommandLineMode =
+                ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)) &&
+                (bool)result ? 1 : -1;
         }
 
-        return result == 1;
+        return s_isInCommandLineMode == 1;
     }
 
     public static bool TryGetPropertyValue(this IVsShell shell, __VSSPROPID id, out IntPtr value)
     {
-        var hresult = shell.GetProperty((int)id, out var objValue);
-        if (ErrorHandler.Succeeded(hresult) && objValue != null)
+        if (ErrorHandler.Succeeded(shell.GetProperty((int)id, out var objValue)) && objValue != null)
         {
             value = (IntPtr.Size == 4) ? (IntPtr)(int)objValue : (IntPtr)(long)objValue;
             return true;

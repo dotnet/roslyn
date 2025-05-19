@@ -51,6 +51,11 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         if (typeDeclaration is RecordDeclarationSyntax)
             return;
 
+        // Extensions use the .ParameterList to represent the parameters of the extension method.  But this is not a
+        // constructor, and we cannot offer to convert it to have a regular constructor.
+        if (typeDeclaration is ExtensionDeclarationSyntax)
+            return;
+
         var triggerSpan = TextSpan.FromBounds(typeDeclaration.SpanStart, typeDeclaration.ParameterList.FullSpan.End);
         if (!triggerSpan.Contains(span))
             return;

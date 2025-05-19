@@ -58,5 +58,8 @@
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Core\Def\CodeCleanup\AbstractCodeCleanUpFixer_Helper.cs" Link="Formatting\AbstractCodeCleanUpFixer_Helper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Diagnostics\NamingStyles\" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

@@ -15,6 +15,7 @@
           ItemsSource="{Binding SuggestedNames}"
           StaysOpenOnEdit="True"
           IsEditable="True"
+          IsTextSearchEnabled="False"
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}"
           GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           VirtualizingStackPanel.IsVirtualizing="True"

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Utilities;
 using Xunit;
@@ -94,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             Assert.False(fixActions.IsDefault);
 
             // Since the dialog option is always fed as the last CodeAction
-            var index = fixActions.Count() - 1;
+            var index = fixActions.Length - 1;
             var action = fixActions.ElementAt(index);
 
             Assert.Equal(action.Title, FeaturesResources.Generate_new_type);

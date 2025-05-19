@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     {
                         var recommender = Activator.CreateInstance(recommenderType);
                         var field = recommenderType.GetField(nameof(AbstractSyntacticSingleKeywordRecommender.KeywordKind), BindingFlags.Public | BindingFlags.Instance);
-                        var kind = (SyntaxKind)field.GetValue(recommender);
+                        var kind = (SyntaxKind)field!.GetValue(recommender)!;
 
-                        s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender);
+                        s_recommenderMap.Add(kind, (AbstractSyntacticSingleKeywordRecommender)recommender!);
                     }
                     catch
                     {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var kindName = name[..^"RecommenderTests".Length]; // e.g. ForEachKeywordRecommenderTests -> ForEachKeyword
 
             var field = typeof(SyntaxKind).GetField(kindName);
-            var kind = (SyntaxKind)field.GetValue(null);
+            var kind = (SyntaxKind)field!.GetValue(null)!;
             KeywordText = SyntaxFacts.GetText(kind);
 
             s_recommenderMap.TryGetValue(kind, out var recommender);

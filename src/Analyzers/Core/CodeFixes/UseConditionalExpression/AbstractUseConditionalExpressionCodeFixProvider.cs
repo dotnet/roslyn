@@ -96,7 +96,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         {
             return negate
                 ? (TExpressionSyntax)generator.Negate(generatorInternal, condition, semanticModel, cancellationToken).WithoutTrivia()
-                : (TExpressionSyntax)condition.WithoutTrivia();
+                : condition.WithoutTrivia();
         }
 
         var trueExpression = MakeRef(generatorInternal, isRef, CastValueIfNecessary(generator, trueStatement, trueValue));
@@ -104,13 +104,14 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         trueExpression = WrapReturnExpressionIfNecessary(trueExpression, trueStatement);
         falseExpression = WrapReturnExpressionIfNecessary(falseExpression, falseStatement);
 
-        var conditionalExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
+        var initialExpression = (TConditionalExpressionSyntax)generator.ConditionalExpression(
             condition.WithoutTrivia(),
             trueExpression,
             falseExpression);
+        var (conditionalExpression, makeMultiLine) = UpdateConditionalExpression(ifOperation, initialExpression);
 
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
-        var makeMultiLine = await MakeMultiLineAsync(
+        makeMultiLine = makeMultiLine || await MakeMultiLineAsync(
             document, condition,
             trueValue.Syntax, falseValue.Syntax, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (makeMultiLine)
@@ -122,8 +123,14 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         return MakeRef(generatorInternal, isRef, conditionalExpression);
     }
 
-    protected virtual SyntaxNode WrapIfStatementIfNecessary(IConditionalOperation operation)
-        => operation.Condition.Syntax;
+    protected virtual (TConditionalExpressionSyntax conditional, bool makeMultiLine) UpdateConditionalExpression(
+        IConditionalOperation originalIfStatement, TConditionalExpressionSyntax conditionalExpression)
+    {
+        return (conditionalExpression, makeMultiLine: false);
+    }
+
+    protected virtual TExpressionSyntax WrapIfStatementIfNecessary(IConditionalOperation operation)
+        => (TExpressionSyntax)operation.Condition.Syntax;
 
     protected virtual TExpressionSyntax WrapReturnExpressionIfNecessary(TExpressionSyntax returnExpression, IOperation returnOperation)
         => returnExpression;

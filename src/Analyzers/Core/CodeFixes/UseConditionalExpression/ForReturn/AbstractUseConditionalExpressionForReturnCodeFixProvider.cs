@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -45,8 +43,11 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
     }
 
     protected override async Task FixOneAsync(
-        Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+        Document document,
+        Diagnostic diagnostic,
+        SyntaxEditor editor,
+        SyntaxFormattingOptions formattingOptions,
+        CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -56,7 +57,7 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
         var containingSymbol = semanticModel.GetRequiredEnclosingSymbol(ifStatement.SpanStart, cancellationToken);
 
         if (!UseConditionalExpressionForReturnHelpers.TryMatchPattern(
-                syntaxFacts, ifOperation, containingSymbol, out var isRef,
+                syntaxFacts, ifOperation, containingSymbol, cancellationToken, out var isRef,
                 out var trueStatement, out var falseStatement,
                 out var trueReturn, out var falseReturn))
         {

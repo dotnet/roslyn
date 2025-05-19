@@ -215,7 +215,7 @@ End Class
         End Function
 
         <Fact>
-        Public Function VisualBasicAddAccessibilityModifiers() As Task
+        Public Function VisualBasicAddOrRemoveAccessibilityModifiers() As Task
             Dim code As String = "Class Program
     Public Shared Sub Method()
         Console.WriteLine(""Hello"")

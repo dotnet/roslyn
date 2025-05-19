@@ -1001,6 +1001,24 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "public static implicit operator global::System.Decimal(global::System.Byte value)\r\n{\r\n}");
         }
 
+        [Fact, WorkItem(77101, "https://github.com/dotnet/roslyn/issues/77101")]
+        public void TestExplicitCheckedOperatorFromSymbol()
+        {
+            var compilation = CSharpCompilation.Create("Test", [SyntaxFactory.ParseSyntaxTree("""
+                public class C
+                {
+                    public static explicit operator checked int(C c) => 0;
+                }
+                """)]);
+
+            var c = compilation.GetTypeByMetadataName("C");
+            var op = c.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion).Single();
+
+            VerifySyntax<ConversionOperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(op),
+                "public static explicit operator checked global::System.Int32(global::C c)\r\n{\r\n}");
+        }
+
         [Fact]
         public void TestConstructorDeclaration()
         {
@@ -1966,7 +1984,7 @@ public interface IFace
         private void CheckAddRemoveAttribute(SyntaxNode declaration)
         {
             var initialAttributes = Generator.GetAttributes(declaration);
-            Assert.Equal(0, initialAttributes.Count);
+            Assert.Empty(initialAttributes);
 
             var withAttribute = Generator.AddAttributes(declaration, Generator.Attribute("a"));
             var attrsAdded = Generator.GetAttributes(withAttribute);
@@ -1974,7 +1992,7 @@ public interface IFace
 
             var withoutAttribute = Generator.RemoveNode(withAttribute, attrsAdded[0]);
             var attrsRemoved = Generator.GetAttributes(withoutAttribute);
-            Assert.Equal(0, attrsRemoved.Count);
+            Assert.Empty(attrsRemoved);
         }
 
         [Fact]
@@ -3662,7 +3680,7 @@ public class C
 
             var baseListN = Generator.GetBaseAndInterfaceTypes(classN);
             Assert.NotNull(baseListN);
-            Assert.Equal(0, baseListN.Count);
+            Assert.Empty(baseListN);
         }
 
         [Fact]

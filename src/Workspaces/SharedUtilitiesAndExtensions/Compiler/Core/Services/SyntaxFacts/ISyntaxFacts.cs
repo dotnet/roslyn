@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
@@ -91,18 +92,20 @@ internal interface ISyntaxFacts
 
     ISyntaxKinds SyntaxKinds { get; }
 
+    bool SupportsCollectionExpressionNaturalType(ParseOptions options);
+    bool SupportsConstantInterpolatedStrings(ParseOptions options);
+    bool SupportsFieldExpression(ParseOptions options);
+    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
     bool SupportsIndexingInitializer(ParseOptions options);
+    bool SupportsIsNotTypeExpression(ParseOptions options);
     bool SupportsLocalFunctionDeclaration(ParseOptions options);
     bool SupportsNotPattern(ParseOptions options);
+    bool SupportsNullConditionalAssignment(ParseOptions options);
     bool SupportsRecord(ParseOptions options);
     bool SupportsRecordStruct(ParseOptions options);
-    bool SupportsThrowExpression(ParseOptions options);
     bool SupportsTargetTypedConditionalExpression(ParseOptions options);
-    bool SupportsIsNotTypeExpression(ParseOptions options);
-    bool SupportsConstantInterpolatedStrings(ParseOptions options);
+    bool SupportsThrowExpression(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
-    bool SupportsCollectionExpressionNaturalType(ParseOptions options);
-    bool SupportsImplicitImplementationOfNonPublicInterfaceMembers(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -409,13 +412,14 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
+    void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
     // Violation.  This is a feature level API.
-    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
+    void AddTopLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
+    // Violation.  This is a feature level API.
+    void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> result);
+
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
-    // Violation.  This is a feature level API.
-    bool ContainsInMemberBody([NotNullWhen(true)] SyntaxNode? node, TextSpan span);
     // Violation.  This is a feature level API.
     TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 

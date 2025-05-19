@@ -25,10 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             private static void AppendName(StringBuilder builder, NameSyntax name)
             {
-                if (name.Kind() == SyntaxKind.QualifiedName)
-                {
-                    AppendName(builder, ((QualifiedNameSyntax)name).Left);
-                }
+                if (name is QualifiedNameSyntax qualifiedName)
+                    AppendName(builder, qualifiedName.Left);
 
                 switch (name.Kind())
                 {

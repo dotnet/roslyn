@@ -15,7 +15,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
     private async Task<ITelemetryReporter> CreateReporterAsync()
     {
         var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
-            TestOutputLogger.Factory,
+            LoggerFactory,
             includeDevKitComponents: true,
             MefCacheDirectory.Path,
             [],

@@ -69,15 +69,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     // used by tests to validate correct handlign of unexpected exceptions
-    private readonly Action<SyntaxNode>? _testFaultInjector;
-
-    protected AbstractEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector)
-    {
-        _testFaultInjector = testFaultInjector;
-    }
-
-    private static TraceLog Log
-        => EditAndContinueService.AnalysisLog;
+    private Action<SyntaxNode>? _testFaultInjector;
 
     internal abstract bool ExperimentalFeaturesEnabled(SyntaxTree tree);
 
@@ -516,6 +508,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         Document newDocument,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
+        TraceLog log,
         CancellationToken cancellationToken)
     {
         var filePath = newDocument.FilePath;
@@ -573,7 +566,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             {
                 // Bail, since we can't do syntax diffing on broken trees (it would not produce useful results anyways).
                 // If we needed to do so for some reason, we'd need to harden the syntax tree comparers.
-                Log.Write("Syntax errors found in '{0}'", filePath);
+                log.Write($"Syntax errors found in '{filePath}'");
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [], syntaxError, analysisStopwatch.Elapsed, hasChanges);
             }
 
@@ -584,7 +577,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 // a) comparing texts is cheaper than diffing trees
                 // b) we need to ignore errors in unchanged documents
 
-                Log.Write("Document unchanged: '{0}'", filePath);
+                log.Write($"Document unchanged: '{filePath}'");
                 return DocumentAnalysisResults.Unchanged(newDocument.Id, filePath, analysisStopwatch.Elapsed);
             }
 
@@ -592,8 +585,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             // These features may not be handled well by the analysis below.
             if (ExperimentalFeaturesEnabled(newTree))
             {
-                Log.Write("Experimental features enabled in '{0}'", filePath);
-
+                log.Write($"Experimental features enabled in '{filePath}'");
                 return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [new RudeEditDiagnostic(RudeEditKind.ExperimentalFeaturesEnabled, default)], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
             }
 
@@ -667,7 +659,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
+            AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, log, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
             if (!diagnostics.IsEmpty)
@@ -676,7 +668,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             }
             else
             {
-                Log.Write("Capabilities required by '{0}': {1}", filePath, capabilities.GrantedCapabilities);
+                log.Write($"Capabilities required by '{filePath}': {capabilities.GrantedCapabilities}");
             }
 
             var hasBlockingRudeEdits = diagnostics.HasBlockingRudeEdits();
@@ -710,7 +702,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             return DocumentAnalysisResults.SyntaxErrors(newDocument.Id, filePath, [diagnostic], syntaxError: null, analysisStopwatch.Elapsed, hasChanges);
         }
 
-        static void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
+        void LogRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SourceText text, string filePath)
         {
             foreach (var diagnostic in diagnostics)
             {
@@ -728,7 +720,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     lineText = null;
                 }
 
-                Log.Write("Rude edit {0}:{1} '{2}' line {3}: '{4}'", diagnostic.Kind, diagnostic.SyntaxKind, filePath, lineNumber, lineText);
+                log.Write($"Rude edit {diagnostic.Kind}:{diagnostic.SyntaxKind} '{filePath}' line {lineNumber}: '{lineText}'");
             }
         }
     }
@@ -786,6 +778,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         [In, Out] ImmutableArray<ActiveStatement>.Builder newActiveStatements,
         [In, Out] ImmutableArray<ImmutableArray<SourceFileSpan>>.Builder newExceptionRegions,
+        TraceLog log,
         CancellationToken cancellationToken)
     {
         Debug.Assert(!newActiveStatementSpans.IsDefault);
@@ -819,7 +812,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         // Guard against invalid active statement spans (in case PDB was somehow out of sync with the source).
                         if (oldBody == null || newBody == null)
                         {
-                            Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                            log.Write($"Invalid active statement span: {oldStatementSpan}", LogMessageSeverity.Warning);
                             continue;
                         }
 
@@ -872,7 +865,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 }
                 else
                 {
-                    Log.Write("Invalid active statement span: [{0}..{1})", oldStatementSpan.Start, oldStatementSpan.End);
+                    log.Write($"Invalid active statement span: {oldStatementSpan}", LogMessageSeverity.Warning);
                 }
 
                 // we were not able to determine the active statement location (PDB data might be invalid)
@@ -2728,8 +2721,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                 }
 
                                 // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
-                                // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol?.IsPartialDefinition() == true)
+                                // so must be the implementation (if it exists). An edit will be issued for the implementation change.
+                                if (oldSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
@@ -6779,19 +6772,23 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
+    internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer analyzer)
     {
-        private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
+        internal Action<SyntaxNode>? FaultInjector
+        {
+            get => analyzer._testFaultInjector;
+            set => analyzer._testFaultInjector = value;
+        }
 
         internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
-            => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+            => analyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
         internal DeclarationBodyMap IncludeLambdaBodyMaps(
             DeclarationBodyMap bodyMap,
             ArrayBuilder<ActiveNode> memberBodyActiveNodes,
             ref Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas)
         {
-            return _abstractEditAndContinueAnalyzer.IncludeLambdaBodyMaps(bodyMap, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
+            return analyzer.IncludeLambdaBodyMaps(bodyMap, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
         }
     }
 

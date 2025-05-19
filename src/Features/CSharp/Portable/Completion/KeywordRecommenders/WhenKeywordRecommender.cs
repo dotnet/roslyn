@@ -10,13 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class WhenKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class WhenKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.WhenKeyword, isValidInPreprocessorContext: true)
 {
-    public WhenKeywordRecommender()
-        : base(SyntaxKind.WhenKeyword, isValidInPreprocessorContext: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return context.IsCatchFilterContext ||

@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -69,11 +71,23 @@ internal static class ICompilationExtensions
         return builder.ToImmutableAndFree();
     }
 
+    public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+
+    public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
 
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+
+    public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+
+    public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
@@ -98,6 +112,9 @@ internal static class ICompilationExtensions
 
     public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+
+    public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
 
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);

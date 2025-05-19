@@ -95,7 +95,7 @@ public class CSharpWinForms : AbstractEditorTest
         Assert.Contains(@"this.SomeButton.Click += new System.EventHandler(this.ExecuteWhenButtonClicked);", designerActualText);
         await TestServices.SolutionExplorer.OpenFileAsync(project, "Form1.cs", HangMitigatingCancellationToken);
         var codeFileActualText = await TestServices.Editor.GetTextAsync(HangMitigatingCancellationToken);
-        Assert.Contains(@"    public partial class Form1: Form
+        Assert.Contains(@"    public partial class Form1 : Form
     {
         public Form1()
         {

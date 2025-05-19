@@ -32,10 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         {
             var firstPreferences = (NamingStylePreferences)first.First().Value;
             var secondPreferences = (NamingStylePreferences)second.First().Value;
-            return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, new NamingStylePreferences(
-                firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
-                firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
-                firstPreferences.NamingRules.AddRange(secondPreferences.NamingRules)) } };
+
+            var mergedPreferences = new NamingStylePreferences(
+                    firstPreferences.SymbolSpecifications.AddRange(secondPreferences.SymbolSpecifications),
+                    firstPreferences.NamingStyles.AddRange(secondPreferences.NamingStyles),
+                    firstPreferences.Rules.NamingRules.AddRange(secondPreferences.Rules.NamingRules));
+
+            return new OptionsCollection(_languageName) { { NamingStyleOptions.NamingPreferences, mergedPreferences } };
         }
 
         internal OptionsCollection ClassNamesArePascalCase

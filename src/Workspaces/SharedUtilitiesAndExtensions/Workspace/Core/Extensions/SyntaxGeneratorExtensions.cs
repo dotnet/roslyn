@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 #if CODE_STYLE
 using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
@@ -98,7 +97,6 @@ internal static partial class SyntaxGeneratorExtensions
     /// <summary>
     /// Generates a call to a method *through* an existing field or property symbol.
     /// </summary>
-    /// <returns></returns>
     public static SyntaxNode GenerateDelegateThroughMemberStatement(
         this SyntaxGenerator generator, IMethodSymbol method, ISymbol throughMember)
     {

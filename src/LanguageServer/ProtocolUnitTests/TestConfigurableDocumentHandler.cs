@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;

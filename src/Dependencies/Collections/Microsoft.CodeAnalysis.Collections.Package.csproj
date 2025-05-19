@@ -21,10 +21,6 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <!-- ⚠ Consuming projects outside dotnet/roslyn will be required to manually reproduce the APIs for any linked files added here -->
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" Link="NullableAttributes.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
   <ItemGroup>
@@ -46,11 +42,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <_File Remove="@(_File)"/>
+      <_File Remove="@(_File)" />
       <_File Include="$(MSBuildProjectDirectory)\**\*.resx" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="EmbeddedResource" />
       <_File Include="$(MSBuildProjectDirectory)\**\*.xlf" TargetDir="contentFiles/$(_LanguageDirName)/$(TargetFramework)" BuildAction="None" />
 
-      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)"/>
+      <TfmSpecificPackageFile Include="@(_File)" PackagePath="%(_File.TargetDir)/%(_File.RecursiveDir)%(_File.FileName)%(_File.Extension)" />
     </ItemGroup>
   </Target>
+
+  <Import Project="..\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

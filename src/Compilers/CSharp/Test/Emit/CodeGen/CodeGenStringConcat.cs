@@ -361,7 +361,7 @@ OAFABOFA");
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
+        [Fact]
         [WorkItem(37830, "https://github.com/dotnet/roslyn/issues/37830")]
         public void ConcatMerge_MarshalByRefObject()
         {
@@ -405,7 +405,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"test_field: 2");
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: ExecutionConditionUtil.IsWindowsDesktop ? @"test_field: 2" : null);
             comp.VerifyDiagnostics();
             // Note: we use ldfld on the field, but not ldflda, because the type is MarshalByRefObject
             comp.VerifyIL("Test.Main", @"
@@ -2103,6 +2103,99 @@ class Test
   IL_007f:  call       ""void System.Console.WriteLine(string)""
   IL_0084:  ret
 }");
+        }
+
+        [Fact]
+        public void ConcatNullConditionalAccesses()
+        {
+            var source = """
+                C c = null;
+
+                System.Console.WriteLine(string.Concat(c?.Prop, "a") + "b");
+                
+                class C
+                {
+                    public string Prop { get; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "ab");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  2
+                  IL_0000:  ldnull
+                  IL_0001:  dup
+                  IL_0002:  brtrue.s   IL_0008
+                  IL_0004:  pop
+                  IL_0005:  ldnull
+                  IL_0006:  br.s       IL_000d
+                  IL_0008:  call       "string C.Prop.get"
+                  IL_000d:  ldstr      "ab"
+                  IL_0012:  call       "string string.Concat(string, string)"
+                  IL_0017:  call       "void System.Console.WriteLine(string)"
+                  IL_001c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void CompoundAdditionDirectConcatOptimization()
+        {
+            var source = """
+                string s1 = "a";
+                string s2 = "b";
+                string s3 = "c";
+                string s4 = "d";
+
+                s1 += $"{s2}{s3}{s4}";
+
+                System.Console.WriteLine(s1);
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "abcd");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  .locals init (string V_0, //s2
+                                string V_1, //s3
+                                string V_2) //s4
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  ldstr      "b"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldstr      "c"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldstr      "d"
+                  IL_0016:  stloc.2
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.1
+                  IL_0019:  ldloc.2
+                  IL_001a:  call       "string string.Concat(string, string, string, string)"
+                  IL_001f:  call       "void System.Console.WriteLine(string)"
+                  IL_0024:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ConstantCharPlusNull()
+        {
+            var source = """
+                const char c = 'a';
+                System.Console.WriteLine(c + (string)null);
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "void System.Console.WriteLine(string)"
+                  IL_000a:  ret
+                }
+                """);
         }
     }
 }

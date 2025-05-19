@@ -17,7 +17,6 @@ internal static class ITextBufferEditExtensions
     /// Logs exceptions thrown during <see cref="ITextBufferEdit.Apply"/> as we look for issues.
     /// </summary>
     /// <param name="edit"></param>
-    /// <returns></returns>
     public static ITextSnapshot ApplyAndLogExceptions(this ITextBufferEdit edit)
     {
         try

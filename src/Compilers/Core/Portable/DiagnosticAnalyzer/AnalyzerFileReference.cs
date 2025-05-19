@@ -114,6 +114,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override int GetHashCode()
             => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
+        public override string ToString()
+            => $"{nameof(AnalyzerFileReference)}({nameof(FullPath)} = {FullPath})";
+
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
             // This API returns duplicates of analyzers that support multiple languages.

@@ -2,11 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.LanguageServer.Protocol
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
@@ -52,7 +50,6 @@ using System.Linq;|}", "...")>
                             </Document>
                         </Project>
                     </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
-
                 Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
                 Dim expectedRanges = annotatedLocations.SelectMany(Function(kvp) kvp.Value.Select(Function(location) CreateFoldingRange(kvp.Key, location.Range, collapsedText))).OrderByDescending(Function(range) range.StartLine).ToArray()
 

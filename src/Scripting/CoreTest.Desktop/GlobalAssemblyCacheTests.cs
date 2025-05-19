@@ -72,17 +72,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             names = gac.GetAssemblyIdentities("x\u0002").ToArray();
-            Assert.Equal(0, names.Length);
+            Assert.Empty(names);
 
             names = gac.GetAssemblyIdentities("\0").ToArray();
-            Assert.Equal(0, names.Length);
+            Assert.Empty(names);
 
             names = gac.GetAssemblyIdentities("xxxx\0xxxxx").ToArray();
-            Assert.Equal(0, names.Length);
+            Assert.Empty(names);
 
             // fusion API CreateAssemblyEnum returns S_FALSE for this name
             names = gac.GetAssemblyIdentities("nonexistingassemblyname" + Guid.NewGuid().ToString()).ToArray();
-            Assert.Equal(0, names.Length);
+            Assert.Empty(names);
         }
 
         [Fact]

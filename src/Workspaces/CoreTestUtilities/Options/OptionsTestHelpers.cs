@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -23,13 +22,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static readonly Option<bool> CustomPublicOption = new Option<bool>("My Feature", "My Option", defaultValue: true);
 
         // all public options and their non-default values:
-        public static readonly ImmutableArray<(IOption, object)> PublicCustomOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
-            (CustomPublicOption, false));
+        public static readonly ImmutableArray<(IOption, object)> PublicCustomOptionsWithNonDefaultValues = [(CustomPublicOption, false)];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicAutoFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
-            (FormattingOptions.SmartIndent, FormattingOptions.IndentStyle.Block));
+        public static readonly ImmutableArray<(IOption, object)> PublicAutoFormattingOptionsWithNonDefaultValues = [(FormattingOptions.SmartIndent, FormattingOptions.IndentStyle.Block)];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicFormattingOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
+        public static readonly ImmutableArray<(IOption, object)> PublicFormattingOptionsWithNonDefaultValues =
+        [
             (FormattingOptions.UseTabs, true),
             (FormattingOptions.TabSize, 5),
             (FormattingOptions.IndentationSize, 7),
@@ -80,15 +78,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             (CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true),
             (CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove),
             (CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false),
-            (CSharpFormattingOptions.WrappingPreserveSingleLine, false));
+            (CSharpFormattingOptions.WrappingPreserveSingleLine, false),
+        ];
 
-        public static readonly ImmutableArray<(IOption, object)> PublicCodeStyleOptionsWithNonDefaultValues = ImmutableArray.Create<(IOption, object)>(
+        public static readonly ImmutableArray<(IOption, object)> PublicCodeStyleOptionsWithNonDefaultValues =
+        [
             (CodeStyleOptions.QualifyFieldAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyPropertyAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyMethodAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.QualifyEventAccess, new CodeStyleOption<bool>(true, NotificationOption.Suggestion)),
             (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)),
-            (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)));
+            (CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, new CodeStyleOption<bool>(false, NotificationOption.Suggestion)),
+        ];
 
         public static readonly IEnumerable<(IOption, object)> AllPublicOptionsWithNonDefaultValues =
             PublicCustomOptionsWithNonDefaultValues

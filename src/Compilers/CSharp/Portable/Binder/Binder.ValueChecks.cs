@@ -591,6 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodGroup = (BoundMethodGroup)expr;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var resolution = this.ResolveMethodGroup(methodGroup, analyzedArguments: null, useSiteInfo: ref useSiteInfo, options: OverloadResolution.Options.None);
+                Debug.Assert(!resolution.IsNonMethodExtensionMember(out _));
                 diagnostics.Add(expr.Syntax, useSiteInfo);
                 Symbol otherSymbol = null;
                 bool resolvedToMethodGroup = resolution.MethodGroup != null;
@@ -2447,7 +2448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Returns the set of arguments to be considered for escape analysis of a method
-        /// invocation. Each argument is returned with the correponding parameter and
+        /// invocation. Each argument is returned with the corresponding parameter and
         /// whether analysis should consider value or ref escape. Not all method arguments
         /// are included, and some arguments may be included twice - once for value, once for ref.
         /// </summary>
@@ -4071,7 +4072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.MakeRefOperator:
                 case BoundKind.RefValueOperator:
                     // for compat reasons
-                    // NB: it also means can`t assign stackalloc spans to a __refvalue
+                    // NB: it also means can't assign stackalloc spans to a __refvalue
                     //     we are ok with that.
                     return SafeContext.CallingMethod;
 

@@ -11,12 +11,8 @@
     <Compile Include="..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
     <Compile Include="..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
@@ -31,6 +27,13 @@
       <Aliases>vbcscompiler</Aliases>
     </ProjectReference>
 
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+
     <PackageReference Include="Mono.Options" />
     <!-- <Metalama> upgraded to avoid package downgrade error -->
     <PackageReference Include="MSBuild.StructuredLogger" VersionOverride="2.2.169" />
@@ -40,4 +43,6 @@
     <PackageReference Include="Basic.CompilerLog.Util" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
+
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
 </Project>

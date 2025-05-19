@@ -28,7 +28,7 @@ internal abstract class AbstractReplaceMethodWithPropertyService<TMethodDeclarat
         return null;
     }
 
-    private static bool OverridesMetadataSymbol(IMethodSymbol method)
+    private static bool OverridesMetadataSymbol(IMethodSymbol? method)
     {
         for (var current = method; current != null; current = current.OverriddenMethod)
         {

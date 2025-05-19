@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
-using Roslyn.Utilities;
 
 namespace Roslyn.Test.EditorUtilities.NavigateTo
 {

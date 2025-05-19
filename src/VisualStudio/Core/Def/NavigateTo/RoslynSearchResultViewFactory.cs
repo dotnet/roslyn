@@ -48,7 +48,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
         }
 
         public Task<IReadOnlyList<SearchResultPreviewPanelBase>> GetPreviewPanelsAsync(SearchResult result, SearchResultViewBase searchResultView)
-            => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? Array.Empty<SearchResultPreviewPanelBase>());
+            => Task.FromResult(GetPreviewPanels(result, searchResultView) ?? []);
 
         private IReadOnlyList<SearchResultPreviewPanelBase>? GetPreviewPanels(SearchResult result, SearchResultViewBase searchResultView)
         {

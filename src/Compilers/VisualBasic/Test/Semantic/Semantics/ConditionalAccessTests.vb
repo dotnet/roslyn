@@ -4873,6 +4873,107 @@ S1.CallAsync
 Null
 ---
 ]]>)
+
+            verifier.VerifyIL("Module1.VB$StateMachine_1_Test.MoveNext",
+            <![CDATA[
+{
+  // Code size      219 (0xdb)
+  .maxstack  3
+  .locals init (Object V_0,
+                Integer V_1,
+                Object V_2,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_005c
+    IL_000a:  ldarg.0
+    IL_000b:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$Local_x As S1?"
+    IL_0010:  call       "Function S1?.get_HasValue() As Boolean"
+    IL_0015:  brfalse.s  IL_0095
+    IL_0017:  ldarg.0
+    IL_0018:  ldarg.0
+    IL_0019:  ldflda     "Module1.VB$StateMachine_1_Test.$VB$Local_x As S1?"
+    IL_001e:  call       "Function S1?.GetValueOrDefault() As S1"
+    IL_0023:  stfld      "Module1.VB$StateMachine_1_Test.$U1 As S1"
+    IL_0028:  call       "Function Module1.PassAsync() As System.Threading.Tasks.Task(Of Integer)"
+    IL_002d:  callvirt   "Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0032:  stloc.3
+    IL_0033:  ldloca.s   V_3
+    IL_0035:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean"
+    IL_003a:  brtrue.s   IL_0078
+    IL_003c:  ldarg.0
+    IL_003d:  ldc.i4.0
+    IL_003e:  dup
+    IL_003f:  stloc.1
+    IL_0040:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_0045:  ldarg.0
+    IL_0046:  ldloc.3
+    IL_0047:  stfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_004c:  ldarg.0
+    IL_004d:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)"
+    IL_0052:  ldloca.s   V_3
+    IL_0054:  ldarg.0
+    IL_0055:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Module1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Module1.VB$StateMachine_1_Test)"
+    IL_005a:  leave.s    IL_00da
+    IL_005c:  ldarg.0
+    IL_005d:  ldc.i4.m1
+    IL_005e:  dup
+    IL_005f:  stloc.1
+    IL_0060:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_0065:  ldarg.0
+    IL_0066:  ldfld      "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_006b:  stloc.3
+    IL_006c:  ldarg.0
+    IL_006d:  ldflda     "Module1.VB$StateMachine_1_Test.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0072:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_0078:  ldarg.0
+    IL_0079:  ldflda     "Module1.VB$StateMachine_1_Test.$U1 As S1"
+    IL_007e:  ldloca.s   V_3
+    IL_0080:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer"
+    IL_0085:  ldloca.s   V_3
+    IL_0087:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Integer)"
+    IL_008d:  call       "Function S1.CallAsync(Integer) As Object"
+    IL_0092:  stloc.2
+    IL_0093:  br.s       IL_0097
+    IL_0095:  ldnull
+    IL_0096:  stloc.2
+    IL_0097:  ldloc.2
+    IL_0098:  stloc.0
+    IL_0099:  leave.s    IL_00bf
+  }
+  catch System.Exception
+  {
+    IL_009b:  dup
+    IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00a1:  stloc.s    V_4
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -2
+    IL_00a6:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)"
+    IL_00b1:  ldloc.s    V_4
+    IL_00b3:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).SetException(System.Exception)"
+    IL_00b8:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_00bd:  leave.s    IL_00da
+  }
+  IL_00bf:  ldarg.0
+  IL_00c0:  ldc.i4.s   -2
+  IL_00c2:  dup
+  IL_00c3:  stloc.1
+  IL_00c4:  stfld      "Module1.VB$StateMachine_1_Test.$State As Integer"
+  IL_00c9:  ldarg.0
+  IL_00ca:  ldflda     "Module1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)"
+  IL_00cf:  ldloc.0
+  IL_00d0:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_00d5:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).SetResult(Object)"
+  IL_00da:  ret
+}
+]]>)
         End Sub
 
         <Fact()>

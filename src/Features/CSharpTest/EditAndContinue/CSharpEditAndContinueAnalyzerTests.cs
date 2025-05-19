@@ -122,10 +122,11 @@ public class CSharpEditAndContinueAnalyzerTests
         EditAndContinueCapabilities capabilities = EditAndContinueTestVerifier.Net5RuntimeCapabilities,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans = default)
     {
-        var analyzer = new CSharpEditAndContinueAnalyzer();
+        var analyzer = oldProject.Services.GetRequiredService<IEditAndContinueAnalyzer>();
         var baseActiveStatements = AsyncLazy.Create(activeStatementMap ?? ActiveStatementsMap.Empty);
         var lazyCapabilities = AsyncLazy.Create(capabilities);
-        return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, newActiveStatementSpans.NullToEmpty(), lazyCapabilities, CancellationToken.None);
+        var log = new TraceLog("Test");
+        return await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, newActiveStatementSpans.NullToEmpty(), lazyCapabilities, log, CancellationToken.None);
     }
 
     #endregion
@@ -749,15 +750,17 @@ class D
         var baseActiveStatements = AsyncLazy.Create(ActiveStatementsMap.Empty);
         var capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities);
 
-        var analyzer = new CSharpEditAndContinueAnalyzer(node =>
+        var analyzer = Assert.IsType<CSharpEditAndContinueAnalyzer>(oldProject.Services.GetRequiredService<IEditAndContinueAnalyzer>());
+        analyzer.GetTestAccessor().FaultInjector = node =>
         {
             if (node is CompilationUnitSyntax)
             {
                 throw outOfMemory ? new OutOfMemoryException() : new NullReferenceException("NullRef!");
             }
-        });
+        };
 
-        var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, [], capabilities, CancellationToken.None);
+        var log = new TraceLog("Test");
+        var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, [], capabilities, log, CancellationToken.None);
 
         var expectedDiagnostic = outOfMemory
             ? $"ENC0089: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_because_the_file_is_too_big, filePath)}"

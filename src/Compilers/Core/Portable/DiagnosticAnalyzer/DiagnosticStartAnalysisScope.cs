@@ -820,14 +820,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _codeBlockStartActions.OfType<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
-        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
+        internal readonly void AddSyntaxNodeActions<TLanguageKindEnum>(
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> builder) where TLanguageKindEnum : struct
         {
-            return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
+            foreach (var action in _syntaxNodeActions)
+            {
+                if (action is SyntaxNodeAnalyzerAction<TLanguageKindEnum> stronglyTypedAction)
+                    builder.Add(stronglyTypedAction);
+            }
         }
 
-        internal readonly ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>(DiagnosticAnalyzer analyzer) where TLanguageKindEnum : struct
+        internal readonly void AddSyntaxNodeActions<TLanguageKindEnum>(
+            DiagnosticAnalyzer analyzer,
+            ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> builder) where TLanguageKindEnum : struct
         {
-            var builder = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
             foreach (var action in _syntaxNodeActions)
             {
                 if (action.Analyzer == analyzer &&
@@ -836,8 +842,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     builder.Add(syntaxNodeAction);
                 }
             }
-
-            return builder.ToImmutableAndFree();
         }
 
         internal readonly ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions

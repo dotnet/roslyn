@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
                 => new CompileTimeSolutionProvider(workspaceServices.Workspace);
         }
 

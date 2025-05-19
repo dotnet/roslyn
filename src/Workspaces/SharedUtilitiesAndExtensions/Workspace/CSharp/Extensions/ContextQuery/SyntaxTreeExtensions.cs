@@ -761,8 +761,8 @@ internal static partial class SyntaxTreeExtensions
                 position,
                 context: null,
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken) ||
             syntaxTree.IsLocalFunctionDeclarationContext(position, cancellationToken);
     }
@@ -2985,6 +2985,19 @@ internal static partial class SyntaxTreeExtensions
         }
 
         return false;
+    }
+
+    public static bool IsBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+    {
+        // Options:
+        //  class E : |
+        //  class E : i|
+        //  class E : i, |
+        //  class E : i, j|
+
+        return
+            targetToken is (kind: SyntaxKind.ColonToken or SyntaxKind.CommaToken) &&
+            targetToken.Parent is BaseListSyntax { Parent: TypeDeclarationSyntax };
     }
 
     public static bool IsEnumBaseListContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)

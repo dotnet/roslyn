@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
         ' We want to skip script testing in all VB stuff for now.
 
-        Protected Overrides Function TestAsync(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False) As Threading.Tasks.Task
+        Protected Overrides Function TestAsync(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False) As Task
             If (sourceCodeKind.HasValue) Then
                 Return MyBase.TestAsync(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, sourceCodeKind, experimental)
             Else
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
             End If
         End Function
 
-        Protected Overrides Function VerifyCurrentParameterNameAsync(markupWithPosition As String, expectedParameterName As String, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing) As Threading.Tasks.Task
+        Protected Overrides Function VerifyCurrentParameterNameAsync(markupWithPosition As String, expectedParameterName As String, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing) As Task
             If (sourceCodeKind.HasValue) Then
                 Return MyBase.VerifyCurrentParameterNameAsync(markupWithPosition, expectedParameterName, sourceCodeKind)
             Else

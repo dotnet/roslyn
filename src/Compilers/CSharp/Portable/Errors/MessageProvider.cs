@@ -250,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_EncUpdateFailedMissingSymbol => (int)ErrorCode.ERR_EncUpdateFailedMissingSymbol;
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => (int)ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported;
+        public override int ERR_DataSectionStringLiteralHashCollision => (int)ErrorCode.ERR_DataSectionStringLiteralHashCollision;
 
         // Generators:
         public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;

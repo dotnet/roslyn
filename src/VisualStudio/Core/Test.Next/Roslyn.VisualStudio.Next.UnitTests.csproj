@@ -72,8 +72,4 @@
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\PackageRegistration.pkgdef" Link="csharpPackageRegistration.pkgdef" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(RepoRoot)\src\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
-  </ItemGroup>
 </Project>

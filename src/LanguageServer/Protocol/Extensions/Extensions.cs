@@ -308,14 +308,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static ContainerElement ToLSPElement(this QuickInfoContainerElement element)
             => new((ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
-        private static object? ToLSPElement(QuickInfoElement value)
+        private static object ToLSPElement(QuickInfoElement value)
         {
             return value switch
             {
                 QuickInfoGlyphElement element => element.ToLSPElement(),
                 QuickInfoContainerElement element => element.ToLSPElement(),
                 QuickInfoClassifiedTextElement element => element.ToLSPElement(),
-
                 _ => value
             };
         }
@@ -325,7 +324,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// in the Visual Studio client.
         /// </summary>
         /// <param name="glyph"></param>
-        /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
         public static (Guid guid, int id) GetVsImageData(this Glyph glyph)
         {

@@ -117,7 +117,6 @@ internal sealed class TextDocumentStates<TState>
     /// <summary>
     /// Get states ordered in compilation order.
     /// </summary>
-    /// <returns></returns>
     public ImmutableArray<TState> GetStatesInCompilationOrder()
     {
         if (_statesInCompilationOrder.IsDefault)

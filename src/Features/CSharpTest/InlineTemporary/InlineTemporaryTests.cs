@@ -5911,4 +5911,42 @@ System.Diagnostics.Debug.Assert(x == true); }
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73148")]
+    public async Task InlineCollectionIntoSpread()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+            class A
+            {
+                void M(string[] args)
+                {
+                    string[] [||]eStaticSymbols = [
+                        "System.Int32 E.StaticProperty { get; }",
+                        "event System.Action E.StaticEvent",
+                        .. args];
+
+                    string[] allStaticSymbols = [
+                        .. eStaticSymbols,
+                        "System.Int32 E2.StaticProperty { get; }"];
+                }
+            }
+            """,
+            """
+            using System;
+            class A
+            {
+                void M(string[] args)
+                {
+
+                    string[] allStaticSymbols = [
+                        "System.Int32 E.StaticProperty { get; }",
+                        "event System.Action E.StaticEvent",
+                        .. args,
+                        "System.Int32 E2.StaticProperty { get; }"];
+                }
+            }
+            """);
+    }
 }

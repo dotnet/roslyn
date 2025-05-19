@@ -15507,11 +15507,11 @@ class C {}
 ");
             var notAnalyzer = dir.CreateFile("random.txt");
 
-            // not suppresssed
+            // not suppressed
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
-            // supressed
+            // suppressed
             VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/nowarn:CS8034" }, expectedWarningCount: 0, includeCurrentAssemblyAsAnalyzerReference: false);
 
             // elevated
@@ -15531,11 +15531,11 @@ dotnet_diagnostic.CS8034.severity = none
 ");
             var notAnalyzer = dir.CreateFile("random.txt");
 
-            // not suppresssed
+            // not suppressed
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
             Assert.Contains("warning CS8034", output, StringComparison.Ordinal);
 
-            // suppresssed via global analyzer config
+            // suppressed via global analyzer config
             VerifyOutput(dir, src, additionalFlags: new[] { "/analyzer:" + notAnalyzer.Path, "/analyzerConfig:" + globalconfig.Path }, includeCurrentAssemblyAsAnalyzerReference: false);
         }
 

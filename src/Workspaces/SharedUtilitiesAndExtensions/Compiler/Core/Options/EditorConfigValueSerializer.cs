@@ -192,7 +192,7 @@ internal static class EditorConfigValueSerializer
             NamingStylePreferencesEditorConfigSerializer.WriteNamingStylePreferencesToEditorConfig(
                 preferences.SymbolSpecifications,
                 preferences.NamingStyles,
-                preferences.NamingRules,
+                preferences.Rules.NamingRules,
                 language,
                 entryWriter: (name, value) => builder[name] = value,
                 triviaWriter: null,

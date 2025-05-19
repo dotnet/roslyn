@@ -57,14 +57,22 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
     private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
     {
         var option = context.GetCSharpAnalyzerOptions().UsingDirectivePlacement;
-        if (option.Value != AddImportPlacement.OutsideNamespace
+        if (option.Value == AddImportPlacement.InsideNamespace
             || ShouldSkipAnalysis(context, option.Notification))
         {
             return;
         }
 
         var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)context.Node;
-        ReportDiagnostics(context, s_outsideDiagnosticDescriptor, namespaceDeclaration.Usings, option);
+        ReportDiagnostics(
+            context,
+            s_outsideDiagnosticDescriptor,
+            // Move all usings outside of the namespace.  Ignore using-aliases if the user has set the option saying
+            // that they're ok with them inside a namespace.
+            option.Value is AddImportPlacement.OutsideNamespaceIgnoringAliases
+                ? namespaceDeclaration.Usings.Where(u => u.Alias is null)
+                : namespaceDeclaration.Usings,
+            option);
     }
 
     private void AnalyzeCompilationUnitNode(SyntaxNodeAnalysisContext context)

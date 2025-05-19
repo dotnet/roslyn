@@ -286,7 +286,6 @@ internal struct StackFrameLexer
     /// Returns a number token with the <see cref="StackFrameKind.LineTrivia"/> and remaining <see cref="StackFrameKind.SkippedTextTrivia"/>
     /// attached to it. 
     /// </summary>
-    /// <returns></returns>
     public StackFrameToken? TryScanRequiredLineNumber()
     {
         var lineTrivia = TryScanLineTrivia();

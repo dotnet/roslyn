@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 
@@ -169,7 +168,8 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : Code
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         using var result = TemporaryArray<CodeAction>.Empty;
-        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(semanticModel, option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
             result.Add(CodeAction.Create(
@@ -178,7 +178,6 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : Code
                 title));
         }
 
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (UseExpressionBodyForLambdaHelpers.CanOfferUseBlockBody(semanticModel, option, lambdaNode, cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle.ToString();
@@ -196,9 +195,8 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : Code
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        // We're only replacing a single declaration in the refactoring.  So pass 'declaration'
-        // as both the 'original' and 'current' declaration.
-        var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(semanticModel, declaration, declaration, cancellationToken);
+        var updatedDeclaration = UseExpressionBodyForLambdaCodeActionHelpers.Update(
+            semanticModel, declaration, cancellationToken);
 
         var newRoot = root.ReplaceNode(declaration, updatedDeclaration);
         return document.WithSyntaxRoot(newRoot);

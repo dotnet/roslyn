@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis
         public abstract override string ToString();
         public abstract string ToString(int maxLength);
         public abstract int Length { get; }
+        public bool IsEmpty => Length == 0;
         protected abstract IEnumerable<char> GetChars();
         private Rope() { }
 

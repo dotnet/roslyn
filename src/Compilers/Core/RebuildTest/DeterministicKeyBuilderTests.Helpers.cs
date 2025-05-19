@@ -54,5 +54,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
         }
+
+        private sealed class Generator3 : IIncrementalGenerator
+        {
+            public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+        }
     }
 }

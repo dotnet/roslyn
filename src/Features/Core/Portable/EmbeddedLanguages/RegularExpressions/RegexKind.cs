@@ -19,7 +19,6 @@ internal enum RegexKind
     NegatedCharacterClass,
     CharacterClassRange,
     CharacterClassSubtraction,
-    PosixProperty,
 
     ZeroOrMoreQuantifier,
     OneOrMoreQuantifier,

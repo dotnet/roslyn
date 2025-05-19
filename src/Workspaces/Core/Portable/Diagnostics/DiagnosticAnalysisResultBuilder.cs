@@ -16,10 +16,9 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 /// We have this builder to avoid creating collections unnecessarily.
 /// Expectation is that, most of time, most of analyzers doesn't have any diagnostics. so no need to actually create any objects.
 /// </summary>
-internal struct DiagnosticAnalysisResultBuilder(Project project, VersionStamp version)
+internal struct DiagnosticAnalysisResultBuilder(Project project)
 {
     public readonly Project Project = project;
-    public readonly VersionStamp Version = version;
 
     private HashSet<DocumentId>? _lazyDocumentsWithDiagnostics = null;
 

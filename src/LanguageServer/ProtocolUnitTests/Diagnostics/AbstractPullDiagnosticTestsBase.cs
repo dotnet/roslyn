@@ -279,7 +279,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
                 if (useProgress)
                 {
                     Assert.Null(diagnostics);
-                    diagnostics = progress!.Value.GetValues().Single().First;
+                    AssertEx.NotNull(progress);
+                    diagnostics = progress.Value.GetValues()!.Single().First;
                 }
 
                 if (diagnostics == null)

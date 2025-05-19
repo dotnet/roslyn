@@ -53,7 +53,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         var textChangeOpt =
             TryGenerateInitialEmptyRawString(caret.Value, cancellationToken) ??
             TryGrowInitialEmptyRawString(caret.Value, cancellationToken) ??
-            TryGrowRawStringDelimeters(caret.Value, cancellationToken);
+            TryGrowRawStringDelimiters(caret.Value, cancellationToken);
 
         if (textChangeOpt is not TextChange textChange)
             return false;
@@ -115,8 +115,13 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (token.SpanStart != start)
             return null;
 
-        if (token.Kind() is not (SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedSingleLineRawStringStartToken))
+        if (token.Kind() is not (SyntaxKind.StringLiteralToken or
+                                 SyntaxKind.InterpolatedStringStartToken or
+                                 SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                                 SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+        {
             return null;
+        }
 
         return new TextChange(new TextSpan(position + 1, 0), "\"\"\"");
     }
@@ -124,8 +129,8 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
     /// <summary>
     /// When typing <c>"</c> given a raw string like <c>"""$$"""</c> (or a similar multiline form), then update the
     /// text to be: <c>""""$$""""</c>.  i.e. grow both the start and end delimiters to keep the string properly
-    /// balanced.  This differs from TryGrowRawStringDelimeters in that the language will consider that initial
-    /// <c>""""""</c> text to be a single delimeter, while we want to treat it as two.
+    /// balanced.  This differs from TryGrowRawStringDelimiters in that the language will consider that initial
+    /// <c>""""""</c> text to be a single delimiter, while we want to treat it as two.
     /// </summary>
     private static TextChange? TryGrowInitialEmptyRawString(
         SnapshotPoint caret,
@@ -183,7 +188,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
     /// update the text to be: <c>"""" goo bar """"</c>.  i.e. grow both the start and end delimiters to keep the
     /// string properly balanced.
     /// </summary>
-    private static TextChange? TryGrowRawStringDelimeters(
+    private static TextChange? TryGrowRawStringDelimiters(
         SnapshotPoint caret,
         CancellationToken cancellationToken)
     {
@@ -191,7 +196,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         var position = caret.Position;
 
         // if we have """$$"   then typing `"` here should not grow the start/end quotes.  we only want to grow them
-        // if the user is at the end of the start delimeter.
+        // if the user is at the end of the start delimiter.
         if (position < snapshot.Length && snapshot[position] == '"')
             return null;
 

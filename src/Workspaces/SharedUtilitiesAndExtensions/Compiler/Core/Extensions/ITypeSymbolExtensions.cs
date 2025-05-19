@@ -10,6 +10,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -797,20 +799,34 @@ internal static partial class ITypeSymbolExtensions
     {
         return type?.Accept(new UnnamedErrorTypeRemover(compilation));
     }
-    public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
-        this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
+
+    public static void AddReferencedMethodTypeParameters(
+        this ITypeSymbol? type, ArrayBuilder<ITypeParameterSymbol> result)
     {
-        result ??= [];
-        type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-        return result;
+        AddReferencedTypeParameters(type, result, onlyMethodTypeParameters: true);
     }
 
-    public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(
-        this ITypeSymbol? type, IList<ITypeParameterSymbol>? result = null)
+    public static void AddReferencedTypeParameters(
+        this ITypeSymbol? type, ArrayBuilder<ITypeParameterSymbol> result)
     {
-        result ??= [];
-        type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-        return result;
+        AddReferencedTypeParameters(type, result, onlyMethodTypeParameters: false);
+    }
+
+    private static void AddReferencedTypeParameters(
+        this ITypeSymbol? type, ArrayBuilder<ITypeParameterSymbol> result, bool onlyMethodTypeParameters)
+    {
+        if (type != null)
+        {
+            using var collector = new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters);
+            type.Accept(collector);
+        }
+    }
+
+    public static IList<ITypeParameterSymbol> GetReferencedTypeParameters(this ITypeSymbol? type)
+    {
+        using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var result);
+        AddReferencedTypeParameters(type, result);
+        return result.ToList();
     }
 
     [return: NotNullIfNotNull(parameterName: nameof(type))]

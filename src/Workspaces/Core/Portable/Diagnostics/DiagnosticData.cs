@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -180,7 +181,17 @@ internal sealed class DiagnosticData(
             }
             else
             {
-                originalLineInfo = location.GetLineSpan();
+                try
+                {
+                    originalLineInfo = location.GetLineSpan();
+                }
+                catch (Exception e) when (FatalError.ReportWithDumpAndCatch(e, ErrorSeverity.Critical))
+                {
+                    // Help track down https://github.com/dotnet/roslyn/issues/76225 which appears to be an
+                    // issue caused by https://github.com/dotnet/roslyn/pull/74728
+                    throw;
+                }
+
                 mappedLineInfo = location.GetMappedLineSpan();
             }
         }
@@ -248,7 +259,7 @@ internal sealed class DiagnosticData(
     private static ImmutableDictionary<string, string?>? GetAdditionalProperties(TextDocument document, Diagnostic diagnostic)
     {
         var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
-        return service?.GetAdditionalProperties(diagnostic);
+        return service?.GetAdditionalProperties(diagnostic)!;
     }
 
     private static ImmutableArray<DiagnosticDataLocation> GetAdditionalLocations(TextDocument document, Diagnostic diagnostic)

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         // <Metalama>
-        public Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, ImmutableArray<object> plugins, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
+        Func<Compilation, (Compilation, ImmutableArray<Diagnostic>)>? ICompilationFactoryService.GetRunTransformersDelegate(ImmutableArray<ISourceTransformer> transformers, AnalyzerConfigOptionsProvider analyzerConfigProvider, IAnalyzerAssemblyLoader assemblyLoader)
         {
             return null;
         }

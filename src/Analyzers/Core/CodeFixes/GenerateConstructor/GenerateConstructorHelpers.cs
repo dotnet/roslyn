@@ -315,12 +315,10 @@ internal static class GenerateConstructorHelpers
             return false;
         }
 
-        if (symbol.Kind == SymbolKind.Property)
+        if (symbol is IPropertySymbol property &&
+            !IsSymbolAccessible(property.SetMethod, document))
         {
-            if (!IsSymbolAccessible(((IPropertySymbol)symbol).SetMethod, document))
-            {
-                return false;
-            }
+            return false;
         }
 
         // Public and protected constructors are accessible.  Internal constructors are

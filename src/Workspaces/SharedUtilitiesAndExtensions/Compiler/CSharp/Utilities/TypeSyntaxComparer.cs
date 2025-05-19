@@ -7,16 +7,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 
-internal class TypeSyntaxComparer : IComparer<TypeSyntax?>
+internal sealed class TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer, IComparer<NameSyntax?> nameComparer)
+    : IComparer<TypeSyntax?>
 {
-    private readonly IComparer<SyntaxToken> _tokenComparer;
-    internal readonly IComparer<NameSyntax?> NameComparer;
-
-    internal TypeSyntaxComparer(IComparer<SyntaxToken> tokenComparer, IComparer<NameSyntax?> nameComparer)
-    {
-        _tokenComparer = tokenComparer;
-        NameComparer = nameComparer;
-    }
+    private readonly IComparer<SyntaxToken> _tokenComparer = tokenComparer;
+    internal readonly IComparer<NameSyntax?> NameComparer = nameComparer;
 
     public int Compare(TypeSyntax? x, TypeSyntax? y)
     {
@@ -33,9 +28,9 @@ internal class TypeSyntaxComparer : IComparer<TypeSyntax?>
         x = UnwrapType(x);
         y = UnwrapType(y);
 
-        if (x is NameSyntax && y is NameSyntax)
+        if (x is NameSyntax xName && y is NameSyntax yName)
         {
-            return NameComparer.Compare((NameSyntax)x, (NameSyntax)y);
+            return NameComparer.Compare(xName, yName);
         }
 
         // we have two predefined types, or a predefined type and a normal C# name.  We only need

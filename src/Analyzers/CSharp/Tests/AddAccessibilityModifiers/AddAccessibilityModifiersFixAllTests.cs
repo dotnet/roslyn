@@ -6,7 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,18 +14,18 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddOrRemoveAccessibilityModifiers;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-public class AddAccessibilityModifiersFixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddOrRemoveAccessibilityModifiers)]
+public class AddOrRemoveAccessibilityModifiersFixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    public AddAccessibilityModifiersFixAllTests(ITestOutputHelper logger)
+    public AddOrRemoveAccessibilityModifiersFixAllTests(ITestOutputHelper logger)
        : base(logger)
     {
     }
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-        => (new CSharpAddAccessibilityModifiersDiagnosticAnalyzer(), new CSharpAddAccessibilityModifiersCodeFixProvider());
+        => (new CSharpAddOrRemoveAccessibilityModifiersDiagnosticAnalyzer(), new CSharpAddOrRemoveAccessibilityModifiersCodeFixProvider());
 
     [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6611")]
     [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]

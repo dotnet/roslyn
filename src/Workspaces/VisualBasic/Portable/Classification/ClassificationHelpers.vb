@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <summary>
         ''' Determine if the kind represents a control keyword
         ''' </summary>
-        Private Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
+        Public Function IsControlKeywordKind(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.CaseKeyword,
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <summary>
         ''' Determine if the kind represents a control statement
         ''' </summary>
-        Private Function IsControlStatementKind(kind As SyntaxKind) As Boolean
+        Public Function IsControlStatementKind(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.CallStatement,

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
@@ -39,9 +37,10 @@ public class ActiveStatementTrackingServiceTests
 
         spanProvider.GetBaseActiveStatementSpansImpl = (_, documentIds) =>
         [
-            ImmutableArray.Create(
-                    new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
-                    new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame)),
+            [
+                new ActiveStatementSpan(new ActiveStatementId(0), span11, ActiveStatementFlags.NonLeafFrame),
+                new ActiveStatementSpan(new ActiveStatementId(1), span12, ActiveStatementFlags.LeafFrame),
+            ],
             [],
         ];
 

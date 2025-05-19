@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected virtual TestComposition GetComposition()
             => FeaturesTestCompositions.Features
-                .AddAssemblies(typeof(DiagnosticIncrementalAnalyzer).Assembly);
+                .AddAssemblies(typeof(DiagnosticAnalyzerService).Assembly);
 
         protected virtual void InitializeWorkspace(TestWorkspace workspace, TestParameters parameters)
         {
