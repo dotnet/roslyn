@@ -772,12 +772,9 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     {
         var fullName = type.FullName!;
         var typeSymbol = compilation.GetTypeByMetadataName(fullName);
-        if (typeSymbol == null)
-        {
-            return generator.ParseTypeName(fullName);
-        }
-
-        return generator.TypeExpression(typeSymbol);
+        return typeSymbol is null
+            ? generator.ParseTypeName(fullName)
+            : generator.TypeExpression(typeSymbol);
     }
 
     private static SyntaxNode CreateArgumentNullException(
