@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -153,7 +152,7 @@ internal sealed partial class SymbolEquivalenceComparer
         private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             return
-                x.Name == y.Name &&
+                x.MetadataName == y.MetadataName &&
                 AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
@@ -161,7 +160,7 @@ internal sealed partial class SymbolEquivalenceComparer
         private static bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
         {
             return
-                x.Name == y.Name &&
+                x.MetadataName == y.MetadataName &&
                 HaveSameLocation(x, y);
         }
 
@@ -206,9 +205,8 @@ internal sealed partial class SymbolEquivalenceComparer
                     IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
                     x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
-                    x.Arity != y.Arity ||
                     x.Parameters.Length != y.Parameters.Length ||
-                    x.Name != y.Name)
+                    x.MetadataName != y.MetadataName)
                 {
                     return false;
                 }
@@ -277,7 +275,7 @@ internal sealed partial class SymbolEquivalenceComparer
         }
 
         private bool ModulesAreEquivalent(IModuleSymbol x, IModuleSymbol y)
-            => AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.Name == y.Name;
+            => AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.MetadataName == y.MetadataName;
 
         private bool NamedTypesAreEquivalent(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
@@ -357,8 +355,7 @@ internal sealed partial class SymbolEquivalenceComparer
                 return true;
 
             if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
-                x.Arity != y.Arity ||
-                x.Name != y.Name ||
+                x.MetadataName != y.MetadataName ||
                 x.IsAnonymousType != y.IsAnonymousType ||
                 x.IsUnboundGenericType != y.IsUnboundGenericType ||
                 !NullableAnnotationsEquivalent(x, y))
@@ -375,12 +372,12 @@ internal sealed partial class SymbolEquivalenceComparer
                 // For error types, we just ensure that the containing namespaces are equivalent up to the root.
                 while (true)
                 {
-                    if (xNamespace.Name != yNamespace.Name)
+                    if (xNamespace.MetadataName != yNamespace.MetadataName)
                         return false;
 
                     // Error namespaces don't set the IsGlobalNamespace bit unfortunately.  So we just do the
                     // nominal check to see if we've actually hit the root.
-                    if (xNamespace.Name == "")
+                    if (xNamespace.MetadataName == "")
                         break;
 
                     xNamespace = xNamespace.ContainingNamespace;
@@ -398,7 +395,7 @@ internal sealed partial class SymbolEquivalenceComparer
                 if (equivalentTypesWithDifferingAssemblies != null &&
                     x.ContainingType == null &&
                     x.ContainingAssembly != null &&
-                    !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
+                    !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.MetadataName, y.ContainingAssembly.MetadataName) &&
                     !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
                 {
                     equivalentTypesWithDifferingAssemblies.Add(x, y);
@@ -434,7 +431,7 @@ internal sealed partial class SymbolEquivalenceComparer
                 {
                     var xElement = xElements[i];
                     var yElement = yElements[i];
-                    if (xElement.Name != yElement.Name)
+                    if (xElement.MetadataName != yElement.MetadataName)
                         return false;
                 }
             }
@@ -534,7 +531,7 @@ internal sealed partial class SymbolEquivalenceComparer
                     var p1 = xMembersEnumerator.Current;
                     var p2 = yMembersEnumerator.Current;
 
-                    if (p1.Name != p2.Name ||
+                    if (p1.MetadataName != p2.MetadataName ||
                         p1.IsReadOnly != p2.IsReadOnly ||
                         !AreEquivalent(p1.Type, p2.Type, equivalentTypesWithDifferingAssemblies))
                     {
@@ -549,7 +546,7 @@ internal sealed partial class SymbolEquivalenceComparer
         private bool NamespacesAreEquivalent(INamespaceSymbol x, INamespaceSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             if (x.IsGlobalNamespace != y.IsGlobalNamespace ||
-                x.Name != y.Name)
+                x.MetadataName != y.MetadataName)
             {
                 return false;
             }
@@ -567,7 +564,7 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 x.IsRefOrOut() == y.IsRefOrOut() &&
-                x.Name == y.Name &&
+                x.MetadataName == y.MetadataName &&
                 AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.Type, y.Type, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
@@ -610,7 +607,7 @@ internal sealed partial class SymbolEquivalenceComparer
         private bool EventsAreEquivalent(IEventSymbol x, IEventSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             return
-                x.Name == y.Name &&
+                x.MetadataName == y.MetadataName &&
                 IsPartialEventDefinitionPart(x) == IsPartialEventDefinitionPart(y) &&
                 IsPartialEventImplementationPart(x) == IsPartialEventImplementationPart(y) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
@@ -660,6 +657,6 @@ internal sealed partial class SymbolEquivalenceComparer
             => HaveSameLocation(x, y);
 
         private static bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
-            => x.Name == y.Name;
+            => x.MetadataName == y.MetadataName;
     }
 }
