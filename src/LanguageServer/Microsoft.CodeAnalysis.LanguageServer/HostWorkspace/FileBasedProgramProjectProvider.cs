@@ -15,17 +15,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(VirtualCSharpFileBasedProgramProject)), Shared]
+[Export(typeof(FileBasedProgramProjectProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VirtualCSharpFileBasedProgramProject(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory)
+internal class FileBasedProgramProjectProvider(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory)
 {
-    private readonly ILogger<VirtualCSharpFileBasedProgramProject> _logger = loggerFactory.CreateLogger<VirtualCSharpFileBasedProgramProject>();
+    private readonly ILogger<FileBasedProgramProjectProvider> _logger = loggerFactory.CreateLogger<FileBasedProgramProjectProvider>();
 
-    internal async Task<(string virtualProjectXml, bool isFileBasedProgram)?> MakeVirtualProjectContentNewAsync(string documentFilePath, SourceText text, CancellationToken cancellationToken)
+    internal async Task<(string virtualProjectXml, bool isFileBasedProgram)?> MakeVirtualProjectContentNewAsync(string documentFilePath, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
-        var process = dotnetCliHelper.Run(["run-api", documentFilePath], workingDirectory, shouldLocalizeOutput: true);
+        var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, redirectStandardInput: true);
 
         // TODO: new resource string
         var stageName = string.Format(LanguageServerResources.Restoring_0, Path.GetFileName(documentFilePath));
@@ -37,15 +37,12 @@ internal class VirtualCSharpFileBasedProgramProject(DotnetCliHelper dotnetCliHel
 
         // TODO: replicate input/output model types from SDK.
         await process.StandardInput.WriteAsync("{}");
+        process.StandardInput.Close();
 
         process.ErrorDataReceived += (sender, args) => _logger.LogDebug($"('{documentFilePath}'): {args.Data}");
         process.BeginErrorReadLine();
 
-        var response = await process.StandardOutput.ReadLineAsync(cancellationToken);
-
-        // TODO: run-api will keep waiting for more requests (input lines).
-        // Once we get our response send a signal that it should shut down gracefully.
-        process.StandardInput.Close();
+        var responseString = await process.StandardOutput.ReadLineAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
 
         if (process.ExitCode != 0)
