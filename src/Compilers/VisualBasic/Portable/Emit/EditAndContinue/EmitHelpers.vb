@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             compilation As VisualBasicCompilation,
             baseline As EmitBaseline,
             edits As IEnumerable(Of SemanticEdit),
+            resourceEdits As IEnumerable(Of ResourceEdit),
             isAddedSymbol As Func(Of ISymbol, Boolean),
             metadataStream As Stream,
             ilStream As Stream,
@@ -36,6 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim emitOpts = EmitOptions.Default.WithDebugInformationFormat(If(baseline.HasPortablePdb, DebugInformationFormat.PortablePdb, DebugInformationFormat.Pdb))
             Dim runtimeMDVersion = compilation.GetRuntimeMetadataVersion()
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
+
+            ' TODO
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
             Dim predefinedHotReloadExceptionConstructor As MethodSymbol = Nothing

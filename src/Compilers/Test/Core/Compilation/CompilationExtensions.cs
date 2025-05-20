@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -140,7 +141,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static CompilationDifference EmitDifference(
             this Compilation compilation,
             EmitBaseline baseline,
-            ImmutableArray<SemanticEdit> edits,
+            IEnumerable<SemanticEdit> edits,
+            IEnumerable<ResourceEdit> resourceEdits = null,
             IEnumerable<ISymbol> allAddedSymbols = null,
             EmitDifferenceOptions? options = null,
             CompilationTestData testData = null)
@@ -155,6 +157,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var result = compilation.EmitDifference(
                 baseline,
                 edits,
+                resourceEdits,
                 isAddedSymbol,
                 mdStream,
                 ilStream,
@@ -170,6 +173,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 testData,
                 result);
         }
+
+        internal static EmitDifferenceResult EmitDifference(
+            this Compilation compilation,
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
+            EmitDifferenceOptions options,
+            CompilationTestData testData,
+            CancellationToken cancellationToken)
+            => compilation.EmitDifference(baseline, edits, resourceEdits: null, isAddedSymbol, metadataStream, ilStream, pdbStream, options, testData, cancellationToken);
 
         internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)
         {
