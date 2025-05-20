@@ -72,6 +72,12 @@ public static class Resources
         public static string CSharp => GetText("SolutionFilters.CSharpSolutionFilter.slnf");
     }
 
+    public static class XmlSolutionFiles
+    {
+        public static string CSharp => GetText("XmlSolutionFiles.CSharpXmlSolution.slnx");
+        public static string Invalid => GetText("XmlSolutionFiles.InvalidXmlSolution.slnx");
+    }
+
     public static class SolutionFiles
     {
         public static string AnalyzerReference => GetText("SolutionFiles.AnalyzerReference.sln");

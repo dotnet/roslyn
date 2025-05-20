@@ -3280,7 +3280,7 @@ class C { }";
     public async Task TestValidXmlSolutionSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
-            .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutions.CSharp));
+            .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutionFiles.CSharp));
         var solutionFilePath = GetSolutionFileName(@"CSharpXmlSolution.slnx");
 
         using var workspace = CreateMSBuildWorkspace();
@@ -3294,7 +3294,7 @@ class C { }";
     public async Task TestInValidXmlSolutionSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
-            .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutions.Invalid));
+            .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutionFiles.Invalid));
         var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
 
         using var workspace = CreateMSBuildWorkspace();

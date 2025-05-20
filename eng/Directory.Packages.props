@@ -149,7 +149,7 @@
     <!--
       MSBuildWorkspace
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.28" />
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.52" />
 
     <!--
       Analyzers

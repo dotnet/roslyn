@@ -167,20 +167,8 @@ public partial class MSBuildProjectLoader
             throw new ArgumentNullException(nameof(solutionFilePath));
         }
 
-        if (!_pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
-        {
-            // TryGetAbsoluteSolutionPath should throw before we get here.
-            return null!;
-        }
-
-        var isSolutionFilter = SolutionFilterReader.IsSolutionFilterFilename(absoluteSolutionPath);
-        var projectFilter = ImmutableHashSet<string>.Empty;
-
-        if (isSolutionFilter &&
-            !SolutionFilterReader.TryRead(absoluteSolutionPath, _pathResolver, out absoluteSolutionPath, out projectFilter))
-        {
-            throw new InvalidOperationException(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
-        }
+        var (absoluteSolutionPath, projects) = SolutionFileReader.ReadSolutionFile(solutionFilePath, _pathResolver);
+        var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
@@ -188,12 +176,10 @@ public partial class MSBuildProjectLoader
         }
 
         var reportingMode = GetReportingModeForUnrecognizedProjects();
-        var reportingOptions = new DiagnosticReportingOptions(reportingMode, reportingMode);
 
-        if (!SolutionReader.TryRead(absoluteSolutionPath, _pathResolver, projectFilter, out var projectPaths))
-        {
-            throw new InvalidOperationException(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_0, absoluteSolutionPath));
-        }
+        var reportingOptions = new DiagnosticReportingOptions(
+            onPathFailure: reportingMode,
+            onLoaderFailure: reportingMode);
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
@@ -204,7 +190,7 @@ public partial class MSBuildProjectLoader
             _pathResolver,
             _projectFileExtensionRegistry,
             buildHostProcessManager,
-            projectPaths.ToImmutable(),
+            projectPaths,
             // TryGetAbsoluteSolutionPath should not return an invalid path
             baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
             Properties,
@@ -214,14 +200,14 @@ public partial class MSBuildProjectLoader
             discoveredProjectOptions: reportingOptions,
             preferMetadataForReferencesOfDiscoveredProjects: false);
 
-        var projects = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
+        var projectInfos = await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
 
         // construct workspace from loaded project infos
         return SolutionInfo.Create(
             SolutionId.CreateNewId(debugName: absoluteSolutionPath),
             version: default,
             absoluteSolutionPath,
-            projects);
+            projectInfos);
     }
 
     /// <summary>
