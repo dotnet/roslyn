@@ -160,6 +160,12 @@
     <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
     <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(DotNetBuildOrchestrator)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
+
+  <!-- SolutionPersistence -->
+  <PropertyGroup>
+    <MicrosoftVisualStudioSolutionPersistenceVersion>1.0.28</MicrosoftVisualStudioSolutionPersistenceVersion>
+  </PropertyGroup>
+
   <PropertyGroup>
     <!--
       Test SDK should match the version of TestPlatform packages required by this repo and defined

@@ -147,6 +147,11 @@
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftNETTestSdkVersion)" />
 
     <!--
+      MSBuildWorkspace
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.SolutionPersistence" Version="1.0.28" />
+
+    <!--
       Analyzers
     -->
 

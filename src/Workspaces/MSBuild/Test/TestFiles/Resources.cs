@@ -165,6 +165,11 @@ public static class Resources
             public static string WithoutPrefer32Bit => GetText("ProjectFiles.CSharp.WithoutPrefer32Bit.csproj");
             public static string VBNetCoreAppWithGlobalImportAndLibrary_Library => GetText("VBNetCoreAppWithGlobalImportAndLibrary.Library.csproj");
         }
+        public static class XmlSolutions
+        {
+            public static string CSharp => GetText("XmlSolutions.CSharpXmlSolution.slnx");
+            public static string Invalid => GetText("XmlSolutions.InvalidXmlSolution.slnx");
+        }
 
         public static class FSharp
         {

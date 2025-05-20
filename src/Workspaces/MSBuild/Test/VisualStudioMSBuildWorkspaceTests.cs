@@ -3150,7 +3150,7 @@ class C { }";
 
         var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
-        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack 
+        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
@@ -3269,6 +3269,33 @@ class C { }";
         CreateFiles(GetMultiProjectSolutionFiles()
             .WithFile(@"InvalidSolutionFilter.slnf", Resources.SolutionFilters.Invalid));
         var solutionFilePath = GetSolutionFileName(@"InvalidSolutionFilter.slnf");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+
+        Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestValidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutions.CSharp));
+        var solutionFilePath = GetSolutionFileName(@"CSharpXmlSolution.slnx");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+        var csharpProject = solution.Projects.Single();
+
+        Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestInValidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutions.Invalid));
+        var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
 
         using var workspace = CreateMSBuildWorkspace();
         var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
