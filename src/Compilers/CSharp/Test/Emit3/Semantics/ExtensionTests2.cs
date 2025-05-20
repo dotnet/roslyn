@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -715,92 +716,18 @@ public static class E
 }
 """;
         var comp = CreateCompilation([src, libSrc]);
-        var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)", symbolValidator: validate).VerifyDiagnostics();
 
         var libComp = CreateCompilation(libSrc);
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)").VerifyDiagnostics();
 
-        verifier.VerifyTypeIL("E", """
-.class public auto ansi abstract sealed beforefieldinit E
-    extends [netstandard]System.Object
-{
-    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-        01 00 00 00
-    )
-    // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
-        extends [netstandard]System.Object
-    {
-        // Methods
-        .method private hidebysig specialname static 
-            void '<Extension>$' (
-                object o
-            ) cil managed 
+        static void validate(ModuleSymbol m)
         {
-            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                01 00 00 00
-            )
-            // Method begins at RVA 0x21a6
-            // Code size 1 (0x1)
-            .maxstack 8
-            IL_0000: ret
-        } // end of method '<>E__0'::'<Extension>$'
-        .method public hidebysig 
-            instance void M (
-                class [netstandard]System.Collections.Generic.IEnumerable`1<int32> i
-            ) cil managed 
-        {
-            .param [1]
-                .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
-                    01 00 00 00
-                )
-            // Method begins at RVA 0x21a8
-            // Code size 2 (0x2)
-            .maxstack 8
-            IL_0000: ldnull
-            IL_0001: throw
-        } // end of method '<>E__0'::M
-    } // end of class <>E__0
-    // Methods
-    .method public hidebysig static 
-        void M (
-            object o,
-            class [netstandard]System.Collections.Generic.IEnumerable`1<int32> i
-        ) cil managed 
-    {
-        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
-            01 00 00 00
-        )
-        .param [2]
-            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
-                01 00 00 00
-            )
-        // Method begins at RVA 0x20c0
-        // Code size 32 (0x20)
-        .maxstack 4
-        .locals init (
-            [0] int32[]
-        )
-        IL_0000: ldarg.1
-        IL_0001: call !!0[] [netstandard]System.Linq.Enumerable::ToArray<int32>(class [netstandard]System.Collections.Generic.IEnumerable`1<!!0>)
-        IL_0006: stloc.0
-        IL_0007: ldloc.0
-        IL_0008: ldc.i4.0
-        IL_0009: ldelem.i4
-        IL_000a: ldloc.0
-        IL_000b: ldc.i4.1
-        IL_000c: ldelem.i4
-        IL_000d: ldloc.0
-        IL_000e: ldc.i4.2
-        IL_000f: ldelem.i4
-        IL_0010: newobj instance void valuetype [netstandard]System.ValueTuple`3<int32, int32, int32>::.ctor(!0, !1, !2)
-        IL_0015: box valuetype [netstandard]System.ValueTuple`3<int32, int32, int32>
-        IL_001a: call void [netstandard]System.Console::Write(object)
-        IL_001f: ret
-    } // end of method E::M
-} // end of class E
-""");
+            var module = (PEModuleSymbol)m;
+            var parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.M").Parameters[1];
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.ParamCollectionAttribute"], module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+        }
     }
 
     [Fact]
@@ -900,8 +827,20 @@ public static class E
         comp.VerifyEmitDiagnostics(expected);
 
         var libComp = CreateCompilation(libSrc);
+        CompileAndVerify(libComp, symbolValidator: validate);
+
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
         comp2.VerifyEmitDiagnostics(expected);
+
+        static void validate(ModuleSymbol m)
+        {
+            var module = (PEModuleSymbol)m;
+            var parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P").Parameters[0];
+            AssertEx.SetEqual(["System.Runtime.CompilerServices.IsReadOnlyAttribute"], module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+
+            parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P2").Parameters[0];
+            Assert.Empty(module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+        }
     }
 
     [Fact]
