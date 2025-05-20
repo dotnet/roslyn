@@ -124,7 +124,8 @@ public static class CommandLineProject
                 compilationOutputInfo: new CompilationOutputInfo(outputFilePath, commandLineArguments.GeneratedFilesOutputDirectory),
                 outputFilePath: outputFilePath,
                 outputRefFilePath: commandLineArguments.OutputRefFilePath,
-                checksumAlgorithm: commandLineArguments.ChecksumAlgorithm),
+                checksumAlgorithm: commandLineArguments.ChecksumAlgorithm,
+                manifestResources: commandLineArguments.ManifestResourceArguments.SelectAsArray(static r => new MetadataResourceInfo(r.ResourceName, r.FullPath, r.LinkedResourceFileName, r.IsPublic, contentVersion: 0))),
             compilationOptions: commandLineArguments.CompilationOptions
                 .WithXmlReferenceResolver(xmlFileResolver)
                 .WithAssemblyIdentityComparer(assemblyIdentityComparer)

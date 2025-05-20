@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -1160,6 +1162,7 @@ public sealed class SolutionTests : TestBase
         var analyzerReference = new TestAnalyzerReference();
         var generatedOutputDir = Path.Combine(TempRoot.Root, "obj");
         var assemblyPath = Path.Combine(TempRoot.Root, "bin", "assemblyName.dll");
+        var resource = new MetadataResourceInfo("resource", "path.resources", linkedResourceFileName: null, isPublic: true, contentVersion: 1);
 
         var newInfo = ProjectInfo.Create(
             projectId,
@@ -1201,7 +1204,8 @@ public sealed class SolutionTests : TestBase
                 newConfigDocumentInfo3,
                 // remove existing document (c2)
             ])
-            .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedOutputDir));
+            .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedOutputDir))
+            .WithManifestResources([resource]);
 
         var newSolution = solution.WithProjectInfo(newInfo);
         var newProject = newSolution.GetRequiredProject(projectId);
@@ -1218,6 +1222,7 @@ public sealed class SolutionTests : TestBase
         Assert.Equal(newInfo.CompilationOptions!.ModuleName, newProject.CompilationOptions!.ModuleName);
         Assert.Equal(newInfo.ParseOptions!.LanguageVersion, newProject.ParseOptions!.LanguageVersion);
         Assert.Equal(newInfo.OutputRefFilePath, newProject.OutputRefFilePath);
+        AssertEx.SequenceEqual(newInfo.ManifestResources, newProject.State.ManifestResources);
 
         AssertEx.AreEqual([projectReference], newProject.ProjectReferences);
         AssertEx.AreEqual([metadataReference], newProject.MetadataReferences);

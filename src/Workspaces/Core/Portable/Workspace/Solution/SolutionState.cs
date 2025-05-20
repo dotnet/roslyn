@@ -748,6 +748,24 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified manifest resources.
+    /// </summary>
+    internal StateChange WithManifestResources(ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        var oldProject = GetRequiredProjectState(projectId);
+        var newProject = oldProject.WithManifestResources(resources);
+
+        if (oldProject == newProject)
+        {
+            return new(this, oldProject, newProject);
+        }
+
+        // fork without any change on compilation.
+        return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
     /// Create a new solution instance with the project specified updated to include
     /// the specified project references.
     /// </summary>
