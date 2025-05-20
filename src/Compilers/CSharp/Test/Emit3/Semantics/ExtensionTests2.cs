@@ -715,11 +715,92 @@ public static class E
 }
 """;
         var comp = CreateCompilation([src, libSrc]);
-        CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)").VerifyDiagnostics();
 
         var libComp = CreateCompilation(libSrc);
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
         CompileAndVerify(comp, expectedOutput: "(1, 2, 3)(1, 2, 3)").VerifyDiagnostics();
+
+        verifier.VerifyTypeIL("E", """
+.class public auto ansi abstract sealed beforefieldinit E
+    extends [netstandard]System.Object
+{
+    .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+        01 00 00 00
+    )
+    // Nested Types
+    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+        extends [netstandard]System.Object
+    {
+        // Methods
+        .method private hidebysig specialname static 
+            void '<Extension>$' (
+                object o
+            ) cil managed 
+        {
+            .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                01 00 00 00
+            )
+            // Method begins at RVA 0x21a6
+            // Code size 1 (0x1)
+            .maxstack 8
+            IL_0000: ret
+        } // end of method '<>E__0'::'<Extension>$'
+        .method public hidebysig 
+            instance void M (
+                class [netstandard]System.Collections.Generic.IEnumerable`1<int32> i
+            ) cil managed 
+        {
+            .param [1]
+                .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                    01 00 00 00
+                )
+            // Method begins at RVA 0x21a8
+            // Code size 2 (0x2)
+            .maxstack 8
+            IL_0000: ldnull
+            IL_0001: throw
+        } // end of method '<>E__0'::M
+    } // end of class <>E__0
+    // Methods
+    .method public hidebysig static 
+        void M (
+            object o,
+            class [netstandard]System.Collections.Generic.IEnumerable`1<int32> i
+        ) cil managed 
+    {
+        .custom instance void [netstandard]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [2]
+            .custom instance void System.Runtime.CompilerServices.ParamCollectionAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x20c0
+        // Code size 32 (0x20)
+        .maxstack 4
+        .locals init (
+            [0] int32[]
+        )
+        IL_0000: ldarg.1
+        IL_0001: call !!0[] [netstandard]System.Linq.Enumerable::ToArray<int32>(class [netstandard]System.Collections.Generic.IEnumerable`1<!!0>)
+        IL_0006: stloc.0
+        IL_0007: ldloc.0
+        IL_0008: ldc.i4.0
+        IL_0009: ldelem.i4
+        IL_000a: ldloc.0
+        IL_000b: ldc.i4.1
+        IL_000c: ldelem.i4
+        IL_000d: ldloc.0
+        IL_000e: ldc.i4.2
+        IL_000f: ldelem.i4
+        IL_0010: newobj instance void valuetype [netstandard]System.ValueTuple`3<int32, int32, int32>::.ctor(!0, !1, !2)
+        IL_0015: box valuetype [netstandard]System.ValueTuple`3<int32, int32, int32>
+        IL_001a: call void [netstandard]System.Console::Write(object)
+        IL_001f: ret
+    } // end of method E::M
+} // end of class E
+""");
     }
 
     [Fact]
@@ -1495,6 +1576,8 @@ public static class E
     {
         [property: System.Diagnostics.CodeAnalysis.NotNull]
         public static object? P { get => throw null!; set => throw null!; }
+
+        public static object? P2 { get => throw null!; set => throw null!; }
     }
 }
 """;
@@ -1514,6 +1597,11 @@ public static class E
 
             Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").GetReturnTypeAttributes());
             Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").Parameters[0].GetAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P2").GetReturnTypeAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").GetReturnTypeAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").Parameters[0].GetAttributes());
         }
     }
 
@@ -1540,6 +1628,8 @@ public static class E
     {
         [property: System.Diagnostics.CodeAnalysis.MaybeNull]
         public static object P { get => throw null!; set => throw null!; }
+
+        public static object P2 { get => throw null!; set => throw null!; }
     }
 }
 """;
@@ -1564,6 +1654,23 @@ public static class E
         var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
         comp2.VerifyEmitDiagnostics(expected);
+
+
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.MaybeNullAttribute"],
+                m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P").GetReturnTypeAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").GetReturnTypeAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").Parameters[0].GetAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P2").GetReturnTypeAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").GetReturnTypeAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").Parameters[0].GetAttributes());
+        }
     }
 
     [Fact]
@@ -1586,6 +1693,8 @@ public static class E
     {
         [property: System.Diagnostics.CodeAnalysis.AllowNull]
         public static object P { get => throw null!; set => throw null!; }
+
+        public static object P2 { get => throw null!; set => throw null!; }
     }
 }
 """;
@@ -1602,6 +1711,11 @@ public static class E
         {
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.AllowNullAttribute"],
                 m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").Parameters[0].GetAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").GetReturnTypeAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").Parameters[0].GetAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").GetReturnTypeAttributes());
         }
     }
 
@@ -1627,6 +1741,8 @@ public static class E
     {
         [property: System.Diagnostics.CodeAnalysis.DisallowNull]
         public static object? P { get => throw null!; set => throw null!; }
+
+        public static object? P2 { get => throw null!; set => throw null!; }
     }
 }
 """;
@@ -1658,6 +1774,11 @@ public static class E
         {
             AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Diagnostics.CodeAnalysis.DisallowNullAttribute"],
                 m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").Parameters[0].GetAttributes().ToStrings());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P").GetReturnTypeAttributes());
+
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").Parameters[0].GetAttributes());
+            Assert.Empty(m.GlobalNamespace.GetMember<MethodSymbol>("E.set_P2").GetReturnTypeAttributes());
         }
     }
 
@@ -1922,6 +2043,74 @@ public static class E
         var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
         comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_NullableContext_01()
+    {
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension(object x)
+    {
+        public static void M1(object o) { }
+        public static void M2(object o) { }
+        public static void M3(object o) { }
+        public static void M4(object o) { }
+        public static void M5(object o) { }
+        public static void M6(object o) { }
+    }
+
+    public static void N1(object? o) { }
+    public static void N2(object? o) { }
+    public static void N3(object? o) { }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(1)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
+                m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
+        }
+    }
+
+    [Fact]
+    public void Nullability_NullableContext_02()
+    {
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension(object? x)
+    {
+        public static void M1(object? o) { }
+        public static void M2(object? o) { }
+        public static void M3(object? o) { }
+        public static void M4(object? o) { }
+        public static void M5(object? o) { }
+        public static void M6(object? o) { }
+    }
+
+    public static void N1(object o) { }
+    public static void N2(object o) { }
+    public static void N3(object o) { }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol m)
+        {
+            AssertEx.SetEqual(m is SourceModuleSymbol ? new string[] { } : ["System.Runtime.CompilerServices.NullableContextAttribute(2)", "System.Runtime.CompilerServices.NullableAttribute(0)"],
+                m.GlobalNamespace.GetTypeMember("E").GetAttributes().ToStrings());
+        }
     }
 
     [Fact]

@@ -7151,7 +7151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
                             {
-                                Debug.Assert(member is ErrorMethodSymbol);
+                                Debug.Assert(method is ErrorMethodSymbol);
                             }
                             continue;
                         }

@@ -86,17 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // Copy NotNull/MaybeNull attribute from the property onto the implementation getter
-            if (_originalMethod is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertyGet, AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+            if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
-                foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
-                {
-                    if (attr.IsTargetAttribute(AttributeDescription.NotNullAttribute)
-                        || attr.IsTargetAttribute(AttributeDescription.MaybeNullAttribute))
-                    {
-                        AddSynthesizedAttribute(ref attributes, attr);
-                    }
-                }
+                SourcePropertyAccessorSymbol.AddSynthesizedReturnTypeFlowAnalysisAttributes(_originalMethod, extensionProperty, ref attributes);
             }
 
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
@@ -209,18 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
-                // Copy AllowNull/DisallowNull from the property onto the implementation setter's `value` parameter
-                if (this._underlyingParameter is SynthesizedAccessorValueParameterSymbol
-                    && this._underlyingParameter.ContainingSymbol is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertySet, AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+                if (this is { _underlyingParameter: SynthesizedAccessorValueParameterSymbol { ContainingSymbol: SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty } } })
                 {
-                    foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
-                    {
-                        if (attr.IsTargetAttribute(AttributeDescription.AllowNullAttribute)
-                            || attr.IsTargetAttribute(AttributeDescription.DisallowNullAttribute))
-                        {
-                            AddSynthesizedAttribute(ref attributes, attr);
-                        }
-                    }
+                    SynthesizedAccessorValueParameterSymbol.AddSynthesizedFlowAnalysisAttributes(this, extensionProperty, ref attributes);
                 }
 
                 // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here

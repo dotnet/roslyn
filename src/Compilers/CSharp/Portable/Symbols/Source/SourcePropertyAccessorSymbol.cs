@@ -796,15 +796,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(this, _property, ref attributes);
+        }
 
-            var annotations = ReturnTypeFlowAnalysisAnnotations;
+        internal static void AddSynthesizedReturnTypeFlowAnalysisAttributes(MethodSymbol accessor, SourcePropertySymbolBase property, ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            var annotations = accessor.ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.MaybeNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.MaybeNullAttributeIfExists));
             }
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.NotNullAttributeIfExists));
             }
         }
 
