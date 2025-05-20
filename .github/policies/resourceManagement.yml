@@ -284,6 +284,9 @@ configuration:
       - not:
           hasLabel:
             label: untriaged
+      - and:
+          - isAction:
+              action: Opened
       then:
       - addLabel:
           label: untriaged
