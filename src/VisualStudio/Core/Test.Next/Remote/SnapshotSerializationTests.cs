@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.PlatformUI.Search;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -47,6 +48,7 @@ public sealed class SnapshotSerializationTests(AssemblyLoadTestFixture testFixtu
         {
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+            project1 = project1.WithAttributes(project1.State.Attributes.With(manifestResources: [new MetadataResourceInfo("resource", "file", linkedResourceFileName: null, isPublic: true, contentVersion: 0)]));
             var document1 = project1.AddDocument("Document1", SourceText.From(csCode));
 
             var vbCode = "Class B\r\nEnd Class";
