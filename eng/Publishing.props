@@ -8,9 +8,6 @@
        Depending on channel configuration, this means that these assets could be pushed to a different feed. -->
   <ItemGroup>
     <Artifact Update="@(Artifact->WithMetadataValue('Kind', 'Package'))" Category="ToolingPackage" />
-
-    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.pdb" />
-    <FilesToPublishToSymbolServer Include="$(ArtifactsBinDir)**/Microsoft.Build.Tasks.CodeAnalysis.Sdk.pdb" />
   </ItemGroup>
 
   <!--
