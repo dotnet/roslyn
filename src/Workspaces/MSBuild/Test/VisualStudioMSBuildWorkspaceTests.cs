@@ -3285,9 +3285,10 @@ class C { }";
 
         using var workspace = CreateMSBuildWorkspace();
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-        var csharpProject = solution.Projects.Single();
+        var csharpProject = Assert.Single(solution.Projects);
 
         Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+        Assert.Equal("CSharpProject.csproj", Path.GetFileName(csharpProject.FilePath));
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
