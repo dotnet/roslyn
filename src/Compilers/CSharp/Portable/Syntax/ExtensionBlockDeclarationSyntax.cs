@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
-    public partial class ExtensionDeclarationSyntax
+    public partial class ExtensionBlockDeclarationSyntax
     {
         public override SyntaxToken Identifier => default;
 

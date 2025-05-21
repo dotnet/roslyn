@@ -3573,5 +3573,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     internal override SyntaxNode ParseExpression(string stringToParse)
         => SyntaxFactory.ParseExpression(stringToParse);
 
+    internal override SyntaxNode ParseTypeName(string stringToParse)
+        => SyntaxFactory.ParseTypeName(stringToParse);
+
     #endregion
 }

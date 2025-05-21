@@ -617,6 +617,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
         End Function
+
+        Friend Overrides Function ParseTypeName(stringToParse As String) As SyntaxNode
+            Return SyntaxFactory.ParseTypeName(stringToParse)
+        End Function
 #End Region
 
 #Region "Declarations"

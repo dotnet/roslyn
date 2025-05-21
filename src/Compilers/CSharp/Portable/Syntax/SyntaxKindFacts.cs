@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
                 case SyntaxKind.RecordStructDeclaration:
-                case SyntaxKind.ExtensionDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     return true;
 
                 default:
