@@ -14,6 +14,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;

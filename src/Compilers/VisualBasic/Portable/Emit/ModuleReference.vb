@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 

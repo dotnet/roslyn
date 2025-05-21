@@ -547,7 +547,7 @@
     <value>Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'</value>
   </data>
   <data name="ERR_BadVisIndexerParam" xml:space="preserve">
-    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</value>
+    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</value>
   </data>
   <data name="ERR_BadVisOpReturn" xml:space="preserve">
     <value>Inconsistent accessibility: return type '{1}' is less accessible than operator '{0}'</value>

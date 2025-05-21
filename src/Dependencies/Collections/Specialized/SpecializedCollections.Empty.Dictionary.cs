@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal partial class SpecializedCollections
     {

@@ -527,6 +527,7 @@ class C
             expectedLocation).ConfigureAwait(false);
         Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
     }
+
     [Theory, CombinatorialData]
     public async Task TestGetHoverAsync_UsesNonBreakingSpaceForSupportedPlatforms(bool mutatingLspWorkspace)
     {
@@ -584,6 +585,47 @@ class C
 
         AssertEx.NotNull(result);
         Assert.Equal(expectedMarkdown, result.Contents.Fourth.Value);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
+    public async Task TestGetHoverAsync_EscapesAngleBracketsInGenerics(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Threading.Tasks;
+            class C
+            {
+                private async Task<IDictionary<string, ImmutableArray<int>>> GetData()
+                {
+                    {|caret:var|} d = await GetData();
+                    return null;
+                }
+            }
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+        };
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+        var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+        var expectedMarkdown = """
+            ```csharp
+            interface System.Collections.Generic.IDictionary<TKey, TValue>
+            ```
+              
+              
+            TKey&nbsp;is&nbsp;string  
+            TValue&nbsp;is&nbsp;ImmutableArray\<int\>  
+            
+            """;
+
+        var results = await RunGetHoverAsync(
+            testLspServer,
+            expectedLocation).ConfigureAwait(false);
+        Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(

@@ -16,7 +16,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 {
     public abstract class ManagedToolTask : ToolTask
     {
-        private static bool DefaultIsSdkFrameworkToCoreBridgeTask { get; } = CalculateIsSdkFrameworkToCoreBridgeTask();
+        /// <summary>
+        /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
+        /// that is loaded into .NET Framework MSBuild but launches the .NET Core compiler. This task necessarily
+        /// has different behaviors than the standard build task compiled for .NET Framework and loaded into the 
+        /// .NET Framework MSBuild.
+        /// </summary>
+        /// <remarks>
+        /// The reason this task is a different assembly is to allow both the MSBuild and .NET SDK copy to be loaded
+        /// into the same MSBuild process.
+        /// </remarks>
+        internal static bool IsSdkFrameworkToCoreBridgeTask { get; } =
+#if NETFRAMEWORK && SDK_TASK
+            true;
+#else
+            false;
+#endif
 
         /// <summary>
         /// Is the builtin tool being used here? When false the developer has specified a custom tool
@@ -32,20 +47,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected bool UsingBuiltinTool => string.IsNullOrEmpty(ToolPath) && ToolExe == ToolName;
 
         /// <summary>
-        /// A copy of this task, compiled for .NET Framework, is deployed into the .NET SDK. It is a bridge task
-        /// that is loaded into .NET Framework MSBuild but launches the .NET Core compiler. This task necessarily
-        /// has different behaviors than the standard build task compiled for .NET Framework and loaded into the 
-        /// .NET Framework MSBuild.
-        /// </summary>
-        /// <remarks>
-        /// This is mutable to facilitate testing
-        /// </remarks>
-        internal bool IsSdkFrameworkToCoreBridgeTask { get; init; } = DefaultIsSdkFrameworkToCoreBridgeTask;
-
-        /// <summary>
         /// Is the builtin tool executed by this task running on .NET Core?
         /// </summary>
-        internal bool IsBuiltinToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
+        internal static bool IsBuiltinToolRunningOnCoreClr => RuntimeHostInfo.IsCoreClrRuntime || IsSdkFrameworkToCoreBridgeTask;
 
         internal string PathToBuiltInTool => Path.Combine(GetToolDirectory(), ToolName);
 
@@ -176,7 +180,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return items;
         }
 
-        private string GetToolDirectory()
+        private static string GetToolDirectory()
         {
             var buildTask = typeof(ManagedToolTask).Assembly;
             var buildTaskDirectory = GetBuildTaskDirectory();
@@ -186,33 +190,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return IsSdkFrameworkToCoreBridgeTask
                 ? Path.Combine(buildTaskDirectory, "..", "bincore")
                 : buildTaskDirectory;
-#endif
-        }
-
-        /// <summary>
-        /// <see cref="IsSdkFrameworkToCoreBridgeTask"/>
-        /// </summary>
-        /// <remarks>
-        /// Using the file system as a way to differentiate between the two tasks is not ideal, but it is effective
-        /// and allows us to avoid significantly complicating the build process. The alternative is another parameter
-        /// to the Csc / Vbc / etc ... tasks that all invocations would need to pass along.
-        /// </remarks>
-        internal static bool CalculateIsSdkFrameworkToCoreBridgeTask()
-        {
-#if NET
-            return false;
-#else
-            // This logic needs to be updated when this issue is fixed. That moves csc.exe out to a subdirectory
-            // and hence the check below will need to change
-            //
-            // https://github.com/dotnet/roslyn/issues/78001
-
-            var buildTaskDirectory = GetBuildTaskDirectory();
-            var buildTaskDirectoryName = Path.GetFileName(buildTaskDirectory);
-            return
-                string.Equals(buildTaskDirectoryName, "binfx", StringComparison.OrdinalIgnoreCase) &&
-                !File.Exists(Path.Combine(buildTaskDirectory, "csc.exe")) &&
-                Directory.Exists(Path.Combine(buildTaskDirectory, "..", "bincore"));
 #endif
         }
 

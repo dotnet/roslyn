@@ -19,4 +19,9 @@ internal static class LanguageServerProjectSystemOptionsStorage
     /// Whether or not automatic nuget restore is enabled.
     /// </summary>
     public static readonly Option2<bool> EnableAutomaticRestore = new Option2<bool>("dotnet_enable_automatic_restore", defaultValue: true, s_optionGroup);
+
+    /// <summary>
+    /// Whether to use the new 'dotnet run app.cs' (file-based programs) experience.
+    /// </summary>
+    public static readonly Option2<bool> EnableFileBasedPrograms = new Option2<bool>("dotnet_enable_file_based_programs", defaultValue: true, s_optionGroup);
 }
