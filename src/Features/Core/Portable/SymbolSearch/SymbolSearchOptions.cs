@@ -67,19 +67,19 @@ internal static class SymbolSearchOptionsStorage
         group: s_optionGroup);
 
     public static PerLanguageOption2<bool> SearchReferencedProjectSymbols = new(
-        "dotnet_unsupported_search_referenced_project_systems",
+        "dotnet_unsupported_search_referenced_project_symbols",
         SymbolSearchOptions.Default.SearchReferencedProjectSymbols,
         isEditorConfigOption: true,
         group: s_optionGroup);
 
     public static PerLanguageOption2<bool> SearchUnreferencedProjectSourceSymbols = new(
-        "dotnet_unsupported_search_unreferenced_project_systems",
+        "dotnet_unsupported_search_unreferenced_project_symbols",
         SymbolSearchOptions.Default.SearchUnreferencedProjectSourceSymbols,
         isEditorConfigOption: true,
         group: s_optionGroup);
 
     public static PerLanguageOption2<bool> SearchUnreferencedMetadataSymbols = new(
-        "dotnet_unsupported_search_unreferenced_metadata_systems",
+        "dotnet_unsupported_search_unreferenced_metadata_symbols",
         SymbolSearchOptions.Default.SearchUnreferencedMetadataSymbols,
         isEditorConfigOption: true,
         group: s_optionGroup);

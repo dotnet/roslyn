@@ -400,6 +400,9 @@ internal abstract class VisualStudioOptionStorage
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
         {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
+        {"dotnet_unsupported_search_referenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchReferencedProjectSymbols")},
+        {"dotnet_unsupported_search_unreferenced_project_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedProjectSymbols")},
+        {"dotnet_unsupported_search_unreferenced_metadata_symbols", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SearchUnreferencedMetadataSymbols")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},
 #pragma warning restore
