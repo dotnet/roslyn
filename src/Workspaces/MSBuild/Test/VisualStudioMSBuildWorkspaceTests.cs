@@ -3291,14 +3291,14 @@ class C { }";
     }
 
     [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-    public async Task TestInValidXmlSolutionSupport()
+    public async Task TestInvalidXmlSolutionSupport()
     {
         CreateFiles(GetMultiProjectSolutionFiles()
             .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutionFiles.Invalid));
         var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
 
         using var workspace = CreateMSBuildWorkspace();
-        var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+        var exception = await Assert.ThrowsAnyAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
 
         Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
     }

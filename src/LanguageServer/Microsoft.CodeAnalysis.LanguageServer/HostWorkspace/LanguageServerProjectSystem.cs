@@ -69,7 +69,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
             buildHost = await buildHostProcessManager.GetBuildHostAsync(kind, CancellationToken.None);
         }
 
-        var (_, projects) = SolutionFileReader.ReadSolutionFile(solutionFilePath);
+        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, CancellationToken.None);
         foreach (var (path, guid) in projects)
         {
             await BeginLoadingProjectAsync(path, guid);

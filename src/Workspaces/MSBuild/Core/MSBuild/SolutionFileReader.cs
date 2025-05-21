@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.SolutionPersistence.Serializer;
 using Roslyn.Utilities;
 
@@ -13,12 +14,12 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal partial class SolutionFileReader
 {
-    public static (string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects) ReadSolutionFile(string solutionFilePath)
+    public static Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, CancellationToken cancellationToken)
     {
-        return ReadSolutionFile(solutionFilePath, new PathResolver(diagnosticReporter: null));
+        return ReadSolutionFileAsync(solutionFilePath, new PathResolver(diagnosticReporter: null), cancellationToken);
     }
 
-    public static (string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects) ReadSolutionFile(string solutionFilePath, PathResolver pathResolver)
+    public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, CancellationToken cancellationToken)
     {
         if (!pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
         {
@@ -26,6 +27,7 @@ internal partial class SolutionFileReader
             return (solutionFilePath, []);
         }
 
+        // When passed a solution filter, we need to read the filter file to get the solution path and included project paths.
         var projectFilter = ImmutableHashSet<string>.Empty;
         if (SolutionFilterReader.IsSolutionFilterFilename(absoluteSolutionPath) &&
             !SolutionFilterReader.TryRead(absoluteSolutionPath, pathResolver, out absoluteSolutionPath, out projectFilter))
@@ -33,33 +35,33 @@ internal partial class SolutionFileReader
             throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
         }
 
-        if (!TryReadSolutionFile(absoluteSolutionPath, pathResolver, projectFilter, out var projects))
+        var projects = await TryReadSolutionFileAsync(absoluteSolutionPath, pathResolver, projectFilter, cancellationToken).ConfigureAwait(false);
+        if (!projects.HasValue)
         {
             throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_0, absoluteSolutionPath));
         }
 
-        return (absoluteSolutionPath, projects);
+        return (absoluteSolutionPath, projects.Value);
     }
 
-    private static bool TryReadSolutionFile(string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, out ImmutableArray<(string ProjectPath, string ProjectGuid)> projects)
+    private static async Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>?> TryReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, CancellationToken cancellationToken)
     {
-        // Get the serializer for the solution file
         var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFilePath);
         if (serializer == null)
         {
-            projects = [];
-            return false;
+            return null;
         }
 
-        // The base directory for projects is the solution folder.
+        // The solution folder is the base directory for project paths.
         var baseDirectory = Path.GetDirectoryName(solutionFilePath);
         RoslynDebug.AssertNotNull(baseDirectory);
-        var solutionModel = serializer.OpenAsync(solutionFilePath, CancellationToken.None).Result;
+
+        var solutionModel = await serializer.OpenAsync(solutionFilePath, cancellationToken).ConfigureAwait(false);
 
         var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
         foreach (var projectModel in solutionModel.SolutionProjects)
         {
-            // If we are filtering based on a solution filter then we need to verify the project is included.
+            // If we are filtering based on a solution filter, then we need to verify the project is included.
             if (!projectFilter.IsEmpty)
             {
                 if (!pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath)
@@ -72,7 +74,6 @@ internal partial class SolutionFileReader
             builder.Add((projectModel.FilePath, projectModel.Id.ToString()));
         }
 
-        projects = builder.ToImmutable();
-        return true;
+        return builder.ToImmutable();
     }
 }

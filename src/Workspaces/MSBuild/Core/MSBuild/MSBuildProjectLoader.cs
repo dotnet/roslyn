@@ -167,7 +167,7 @@ public partial class MSBuildProjectLoader
             throw new ArgumentNullException(nameof(solutionFilePath));
         }
 
-        var (absoluteSolutionPath, projects) = SolutionFileReader.ReadSolutionFile(solutionFilePath, _pathResolver);
+        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, cancellationToken).ConfigureAwait(false);
         var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
 
         using (_dataGuard.DisposableWait(cancellationToken))
