@@ -21,11 +21,7 @@ internal partial class SolutionFileReader
 
     public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, CancellationToken cancellationToken)
     {
-        if (!pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
-        {
-            // TryGetAbsoluteSolutionPath should throw before we get here.
-            return (solutionFilePath, []);
-        }
+        Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath));
 
         // When passed a solution filter, we need to read the filter file to get the solution path and included project paths.
         var projectFilter = ImmutableHashSet<string>.Empty;
@@ -64,8 +60,8 @@ internal partial class SolutionFileReader
             // If we are filtering based on a solution filter, then we need to verify the project is included.
             if (!projectFilter.IsEmpty)
             {
-                if (!pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath)
-                    || !projectFilter.Contains(absoluteProjectPath))
+                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
+                if (!projectFilter.Contains(absoluteProjectPath))
                 {
                     continue;
                 }

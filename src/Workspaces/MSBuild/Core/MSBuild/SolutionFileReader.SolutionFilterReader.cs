@@ -35,13 +35,7 @@ internal partial class SolutionFileReader
                     return false;
                 }
 
-                if (!pathResolver.TryGetAbsoluteSolutionPath(solutionPath, baseDirectory, DiagnosticReportingMode.Throw, out solutionFilename))
-                {
-                    // TryGetAbsoluteSolutionPath should throw before we get here.
-                    solutionFilename = string.Empty;
-                    projectFilter = [];
-                    return false;
-                }
+                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionPath(solutionPath, baseDirectory, DiagnosticReportingMode.Throw, out solutionFilename));
 
                 if (!File.Exists(solutionFilename))
                 {
@@ -64,10 +58,8 @@ internal partial class SolutionFileReader
                     }
 
                     // Fill the filter with the absolute project paths.
-                    if (pathResolver.TryGetAbsoluteProjectPath(projectPath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath))
-                    {
-                        filterProjects.Add(absoluteProjectPath);
-                    }
+                    Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectPath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
+                    filterProjects.Add(absoluteProjectPath);
                 }
 
                 projectFilter = filterProjects.ToImmutable();
