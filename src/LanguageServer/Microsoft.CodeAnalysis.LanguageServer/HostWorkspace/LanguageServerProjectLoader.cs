@@ -85,7 +85,8 @@ internal abstract class LanguageServerProjectLoader
         /// The <see cref="LoadedProjectTargets"/> are disposed when unloading.
         /// </summary>
         /// <param name="LoadedProjectTargets">List of target frameworks which have been loaded for this project so far.</param>
-        public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets) : ProjectLoadState;
+        /// <param name="ProjectFileContentChecksum">Content checksum for the project file associated with this instance.</param>
+        public sealed record LoadedTargets(ImmutableArray<LoadedProject> LoadedProjectTargets, Checksum ProjectFileContentChecksum) : ProjectLoadState;
     }
 
     protected LanguageServerProjectLoader(
@@ -180,10 +181,16 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    protected abstract record RemoteProjectLoadResult
+    {
+        internal sealed record UpToDate : RemoteProjectLoadResult;
+        internal sealed record NeedsUpdate(RemoteProjectFile ProjectFile, bool HasAllInformation, BuildHostProcessKind Preferred, BuildHostProcessKind Actual, Checksum NewProjectContentChecksumOpt) : RemoteProjectLoadResult;
+    }
+
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
-    protected abstract Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
+    protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
+        BuildHostProcessManager buildHostProcessManager, string projectPath, Checksum lastProjectContentChecksum, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
     private async Task<bool> ReloadProjectAsync(ProjectToLoad projectToLoad, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
@@ -192,24 +199,42 @@ internal abstract class LanguageServerProjectLoader
         var projectPath = projectToLoad.Path;
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
 
-        // Before doing any work, check if the project has already been unloaded.
+        // Do not reload if the project has already been unloaded.
+        Checksum lastProjectChecksumOpt = default;
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
-            if (!_loadedProjects.ContainsKey(projectPath))
+            if (!_loadedProjects.TryGetValue(projectPath, out var loadState))
             {
                 return false;
+            }
+
+            // TODO: is it safe to grab this checksum and check it outside of the lock?
+            if (loadState is ProjectLoadState.LoadedTargets(_, var checksum))
+            {
+                lastProjectChecksumOpt = checksum;
             }
         }
 
         try
         {
-            if (await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken)
-                is not var (remoteProjectFile, hasAllInformation, preferredBuildHostKind, actualBuildHostKind))
+            var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, lastProjectChecksumOpt, cancellationToken);
+            if (remoteProjectLoadResult is null)
             {
                 _logger.LogWarning($"Unable to load project '{projectPath}'.");
                 return false;
             }
+            else if (remoteProjectLoadResult is RemoteProjectLoadResult.UpToDate)
+            {
+                _logger.LogTrace($"Not reloading project '{projectPath}' since it is up to date.");
+                return false;
+            }
+            else if (remoteProjectLoadResult is not RemoteProjectLoadResult.NeedsUpdate)
+            {
+                throw ExceptionUtilities.UnexpectedValue(remoteProjectLoadResult);
+            }
 
+            var needsUpdate = (RemoteProjectLoadResult.NeedsUpdate)remoteProjectLoadResult;
+            (RemoteProjectFile remoteProjectFile, bool hasAllInformation, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind, Checksum newProjectContentChecksumOpt) = needsUpdate;
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -252,7 +277,8 @@ internal abstract class LanguageServerProjectLoader
                     if (targetAlreadyExists)
                     {
                         // https://github.com/dotnet/roslyn/issues/78561: Automatic restore should run even when the target is already loaded
-                        _ = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                        var (_, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                        needsRestore |= targetNeedsRestore;
                     }
                     else
                     {
@@ -286,7 +312,15 @@ internal abstract class LanguageServerProjectLoader
                     await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId), cancellationToken);
                 }
 
-                _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets);
+                // TODO HACK: when restore runs we know we need to load the project again, because design-time build will find the restore artifacts and have a different result.
+                // 'dotnet run app' itself does significant work to cache things correctly and to store cache checksum/stamp file in temp.
+                // We probably need to just load that and decide if things have changed in similar way to SDK itself.
+                if (needsRestore)
+                {
+                    newProjectContentChecksumOpt = default;
+                }
+
+                _loadedProjects[projectPath] = new ProjectLoadState.LoadedTargets(newProjectTargets, newProjectContentChecksumOpt);
             }
 
             diagnosticLogItems = await remoteProjectFile.GetDiagnosticLogItemsAsync(cancellationToken);
@@ -403,7 +437,7 @@ internal abstract class LanguageServerProjectLoader
                 return;
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: []));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.LoadedTargets(LoadedProjectTargets: [], ProjectFileContentChecksum: default));
             _projectsToReload.AddWork(new ProjectToLoad(Path: projectPath, ProjectGuid: projectGuid, ReportTelemetry: true));
         }
     }
@@ -425,7 +459,7 @@ internal abstract class LanguageServerProjectLoader
             {
                 await ProjectFactory.ApplyChangeToWorkspaceAsync(workspace => workspace.OnProjectRemoved(projectId));
             }
-            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects))
+            else if (loadState is ProjectLoadState.LoadedTargets(var existingProjects, _))
             {
                 foreach (var existingProject in existingProjects)
                 {

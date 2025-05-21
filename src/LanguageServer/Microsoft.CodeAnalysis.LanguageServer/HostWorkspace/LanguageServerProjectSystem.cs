@@ -91,8 +91,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
-    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
+    protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
+        BuildHostProcessManager buildHostProcessManager, string projectPath, Checksum ignoredLastProjectContentChecksum, CancellationToken cancellationToken)
     {
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
             return null;
@@ -101,6 +101,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return (loadedFile, hasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult.NeedsUpdate(loadedFile, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind, NewProjectContentChecksumOpt: default);
     }
 }
