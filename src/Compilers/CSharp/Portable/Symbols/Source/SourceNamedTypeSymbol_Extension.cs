@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             MethodSymbol? tryCreateExtensionMarker()
             {
-                var syntax = (ExtensionDeclarationSyntax)this.GetNonNullSyntaxNode();
+                var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
                 var parameterList = syntax.ParameterList;
                 Debug.Assert(parameterList is not null);
 
