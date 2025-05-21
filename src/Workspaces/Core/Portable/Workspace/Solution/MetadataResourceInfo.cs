@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis;
 /// Describes a manifest resource specification stored in command line arguments.
 /// </summary>
 [DataContract]
-internal readonly struct MetadataResourceInfo(string resourceName, string filePath, string? linkedResourceFileName, bool isPublic, int contentVersion)
+internal sealed class MetadataResourceInfo(string resourceName, string filePath, string? linkedResourceFileName, bool isPublic, int contentVersion) : IEquatable<MetadataResourceInfo>
 {
     /// <summary>
     /// Name of the manifest resource as it appears in metadata.
@@ -46,6 +46,43 @@ internal readonly struct MetadataResourceInfo(string resourceName, string filePa
     [DataMember(Order = 4)]
     public int ContentVersion { get; init; } = contentVersion;
 
+    public bool Equals(MetadataResourceInfo? other)
+        => other != null
+        && ResourceName == other.ResourceName
+        && FilePath == other.FilePath
+        && LinkedResourceFileName == other.LinkedResourceFileName
+        && IsPublic == other.IsPublic
+        && ContentVersion == other.ContentVersion;
+
+    public override bool Equals(object? obj)
+        => obj is MetadataResourceInfo info && Equals(info);
+
+    public override int GetHashCode()
+        => Hash.Combine(ResourceName, Hash.Combine(FilePath, Hash.Combine(LinkedResourceFileName, Hash.Combine(IsPublic, ContentVersion))));
+
+    public override string ToString()
+        => $"{ResourceName} (v{ContentVersion})";
+
+    public MetadataResourceInfo WithContentVersion(int value)
+        => value == ContentVersion ? this : new MetadataResourceInfo(ResourceName, FilePath, LinkedResourceFileName, IsPublic, value);
+
+    public void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteString(ResourceName);
+        writer.WriteString(FilePath);
+        writer.WriteString(LinkedResourceFileName);
+        writer.WriteBoolean(IsPublic);
+        writer.WriteInt32(ContentVersion);
+    }
+
+    public static MetadataResourceInfo ReadFrom(ObjectReader reader)
+        => new(
+            reader.ReadRequiredString(),
+            reader.ReadRequiredString(),
+            reader.ReadString(),
+            reader.ReadBoolean(),
+            reader.ReadInt32());
+
     /// <summary>
     /// True if the resource is embedded.
     /// </summary>
@@ -58,21 +95,4 @@ internal readonly struct MetadataResourceInfo(string resourceName, string filePa
     [MemberNotNullWhen(true, nameof(LinkedResourceFileName))]
     public bool IsLinked
         => LinkedResourceFileName != null;
-
-    internal void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteString(ResourceName);
-        writer.WriteString(FilePath);
-        writer.WriteString(LinkedResourceFileName);
-        writer.WriteBoolean(IsPublic);
-        writer.WriteInt32(ContentVersion);
-    }
-
-    internal static MetadataResourceInfo ReadFrom(ObjectReader reader)
-        => new(
-            reader.ReadRequiredString(),
-            reader.ReadRequiredString(),
-            reader.ReadString(),
-            reader.ReadBoolean(),
-            reader.ReadInt32());
 }
