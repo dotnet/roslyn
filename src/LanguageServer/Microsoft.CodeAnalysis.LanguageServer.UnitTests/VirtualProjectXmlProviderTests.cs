@@ -45,7 +45,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: we need a way to automatically obtain the needed SDK for running the test.
+        // TODO: these tests should be conditioned on availability of an SDK which supports run-api
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
@@ -54,74 +54,14 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var content = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
-        Assert.NotNull(content);
-        LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.Value.VirtualProjectXml);
+        var contentNullable = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
+        var content = contentNullable.Value;
+        var virtualProjectXml = content.VirtualProjectXml;
+        LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(virtualProjectXml);
 
-        // TODO: it's not clear what should be asserted about the resulting value.
-        // Perhaps 'Contains("<ArtifactsPath>)' and 'Contains("<TargetFramework>...</TargetFramework>")').
-        var expected = """
-            <Project>
-
-              <PropertyGroup>
-                <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                <ArtifactsPath>C:\Users\rigibson\AppData\Local\Temp\dotnet\runfile\app-e58ea5315882fd4f9402b620afffcb6b18abdce2e6b76c205ac0cfc8db48593d</ArtifactsPath>
-              </PropertyGroup>
-
-              <!-- We need to explicitly import Sdk props/targets so we can override the targets below. -->
-              <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-
-              <PropertyGroup>
-                <OutputType>Exe</OutputType>
-                <TargetFramework>net10.0</TargetFramework>
-                <ImplicitUsings>enable</ImplicitUsings>
-                <Nullable>enable</Nullable>
-              </PropertyGroup>
-
-              <PropertyGroup>
-                <EnableDefaultItems>false</EnableDefaultItems>
-              </PropertyGroup>
-
-              <PropertyGroup>
-                <Features>$(Features);FileBasedProgram</Features>
-              </PropertyGroup>
-
-              <ItemGroup>
-                <Compile Include="C:\Users\rigibson\AppData\Local\Temp\RoslynTests\716acaad-3be2-48e4-9981-79a878f127ea\app.cs" />
-              </ItemGroup>
-
-              <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-
-              <!--
-                Override targets which don't work with project files that are not present on disk.
-                See https://github.com/NuGet/Home/issues/14148.
-              -->
-
-              <Target Name="_FilterRestoreGraphProjectInputItems"
-                      DependsOnTargets="_LoadRestoreGraphEntryPoints"
-                      Returns="@(FilteredRestoreGraphProjectInputItems)">
-                <ItemGroup>
-                  <FilteredRestoreGraphProjectInputItems Include="@(RestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-
-              <Target Name="_GetAllRestoreProjectPathItems"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems"
-                      Returns="@(_RestoreProjectPathItems)">
-                <ItemGroup>
-                  <_RestoreProjectPathItems Include="@(FilteredRestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-
-              <Target Name="_GenerateRestoreGraph"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems;_GetAllRestoreProjectPathItems;_GenerateRestoreGraphProjectEntry;_GenerateProjectRestoreGraph"
-                      Returns="@(_RestoreGraphEntry)">
-                <!-- Output from dependency _GenerateRestoreGraphProjectEntry and _GenerateProjectRestoreGraph -->
-              </Target>
-
-            </Project>
-            """;
-        Assert.Equal(expected, content.Value.VirtualProjectXml);
+        Assert.Contains("<TargetFramework>net10.0</TargetFramework>", virtualProjectXml);
+        Assert.Contains("<ArtifactsPath>", virtualProjectXml);
+        Assert.Empty(content.Diagnostics);
     }
 
     [Fact]
@@ -138,7 +78,6 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: we need a way to automatically obtain the needed SDK for running the test.
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
@@ -147,71 +86,12 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var content = (await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None)).Value;
+        var contentNullable = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
+        var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
 
-        var expected = """
-            <Project>
-
-              <PropertyGroup>
-                <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                <ArtifactsPath>C:\Users\rigibson\AppData\Local\Temp\dotnet\runfile\app-__PLACEHOLDER__</ArtifactsPath>
-              </PropertyGroup>
-
-              <!-- We need to explicitly import Sdk props/targets so we can override the targets below. -->
-              <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-
-              <PropertyGroup>
-                <OutputType>Exe</OutputType>
-                <TargetFramework>net10.0</TargetFramework>
-                <ImplicitUsings>enable</ImplicitUsings>
-                <Nullable>enable</Nullable>
-              </PropertyGroup>
-
-              <PropertyGroup>
-                <EnableDefaultItems>false</EnableDefaultItems>
-              </PropertyGroup>
-
-              <PropertyGroup>
-                <Features>$(Features);FileBasedProgram</Features>
-              </PropertyGroup>
-
-              <ItemGroup>
-                <Compile Include="C:\Users\rigibson\AppData\Local\Temp\RoslynTests\__PLACEHOLDER__\app.cs" />
-              </ItemGroup>
-
-              <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-
-              <!--
-                Override targets which don't work with project files that are not present on disk.
-                See https://github.com/NuGet/Home/issues/14148.
-              -->
-
-              <Target Name="_FilterRestoreGraphProjectInputItems"
-                      DependsOnTargets="_LoadRestoreGraphEntryPoints"
-                      Returns="@(FilteredRestoreGraphProjectInputItems)">
-                <ItemGroup>
-                  <FilteredRestoreGraphProjectInputItems Include="@(RestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-
-              <Target Name="_GetAllRestoreProjectPathItems"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems"
-                      Returns="@(_RestoreProjectPathItems)">
-                <ItemGroup>
-                  <_RestoreProjectPathItems Include="@(FilteredRestoreGraphProjectInputItems)" />
-                </ItemGroup>
-              </Target>
-
-              <Target Name="_GenerateRestoreGraph"
-                      DependsOnTargets="_FilterRestoreGraphProjectInputItems;_GetAllRestoreProjectPathItems;_GenerateRestoreGraphProjectEntry;_GenerateProjectRestoreGraph"
-                      Returns="@(_RestoreGraphEntry)">
-                <!-- Output from dependency _GenerateRestoreGraphProjectEntry and _GenerateProjectRestoreGraph -->
-              </Target>
-
-            </Project>
-            """;
-        Assert.Matches(Regex.Escape(expected).Replace(@"__PLACEHOLDER__", ".*"), content.VirtualProjectXml);
+        Assert.Contains("<TargetFramework>net10.0</TargetFramework>", content.VirtualProjectXml);
+        Assert.Contains("<ArtifactsPath>", content.VirtualProjectXml);
         Assert.Empty(content.Diagnostics);
     }
 
@@ -223,7 +103,6 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         var tempDir = TempRoot.CreateDirectory();
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: we need a way to automatically obtain the needed SDK for running the test.
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
@@ -250,7 +129,6 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: we need a way to automatically obtain the needed SDK for running the test.
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
