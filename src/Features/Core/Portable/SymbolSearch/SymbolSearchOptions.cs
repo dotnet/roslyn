@@ -69,7 +69,7 @@ internal static class SymbolSearchOptionsStorage
     public static PerLanguageOption2<bool> SearchReferencedProjectSymbols = new(
         "dotnet_unsupported_search_referenced_project_systems",
         SymbolSearchOptions.Default.SearchReferencedProjectSymbols,
-        isEditorConfigOption: false,
+        isEditorConfigOption: true,
         group: s_optionGroup);
 
     public static PerLanguageOption2<bool> SearchUnreferencedProjectSourceSymbols = new(
