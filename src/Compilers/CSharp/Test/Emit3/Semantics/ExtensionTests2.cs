@@ -1594,7 +1594,6 @@ public static class E
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
         comp2.VerifyEmitDiagnostics(expected);
 
-
         CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, verify: Verification.Skipped);
 
         static void validate(ModuleSymbol m)
