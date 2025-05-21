@@ -175,6 +175,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Чтобы добавить или {0} com-интерфейса, необходимо перезапустить приложение.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+        <source>Adding or updating manifest resource '{0}' has no effect until the project is rebuit.</source>
+        <target state="new">Adding or updating manifest resource '{0}' has no effect until the project is rebuit.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
         <source>Align wrapped arguments</source>
         <target state="translated">Выровнять свернутые аргументы</target>
@@ -693,6 +698,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Deleting_0_requires_restarting_the_application_because_is_not_supported_by_the_runtime">
         <source>Deleting {0} requires restarting the application because is not supported by the runtime.</source>
         <target state="translated">Для удаления {0} требуется перезапустить приложение, поскольку удаление не поддерживается средой выполнения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+        <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
+        <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />
       </trans-unit>
       <trans-unit id="Directives_from_0">
