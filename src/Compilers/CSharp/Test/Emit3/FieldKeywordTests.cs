@@ -12697,7 +12697,6 @@ class C<T>
                 }
                 """;
 
-
             var source2 = """
                 namespace TestLibrary
                 {
