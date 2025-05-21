@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Security;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -30,10 +31,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+    private readonly VirtualProjectXmlProvider _projectXmlProvider;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         IMetadataAsSourceFileService metadataAsSourceFileService,
+        VirtualProjectXmlProvider projectXmlProvider,
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
@@ -57,6 +60,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _metadataAsSourceFileService = metadataAsSourceFileService;
+        _projectXmlProvider = projectXmlProvider;
     }
 
     public Workspace Workspace => ProjectFactory.Workspace;
@@ -132,11 +136,20 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         var loader = ProjectFactory.CreateFileTextLoader(documentPath);
         var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-        var (virtualProjectContent, isFileBasedProgram) = FileBasedProgramProjectProvider.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
+
+        // TODO: consolidate FBP heuristic into new method
+        var (_, isFileBasedProgram) = VirtualProjectXmlProvider.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
+        var content = await _projectXmlProvider.MakeVirtualProjectContentNewAsync(documentPath, cancellationToken);
+        if (content is not var (virtualProjectContent, diagnostics))
+        {
+            return null;
+        }
+
+        // TODO: how to report the diagnostics in the editor?
 
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
-        var virtualProjectPath = FileBasedProgramProjectProvider.GetVirtualProjectPath(documentPath);
+        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
         return (loadedFile, hasAllInformation: isFileBasedProgram, preferred: buildHostKind, actual: buildHostKind);
     }

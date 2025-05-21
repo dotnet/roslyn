@@ -2,27 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
-[Export(typeof(FileBasedProgramProjectProvider)), Shared]
+[Export(typeof(VirtualProjectXmlProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class FileBasedProgramProjectProvider(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory)
+internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper, ILoggerFactory loggerFactory)
 {
-    private readonly ILogger<FileBasedProgramProjectProvider> _logger = loggerFactory.CreateLogger<FileBasedProgramProjectProvider>();
+    private readonly ILogger<VirtualProjectXmlProvider> _logger = loggerFactory.CreateLogger<VirtualProjectXmlProvider>();
 
-    internal async Task<(string virtualProjectXml, bool isFileBasedProgram)?> MakeVirtualProjectContentNewAsync(string documentFilePath, CancellationToken cancellationToken)
+    internal async Task<(string VirtualProjectXml, ImmutableArray<SimpleDiagnostic> Diagnostics)?> MakeVirtualProjectContentNewAsync(string documentFilePath, CancellationToken cancellationToken)
     {
         var workingDirectory = Path.GetDirectoryName(documentFilePath);
         var process = dotnetCliHelper.Run(["run-api"], workingDirectory, shouldLocalizeOutput: true, redirectStandardInput: true);
@@ -35,22 +38,45 @@ internal class FileBasedProgramProjectProvider(DotnetCliHelper dotnetCliHelper, 
             process?.Kill();
         });
 
-        // TODO: replicate input/output model types from SDK.
-        await process.StandardInput.WriteAsync("{}");
+        var input = new RunApiInput.GetProject() { EntryPointFileFullPath = documentFilePath };
+        var inputJson = JsonSerializer.Serialize(input, RunFileApiJsonSerializerContext.Default.RunApiInput);
+        await process.StandardInput.WriteAsync(inputJson);
         process.StandardInput.Close();
 
-        process.ErrorDataReceived += (sender, args) => _logger.LogDebug($"('{documentFilePath}'): {args.Data}");
+        process.ErrorDataReceived += (sender, args) => _logger.LogDebug($"dotnet run-api: {args.Data}");
         process.BeginErrorReadLine();
 
-        var responseString = await process.StandardOutput.ReadLineAsync(cancellationToken);
+        var responseJson = await process.StandardOutput.ReadLineAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
 
-        if (process.ExitCode != 0)
+        if (process.ExitCode != 0 || responseJson is null)
         {
+            // TODO: log error? hopefully it did not exit with nonzero without writing any message
+            // We need to show toasts when this process fails similar to remote MSBuildHost failing in project system
             return null;
         }
 
-        // TODO: deserialize result value from run-api.
+        // TODO: deserialize from subprocess stdout without an intermediate string?
+        var response = JsonSerializer.Deserialize(responseJson, RunFileApiJsonSerializerContext.Default.RunApiOutput);
+        if (response is RunApiOutput.Error error)
+        {
+            _logger.LogError($"Response version: {error.Version}");
+            _logger.LogError($"{stageName}: {error.Message}");
+            return null;
+        }
+
+        if (response is RunApiOutput.Project project)
+        {
+            if (project.Version > RunApiOutput.LatestKnownVersion)
+            {
+                _logger.LogError($"'dotnet run-api' version '{project.Version}' is newer than latest known version {RunApiOutput.LatestKnownVersion}");
+                return null;
+            }
+
+            return (project.Content, project.Diagnostics);
+        }
+
+        _logger.LogError($"'dotnet run-api' call failed with an unknown response.");
         return null;
     }
 
@@ -67,8 +93,8 @@ internal class FileBasedProgramProjectProvider(DotnetCliHelper dotnetCliHelper, 
     {
         public static string Hash(string text)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(text);
-            byte[] hash = SHA256.HashData(bytes);
+            var bytes = Encoding.UTF8.GetBytes(text);
+            var hash = SHA256.HashData(bytes);
 #if NET9_0_OR_GREATER
             return Convert.ToHexStringLower(hash);
 #else
@@ -87,14 +113,14 @@ internal class FileBasedProgramProjectProvider(DotnetCliHelper dotnetCliHelper, 
     internal static string GetArtifactsPath(string entryPointFileFullPath)
     {
         // We want a location where permissions are expected to be restricted to the current user.
-        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        var directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.GetTempPath()
             : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
         // Include entry point file name so the directory name is not completely opaque.
-        string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
-        string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
-        string directoryName = $"{fileName}-{hash}";
+        var fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
+        var hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
+        var directoryName = $"{fileName}-{hash}";
 
         return Path.Join(directory, "dotnet", "runfile", directoryName);
     }

@@ -5,6 +5,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IMetadataAsSourceFileService metadataAsSourceFileService,
+    VirtualProjectXmlProvider projectXmlProvider,
     LanguageServerWorkspaceFactory workspaceFactory,
     IFileChangeWatcher fileChangeWatcher,
     IGlobalOptionService globalOptionService,
@@ -38,6 +40,17 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
-        return new FileBasedProgramsProjectSystem(lspServices, metadataAsSourceFileService, workspaceFactory, fileChangeWatcher, globalOptionService, loggerFactory, listenerProvider, projectLoadTelemetry, serverConfigurationFactory, binLogPathProvider);
+        return new FileBasedProgramsProjectSystem(
+            lspServices,
+            metadataAsSourceFileService,
+            projectXmlProvider,
+            workspaceFactory,
+            fileChangeWatcher,
+            globalOptionService,
+            loggerFactory,
+            listenerProvider,
+            projectLoadTelemetry,
+            serverConfigurationFactory,
+            binLogPathProvider);
     }
 }
