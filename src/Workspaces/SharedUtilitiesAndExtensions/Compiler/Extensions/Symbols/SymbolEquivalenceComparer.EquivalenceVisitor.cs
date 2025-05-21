@@ -205,6 +205,7 @@ internal sealed partial class SymbolEquivalenceComparer
                     IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
                     x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
+                    x.Arity != y.Arity ||
                     x.Parameters.Length != y.Parameters.Length ||
                     x.MetadataName != y.MetadataName)
                 {
