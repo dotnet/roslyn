@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
+            if (_originalMethod is SourcePropertyAccessorSymbol accessor)
             {
-                SourcePropertyAccessorSymbol.AddSynthesizedReturnTypeFlowAnalysisAttributes(_originalMethod, extensionProperty, ref attributes);
+                accessor.AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
             }
 
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
@@ -201,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             {
-                if (this is { _underlyingParameter: SynthesizedAccessorValueParameterSymbol { ContainingSymbol: SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty } } })
+                if (_underlyingParameter is SynthesizedAccessorValueParameterSymbol valueParameter)
                 {
-                    SynthesizedAccessorValueParameterSymbol.AddSynthesizedFlowAnalysisAttributes(this, extensionProperty, ref attributes);
+                    valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
                 }
 
                 // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here

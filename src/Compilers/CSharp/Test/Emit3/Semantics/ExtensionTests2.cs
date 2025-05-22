@@ -726,7 +726,7 @@ public static class E
         {
             var module = (PEModuleSymbol)m;
             var parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.M").Parameters[1];
-            AssertEx.SetEqual(["System.Runtime.CompilerServices.ParamCollectionAttribute"], module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+            Assert.True(module.Module.HasParamCollectionAttribute(parameterSymbol.Handle));
         }
     }
 
@@ -836,10 +836,10 @@ public static class E
         {
             var module = (PEModuleSymbol)m;
             var parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P").Parameters[0];
-            AssertEx.SetEqual(["System.Runtime.CompilerServices.IsReadOnlyAttribute"], module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+            Assert.True(module.Module.HasIsReadOnlyAttribute(parameterSymbol.Handle));
 
             parameterSymbol = (PEParameterSymbol)m.GlobalNamespace.GetMember<MethodSymbol>("E.get_P2").Parameters[0];
-            Assert.Empty(module.GetCustomAttributesForToken(parameterSymbol.Handle).ToStrings());
+            Assert.False(module.Module.HasIsReadOnlyAttribute(parameterSymbol.Handle));
         }
     }
 

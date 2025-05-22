@@ -80,22 +80,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-            if (this.ContainingSymbol is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase property })
-            {
-                AddSynthesizedFlowAnalysisAttributes(this, property, ref attributes);
-            }
+            AddSynthesizedFlowAnalysisAttributes(ref attributes);
         }
 
-        internal static void AddSynthesizedFlowAnalysisAttributes(ParameterSymbol valueParameter, SourcePropertySymbolBase property, ref ArrayBuilder<CSharpAttributeData> attributes)
+        internal void AddSynthesizedFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            var annotations = valueParameter.FlowAnalysisAnnotations;
-            if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+            if (ContainingSymbol is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase property })
             {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.DisallowNullAttributeIfExists));
-            }
-            if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
-            {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.AllowNullAttributeIfExists));
+                var annotations = FlowAnalysisAnnotations;
+                if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.DisallowNullAttributeIfExists));
+                }
+                if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0)
+                {
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.AllowNullAttributeIfExists));
+                }
             }
         }
     }

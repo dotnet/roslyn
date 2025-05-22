@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ArrowExpressionClause:
                         return false;
-                };
+                }
 
                 return true;
             }
@@ -796,19 +796,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
-            AddSynthesizedReturnTypeFlowAnalysisAttributes(this, _property, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
         }
 
-        internal static void AddSynthesizedReturnTypeFlowAnalysisAttributes(MethodSymbol accessor, SourcePropertySymbolBase property, ref ArrayBuilder<CSharpAttributeData> attributes)
+        internal void AddSynthesizedReturnTypeFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            var annotations = accessor.ReturnTypeFlowAnalysisAnnotations;
+            var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.MaybeNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.MaybeNullAttributeIfExists));
             }
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(property.NotNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
             }
         }
 
