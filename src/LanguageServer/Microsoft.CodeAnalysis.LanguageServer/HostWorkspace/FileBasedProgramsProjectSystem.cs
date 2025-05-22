@@ -129,7 +129,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
-        BuildHostProcessManager buildHostProcessManager, string documentPath, Checksum lastProjectContentChecksum, CancellationToken cancellationToken)
+        BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
         var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
@@ -144,15 +144,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
         }
 
-        var newChecksum = Checksum.Create(virtualProjectContent);
-        if (newChecksum.Equals(lastProjectContentChecksum))
-        {
-            // TODO: This checksum can't just consist of the virtual project content.
-            // Everything else which could affect the compiler arguments needs to be brought in too.
-            // https://github.com/dotnet/roslyn/issues/78559#issuecomment-2899292787
-            return new RemoteProjectLoadResult.UpToDate();
-        }
-
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
@@ -164,6 +155,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
-        return new RemoteProjectLoadResult.NeedsUpdate(loadedFile, HasAllInformation: isFileBasedProgram, Preferred: buildHostKind, Actual: buildHostKind, NewProjectContentChecksumOpt: newChecksum);
+        return new RemoteProjectLoadResult(loadedFile, HasAllInformation: isFileBasedProgram, Preferred: buildHostKind, Actual: buildHostKind);
     }
 }
