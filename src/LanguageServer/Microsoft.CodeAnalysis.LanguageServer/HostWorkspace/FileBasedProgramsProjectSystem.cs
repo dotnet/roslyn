@@ -131,32 +131,35 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, Checksum lastProjectContentChecksum, CancellationToken cancellationToken)
     {
-
-        var loader = ProjectFactory.CreateFileTextLoader(documentPath);
-        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-
-        // TODO: consolidate FBP heuristic into new method
-        var (_, isFileBasedProgram) = VirtualProjectXmlProvider.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
-        var content = await _projectXmlProvider.MakeVirtualProjectContentNewAsync(documentPath, cancellationToken);
+        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
         {
+            // 'GetVirtualProjectContentAsync' will log errors when it fails
             return null;
+        }
+
+        foreach (var diagnostic in diagnostics)
+        {
+            // https://github.com/dotnet/roslyn/issues/78688: Surface diagnostics in editor
+            _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
         }
 
         var newChecksum = Checksum.Create(virtualProjectContent);
         if (newChecksum.Equals(lastProjectContentChecksum))
         {
-            // Virtual project unchanged from last run.
-            // TODO: It looks like checking this content is not good enough.
+            // TODO: This checksum can't just consist of the virtual project content.
+            // Everything else which could affect the compiler arguments needs to be brought in too.
             // https://github.com/dotnet/roslyn/issues/78559#issuecomment-2899292787
             return new RemoteProjectLoadResult.UpToDate();
         }
 
-        // TODO: how to report the diagnostics in the editor?
-
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
         var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
+
+        var loader = ProjectFactory.CreateFileTextLoader(documentPath);
+        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
+        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
 
         const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);

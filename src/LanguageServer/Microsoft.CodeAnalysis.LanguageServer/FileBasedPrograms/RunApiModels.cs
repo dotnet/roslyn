@@ -69,9 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms
         }
     }
 
-
     [JsonSerializable(typeof(RunApiInput))]
     [JsonSerializable(typeof(RunApiOutput))]
     internal partial class RunFileApiJsonSerializerContext : JsonSerializerContext;
-
 }

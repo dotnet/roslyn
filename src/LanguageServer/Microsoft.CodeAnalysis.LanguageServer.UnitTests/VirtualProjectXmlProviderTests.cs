@@ -54,7 +54,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
         var content = contentNullable.Value;
         var virtualProjectXml = content.VirtualProjectXml;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(virtualProjectXml);
@@ -86,7 +86,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
         var content = contentNullable.Value;
         LoggerFactory.CreateLogger<VirtualProjectXmlProviderTests>().LogTrace(content.VirtualProjectXml);
 
@@ -111,7 +111,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var content = await projectProvider.MakeVirtualProjectContentNewAsync(Path.Combine(tempDir.Path, "BAD"), CancellationToken.None);
+        var content = await projectProvider.GetVirtualProjectContentAsync(Path.Combine(tempDir.Path, "BAD"), CancellationToken.None);
         Assert.Null(content);
     }
 
@@ -137,13 +137,14 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             }
             """);
 
-        var contentNullable = await projectProvider.MakeVirtualProjectContentNewAsync(appFile.Path, CancellationToken.None);
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
         var content = contentNullable.Value;
         var diagnostic = content.Diagnostics.Single();
         Assert.Contains("Unrecognized directive 'BAD'", diagnostic.Message);
         Assert.Equal(appFile.Path, diagnostic.Location.Path);
 
-        // TODO: it seems wrong that the specific location of the bad directive is not reported.
+        // LinePositionSpan is not deserializing properly.
+        // Address when implementing editor squiggles. https://github.com/dotnet/roslyn/issues/78688
         Assert.Equal("(0,0)-(0,0)", diagnostic.Location.Span.ToString());
     }
 }

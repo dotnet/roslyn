@@ -76,7 +76,6 @@ internal sealed class DotnetCliHelper
         {
             CreateNoWindow = true,
             UseShellExecute = false,
-            // TODO: determine if always passing true here would cause problems.
             RedirectStandardInput = redirectStandardInput,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
