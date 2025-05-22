@@ -194,10 +194,10 @@ internal abstract class LanguageServerProjectLoader
         var projectPath = projectToLoad.Path;
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
 
-        // Do not reload if the project has already been unloaded.
+        // Before doing any work, check if the project has already been unloaded.
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
-            if (!_loadedProjects.TryGetValue(projectPath, out var loadState))
+            if (!_loadedProjects.ContainsKey(projectPath))
             {
                 return false;
             }
@@ -252,16 +252,10 @@ internal abstract class LanguageServerProjectLoader
                     var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    if (targetAlreadyExists)
+                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                    needsRestore |= targetNeedsRestore;
+                    if (!targetAlreadyExists)
                     {
-                        // https://github.com/dotnet/roslyn/issues/78561: Automatic restore should run even when the target is already loaded
-                        var (_, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                        needsRestore |= targetNeedsRestore;
-                    }
-                    else
-                    {
-                        var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                        needsRestore |= targetNeedsRestore;
                         telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
                     }
                 }
