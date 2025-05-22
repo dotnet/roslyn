@@ -16,6 +16,10 @@
          this project just disables nullable warnings on net472 as the MSBuild version does
     -->
     <DisableNullableWarnings>true</DisableNullableWarnings>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
