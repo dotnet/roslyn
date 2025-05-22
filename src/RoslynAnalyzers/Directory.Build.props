@@ -25,6 +25,12 @@
     <DefineConstants Condition="'$(LEGACY_CODE_METRICS_MODE)' == 'true'">$(DefineConstants),LEGACY_CODE_METRICS_MODE</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <!-- Since SourceBuild uses project references and brings additional nullability annotations, -->
+    <!-- suppressions were added that are unncessary when building against older Roslyn packages. -->
+    <NoWarn>$(NoWarn);IDE0079</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <!-- When building in source build mode, treat this set of warnings not as errors.-->
     <!-- Some crefs reference internal APIs not present in the reference package. -->
