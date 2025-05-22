@@ -4,9 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Security;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -23,7 +24,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider

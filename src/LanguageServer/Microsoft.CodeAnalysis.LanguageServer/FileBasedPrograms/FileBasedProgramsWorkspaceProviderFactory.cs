@@ -5,8 +5,8 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>
 /// Service to create <see cref="LspMiscellaneousFilesWorkspaceProvider"/> instances.
