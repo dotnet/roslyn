@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                     return BindMemberCref((MemberCrefSyntax)syntax, containerOpt: null, ambiguityWinner: out ambiguityWinner, diagnostics: diagnostics);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
@@ -125,6 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConversionOperatorMemberCref:
                     result = BindConversionOperatorMemberCref((ConversionOperatorMemberCrefSyntax)syntax, containerOpt, out ambiguityWinner, diagnostics);
                     break;
+                case SyntaxKind.ExtensionMemberCref:
+                    result = BindExtensionMemberCref((ExtensionMemberCrefSyntax)syntax, containerOpt, out ambiguityWinner, diagnostics);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
@@ -214,6 +218,137 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterListSyntax: syntax.Parameters,
                 ambiguityWinner: out ambiguityWinner,
                 diagnostics: diagnostics);
+        }
+
+        private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
+        {
+            if (containerOpt is not NamedTypeSymbol namedContainer)
+            {
+                ambiguityWinner = null;
+                return ImmutableArray<Symbol>.Empty;
+            }
+
+            ImmutableArray<Symbol> sortedSymbols = default;
+            int arity = 0;
+            TypeArgumentListSyntax? typeArgumentListSyntax = null;
+            CrefParameterListSyntax? parameters = null;
+
+            if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
+            {
+                arity = simpleName.Arity;
+                typeArgumentListSyntax = simpleName is GenericNameSyntax genericName ? genericName.TypeArgumentList : null;
+                parameters = nameMember.Parameters;
+
+                TypeArgumentListSyntax? extensionTypeArguments = syntax.TypeArgumentList;
+                int extensionArity = extensionTypeArguments?.Arguments.Count ?? 0;
+                sortedSymbols = computeSortedAndFilteredCrefExtensionMembers(namedContainer, simpleName.Identifier.ValueText, extensionArity, arity, extensionTypeArguments, diagnostics, syntax);
+            }
+
+            if (sortedSymbols.IsDefaultOrEmpty)
+            {
+                ambiguityWinner = null;
+                return [];
+            }
+
+            Debug.Assert(sortedSymbols.All(s => s.GetIsNewExtensionMember()));
+
+            return ProcessCrefMemberLookupResults(sortedSymbols, arity, syntax, typeArgumentListSyntax, parameters, out ambiguityWinner, diagnostics);
+
+            ImmutableArray<Symbol> computeSortedAndFilteredCrefExtensionMembers(NamedTypeSymbol container, string name, int extensionArity, int arity, TypeArgumentListSyntax? extensionTypeArguments, BindingDiagnosticBag diagnostics, ExtensionMemberCrefSyntax syntax)
+            {
+                Debug.Assert(name is not null);
+
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustNotBeParameter;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
+                ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
+
+                foreach (var nested in container.GetTypeMembers())
+                {
+                    if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
+                    {
+                        continue;
+                    }
+
+                    var constructedNested = (NamedTypeSymbol)ConstructWithCrefTypeParameters(extensionArity, extensionTypeArguments, nested);
+
+                    var candidateExtensionSignature = new SignatureOnlyMethodSymbol(
+                         methodKind: MethodKind.Ordinary,
+                         typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
+                         parameters: [constructedNested.ExtensionParameter],
+                         callingConvention: Cci.CallingConvention.Default,
+                         // These are ignored by this specific MemberSignatureComparer.
+                         containingType: null,
+                         name: null,
+                         refKind: RefKind.None,
+                         isInitOnly: false,
+                         isStatic: false,
+                         returnType: default,
+                         refCustomModifiers: [],
+                         explicitInterfaceImplementations: []);
+
+                    ImmutableArray<ParameterSymbol> extensionParameterSymbols = syntax.Parameters is { } extensionParameterListSyntax ? BindCrefParameters(extensionParameterListSyntax, diagnostics) : default;
+
+                    var providedExtensionSignature = new SignatureOnlyMethodSymbol(
+                         methodKind: MethodKind.Ordinary,
+                         typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
+                         parameters: extensionParameterSymbols,
+                         callingConvention: Cci.CallingConvention.Default,
+                         // These are ignored by this specific MemberSignatureComparer.
+                         containingType: null,
+                         name: null,
+                         refKind: RefKind.None,
+                         isInitOnly: false,
+                         isStatic: false,
+                         returnType: default,
+                         refCustomModifiers: [],
+                         explicitInterfaceImplementations: []);
+
+                    if (!MemberSignatureComparer.CrefComparer.Equals(candidateExtensionSignature, providedExtensionSignature))
+                    {
+                        continue;
+                    }
+
+                    var candidates = constructedNested.GetMembers(name);
+
+                    foreach (var candidate in candidates)
+                    {
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        {
+                            continue;
+                        }
+
+                        if (arity != 0 && candidate.GetArity() != arity)
+                        {
+                            continue;
+                        }
+
+                        // Note: we bypass the arity check here, as it would check for total arity (extension + member arity)
+                        SingleLookupResult result = this.CheckViability(candidate, arity: 0, options, accessThroughType: null, diagnose: true, useSiteInfo: ref useSiteInfo);
+
+                        if (result.Kind == LookupResultKind.Viable)
+                        {
+                            sortedSymbolsBuilder ??= ArrayBuilder<Symbol>.GetInstance();
+                            sortedSymbolsBuilder.Add(result.Symbol);
+                        }
+                    }
+                }
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (sortedSymbolsBuilder is null)
+                {
+                    return ImmutableArray<Symbol>.Empty;
+                }
+
+                // Since we resolve ambiguities by just picking the first symbol we encounter,
+                // the order of the symbols matters for repeatability.
+                if (sortedSymbolsBuilder.Count > 1)
+                {
+                    sortedSymbolsBuilder.Sort(ConsistentSymbolOrder.Instance);
+                }
+
+                return sortedSymbolsBuilder.ToImmutableAndFree();
+            }
         }
 
         // NOTE: not guaranteed to be a method (e.g. class op_Addition)

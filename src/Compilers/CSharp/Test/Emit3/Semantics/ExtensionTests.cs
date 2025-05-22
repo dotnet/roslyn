@@ -1915,7 +1915,10 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (10,16): error CS0541: 'Extensions.extension(object).M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //         void I.M() { }
-            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension(object).M()").WithLocation(10, 16));
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("Extensions.extension(object).M()").WithLocation(10, 16),
+            // (10,16): error CS9282: Extension declarations can include only methods or properties
+            //         void I.M() { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "M").WithLocation(10, 16));
     }
 
     [Fact]
@@ -2320,7 +2323,7 @@ public static class Extensions
     }
 
     [Fact]
-    public void Member_Type()
+    public void Member_Type_01()
     {
         var src = """
 public static class Extensions
@@ -2346,6 +2349,66 @@ public static class Extensions
         Assert.Equal(["void Extensions.<>E__0.<Extension>$(System.Object)", "Extensions.<>E__0.Nested"], symbol.GetMembers().ToTestDisplayStrings());
         Assert.Equal(["Extensions.<>E__0.Nested"], symbol.GetTypeMembers().ToTestDisplayStrings());
         Assert.Equal("Extensions.<>E__0.Nested", symbol.GetTypeMember("Nested").ToTestDisplayString());
+    }
+
+    [Fact]
+    public void Member_Type_02()
+    {
+        var src = """
+C.Nested x = null;
+
+public static class Extensions
+{
+    extension(C)
+    {
+        class Nested { }
+    }
+}
+class C { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,3): error CS0426: The type name 'Nested' does not exist in the type 'C'
+            // C.Nested x = null;
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nested").WithArguments("Nested", "C").WithLocation(1, 3),
+            // (7,15): error CS9282: Extension declarations can include only methods or properties
+            //         class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var syntax = GetSyntax<QualifiedNameSyntax>(tree, "C.Nested");
+        Assert.Null(model.GetSymbolInfo(syntax).Symbol);
+    }
+
+    [Fact]
+    public void Member_Type_03()
+    {
+        var src = """
+object.Nested x = null;
+
+public static class Extensions
+{
+    extension(object)
+    {
+        class Nested { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,8): error CS0117: 'object' does not contain a definition for 'Nested'
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "Nested").WithArguments("object", "Nested").WithLocation(1, 8),
+            // (1,15): error CS1002: ; expected
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(1, 15),
+            // (1,15): error CS0103: The name 'x' does not exist in the current context
+            // object.Nested x = null;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(1, 15),
+            // (7,15): error CS9282: Extension declarations can include only methods or properties
+            //         class Nested { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(7, 15));
     }
 
     [Fact]
@@ -39819,9 +39882,9 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        Assert.Equal("T:E.<>E__0`1", extension.GetDocumentationCommentId());
+        Assert.Equal("T:E.&lt;&gt;E__0`1", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
-<member name="T:E.<>E__0`1">
+<member name="T:E.&lt;&gt;E__0`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -39831,7 +39894,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.<>E__0`1.M``1(``0)">
+<member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -39842,14 +39905,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``0,``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.<>E__0`1.P">
+<member name="P:E.&lt;&gt;E__0`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -39858,7 +39921,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1(``0)">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -39873,24 +39936,24 @@ static class E
         <member name="T:E">
             <summary>Summary for E</summary>
         </member>
-        <member name="T:E.<>E__0`1">
+        <member name="T:E.&lt;&gt;E__0`1">
             <summary>Summary for extension block</summary>
             <typeparam name="T">Description for T</typeparam>
             <param name="t">Description for t</param>
         </member>
-        <member name="M:E.<>E__0`1.M``1(``0)">
+        <member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
             <summary>Summary for M</summary>
             <typeparam name="U">Description for U</typeparam>
             <param name="u">Description for u</param>
         </member>
-        <member name="P:E.<>E__0`1.P">
+        <member name="P:E.&lt;&gt;E__0`1.P">
             <summary>Summary for P</summary>
         </member>
         <member name="M:E.M``2(``0,``1)">
-            <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+            <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
         </member>
         <member name="M:E.get_P``1(``0)">
-            <inheritdoc cref="P:E.<>E__0`1.P"/>
+            <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
         </member>
     </members>
 </doc>
@@ -39915,6 +39978,22 @@ static class E
             var symbol = model.GetSymbolInfo(identifier).Symbol;
             var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
             return (identifier, symbolDisplay).ToString();
+        }
+    }
+
+    private static IEnumerable<string> PrintXmlCrefSymbols(SyntaxTree tree, SemanticModel model)
+    {
+        var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+        var crefs = docComments.SelectMany(doc => doc.DescendantNodes().OfType<XmlCrefAttributeSyntax>());
+        var result = crefs.Select(name => print(name));
+        return result;
+
+        string print(XmlCrefAttributeSyntax cref)
+        {
+            CrefSyntax crefSyntax = cref.Cref;
+            var symbol = model.GetSymbolInfo(crefSyntax).Symbol;
+            var symbolDisplay = symbol is null ? "null" : symbol.ToTestDisplayString();
+            return (crefSyntax, symbolDisplay).ToString();
         }
     }
 
@@ -39954,7 +40033,7 @@ static class E
 
         var extension = e.GetTypeMembers().Single();
         AssertEx.Equal("""
-<member name="T:E.<>E__0`1">
+<member name="T:E.&lt;&gt;E__0`1">
     <summary>Summary for extension block</summary>
     <typeparam name="T">Description for T</typeparam>
     <param name="t">Description for t</param>
@@ -39964,7 +40043,7 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<member name="M:E.<>E__0`1.M``1(``0)">
+<member name="M:E.&lt;&gt;E__0`1.M``1(``0)">
     <summary>Summary for M</summary>
     <typeparam name="U">Description for U</typeparam>
     <param name="u">Description for u</param>
@@ -39975,14 +40054,14 @@ static class E
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<member name="P:E.<>E__0`1.P">
+<member name="P:E.&lt;&gt;E__0`1.P">
     <summary>Summary for P</summary>
 </member>
 
@@ -39991,7 +40070,7 @@ static class E
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());
@@ -40067,28 +40146,28 @@ static class E
 
         var mSkeleton = extension.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "M:E.<>E__0`1.M``1(``0)" -->
+<!-- Badly formed XML comment ignored for member "M:E.&lt;&gt;E__0`1.M``1(``0)" -->
 
 """, mSkeleton.GetDocumentationCommentXml());
 
         var mImplementation = e.GetMember<MethodSymbol>("M");
         AssertEx.Equal("""
 <member name="M:E.M``2(``1)">
-    <inheritdoc cref="M:E.<>E__0`1.M``1(``0)"/>
+    <inheritdoc cref="M:E.&lt;&gt;E__0`1.M``1(``0)"/>
 </member>
 
 """, mImplementation.GetDocumentationCommentXml());
 
         var p = extension.GetMember<PropertySymbol>("P");
         AssertEx.Equal("""
-<!-- Badly formed XML comment ignored for member "P:E.<>E__0`1.P" -->
+<!-- Badly formed XML comment ignored for member "P:E.&lt;&gt;E__0`1.P" -->
 
 """, p.GetDocumentationCommentXml());
 
         var pGetImplementation = e.GetMember<MethodSymbol>("get_P");
         AssertEx.Equal("""
 <member name="M:E.get_P``1">
-    <inheritdoc cref="P:E.<>E__0`1.P"/>
+    <inheritdoc cref="P:E.&lt;&gt;E__0`1.P"/>
 </member>
 
 """, pGetImplementation.GetDocumentationCommentXml());

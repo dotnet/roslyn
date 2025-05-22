@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
@@ -3573,5 +3574,463 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         #endregion Non-simple-type constructors
+
+        #region Extension members
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_01()
+        {
+            UsingNode("extension");
+
+            N(SyntaxKind.NameMemberCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken);
+                }
+            }
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_02()
+        {
+            UsingNode("E.extension");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_03()
+        {
+            UsingNode("E.extension()");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_04()
+        {
+            UsingNode("E.extension(int)");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_05()
+        {
+            UsingNode("E.extension{T}");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_06()
+        {
+            UsingNode("E.extension{T}()");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_07()
+        {
+            UsingNode("E.extension{T}(int)");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.GenericName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "extension");
+                        N(SyntaxKind.TypeArgumentList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_08()
+        {
+            UsingNode("E.extension{T}(int).");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ExtensionMemberCref);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    M(SyntaxKind.NameMemberCref);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_09()
+        {
+            UsingNode("E.extension{T}(int).M");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ExtensionMemberCref);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CrefParameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.NameMemberCref);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_10()
+        {
+            UsingNode("E.extension{T}().M");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ExtensionMemberCref);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.TypeArgumentList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.NameMemberCref);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_11()
+        {
+            UsingNode("E.extension().M");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ExtensionMemberCref);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.NameMemberCref);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "M");
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_12()
+        {
+            UsingNode("E.extension().extension().M");
+
+            N(SyntaxKind.QualifiedCref);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "E");
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.ExtensionMemberCref);
+                {
+                    N(SyntaxKind.ExtensionKeyword);
+                    N(SyntaxKind.CrefParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.ExtensionMemberCref);
+                    {
+                        N(SyntaxKind.ExtensionKeyword);
+                        N(SyntaxKind.CrefParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.NameMemberCref);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "M");
+                            }
+                        }
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExtensionCref_13()
+        {
+            UsingNode("extension().M");
+
+            N(SyntaxKind.ExtensionMemberCref);
+            {
+                N(SyntaxKind.ExtensionKeyword);
+                N(SyntaxKind.CrefParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.NameMemberCref);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "M");
+                    }
+                }
+            }
+            EOF();
+        }
+
+        #endregion
     }
 }

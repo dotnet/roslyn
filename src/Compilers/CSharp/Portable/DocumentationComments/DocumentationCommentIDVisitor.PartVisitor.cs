@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append('.');
                 }
 
-                builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
+                builder.Append(symbol.IsExtension ? escape(symbol.ExtensionName) : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {
@@ -215,6 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return null;
+
+                static string escape(string s)
+                {
+                    Debug.Assert(!s.Contains("&"));
+                    return s.Replace("<", "&lt;").Replace(">", "&gt;");
+                }
             }
 
             public override object VisitPointerType(PointerTypeSymbol symbol, StringBuilder builder)
