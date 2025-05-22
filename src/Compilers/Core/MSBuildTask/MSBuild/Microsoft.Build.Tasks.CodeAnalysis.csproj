@@ -5,10 +5,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
-
-    <!-- NuGet -->
-    <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
