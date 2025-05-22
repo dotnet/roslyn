@@ -99,7 +99,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="17.13.40008" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.877-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.13.226" />
@@ -111,7 +111,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.205-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.13.226" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
