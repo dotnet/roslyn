@@ -402,4 +402,54 @@ public {typeKind} A
             """;
         await RunMethodReferenceTest(input);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64592")]
+    public async Task TestFileScopedTypes()
+    {
+        const string input = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="File1.cs"><![CDATA[
+            namespace TestNamespace
+            {
+                {|1:file class C|}
+                {
+                    public C ()
+                    {
+                    }
+
+                    void M()
+                    {
+                        var t1 = new T();
+                        var t2 = new T();
+                    }
+                }
+
+                {|2:file class T|}
+                {
+                }
+            }]]>
+                    </Document>
+                    <Document FilePath="File2.cs"><![CDATA[
+            namespace TestNamespace
+            {
+                {|0:file class C|}
+                {
+                    void M()
+                    {
+                        var t1 = new T();
+                        var t2 = new T();
+                    }
+                }
+            
+                {|2:file class T|}
+                {
+                }
+            }]]>
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+        await RunReferenceTest(input);
+    }
 }
