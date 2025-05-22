@@ -31,8 +31,10 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -41,7 +43,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
-internal abstract partial class AbstractSemanticSearchService : ISemanticSearchService
+internal abstract partial class AbstractSemanticSearchService(
+    IAsynchronousOperationListenerProvider listenerProvider) : ISemanticSearchService
 {
     internal sealed class LoadContext() : AssemblyLoadContext("SemanticSearchLoadContext", isCollectible: true)
     {
@@ -81,7 +84,20 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
     private ImmutableDictionary<CompiledQueryId, CompiledQuery> _compiledQueries = ImmutableDictionary<CompiledQueryId, CompiledQuery>.Empty;
 
+    private readonly AsyncBatchingWorkQueue<(ISemanticSearchResultsObserver observer, string message)> _logQueue = new(
+        delay: TimeSpan.Zero,
+        async (entries, cancellationToken) =>
+        {
+            foreach (var (observer, message) in entries)
+            {
+                await observer.OnLogMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
+        },
+        listenerProvider.GetListener(FeatureAttribute.SemanticSearch),
+        cancellationToken: CancellationToken.None);
+
     protected abstract Compilation CreateCompilation(SourceText query, IEnumerable<MetadataReference> references, SolutionServices services, out SyntaxTree queryTree, CancellationToken cancellationToken);
+    protected abstract ObjectFormatter ObjectFormatter { get; }
 
     public CompileQueryResult CompileQuery(
         SolutionServices services,
@@ -168,18 +184,22 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 var queryAssembly = loadContext.LoadFromStream(query.PEStream, query.PdbStream);
                 SetModuleCancellationToken(queryAssembly, cancellationToken);
 
-                SetToolImplementations(
+                SetExtensionsImplementations(
                     queryAssembly,
                     new ReferencingSyntaxFinder(solution, cancellationToken),
                     new SemanticModelGetter(solution, cancellationToken));
 
-                if (!TryGetFindMethod(queryAssembly, out var findMethod, out var queryKind, out var errorMessage, out var errorMessageArgs))
+                SetToolsImplementations(
+                    queryAssembly,
+                    print: value => _logQueue.AddWork((observer, ObjectFormatter.FormatObject(value))));
+
+                if (!TryGetQueryFunctions(queryAssembly, out var functions, out var queryKind, out var errorMessage, out var errorMessageArgs))
                 {
                     traceSource.TraceInformation($"Semantic search failed: {errorMessage}");
                     return CreateResult(errorMessage, errorMessageArgs);
                 }
 
-                var invocationContext = new QueryExecutionContext(query.Text, findMethod, observer, classificationOptions, traceSource);
+                var invocationContext = new QueryExecutionContext(solution, query.Text, functions, observer, classificationOptions, traceSource);
                 try
                 {
                     await invocationContext.InvokeAsync(solution, queryKind, cancellationToken).ConfigureAwait(false);
@@ -230,30 +250,38 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
         moduleCancellationTokenField.SetValue(null, cancellationToken);
     }
 
-    private static void SetToolImplementations(Assembly queryAssembly, ReferencingSyntaxFinder finder, SemanticModelGetter semanticModelGetter)
+    private static void SetExtensionsImplementations(Assembly queryAssembly, ReferencingSyntaxFinder finder, SemanticModelGetter semanticModelGetter)
+    {
+        var extensionsTypes = queryAssembly.GetType(SemanticSearchUtilities.ExtensionsTypeName, throwOnError: true);
+        Contract.ThrowIfNull(extensionsTypes);
+
+        SetFieldValue(extensionsTypes, SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.Find));
+        SetFieldValue(extensionsTypes, SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
+    }
+
+    private static void SetToolsImplementations(Assembly queryAssembly, Action<object?> print)
     {
         var toolsType = queryAssembly.GetType(SemanticSearchUtilities.ToolsTypeName, throwOnError: true);
         Contract.ThrowIfNull(toolsType);
 
-        SetFieldValue(SemanticSearchUtilities.FindReferencingSyntaxNodesImplName, new Func<ISymbol, IEnumerable<SyntaxNode>>(finder.Find));
-        SetFieldValue(SemanticSearchUtilities.GetSemanticModelImplName, new Func<SyntaxTree, Task<SemanticModel>>(semanticModelGetter.GetSemanticModelAsync));
-
-        void SetFieldValue(string fieldName, object value)
-        {
-            var field = toolsType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
-            Contract.ThrowIfNull(field);
-            field.SetValue(null, value);
-        }
+        SetFieldValue(toolsType, SemanticSearchUtilities.PrintImplName, print);
     }
 
-    private static bool TryGetFindMethod(
+    private static void SetFieldValue(Type type, string fieldName, object value)
+    {
+        var field = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+        Contract.ThrowIfNull(field);
+        field.SetValue(null, value);
+    }
+
+    private static bool TryGetQueryFunctions(
         Assembly queryAssembly,
-        [NotNullWhen(true)] out MethodInfo? method,
+        [NotNullWhen(true)] out QueryFunctions? functions,
         out QueryKind queryKind,
         [NotNullWhen(false)] out string? error,
         out string[]? errorMessageArgs)
     {
-        method = null;
+        functions = null;
         errorMessageArgs = null;
         queryKind = default;
 
@@ -271,41 +299,45 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
 
         Contract.ThrowIfNull(program);
 
-        using var _ = ArrayBuilder<MethodInfo>.GetInstance(out var candidates);
         try
         {
-            foreach (var candidate in program.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
+            if (TryGetFindFunction(out var findFunction, out error, out queryKind) &&
+                TryGetUpdateFunction(LanguageNames.CSharp, out var updateFunctionCSharp, out error) &&
+                TryGetUpdateFunction(LanguageNames.VisualBasic, out var updateFunctionVisualBasic, out error))
             {
-                if (candidate.Name.StartsWith($"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{SemanticSearchUtilities.FindMethodName}|"))
-                {
-                    candidates.Add(candidate);
-                }
+                functions = new QueryFunctions(findFunction, updateFunctionCSharp, updateFunctionVisualBasic);
+                return true;
             }
 
-            if (candidates is [])
+            return false;
+        }
+        catch (Exception e)
+        {
+            error = e.Message;
+            return false;
+        }
+
+        bool TryGetFindFunction([NotNullWhen(true)] out MethodInfo? function, [NotNullWhen(false)] out string? error, out QueryKind queryKind)
+        {
+            queryKind = default;
+
+            if (!TryGetCandidate(
+                SemanticSearchUtilities.FindMethodName,
+                expectedParameters: null,
+                overloadSelector: null,
+                isOptional: false,
+                out function,
+                out var functionName,
+                out error))
             {
-                error = string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, SemanticSearchUtilities.FindMethodName);
+                Contract.ThrowIfNull(error);
                 return false;
             }
 
-            candidates.RemoveAll(candidate => candidate.IsGenericMethod || !candidate.IsStatic);
-            if (candidates is [])
+            Contract.ThrowIfNull(function);
+            if (function.GetParameters() is not [var parameter])
             {
-                error = string.Format(FeaturesResources.Method_0_must_be_static_and_non_generic, SemanticSearchUtilities.FindMethodName);
-                return false;
-            }
-
-            if (candidates.Count > 1)
-            {
-                error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
-                return false;
-            }
-
-            method = candidates[0];
-
-            if (method.GetParameters() is not [var parameter])
-            {
-                error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_1, SemanticSearchUtilities.FindMethodName);
+                error = string.Format(FeaturesResources.Top_level_function_0_must_have_a_single_parameter, functionName);
                 return false;
             }
 
@@ -319,25 +351,138 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
                 return false;
             }
 
-            if (method.ReturnType != typeof(IEnumerable<ISymbol>) &&
-                method.ReturnType != typeof(IAsyncEnumerable<ISymbol>))
+            if (function.ReturnType != typeof(IEnumerable<ISymbol>) &&
+                function.ReturnType != typeof(IAsyncEnumerable<ISymbol>) &&
+                function.ReturnType != typeof(IEnumerable<Location>) &&
+                function.ReturnType != typeof(IAsyncEnumerable<Location>))
             {
                 error = string.Format(
-                    FeaturesResources.Return_type_0_is_not_among_supported_types_1,
-                    method.ReturnType,
-                    "'IEnumerable<ISymbol>', 'IAsyncEnumerable<ISymbol>'");
+                    FeaturesResources.Return_type_0_of_function_1_is_not_among_supported_types_2,
+                    function.ReturnType,
+                    functionName,
+                    "'IEnumerable<ISymbol>', 'IAsyncEnumerable<ISymbol>', 'IEnumerable<Location>', 'IAsyncEnumerable<Location>'");
 
                 return false;
             }
-        }
-        catch (Exception e)
-        {
-            error = e.Message;
-            return false;
+
+            return true;
         }
 
-        error = null;
-        return true;
+        bool TryGetUpdateFunction(string language, out MethodInfo? function, [NotNullWhen(false)] out string? error)
+        {
+            var unitType = $"Microsoft.CodeAnalysis.{(language == LanguageNames.CSharp ? "CSharp" : "VisualBasic")}.Syntax.CompilationUnitSyntax";
+
+            if (!TryGetCandidate(
+                SemanticSearchUtilities.UpdateMethodName,
+                expectedParameters: $"'{unitType}', 'IEnumerable<Location>'",
+                overloadSelector: parameters => parameters is [var parameterSyntaxTree, var parameterLocations] &&
+                  parameterSyntaxTree.ParameterType.IsAssignableTo(typeof(ICompilationUnitSyntax)) &&
+                  parameterSyntaxTree.ParameterType.FullName == unitType &&
+                  parameterLocations.ParameterType.IsAssignableTo(typeof(IEnumerable<TextSpan>)),
+                isOptional: true,
+                out function,
+                out var functionName,
+                out error))
+            {
+                return error == null;
+            }
+
+            if (function == null)
+            {
+                // Update function not defined.
+                return true;
+            }
+
+            if (!(function.ReturnType.IsAssignableTo(typeof(ICompilationUnitSyntax)) &&
+                  function.ReturnType.FullName == unitType))
+            {
+                error = string.Format(
+                    FeaturesResources.Return_type_0_of_function_1_is_not_among_supported_types_2,
+                    function.ReturnType,
+                    functionName,
+                    $"'{unitType}'");
+
+                return false;
+            }
+
+            return true;
+        }
+
+        bool TryGetCandidate(
+            string functionNamePrefix,
+            string? expectedParameters,
+            Predicate<ParameterInfo[]>? overloadSelector,
+            bool isOptional,
+            [NotNullWhen(true)] out MethodInfo? function,
+            [NotNullWhen(true)] out string? functionName,
+            out string? error)
+        {
+            Contract.ThrowIfFalse(overloadSelector is null == expectedParameters is null);
+
+            function = null;
+            functionName = null;
+
+            var candidates = new TemporaryArray<(MethodInfo info, string name)>();
+            var hasNonMatchingOverload = false;
+
+            foreach (var candidate in program.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
+            {
+                var metadataPrefix = $"<{WellKnownMemberNames.TopLevelStatementsEntryPointMethodName}>g__{functionNamePrefix}";
+
+                if (candidate.Name.StartsWith(metadataPrefix, StringComparison.Ordinal))
+                {
+                    var nameEnd = candidate.Name.IndexOf('|', startIndex: metadataPrefix.Length);
+                    Contract.ThrowIfFalse(nameEnd > 0);
+
+                    if (overloadSelector == null && nameEnd != metadataPrefix.Length)
+                    {
+                        continue;
+                    }
+
+                    if (overloadSelector != null && !overloadSelector(candidate.GetParameters()))
+                    {
+                        hasNonMatchingOverload = true;
+                        continue;
+                    }
+
+                    candidates.Add((candidate, functionNamePrefix + candidate.Name[metadataPrefix.Length..nameEnd]));
+
+                    if (overloadSelector == null)
+                    {
+                        // only one local function of the given exact name can be defined
+                        break;
+                    }
+                }
+            }
+
+            if (candidates.Count == 0)
+            {
+                error = isOptional
+                    ? null
+                    : hasNonMatchingOverload
+                    ? string.Format(FeaturesResources.Top_level_function_0_must_have_1_parameters_of_types_2, functionNamePrefix, expectedParameters)
+                    : string.Format(FeaturesResources.The_query_does_not_specify_0_top_level_function, functionNamePrefix);
+
+                return false;
+            }
+
+            if (candidates.Count > 1)
+            {
+                error = string.Format(FeaturesResources.The_query_specifies_multiple_top_level_functions_with_prefix_1, functionNamePrefix);
+                return false;
+            }
+
+            (function, functionName) = candidates[0];
+
+            if (function.IsGenericMethod || !function.IsStatic)
+            {
+                error = string.Format(FeaturesResources.Method_0_must_be_static_and_non_generic, functionNamePrefix);
+                return false;
+            }
+
+            error = null;
+            return true;
+        }
     }
 }
 #endif

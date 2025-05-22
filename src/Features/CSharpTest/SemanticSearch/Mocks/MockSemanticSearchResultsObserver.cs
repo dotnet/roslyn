@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Roslyn.Utilities;
@@ -15,10 +16,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SemanticSearch;
 internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResultsObserver
 {
     public Action<DefinitionItem>? OnDefinitionFoundImpl { get; set; }
+    public Action<DocumentId, ImmutableArray<TextChange>>? OnDocumentUpdatedImpl { get; set; }
     public Action<UserCodeExceptionInfo>? OnUserCodeExceptionImpl { get; set; }
     public Action<ImmutableArray<QueryCompilationError>>? OnCompilationFailureImpl { get; set; }
     public Action<int>? ItemsCompletedImpl { get; set; }
     public Action<int>? AddItemsImpl { get; set; }
+    public Action<string>? OnLogMessageImpl { get; set; }
 
     public ValueTask AddItemsAsync(int itemCount, CancellationToken cancellationToken)
     {
@@ -38,9 +41,21 @@ internal sealed class MockSemanticSearchResultsObserver : ISemanticSearchResults
         return ValueTaskFactory.CompletedTask;
     }
 
+    public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    {
+        OnDocumentUpdatedImpl?.Invoke(documentId, changes);
+        return ValueTaskFactory.CompletedTask;
+    }
+
     public ValueTask OnUserCodeExceptionAsync(UserCodeExceptionInfo exception, CancellationToken cancellationToken)
     {
         OnUserCodeExceptionImpl?.Invoke(exception);
+        return ValueTaskFactory.CompletedTask;
+    }
+
+    public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+    {
+        OnLogMessageImpl?.Invoke(message);
         return ValueTaskFactory.CompletedTask;
     }
 }

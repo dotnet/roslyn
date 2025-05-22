@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SemanticSearch;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot.Internal.SemanticSearch;
@@ -54,6 +55,12 @@ internal sealed class CopilotSemanticSearchQueryExecutor(IHostWorkspaceProvider 
 
             return ValueTaskFactory.CompletedTask;
         }
+
+        public ValueTask OnDocumentUpdatedAsync(DocumentId documentId, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+            => throw new NotImplementedException(); // TODO
+
+        public ValueTask OnLogMessageAsync(string message, CancellationToken cancellationToken)
+            => ValueTaskFactory.CompletedTask; // TODO
     }
 
     /// <summary>
