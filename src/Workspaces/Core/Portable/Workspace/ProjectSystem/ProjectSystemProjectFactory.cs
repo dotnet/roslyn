@@ -420,21 +420,23 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
-
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any references we are now watching. Process adds before remove in case the same reference is in both lists.
+        // In those cases, it's prefererable to go from 0 -> 1 -> 0 or 1 -> 2 -> 1 references rather than from 0 -> -1 -> 0 or 1 -> 0 -> 1 references.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
             FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
-        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
+        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!);
 
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any references we are now watching. Process adds before remove in case the same reference is in both lists.
+        // In those cases, it's prefererable to go from 0 -> 1 -> 0 or 1 -> 2 -> 1 references rather than from 0 -> -1 -> 0 or 1 -> 0 -> 1 references.
         foreach (var referenceFullPath in projectUpdateState.AddedAnalyzerReferences)
             FileWatchedAnalyzerReferenceFactory.StartWatchingReference(referenceFullPath);
+
+        // Remove file watchers for any references we're no longer watching.
+        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
