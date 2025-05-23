@@ -19947,9 +19947,9 @@ static class E
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
     [CombinatorialData]
-    public void InterpolationHandler_ReceiverParameter_NullableMismatch(bool useMetadataRef, bool useOut)
+    public void InterpolationHandler_ReceiverParameter_NullableMismatch_01(bool useMetadataRef, bool useOut)
     {
-        string outParam = (useOut ? ", out bool valid" : "");
+        string outParam = useOut ? ", out bool valid" : "";
         var src = $$"""
             #nullable enable
             [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -20012,6 +20012,82 @@ static class E
             // (8,5): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
             // E.M(null, "", $"");
             Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(8, 5)
+        };
+        CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+
+        var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+        CreateCompilation(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]
+    [CombinatorialData]
+    public void InterpolationHandler_ReceiverParameter_NullableMismatch_02(bool useMetadataRef, bool useOut)
+    {
+        string outParam = useOut ? ", out bool valid" : "";
+        var src = $$"""
+            #nullable enable
+            [System.Runtime.CompilerServices.InterpolatedStringHandler]
+            public struct InterpolationHandler
+            {
+
+                public InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{{outParam}})
+                {
+                    System.Console.Write(s1);
+                    System.Console.Write(s2);
+                    {{(useOut ? "valid = true;" : "")}}
+                }
+                public void AppendLiteral(string value) { }
+                public void AppendFormatted<T>(T hole, int alignment = 0, string? format = null) => throw null!;
+            }
+
+            public static class E
+            {
+                extension(string? s1)
+                {
+                    public void M(string? s2, string? s3, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s2", "s3")] InterpolationHandler h) {}
+                }
+            }
+            """;
+
+        var exeSource = """
+            #nullable enable
+            "".M(null, null, $"");
+            "".M(null, "", $"");
+            "".M("", null, $"");
+            "".M("", "", $"");
+            E.M("", null, null, $"");
+            E.M("", "", null, $"");
+            E.M("", null, "", $"");
+            E.M("", "", "", $"");
+            """;
+
+        var expectedDiagnostics = new[] {
+                // (2,6): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // "".M(null, null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(2, 6),
+                // (2,12): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // "".M(null, null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(2, 12),
+                // (3,6): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // "".M(null, "", $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(3, 6),
+                // (4,10): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // "".M("", null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(4, 10),
+                // (6,9): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // E.M("", null, null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(6, 9),
+                // (6,15): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // E.M("", null, null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(6, 15),
+                // (7,13): warning CS8604: Possible null reference argument for parameter 's2' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // E.M("", "", null, $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s2", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(7, 13),
+                // (8,9): warning CS8604: Possible null reference argument for parameter 's1' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2)'.
+                // E.M("", null, "", $"");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("s1", $"InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string s1, string s2{outParam})").WithLocation(8, 9)
+
         };
         CreateCompilation([exeSource, src], targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
 

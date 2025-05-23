@@ -9569,7 +9569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // In new extension form, the nullable rewriter processes the arguments as if receiver is the first item in the argument list, like the old extension form. This means that all of
                 // our placeholders will be off-by-one, with the extension receiver in the first position.
-                var newExtensionFormOffset = handlerData.ArgumentPlaceholders.Any(p => p.ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver) ? 1 : 0;
+                var newExtensionFormOffset = parameterOpt?.ContainingType.IsExtension is true ? 1 : 0;
                 bool addedPlaceholders = false;
                 foreach (var placeholder in handlerData.ArgumentPlaceholders)
                 {
