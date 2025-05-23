@@ -39,14 +39,13 @@ using LanguageKind = String;
 [Export(typeof(ICodeFixService)), Shared]
 internal sealed partial class CodeFixService : ICodeFixService
 {
-    private readonly IDiagnosticAnalyzerService _diagnosticService;
     private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
-    private readonly ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
+    private readonly Lazy<ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>>> _fixersPerLanguageMap;
 
     private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
     // Shared by project fixers and workspace fixers.
-    private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
+    private readonly Lazy<ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>>> _configurationProvidersMap;
     private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
     private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
@@ -59,18 +58,16 @@ internal sealed partial class CodeFixService : ICodeFixService
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     public CodeFixService(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         [ImportMany] IEnumerable<Lazy<IErrorLoggerService>> loggers,
         [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
         [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
     {
-        _diagnosticService = diagnosticAnalyzerService;
         _errorLoggers = [.. loggers];
 
         _fixers = [.. fixers];
-        _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
+        _fixersPerLanguageMap = new(() => _fixers.ToPerLanguageMapWithMultipleLanguages());
 
-        _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
+        _configurationProvidersMap = new(() => GetConfigurationProvidersPerLanguageMap(configurationProviders));
     }
 
     private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
@@ -105,9 +102,11 @@ internal sealed partial class CodeFixService : ICodeFixService
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            allDiagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                 priorityProvider, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
@@ -195,9 +194,11 @@ internal sealed partial class CodeFixService : ICodeFixService
         // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
         ImmutableArray<DiagnosticData> diagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            diagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
                 priorityProvider, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
             if (!includeSuppressionFixes)
@@ -295,9 +296,11 @@ internal sealed partial class CodeFixService : ICodeFixService
         using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
         ImmutableArray<DiagnosticData> diagnostics;
 
-        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(
+            FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync)}"))
         {
-            diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+            var service = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+            diagnostics = await service.GetDiagnosticsForSpanAsync(
                 document, range, diagnosticId, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
                 DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
@@ -452,7 +455,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         var hasAnySharedFixer = TryGetWorkspaceFixersMap(document, out var fixerMap);
 
         var projectFixersMap = GetProjectFixers(document);
-        var hasAnyProjectFixer = projectFixersMap.Any();
+        var hasAnyProjectFixer = !projectFixersMap.IsEmpty;
 
         if (!hasAnySharedFixer && !hasAnyProjectFixer)
             yield break;
@@ -712,7 +715,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_configurationProvidersMap.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) ||
+        if (!_configurationProvidersMap.Value.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) ||
             lazyConfigurationProviders.Value == null)
         {
             yield break;
@@ -783,7 +786,7 @@ internal sealed partial class CodeFixService : ICodeFixService
 
             var diagnosticProvider = fixAllForInSpan
                 ? new FixAllPredefinedDiagnosticProvider(allDiagnostics)
-                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(_diagnosticService, diagnosticIds);
+                : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(diagnosticIds);
 
             var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
@@ -809,7 +812,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     /// <summary> Looks explicitly for an <see cref="AbstractSuppressionCodeFixProvider"/>.</summary>
     public CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
     {
-        if (!_configurationProvidersMap.TryGetValue(language, out var lazyConfigurationProviders) ||
+        if (!_configurationProvidersMap.Value.TryGetValue(language, out var lazyConfigurationProviders) ||
             lazyConfigurationProviders.Value.IsDefault)
         {
             return null;
@@ -878,7 +881,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
         var extensionManager = services.GetService<IExtensionManager>();
-        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
+        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap.Value)
         {
             var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
             {
@@ -939,7 +942,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(SolutionServices services)
     {
         var languageMap = ImmutableDictionary.CreateBuilder<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>();
-        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
+        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap.Value)
         {
             var lazyMap = new Lazy<ImmutableDictionary<CodeFixProvider, int>>(() =>
             {

@@ -175,7 +175,13 @@ M();
 ++x; 
 x++; 
 --x; 
-x--; 
+x--;
+a?.M(); // conditional access / null-propagating operator
+a?[b] = c;
+a?.b = c;
+a?[b] = c;
+a?.b += c; // and other compound assignment cases
+var x = a?.M(); // similar "value is used" versions of the above '?.' cases
 new C(); 
 if (…) … else … 
 switch(…) { … case (…) when (…): … } 
@@ -242,8 +248,8 @@ A variable is a storage location. These are all the different ways to refer to a
 x.y 
 f( ) 
 a[e] 
-x++ 
-x-- 
+x++ (including instance user defined)
+x-- (including instance user defined)
 new X() 
 new() 
 typeof(T) 
@@ -257,8 +263,8 @@ delegate ( ) { }
 !x 
 ~x 
 ^x
-++x 
---x 
+++x (including instance user defined)
+--x (including instance user defined)
 (X)x 
 x * y 
 x / y 
@@ -284,17 +290,17 @@ x || y
 x ?? y 
 x ? : y : z
 x = y 
-x *= y 
-x /= y 
-x %= y 
-x += y 
-x -= y 
-x <<= y 
-x >>= y 
-x >>>= y 
-x &= y 
-x ^= y 
-x |= y 
+x *= y (including instance user defined)
+x /= y (including instance user defined)
+x %= y (including instance user defined)
+x += y (including instance user defined)
+x -= y (including instance user defined)
+x <<= y (including instance user defined)
+x >>= y (including instance user defined)
+x >>>= y (including instance user defined)
+x &= y (including instance user defined)
+x ^= y (including instance user defined)
+x |= y (including instance user defined)
 x ??= y
 x => { } 
 sizeof( ) 
@@ -381,7 +387,7 @@ __makeref( x )
 - Interface method 
 - Field
 - User-defined indexer
-- User-defined operator (including checked)
+- User-defined operator (including checked, including instance increment/decrement and compound assignment)
 - User-defined conversion (including checked)
 
 ## Patterns

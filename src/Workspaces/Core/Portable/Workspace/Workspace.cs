@@ -160,7 +160,7 @@ public abstract partial class Workspace : IDisposable
     }
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see cref="WorkspaceChanged"/> event.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a WorkspaceChange event.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -170,9 +170,9 @@ public abstract partial class Workspace : IDisposable
         => SetCurrentSolutionEx(solution).newSolution;
 
     /// <summary>
-    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a <see
-    /// cref="WorkspaceChanged"/> event.  This method should be used <em>sparingly</em>.  As much as possible,
-    /// derived types should use the SetCurrentSolution overloads that take a transformation.
+    /// Sets the <see cref="CurrentSolution"/> of this workspace. This method does not raise a
+    /// WorkspaceChange event.  This method should be used <em>sparingly</em>.
+    /// As much as possible, derived types should use the SetCurrentSolution overloads that take a transformation.
     /// </summary>
     /// <remarks>
     /// This method does not guarantee that linked files will have the same contents. Callers
@@ -368,13 +368,16 @@ public abstract partial class Workspace : IDisposable
 
         static Solution UpdateExistingDocumentsToChangedDocumentContents(Solution solution, HashSet<DocumentId> changedDocumentIds)
         {
+            if (changedDocumentIds.Count == 0)
+                return solution;
+
             // Changing a document in a linked-doc-chain will end up producing N changed documents.  We only want to
             // process that chain once.
             using var _ = PooledDictionary<DocumentId, DocumentState>.GetInstance(out var relatedDocumentIdsAndStates);
 
             foreach (var changedDocumentId in changedDocumentIds)
             {
-                Document? changedDocument = null;
+                DocumentState? changedDocumentState = null;
                 var relatedDocumentIds = solution.GetRelatedDocumentIds(changedDocumentId);
 
                 foreach (var relatedDocumentId in relatedDocumentIds)
@@ -384,8 +387,8 @@ public abstract partial class Workspace : IDisposable
 
                     if (!changedDocumentIds.Contains(relatedDocumentId))
                     {
-                        changedDocument ??= solution.GetRequiredDocument(changedDocumentId);
-                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocument.DocumentState;
+                        changedDocumentState ??= solution.SolutionState.GetRequiredDocumentState(changedDocumentId);
+                        relatedDocumentIdsAndStates[relatedDocumentId] = changedDocumentState;
                     }
                 }
             }

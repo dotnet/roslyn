@@ -175,7 +175,7 @@ internal sealed class EditAndContinueLanguageService(
                 // We start the operation but do not wait for it to complete.
                 // The tracking session is cancelled when we exit the break state.
 
-                Debug.Assert(solution != null);
+                Contract.ThrowIfNull(solution);
                 GetActiveStatementTrackingService().StartTracking(solution, session);
             }
         }
@@ -398,7 +398,25 @@ internal sealed class EditAndContinueLanguageService(
                 break;
         }
 
-        UpdateApplyChangesDiagnostics(result.Diagnostics);
+        ArrayBuilder<DiagnosticData>? deletedDocumentRudeEdits = null;
+        foreach (var rudeEdit in result.RudeEdits)
+        {
+            if (await solution.GetDocumentAsync(rudeEdit.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false) == null)
+            {
+                deletedDocumentRudeEdits ??= ArrayBuilder<DiagnosticData>.GetInstance();
+                deletedDocumentRudeEdits.Add(rudeEdit);
+            }
+        }
+
+        if (deletedDocumentRudeEdits != null)
+        {
+            deletedDocumentRudeEdits.AddRange(result.Diagnostics);
+            UpdateApplyChangesDiagnostics(deletedDocumentRudeEdits.ToImmutableAndFree());
+        }
+        else
+        {
+            UpdateApplyChangesDiagnostics(result.Diagnostics);
+        }
 
         return new ManagedHotReloadUpdates(
             result.ModuleUpdates.Updates.FromContract(),

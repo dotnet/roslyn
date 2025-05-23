@@ -706,6 +706,8 @@ namespace System.Diagnostics.CodeAnalysis
 ";
 
         internal static readonly string CompilerFeatureRequiredAttribute = """
+            #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
@@ -719,7 +721,86 @@ namespace System.Diagnostics.CodeAnalysis
                     public bool IsOptional { get; set; }
                 }
             }
+
+            #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
             """;
+
+        internal static readonly string CompilerFeatureRequiredAttributeIL = @"
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+     extends [mscorlib]System.Attribute
+ {
+     .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+         01 00 ff 7f 00 00 02 00 54 02 0d 41 6c 6c 6f 77
+         4d 75 6c 74 69 70 6c 65 01 54 02 09 49 6e 68 65
+         72 69 74 65 64 00
+     )
+     // Fields
+     .field private initonly string '<FeatureName>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+     .field private initonly bool '<IsOptional>k__BackingField'
+     .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+         01 00 00 00
+     )
+
+     .field public static literal string RefStructs = ""RefStructs""
+     .field public static literal string RequiredMembers = ""RequiredMembers""
+ 
+     // Methods
+     .method public hidebysig specialname rtspecialname 
+         instance void .ctor (
+             string featureName
+         ) cil managed 
+     {
+         ldarg.0
+         call instance void [mscorlib]System.Attribute::.ctor()
+         ldarg.0
+         ldarg.1
+         stfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::.ctor
+ 
+     .method public hidebysig specialname 
+         instance string get_FeatureName () cil managed 
+     {
+         ldarg.0
+         ldfld string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<FeatureName>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_FeatureName
+ 
+     .method public hidebysig specialname 
+         instance bool get_IsOptional () cil managed 
+     {
+         ldarg.0
+         ldfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::get_IsOptional
+ 
+     .method public hidebysig specialname 
+         instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) set_IsOptional (
+             bool 'value'
+         ) cil managed 
+     {
+         ldarg.0
+         ldarg.1
+         stfld bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::'<IsOptional>k__BackingField'
+         ret
+     } // end of method CompilerFeatureRequiredAttribute::set_IsOptional
+ 
+     // Properties
+     .property instance string FeatureName()
+     {
+         .get instance string System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_FeatureName()
+     }
+     .property instance bool IsOptional()
+     {
+         .get instance bool System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::get_IsOptional()
+         .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsExternalInit) System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::set_IsOptional(bool)
+     }
+ 
+ } // end of class System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute
+";
 
         internal static readonly string CollectionBuilderAttributeDefinition = """
             namespace System.Runtime.CompilerServices
@@ -732,7 +813,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeDefinition = """
             namespace System.Runtime.CompilerServices;
 
             [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -742,7 +823,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             """;
 
-        internal const string OverloadResolutionPriorityAttributeILDefinition = """
+        internal static readonly string OverloadResolutionPriorityAttributeILDefinition = """
             .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute
                 extends [mscorlib]System.Attribute
             {
@@ -784,7 +865,7 @@ namespace System.Diagnostics.CodeAnalysis
         /// <summary>
         /// The shape of the attribute comes from https://github.com/dotnet/runtime/issues/103430
         /// </summary>
-        internal const string CompilerLoweringPreserveAttributeDefinition = """
+        internal static readonly string CompilerLoweringPreserveAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
@@ -794,6 +875,360 @@ namespace System.Diagnostics.CodeAnalysis
                 }
             }
             """;
+
+        #region A string containing expression-tree dumping utilities
+        protected static readonly string ExpressionTestLibrary = """
+using System;
+using System.Globalization;
+using System.Linq.Expressions;
+using System.Text;
+
+public class TestBase
+{
+    protected static void DCheck<T>(Expression<T> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T>(Expression<Func<T>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2>(Expression<Func<T1, T2>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2, T3>(Expression<Func<T1, T2, T3>> e, string expected) { Check(e.Dump(), expected); }
+    protected static void Check<T1, T2, T3, T4>(Expression<Func<T1, T2, T3, T4>> e, string expected) { Check(e.Dump(), expected); }
+    protected static string ToString<T>(Expression<Func<T>> e) { return e.Dump(); }
+    protected static string ToString<T1, T2>(Expression<Func<T1, T2>> e) { return e.Dump(); }
+    protected static string ToString<T1, T2, T3>(Expression<Func<T1, T2, T3>> e) { return e.Dump(); }
+    private static void Check(string actual, string expected)
+    {
+        if (expected != actual)
+        {
+            Console.WriteLine("FAIL");
+            Console.WriteLine("expected: " + expected);
+            Console.WriteLine("actual:   " + actual);
+        }
+    }
+}
+
+public static class ExpressionExtensions
+{
+    public static string Dump<T>(this Expression<T> self)
+    {
+        return ExpressionPrinter.Print(self.Body);
+    }
+}
+
+class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
+{
+    private StringBuilder s = new StringBuilder();
+
+    public static string Print(Expression e)
+    {
+        var p = new ExpressionPrinter();
+        p.Visit(e);
+        return p.s.ToString();
+    }
+
+    public override Expression Visit(Expression node)
+    {
+        if (node == null) { s.Append("null"); return null; }
+        s.Append(node.NodeType.ToString());
+        s.Append("(");
+        base.Visit(node);
+        s.Append(" Type:" + node.Type);
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberBinding VisitMemberBinding(MemberBinding node)
+    {
+        if (node == null) { s.Append("null"); return null; }
+        return base.VisitMemberBinding(node);
+    }
+
+    protected override MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding node)
+    {
+        s.Append("MemberMemberBinding(Member=");
+        s.Append(node.Member.ToString());
+        foreach (var b in node.Bindings)
+        {
+            s.Append(" ");
+            VisitMemberBinding(b);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberListBinding VisitMemberListBinding(MemberListBinding node)
+    {
+        s.Append("MemberListBinding(Member=");
+        s.Append(node.Member.ToString());
+        foreach (var i in node.Initializers)
+        {
+            s.Append(" ");
+            VisitElementInit(i);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+    {
+        s.Append("MemberAssignment(Member=");
+        s.Append(node.Member.ToString());
+        s.Append(" Expression=");
+        Visit(node.Expression);
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitMemberInit(MemberInitExpression node)
+    {
+        s.Append("NewExpression: ");
+        Visit(node.NewExpression);
+        s.Append(" Bindings:[");
+        bool first = true;
+        foreach (var b in node.Bindings)
+        {
+            if (!first) s.Append(" ");
+            VisitMemberBinding(b);
+            first = false;
+        }
+        s.Append("]");
+        return null;
+    }
+
+    protected override Expression VisitBinary(BinaryExpression node)
+    {
+        Visit(node.Left);
+        s.Append(" ");
+        Visit(node.Right);
+        if (node.Conversion != null)
+        {
+            s.Append(" Conversion:");
+            Visit(node.Conversion);
+        }
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
+        return null;
+    }
+
+    protected override Expression VisitConditional(ConditionalExpression node)
+    {
+        Visit(node.Test);
+        s.Append(" ? ");
+        Visit(node.IfTrue);
+        s.Append(" : ");
+        Visit(node.IfFalse);
+        return null;
+    }
+
+    protected override Expression VisitConstant(ConstantExpression node)
+    {
+        s.Append(node.Value == null ? "null" : GetCultureInvariantString(node.Value));
+        return null;
+    }
+
+    protected override Expression VisitDefault(DefaultExpression node)
+    {
+        return null;
+    }
+
+    protected override Expression VisitIndex(IndexExpression node)
+    {
+        Visit(node.Object);
+        s.Append("[");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append("]");
+        if (node.Indexer != null) s.Append(" Indexer:" + node.Indexer);
+        return null;
+    }
+
+    protected override Expression VisitInvocation(InvocationExpression node)
+    {
+        Visit(node.Expression);
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitLambda<T>(Expression<T> node)
+    {
+        s.Append("(");
+        int n = node.Parameters.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Parameters[i]);
+        }
+        s.Append(") => ");
+        if (node.Name != null) s.Append(node.Name);
+        Visit(node.Body);
+        if (node.ReturnType != null) s.Append(" ReturnType:" + node.ReturnType);
+        if (node.TailCall) s.Append(" TailCall");
+        return null;
+    }
+
+    protected override Expression VisitListInit(ListInitExpression node)
+    {
+        Visit(node.NewExpression);
+        s.Append("{");
+        int n = node.Initializers.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Initializers[i]);
+        }
+        s.Append("}");
+        return null;
+    }
+
+    protected override ElementInit VisitElementInit(ElementInit node)
+    {
+        Visit(node);
+        return null;
+    }
+
+    private void Visit(ElementInit node)
+    {
+        s.Append("ElementInit(");
+        s.Append(node.AddMethod);
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            s.Append(" ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+    }
+
+    protected override Expression VisitMember(MemberExpression node)
+    {
+        Visit(node.Expression);
+        s.Append(".");
+        s.Append(node.Member.Name);
+        return null;
+    }
+
+    protected override Expression VisitMethodCall(MethodCallExpression node)
+    {
+        Visit(node.Object);
+        s.Append(".[" + node.Method + "]");
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(", ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        return null;
+    }
+
+    protected override Expression VisitNew(NewExpression node)
+    {
+        s.Append((node.Constructor != null) ? "[" + node.Constructor + "]" : "<.ctor>");
+        s.Append("(");
+        int n = node.Arguments.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(", ");
+            Visit(node.Arguments[i]);
+        }
+        s.Append(")");
+        if (node.Members != null)
+        {
+            n = node.Members.Count;
+            if (n != 0)
+            {
+                s.Append("{");
+                for (int i = 0; i < n; i++)
+                {
+                    var info = node.Members[i];
+                    if (i != 0) s.Append(" ");
+                    s.Append(info);
+                }
+                s.Append("}");
+            }
+        }
+        return null;
+    }
+
+    protected override Expression VisitNewArray(NewArrayExpression node)
+    {
+        s.Append("[");
+        int n = node.Expressions.Count;
+        for (int i = 0; i < n; i++)
+        {
+            if (i != 0) s.Append(" ");
+            Visit(node.Expressions[i]);
+        }
+        s.Append("]");
+        return null;
+    }
+
+    protected override Expression VisitParameter(ParameterExpression node)
+    {
+        s.Append(node.Name);
+        if (node.IsByRef) s.Append(" ByRef");
+        return null;
+    }
+
+    protected override Expression VisitTypeBinary(TypeBinaryExpression node)
+    {
+        Visit(node.Expression);
+        s.Append(" TypeOperand:" + node.TypeOperand);
+        return null;
+    }
+
+    protected override Expression VisitUnary(UnaryExpression node)
+    {
+        Visit(node.Operand);
+        if (node.IsLifted) s.Append(" Lifted");
+        if (node.IsLiftedToNull) s.Append(" LiftedToNull");
+        if (node.Method != null) s.Append(" Method:[" + node.Method + "]");
+        return null;
+    }
+
+    public static string GetCultureInvariantString(object value)
+    {
+        var valueType = value.GetType();
+        if (valueType == typeof(string))
+        {
+            return value as string;
+        }
+
+        if (valueType == typeof(DateTime))
+        {
+            return ((DateTime)value).ToString("M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(float))
+        {
+            return ((float)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(double))
+        {
+            return ((double)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        if (valueType == typeof(decimal))
+        {
+            return ((decimal)value).ToString(CultureInfo.InvariantCulture);
+        }
+
+        return value.ToString();
+    }
+}
+""";
+        #endregion A string containing expression-tree dumping utilities
 
         protected static T GetSyntax<T>(SyntaxTree tree, string text)
             where T : notnull
@@ -1262,7 +1697,7 @@ namespace System.Diagnostics.CodeAnalysis
             string? assemblyName = null,
             string sourceFileName = "")
         {
-            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularWithDocumentationComments;
+            parseOptions = parseOptions != null ? parseOptions.WithDocumentationMode(DocumentationMode.Diagnose) : TestOptions.RegularPreviewWithDocumentationComments;
             options = (options ?? TestOptions.ReleaseDll).WithXmlReferenceResolver(XmlFileResolver.Default);
             return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
         }
@@ -1907,6 +2342,39 @@ namespace System.Diagnostics.CodeAnalysis
             }
         }
 
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
+
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
+        {
+            return compilation.SyntaxTrees.SelectMany(tree =>
+            {
+                var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+                return docComments.SelectMany(docComment => docComment.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Select(attr => attr.Cref));
+            });
+        }
+
+        internal static Symbol? GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            Symbol ambiguityWinner;
+            var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);
+            Assert.Null(ambiguityWinner);
+            Assert.InRange(references.Length, 0, 1); //Otherwise, call GetReferencedSymbols
+
+            return references.FirstOrDefault();
+        }
+
+        internal static ImmutableArray<Symbol> GetReferencedSymbols(CrefSyntax crefSyntax, CSharpCompilation compilation, out Symbol ambiguityWinner, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            var binderFactory = compilation.GetBinderFactory(crefSyntax.SyntaxTree);
+            var binder = binderFactory.GetBinder(crefSyntax);
+
+            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var references = binder.BindCref(crefSyntax, out ambiguityWinner, diagnostics);
+            diagnostics.Verify(expectedDiagnostics);
+            diagnostics.Free();
+            return references;
+        }
+
         #endregion
 
         #region IL Validation
@@ -1999,6 +2467,8 @@ namespace System.Diagnostics.CodeAnalysis
             {
                 return ImmutableArray.Create<ILVisualizer.LocalInfo>();
             }
+
+            Debug.Assert(builder.LocalSlotManager != null);
 
             var result = new ILVisualizer.LocalInfo[localInfos.Length];
             for (int i = 0; i < result.Length; i++)

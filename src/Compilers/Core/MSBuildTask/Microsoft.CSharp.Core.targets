@@ -94,7 +94,6 @@
          ChecksumAlgorithm="$(ChecksumAlgorithm)"
          CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
          CodePage="$(CodePage)"
-         CompilerType="$(RoslynCompilerType)"
          DebugType="$(DebugType)"
          DefineConstants="$(DefineConstants)"
          DelaySign="$(DelaySign)"

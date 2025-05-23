@@ -221,7 +221,7 @@ internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredS
         // Extensions don't declare a type of their own.  As they have no name, it's not something someone could search
         // for with navigate-to.  Instead, they just act as a loose block around a set of actual extension members.  So
         // just return null here to avoid creating anything in this case.
-        if (typeDeclaration.Kind() == SyntaxKind.ExtensionDeclaration)
+        if (typeDeclaration.Kind() == SyntaxKind.ExtensionBlockDeclaration)
             return null;
 
         return DeclaredSymbolInfo.Create(

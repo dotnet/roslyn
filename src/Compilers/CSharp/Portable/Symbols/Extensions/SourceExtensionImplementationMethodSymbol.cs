@@ -4,6 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -11,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SourceExtensionImplementationMethodSymbol : RewrittenMethodSymbol // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Do we need to implement ISynthesizedMethodBodyImplementationSymbol?
     {
+        private string? lazyDocComment;
+
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
@@ -56,8 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsExtern => false;
         public sealed override DllImportData? GetDllImportData() => null;
         internal sealed override bool IsExternal => false;
-
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : How doc comments are supposed to work? GetDocumentationCommentXml
 
         internal sealed override bool IsDeclaredReadOnly => false;
 
@@ -129,6 +131,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return UnderlyingMethod.TryGetOverloadResolutionPriority();
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo? preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
+        {
+            // Neither the culture nor the expandIncludes affect the XML for extension implementation methods.
+            string result = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: false, ref lazyDocComment);
+
+#if DEBUG
+            string? ignored = null;
+            string withIncludes = SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes: true, lazyXmlText: ref ignored);
+            Debug.Assert(string.Equals(result, withIncludes, System.StringComparison.Ordinal));
+#endif
+
+            return result;
         }
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol

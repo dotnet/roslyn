@@ -40,6 +40,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Una sustracción debe ser el último elemento de una clase de caracteres</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Agregar atributo de "DebuggerDisplay"</target>
@@ -4191,8 +4196,8 @@ Do you want to continue?</source>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
-        <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <source>{0} - {1}</source>
+        <target state="needs-review-translation">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4833,16 +4838,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Agregar comprobación de valores null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrEmpty"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrWhiteSpace"</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

@@ -2734,6 +2734,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName, symmetricCheck: false);
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedExplicitConversionName, WellKnownMemberNames.ExplicitConversionName, symmetricCheck: false);
 
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedAdditionAssignmentOperatorName, WellKnownMemberNames.AdditionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionAssignmentOperatorName, WellKnownMemberNames.DivisionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplicationAssignmentOperatorName, WellKnownMemberNames.MultiplicationAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionAssignmentOperatorName, WellKnownMemberNames.SubtractionAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDecrementAssignmentOperatorName, WellKnownMemberNames.DecrementAssignmentOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedIncrementAssignmentOperatorName, WellKnownMemberNames.IncrementAssignmentOperatorName, symmetricCheck: false);
+
             // We also produce a warning if == / != is overridden without also overriding
             // Equals and GetHashCode, or if Equals is overridden without GetHashCode.
 
@@ -2787,6 +2794,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var op1 in ops1)
             {
+                if (op1.IsOverride)
+                {
+                    continue;
+                }
+
                 bool foundMatch = false;
                 foreach (var op2 in ops2)
                 {
@@ -3895,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
@@ -4633,8 +4645,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SymbolKind.Property:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-                        return;
+                        if (!((PropertySymbol)member).IsIndexer)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            break;
+                        }
 
                     case SymbolKind.Field:
                     case SymbolKind.Event:

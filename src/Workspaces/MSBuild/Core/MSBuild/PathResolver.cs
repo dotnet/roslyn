@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class PathResolver
 {
-    private readonly DiagnosticReporter _diagnosticReporter;
+    private readonly DiagnosticReporter? _diagnosticReporter;
 
-    public PathResolver(DiagnosticReporter diagnosticReporter)
+    public PathResolver(DiagnosticReporter? diagnosticReporter)
     {
         _diagnosticReporter = diagnosticReporter;
     }
@@ -26,14 +26,14 @@ internal sealed class PathResolver
         }
         catch (Exception)
         {
-            _diagnosticReporter.Report(reportingMode, string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
+            _diagnosticReporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
             absolutePath = null;
             return false;
         }
 
         if (!File.Exists(absolutePath))
         {
-            _diagnosticReporter.Report(
+            _diagnosticReporter?.Report(
                 reportingMode,
                 string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath),
                 msg => new FileNotFoundException(msg));
@@ -51,14 +51,14 @@ internal sealed class PathResolver
         }
         catch (Exception)
         {
-            _diagnosticReporter.Report(reportingMode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
+            _diagnosticReporter?.Report(reportingMode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
             absolutePath = null;
             return false;
         }
 
         if (!File.Exists(absolutePath))
         {
-            _diagnosticReporter.Report(
+            _diagnosticReporter?.Report(
                 reportingMode,
                 string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
                 msg => new FileNotFoundException(msg));

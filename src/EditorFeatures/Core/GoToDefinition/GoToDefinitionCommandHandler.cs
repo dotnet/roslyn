@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -128,7 +129,8 @@ internal sealed class GoToDefinitionCommandHandler(
 
             // we're about to navigate.  so disable cancellation on focus-lost in our indicator so we don't end up
             // causing ourselves to self-cancel.
-            backgroundIndicator.CancelOnFocusLost = false;
+            using var _ = backgroundIndicator.SuppressAutoCancel();
+
             succeeded = definitionLocation != null && await definitionLocation.Location.TryNavigateToAsync(
                 _threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
         }

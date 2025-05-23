@@ -7,6 +7,7 @@ namespace Roslyn.LanguageServer.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer;
 
 /// <summary>
 /// Class representing a location in a document.
@@ -20,10 +21,18 @@ internal class Location : IEquatable<Location>
     /// </summary>
     [JsonPropertyName("uri")]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri
+    public DocumentUri DocumentUri
     {
         get;
         set;
+    }
+
+    [Obsolete("Use DocumentUri instead. This property will be removed in a future version.")]
+    [JsonIgnore]
+    public Uri Uri
+    {
+        get => DocumentUri.GetRequiredParsedUri();
+        set => DocumentUri = new DocumentUri(value);
     }
 
     /// <summary>
@@ -36,7 +45,6 @@ internal class Location : IEquatable<Location>
         set;
     }
 
-    /// <inheritdoc/>
     public override bool Equals(object obj)
     {
         return this.Equals(obj as Location);
@@ -44,17 +52,16 @@ internal class Location : IEquatable<Location>
 
     /// <inheritdoc/>
     public bool Equals(Location? other)
+
     {
-        return other != null && this.Uri != null && other.Uri != null &&
-               this.Uri.Equals(other.Uri) &&
+        return other != null && this.DocumentUri != null && other.DocumentUri != null &&
+               this.DocumentUri.Equals(other.DocumentUri) &&
                EqualityComparer<Range>.Default.Equals(this.Range, other.Range);
     }
-
-    /// <inheritdoc/>
     public override int GetHashCode()
     {
         var hashCode = 1486144663;
-        hashCode = (hashCode * -1521134295) + EqualityComparer<Uri>.Default.GetHashCode(this.Uri);
+        hashCode = (hashCode * -1521134295) + this.DocumentUri.GetHashCode();
         hashCode = (hashCode * -1521134295) + EqualityComparer<Range>.Default.GetHashCode(this.Range);
         return hashCode;
     }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,6 +96,20 @@ internal sealed class ProjectBuildManager
 
             using var stream = FileUtilities.OpenAsyncRead(path);
             using var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+            return LoadProjectCore(path, readStream, projectCollection, log);
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (project: null, log);
+        }
+    }
+
+    private static (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProjectCore(
+        string path, Stream readStream, MSB.Evaluation.ProjectCollection? projectCollection, DiagnosticLog log)
+    {
+        try
+        {
             using var xmlReader = XmlReader.Create(readStream, s_xmlReaderSettings);
             var xml = MSB.Construction.ProjectRootElement.Create(xmlReader, projectCollection);
 
@@ -137,7 +152,8 @@ internal sealed class ProjectBuildManager
         {
             var projectCollection = new MSB.Evaluation.ProjectCollection(
                 AllGlobalProperties,
-                _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
+                loggers: [],
                 MSB.Evaluation.ToolsetDefinitionLocations.Default);
             try
             {
@@ -148,6 +164,40 @@ internal sealed class ProjectBuildManager
                 // unload project so collection will release global strings
                 projectCollection.UnloadAllProjects();
             }
+        }
+    }
+
+    public (MSB.Evaluation.Project? project, DiagnosticLog log) LoadProject(string path, Stream readStream)
+    {
+        var log = new DiagnosticLog();
+        try
+        {
+            if (BatchBuildStarted)
+            {
+                return LoadProjectCore(path, readStream, _batchBuildProjectCollection, log);
+            }
+            else
+            {
+                var projectCollection = new MSB.Evaluation.ProjectCollection(
+                    AllGlobalProperties,
+                    // https://github.com/dotnet/msbuild/issues/11867: workaround LoggerException when passing binary logger to both evaluation and build
+                    loggers: [],
+                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
+                try
+                {
+                    return LoadProjectCore(path, readStream, projectCollection, log);
+                }
+                finally
+                {
+                    // unload project so collection will release global strings
+                    projectCollection.UnloadAllProjects();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            log.Add(e, path);
+            return (project: null, log);
         }
     }
 
@@ -187,7 +237,8 @@ internal sealed class ProjectBuildManager
             ? [_msbuildLogger]
             : ImmutableArray<MSB.Framework.ILogger>.Empty;
 
-        _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);
+        // Pass empty loggers array to workaround LoggerException when passing binary logger to both evaluation and build. See https://github.com/dotnet/msbuild/issues/11867
+        _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers: [], MSB.Evaluation.ToolsetDefinitionLocations.Default);
 
         var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
         {

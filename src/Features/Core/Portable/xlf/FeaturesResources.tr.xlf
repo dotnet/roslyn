@@ -40,6 +40,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Bir çıkarma bir karakter sınıfı içinde son öğe olması gerekir</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' özniteliği ekle</target>
@@ -4191,8 +4196,8 @@ Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
-        <source>    {0} - {1}</source>
-        <target state="translated">    {0} - {1}</target>
+        <source>{0} - {1}</source>
+        <target state="needs-review-translation">    {0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -4833,16 +4838,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Null denetimi ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">'string.IsNullOrEmpty' denetimi ekle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">'string.IsNullOrWhiteSpace' denetimi ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

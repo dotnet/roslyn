@@ -4,6 +4,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
@@ -38,9 +39,9 @@ internal sealed class WorkspaceDebugConfigurationHandler : ILspServiceRequestHan
         return Task.FromResult(projects);
     }
 
-    private static bool IsProjectInWorkspace(Uri workspacePath, Project project)
+    private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
     {
-        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.LocalPath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().LocalPath);
     }
 
     private ProjectDebugConfiguration GetProjectDebugConfiguration(Project project)

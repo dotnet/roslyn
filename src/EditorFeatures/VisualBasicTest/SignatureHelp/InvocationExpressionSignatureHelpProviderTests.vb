@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
@@ -1822,7 +1823,7 @@ end class
                                  <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts, currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + "    " + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + "    " + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts, currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
@@ -1852,7 +1853,7 @@ class C
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
 
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n    {String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n    {String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 

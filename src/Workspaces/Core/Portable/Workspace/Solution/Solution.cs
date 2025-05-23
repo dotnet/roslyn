@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis;
 public partial class Solution
 {
     // Values for all these are created on demand. Only access when holding the dictionary as a lock.
+    // Intentionally a simple dictionary rather than a ConcurrentDictionary or ImmutableDictionary
+    // for performance reasons.
     private readonly Dictionary<ProjectId, Project> _projectIdToProjectMap = [];
 
     /// <summary>
@@ -984,6 +986,8 @@ public partial class Solution
             throw new ArgumentNullException(nameof(syntaxRoot));
 
         var project = GetRequiredProjectState(documentId.ProjectId);
+
+        // The empty text is replaced in WithDocumentSyntaxRoot with the actual text that matches the syntax tree.
         var sourceText = SourceText.From(string.Empty, encoding: null, project.ChecksumAlgorithm);
 
         return AddDocumentImpl(project, documentId, name, sourceText, PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders)), filePath, isGenerated).
@@ -1641,7 +1645,7 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, d.text, (SyntaxNode?)null))));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents.SelectAsArray(d => (d.documentIdentity, d.generationDateTime, (SourceText?)d.text, (SyntaxNode?)null))));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
     internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)

@@ -132,6 +132,11 @@
         <target state="translated">“{0}”在程序集“{1}”中定义。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
         <target state="translated">类型名称“{0}”是保留给编译器使用的。</target>

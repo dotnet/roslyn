@@ -298,7 +298,7 @@ internal sealed class EditSession
             }
 
             var oldProject = oldSolution.GetProject(newProject.Id);
-            if (oldProject == null || await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments: null, cancellationToken).ConfigureAwait(false))
+            if (oldProject == null || await HasDocumentDifferencesAsync(oldProject, newProject, documentDifferences: null, cancellationToken).ConfigureAwait(false))
             {
                 // project added or has changes
                 return true;
@@ -339,7 +339,7 @@ internal sealed class EditSession
         return oldSource.ContentEquals(newSource);
     }
 
-    internal static async ValueTask<bool> HasChangedOrAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document>? changedOrAddedDocuments, CancellationToken cancellationToken)
+    internal static async ValueTask<bool> HasDocumentDifferencesAsync(Project oldProject, Project newProject, ProjectDocumentDifferences? documentDifferences, CancellationToken cancellationToken)
     {
         if (!newProject.SupportsEditAndContinue())
         {
@@ -364,12 +364,12 @@ internal sealed class EditSession
                 continue;
             }
 
-            if (changedOrAddedDocuments is null)
+            if (!documentDifferences.HasValue)
             {
                 return true;
             }
 
-            changedOrAddedDocuments.Add(document);
+            documentDifferences.Value.ChangedOrAdded.Add(document);
         }
 
         foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
@@ -380,18 +380,34 @@ internal sealed class EditSession
                 continue;
             }
 
-            if (changedOrAddedDocuments is null)
+            if (!documentDifferences.HasValue)
             {
                 return true;
             }
 
-            changedOrAddedDocuments.Add(document);
+            documentDifferences.Value.ChangedOrAdded.Add(document);
+        }
+
+        foreach (var documentId in newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates))
+        {
+            var document = oldProject.GetRequiredDocument(documentId);
+            if (!document.State.SupportsEditAndContinue())
+            {
+                continue;
+            }
+
+            if (!documentDifferences.HasValue)
+            {
+                return true;
+            }
+
+            documentDifferences.Value.Deleted.Add(document);
         }
 
         // Any changes in non-generated document content might affect source generated documents as well,
         // no need to check further in that case.
 
-        if (changedOrAddedDocuments is { Count: > 0 })
+        if (documentDifferences?.Any() == true)
         {
             return true;
         }
@@ -414,9 +430,7 @@ internal sealed class EditSession
             }
         }
 
-        // TODO: should handle removed documents above (detect them as edits) https://github.com/dotnet/roslyn/issues/62848
-        if (newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).Any() ||
-            newProject.State.AdditionalDocumentStates.GetRemovedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
+        if (newProject.State.AdditionalDocumentStates.GetRemovedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
             newProject.State.AdditionalDocumentStates.GetAddedStateIds(oldProject.State.AdditionalDocumentStates).Any() ||
             newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any() ||
             newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(oldProject.State.AnalyzerConfigDocumentStates).Any())
@@ -427,11 +441,11 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task PopulateChangedAndAddedDocumentsAsync(TraceLog log, Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
+    internal static async Task GetDocumentDifferencesAsync(TraceLog log, Project oldProject, Project newProject, ProjectDocumentDifferences documentDifferences, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
     {
-        changedOrAddedDocuments.Clear();
+        documentDifferences.Clear();
 
-        if (!await HasChangedOrAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false))
+        if (!await HasDocumentDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false))
         {
             return;
         }
@@ -450,7 +464,7 @@ internal sealed class EditSession
                 continue;
             }
 
-            changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
+            documentDifferences.ChangedOrAdded.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
         }
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetAddedStateIds(oldSourceGeneratedDocumentStates))
@@ -461,7 +475,18 @@ internal sealed class EditSession
                 continue;
             }
 
-            changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
+            documentDifferences.ChangedOrAdded.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
+        }
+
+        foreach (var documentId in newSourceGeneratedDocumentStates.GetRemovedStateIds(oldSourceGeneratedDocumentStates))
+        {
+            var oldState = oldSourceGeneratedDocumentStates.GetRequiredState(documentId);
+            if (oldState.Attributes.DesignTimeOnly)
+            {
+                continue;
+            }
+
+            documentDifferences.Deleted.Add(oldProject.GetOrCreateSourceGeneratedDocument(oldState));
         }
     }
 
@@ -533,15 +558,16 @@ internal sealed class EditSession
     }
 
     private async Task<(ImmutableArray<DocumentAnalysisResults> results, ImmutableArray<Diagnostic> diagnostics, bool hasOutOfSyncDocument)> AnalyzeDocumentsAsync(
-        ArrayBuilder<Document> changedOrAddedDocuments,
+        Solution newSolution,
+        ProjectDocumentDifferences documentDifferences,
         ActiveStatementSpanProvider newDocumentActiveStatementSpanProvider,
         CancellationToken cancellationToken)
     {
         using var _1 = ArrayBuilder<Diagnostic>.GetInstance(out var documentDiagnostics);
-        using var _2 = ArrayBuilder<(Document? oldDocument, Document newDocument)>.GetInstance(out var documents);
+        using var _2 = ArrayBuilder<(Document? oldDocument, Document? newDocument)>.GetInstance(out var documents);
         var hasOutOfSyncDocument = false;
 
-        foreach (var newDocument in changedOrAddedDocuments)
+        foreach (var newDocument in documentDifferences.ChangedOrAdded)
         {
             var (oldDocument, oldDocumentState) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(newDocument, cancellationToken, reloadOutOfSyncDocument: true).ConfigureAwait(false);
             switch (oldDocumentState)
@@ -573,10 +599,15 @@ internal sealed class EditSession
             }
         }
 
+        foreach (var oldDocument in documentDifferences.Deleted)
+        {
+            documents.Add((oldDocument, newDocument: null));
+        }
+
         // No need to report rude edits if project has any documents that are out of sync. No deltas will be emitted for such project.
         var analyses = hasOutOfSyncDocument
             ? []
-            : await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            : await Analyses.GetDocumentAnalysesAsync(DebuggingSession.LastCommittedSolution, newSolution, documents, newDocumentActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         return (analyses, documentDiagnostics.ToImmutable(), hasOutOfSyncDocument);
     }
@@ -824,16 +855,16 @@ internal sealed class EditSession
             using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
             using var _3 = ArrayBuilder<ProjectBaseline>.GetInstance(out var newProjectBaselines);
             using var _4 = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var diagnostics);
-            using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
-            using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
-            using var _7 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
+            using var _5 = ArrayBuilder<DocumentWithRudeEdits>.GetInstance(out var documentsWithRudeEdits);
+            using var _6 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToStale);
+            using var documentDifferences = new ProjectDocumentDifferences();
 
             // After all projects have been analyzed "true" value indicates changed document that is only included in stale projects.
             var changedDocumentsStaleness = new Dictionary<string, bool>(SolutionState.FilePathComparer);
 
             void UpdateChangedDocumentsStaleness(bool isStale)
             {
-                foreach (var changedDocument in changedOrAddedDocuments)
+                foreach (var changedDocument in documentDifferences.ChangedOrAdded)
                 {
                     var path = changedDocument.FilePath;
 
@@ -868,7 +899,7 @@ internal sealed class EditSession
                 var oldProject = oldSolution.GetProject(newProject.Id);
                 if (oldProject == null)
                 {
-                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project not loaded");
+                    Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project not loaded");
 
                     // TODO (https://github.com/dotnet/roslyn/issues/1204):
                     //
@@ -884,20 +915,20 @@ internal sealed class EditSession
                     continue;
                 }
 
-                await PopulateChangedAndAddedDocumentsAsync(Log, oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
-                if (changedOrAddedDocuments.IsEmpty)
+                await GetDocumentDifferencesAsync(Log, oldProject, newProject, documentDifferences, diagnostics, cancellationToken).ConfigureAwait(false);
+                if (documentDifferences.IsEmpty)
                 {
                     continue;
                 }
 
-                Log.Write($"Found {changedOrAddedDocuments.Count} potentially changed document(s) in project {newProject.Name} '{newProject.FilePath}'");
+                Log.Write($"Found {documentDifferences.ChangedOrAdded.Count} potentially changed and {documentDifferences.Deleted.Count} deleted document(s) in project {newProject.GetLogDisplay()}");
 
                 var isStaleProject = oldSolution.IsStaleProject(newProject.Id);
 
                 // We don't consider document changes in stale projects until they are rebuilt (removed from stale set).
                 if (isStaleProject)
                 {
-                    Log.Write($"EnC state of {newProject.Name} '{newProject.FilePath}' queried: project is stale");
+                    Log.Write($"EnC state of {newProject.GetLogDisplay()} queried: project is stale");
                     UpdateChangedDocumentsStaleness(isStale: true);
                     continue;
                 }
@@ -938,7 +969,7 @@ internal sealed class EditSession
                 // instead of the true C.M(string).
 
                 var (changedDocumentAnalyses, documentDiagnostics, hasOutOfSyncChangedDocument) =
-                    await AnalyzeDocumentsAsync(changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                    await AnalyzeDocumentsAsync(solution, documentDifferences, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
                 if (documentDiagnostics.Any())
                 {
@@ -1015,7 +1046,7 @@ internal sealed class EditSession
                 {
                     if (!analysis.RudeEdits.IsEmpty)
                     {
-                        documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEdits));
+                        documentsWithRudeEdits.Add(new(analysis.DocumentId, analysis.RudeEdits));
                         Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, newProject.State.Attributes.TelemetryId);
                     }
                 }
@@ -1097,6 +1128,7 @@ internal sealed class EditSession
                             metadataStream,
                             ilStream,
                             pdbStream,
+                            new EmitDifferenceOptions() { EmitFieldRva = capabilities.HasFlag(EditAndContinueCapabilities.AddFieldRva) },
                             cancellationToken);
 
                         Telemetry.LogEmitDifferenceTime(emitDifferenceTimer.Elapsed);

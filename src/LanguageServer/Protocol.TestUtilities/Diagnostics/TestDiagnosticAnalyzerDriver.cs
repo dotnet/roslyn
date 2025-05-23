@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -25,9 +26,7 @@ public sealed class TestDiagnosticAnalyzerDriver
 
     public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
     {
-        var mefServices = workspace.Services.SolutionServices.ExportProvider;
-
-        _diagnosticAnalyzerService = mefServices.GetExportedValue<IDiagnosticAnalyzerService>();
+        _diagnosticAnalyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
         _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
         _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;
     }

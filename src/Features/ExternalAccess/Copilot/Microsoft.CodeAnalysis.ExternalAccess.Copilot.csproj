@@ -24,14 +24,11 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.CodeMappers.CSharp" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.LanguageServer" Key="$(CopilotKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn.Tests" Key="$(CopilotKey)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Threading" />
   </ItemGroup>
 
   <ItemGroup>
