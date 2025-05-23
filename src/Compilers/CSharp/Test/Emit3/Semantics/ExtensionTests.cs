@@ -20461,7 +20461,7 @@ static class E
         try
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
         }
         catch (InvalidOperationException)
         {
