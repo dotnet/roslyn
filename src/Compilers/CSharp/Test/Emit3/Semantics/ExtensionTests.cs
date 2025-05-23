@@ -20049,7 +20049,7 @@ static class E
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -20095,7 +20095,7 @@ static class E
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionDeclarationSyntax>().Single();
+        var extension = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
 
         var symbol = model.GetDeclaredSymbol(extension);
         AssertExtensionDeclaration(symbol);
@@ -20152,7 +20152,10 @@ static class E
             Diagnostic(ErrorCode.ERR_BadIndexLHS, @"1[2, $""""]").WithArguments("int").WithLocation(1, 1),
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'int'
             // _ = 3[4, $""];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"3[4, $""""]").WithArguments("int").WithLocation(2, 5)
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, @"3[4, $""""]").WithArguments("int").WithLocation(2, 5),
+            // (17,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("i", "j")] InterpolationHandler h]
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 20)
         );
     }
 
@@ -20208,7 +20211,10 @@ static class E
             Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
             // (5,20): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
             // E.set_Item("test", null, $"", "");
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(5, 20)
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(5, 20),
+            // (17,23): error CS9282: Extension declarations can include only methods or properties
+            //         public string this[string key, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s", "key")] InterpolationHandler h] { set { } }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(17, 23)
         );
     }
 
