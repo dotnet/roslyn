@@ -1020,7 +1020,7 @@ internal sealed class EditSession
                     // instead of the true C.M(string).
 
                     var (changedDocumentAnalyses, hasOutOfSyncChangedDocument) =
-                        await AnalyzeProjectDifferencesAsync(solution, documentDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await AnalyzeProjectDifferencesAsync(solution, projectDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
 
                     // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
                     // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
