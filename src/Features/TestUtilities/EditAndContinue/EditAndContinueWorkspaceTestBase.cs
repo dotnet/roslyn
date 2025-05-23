@@ -234,6 +234,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static string InspectDiagnostic(DiagnosticData diagnostic)
         => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<Diagnostic> actual)
+        => actual.Select(d => $"{d.Id}: {d.Severity}: {d.GetMessage()}");
+
+    internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(d => d.Id);
+
     internal static Guid ReadModuleVersionId(Stream stream)
     {
         using var peReader = new PEReader(stream);
