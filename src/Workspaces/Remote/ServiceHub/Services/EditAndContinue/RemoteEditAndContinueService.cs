@@ -158,7 +158,6 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                 {
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
                     Diagnostics = GetUnexpectedUpdateError(solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First(), e.Message),
-                    RudeEdits = [],
                     SyntaxError = null,
                     ProjectsToRebuild = [],
                     ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
