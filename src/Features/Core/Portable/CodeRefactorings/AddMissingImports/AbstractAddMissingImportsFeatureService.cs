@@ -59,6 +59,8 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
             document, textSpan, FixableDiagnosticIds, symbolSearchService,
             addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
+        Debug.Assert(unambiguousFixes.All(d => d.Kind == AddImportFixKind.ProjectSymbol));
+
         // We do not want to add project or framework references without the user's input, so filter those out.
         var usableFixes = unambiguousFixes.WhereAsArray(fixData => fixData.Kind == AddImportFixKind.ProjectSymbol);
 
