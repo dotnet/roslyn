@@ -1110,11 +1110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDynamicBinaryOperator(node, kind, left, right, diagnostics);
             }
 
-            // PROTOTYPE: Handle extensions
-
             LookupResultKind lookupResult;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
-            var best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, allowExtensions: false, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
+            var best = this.BinaryOperatorOverloadResolution(kind, isChecked: CheckOverflowAtRuntime, left, right, allowExtensions: true, node, diagnostics, out lookupResult, out originalUserDefinedOperators);
 
             // SPEC: If overload resolution fails to find a single best operator, or if overload
             // SPEC: resolution selects one of the predefined integer logical operators, a binding-
@@ -1302,163 +1300,282 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MethodSymbol falseOperator)
         {
             Debug.Assert(signature.Kind.OperandTypes() == BinaryOperatorKind.UserDefined);
+            Debug.Assert(signature.Method is not null);
 
-            // SPEC: When the operands of && or || are of types that declare an applicable
-            // SPEC: user-defined operator & or |, both of the following must be true, where
-            // SPEC: T is the type in which the selected operator is defined:
-
-            // SPEC VIOLATION:
-            //
-            // The native compiler violates the specification, the native compiler allows:
-            //
-            // public static D? operator &(D? d1, D? d2) { ... }
-            // public static bool operator true(D? d) { ... }
-            // public static bool operator false(D? d) { ... }
-            //
-            // to be used as D? && D? or D? || D?. But if you do this:
-            //
-            // public static D operator &(D d1, D d2) { ... }
-            // public static bool operator true(D? d) { ... }
-            // public static bool operator false(D? d) { ... }
-            //
-            // And use the *lifted* form of the operator, this is disallowed.
-            //
-            // public static D? operator &(D? d1, D d2) { ... }
-            // public static bool operator true(D? d) { ... }
-            // public static bool operator false(D? d) { ... }
-            //
-            // Is not allowed because "the return type must be the same as the type of both operands"
-            // which is not at all what the spec says.
-            //
-            // We ought not to break backwards compatibility with the native compiler. The spec
-            // is plausibly in error; it is possible that this section of the specification was
-            // never updated when nullable types and lifted operators were added to the language.
-            // And it seems like the native compiler's behavior of allowing a nullable
-            // version but not a lifted version is a bug that should be fixed.
-            //
-            // Therefore we will do the following in Roslyn:
-            //
-            // * The return and parameter types of the chosen operator, whether lifted or unlifted,
-            //   must be the same.
-            // * The return and parameter types must be either the enclosing type, or its corresponding
-            //   nullable type.
-            // * There must be an operator true/operator false that takes the left hand type of the operator.
-
-            // Only classes and structs contain user-defined operators, so we know it is a named type symbol.
-            NamedTypeSymbol t = (NamedTypeSymbol)signature.Method.ContainingType;
-
-            // SPEC: The return type and the type of each parameter of the selected operator
-            // SPEC: must be T.
-
-            // As mentioned above, we relax this restriction. The types must all be the same.
-
-            bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
-            MethodSymbol definition;
-            bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
-                                        (t.IsInterface && (signature.Method.IsAbstract || signature.Method.IsVirtual) &&
-                                         SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
-
-            if (!typesAreSame || !typeMatchesContainer)
+            if (signature.Method.GetIsNewExtensionMember())
             {
-                // CS0217: In order to be applicable as a short circuit operator a user-defined logical
-                // operator ('{0}') must have the same return type and parameter types
-
-                Error(diagnostics, ErrorCode.ERR_BadBoolOp, syntax, signature.Method);
-
-                trueOperator = null;
-                falseOperator = null;
-                return false;
+                return isValidExtensionUserDefinedConditionalLogicalOperator(syntax, signature, diagnostics, out trueOperator, out falseOperator);
+            }
+            else
+            {
+                return isValidNonExtensionUserDefinedConditionalLogicalOperator(syntax, signature, diagnostics, out trueOperator, out falseOperator);
             }
 
-            // SPEC: T must contain declarations of operator true and operator false.
-
-            // As mentioned above, we need more than just op true and op false existing; we need
-            // to know that the first operand can be passed to it.
-
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteInfo, out trueOperator) ||
-                !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteInfo, out falseOperator))
+            bool isValidNonExtensionUserDefinedConditionalLogicalOperator(
+                CSharpSyntaxNode syntax,
+                BinaryOperatorSignature signature,
+                BindingDiagnosticBag diagnostics,
+                out MethodSymbol trueOperator,
+                out MethodSymbol falseOperator)
             {
-                // I have changed the wording of this error message. The original wording was:
+                // SPEC: When the operands of && or || are of types that declare an applicable
+                // SPEC: user-defined operator & or |, both of the following must be true, where
+                // SPEC: T is the type in which the selected operator is defined:
 
-                // CS0218: The type ('T') must contain declarations of operator true and operator false
+                // SPEC VIOLATION:
+                //
+                // The native compiler violates the specification, the native compiler allows:
+                //
+                // public static D? operator &(D? d1, D? d2) { ... }
+                // public static bool operator true(D? d) { ... }
+                // public static bool operator false(D? d) { ... }
+                //
+                // to be used as D? && D? or D? || D?. But if you do this:
+                //
+                // public static D operator &(D d1, D d2) { ... }
+                // public static bool operator true(D? d) { ... }
+                // public static bool operator false(D? d) { ... }
+                //
+                // And use the *lifted* form of the operator, this is disallowed.
+                //
+                // public static D? operator &(D? d1, D d2) { ... }
+                // public static bool operator true(D? d) { ... }
+                // public static bool operator false(D? d) { ... }
+                //
+                // Is not allowed because "the return type must be the same as the type of both operands"
+                // which is not at all what the spec says.
+                //
+                // We ought not to break backwards compatibility with the native compiler. The spec
+                // is plausibly in error; it is possible that this section of the specification was
+                // never updated when nullable types and lifted operators were added to the language.
+                // And it seems like the native compiler's behavior of allowing a nullable
+                // version but not a lifted version is a bug that should be fixed.
+                //
+                // Therefore we will do the following in Roslyn:
+                //
+                // * The return and parameter types of the chosen operator, whether lifted or unlifted,
+                //   must be the same.
+                // * The return and parameter types must be either the enclosing type, or its corresponding
+                //   nullable type.
+                // * There must be an operator true/operator false that takes the left hand type of the operator.
 
-                // I have changed that to:
+                // Only classes and structs contain user-defined operators, so we know it is a named type symbol.
+                NamedTypeSymbol t = (NamedTypeSymbol)signature.Method.ContainingType;
 
-                // CS0218: In order to be applicable as a short circuit operator, the declaring type
-                // '{1}' of user-defined operator '{0}' must declare operator true and operator false.
+                // SPEC: The return type and the type of each parameter of the selected operator
+                // SPEC: must be T.
 
-                Error(diagnostics, ErrorCode.ERR_MustHaveOpTF, syntax, signature.Method, t);
+                // As mentioned above, we relax this restriction. The types must all be the same.
+
+                bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
+                MethodSymbol definition;
+                bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
+                                            (t.IsInterface && (signature.Method.IsAbstract || signature.Method.IsVirtual) &&
+                                             SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
+
+                if (!typesAreSame || !typeMatchesContainer)
+                {
+                    // CS0217: In order to be applicable as a short circuit operator a user-defined logical
+                    // operator ('{0}') must have the same return type and parameter types
+
+                    Error(diagnostics, ErrorCode.ERR_BadBoolOp, syntax, signature.Method);
+
+                    trueOperator = null;
+                    falseOperator = null;
+                    return false;
+                }
+
+                // SPEC: T must contain declarations of operator true and operator false.
+
+                // As mentioned above, we need more than just op true and op false existing; we need
+                // to know that the first operand can be passed to it.
+
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteInfo, out trueOperator) ||
+                    !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteInfo, out falseOperator))
+                {
+                    // I have changed the wording of this error message. The original wording was:
+
+                    // CS0218: The type ('T') must contain declarations of operator true and operator false
+
+                    // I have changed that to:
+
+                    // CS0218: In order to be applicable as a short circuit operator, the declaring type
+                    // '{1}' of user-defined operator '{0}' must declare operator true and operator false.
+
+                    Error(diagnostics, ErrorCode.ERR_MustHaveOpTF, syntax, signature.Method, t);
+                    diagnostics.Add(syntax, useSiteInfo);
+
+                    trueOperator = null;
+                    falseOperator = null;
+                    return false;
+                }
+
                 diagnostics.Add(syntax, useSiteInfo);
 
-                trueOperator = null;
-                falseOperator = null;
-                return false;
+                // For the remainder of this method the comments WOLOG assume that we're analyzing an &&. The
+                // exact same issues apply to ||.
+
+                // Note that the mere *existence* of operator true and operator false is sufficient.  They
+                // are already constrained to take either T or T?. Since we know that the applicable
+                // T.& takes (T, T), we know that both sides of the && are implicitly convertible
+                // to T, and therefore the left side is implicitly convertible to T or T?.
+
+                // SPEC: The expression x && y is evaluated as T.false(x) ? x : T.&(x,y) ... except that
+                // SPEC: x is only evaluated once.
+                //
+                // DELIBERATE SPEC VIOLATION: The native compiler does not actually evaluate x&&y in this
+                // manner. Suppose X is of type X. The code above is equivalent to:
+                //
+                // X temp = x, then evaluate:
+                // T.false(temp) ? temp : T.&(temp, y)
+                //
+                // What the native compiler actually evaluates is:
+                //
+                // T temp = x, then evaluate
+                // T.false(temp) ? temp : T.&(temp, y)
+                //
+                // That is a small difference but it has an observable effect. For example:
+                //
+                // class V { public static implicit operator T(V v) { ... } }
+                // class X : V { public static implicit operator T?(X x) { ... } }
+                // struct T {
+                //   public static operator false(T? t) { ... }
+                //   public static operator true(T? t) { ... }
+                //   public static T operator &(T t1, T t2) { ... }
+                // }
+                //
+                // Under the spec'd interpretation, if we had x of type X and y of type T then x && y is
+                //
+                // X temp = x;
+                // T.false(temp) ? temp : T.&(temp, y)
+                //
+                // which would then be analyzed as:
+                //
+                // T.false(X.op_Implicit_To_Nullable_T(temp)) ?
+                //     V.op_Implicit_To_T(temp) :
+                //     T.&(op_Implicit_To_T(temp), y)
+                //
+                // But the native compiler actually generates:
+                //
+                // T temp = V.Op_Implicit_To_T(x);
+                // T.false(new T?(temp)) ? temp : T.&(temp, y)
+                //
+                // That is, the native compiler converts the temporary to the type of the declaring operator type
+                // regardless of the fact that there is a better conversion for the T.false call.
+                //
+                // We choose to match the native compiler behavior here; we might consider fixing
+                // the spec to match the compiler.
+                //
+                // With this decision we need not keep track of any extra information in the bound
+                // binary operator node; we need to know the left hand side converted to T, the right
+                // hand side converted to T, and the method symbol of the chosen T.&(T, T) method.
+                // The rewriting pass has enough information to deduce which T.false is to be called,
+                // and can convert the T to T? if necessary.
+
+                return true;
             }
 
-            diagnostics.Add(syntax, useSiteInfo);
+#nullable enable
 
-            // For the remainder of this method the comments WOLOG assume that we're analyzing an &&. The
-            // exact same issues apply to ||.
+            bool isValidExtensionUserDefinedConditionalLogicalOperator(
+                CSharpSyntaxNode syntax,
+                BinaryOperatorSignature signature,
+                BindingDiagnosticBag diagnostics,
+                out MethodSymbol? trueOperator,
+                out MethodSymbol? falseOperator)
+            {
+                // SPEC: The return type and the type of each parameter of the selected operator
+                // SPEC: must be T.
 
-            // Note that the mere *existence* of operator true and operator false is sufficient.  They
-            // are already constrained to take either T or T?. Since we know that the applicable
-            // T.& takes (T, T), we know that both sides of the && are implicitly convertible
-            // to T, and therefore the left side is implicitly convertible to T or T?.
+                if (!TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.AllIgnoreOptions) ||
+                    !TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // Note, isValidNonExtensionUserDefinedConditionalLogicalOperator also performs a check that the signature type
+                    // matches the declaring type, but that is actually enforced at the point of declaration. We also don't have a 
+                    // single test that observes the effect of that check in isValidNonExtensionUserDefinedConditionalLogicalOperator.
+                    // This is somewhat expected, because in order to observe the effect, one should consume a type with operators
+                    // that do not follow C# rules for their signature.
+                    // It is probably not worth guarding against a situation like that, we are not doing this for regular binary operators,
+                    // for example.
 
-            // SPEC: The expression x && y is evaluated as T.false(x) ? x : T.&(x,y) ... except that
-            // SPEC: x is only evaluated once.
-            //
-            // DELIBERATE SPEC VIOLATION: The native compiler does not actually evaluate x&&y in this
-            // manner. Suppose X is of type X. The code above is equivalent to:
-            //
-            // X temp = x, then evaluate:
-            // T.false(temp) ? temp : T.&(temp, y)
-            //
-            // What the native compiler actually evaluates is:
-            //
-            // T temp = x, then evaluate
-            // T.false(temp) ? temp : T.&(temp, y)
-            //
-            // That is a small difference but it has an observable effect. For example:
-            //
-            // class V { public static implicit operator T(V v) { ... } }
-            // class X : V { public static implicit operator T?(X x) { ... } }
-            // struct T {
-            //   public static operator false(T? t) { ... }
-            //   public static operator true(T? t) { ... }
-            //   public static T operator &(T t1, T t2) { ... }
-            // }
-            //
-            // Under the spec'd interpretation, if we had x of type X and y of type T then x && y is
-            //
-            // X temp = x;
-            // T.false(temp) ? temp : T.&(temp, y)
-            //
-            // which would then be analyzed as:
-            //
-            // T.false(X.op_Implicit_To_Nullable_T(temp)) ?
-            //     V.op_Implicit_To_T(temp) :
-            //     T.&(op_Implicit_To_T(temp), y)
-            //
-            // But the native compiler actually generates:
-            //
-            // T temp = V.Op_Implicit_To_T(x);
-            // T.false(new T?(temp)) ? temp : T.&(temp, y)
-            //
-            // That is, the native compiler converts the temporary to the type of the declaring operator type
-            // regardless of the fact that there is a better conversion for the T.false call.
-            //
-            // We choose to match the native compiler behavior here; we might consider fixing
-            // the spec to match the compiler.
-            //
-            // With this decision we need not keep track of any extra information in the bound
-            // binary operator node; we need to know the left hand side converted to T, the right
-            // hand side converted to T, and the method symbol of the chosen T.&(T, T) method.
-            // The rewriting pass has enough information to deduce which T.false is to be called,
-            // and can convert the T to T? if necessary.
+                    // CS0217: In order to be applicable as a short circuit operator a user-defined logical
+                    // operator ('{0}') must have the same return type and parameter types
 
-            return true;
+                    Error(diagnostics, ErrorCode.ERR_BadBoolOp, syntax, signature.Method);
+
+                    trueOperator = null;
+                    falseOperator = null;
+                    return false;
+                }
+
+                // SPEC: T must contain declarations of operator true and operator false.
+
+                var leftPlaceholder = new BoundValuePlaceholder(syntax, signature.LeftType).MakeCompilerGenerated();
+                var result = UnaryOperatorOverloadResolutionResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var extensions = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+                NamespaceSymbol.AddExtensionContainersInType(signature.Method.OriginalDefinition.ContainingType.ContainingType, extensions);
+
+                UnaryOperatorAnalysisResult? bestTrue = unaryOperatorOverloadResolution(syntax, extensions, result, UnaryOperatorKind.True, leftPlaceholder, ref useSiteInfo);
+                UnaryOperatorAnalysisResult? bestFalse = null;
+
+                if (bestTrue?.HasValue == true)
+                {
+                    bestFalse = unaryOperatorOverloadResolution(syntax, extensions, result, UnaryOperatorKind.False, leftPlaceholder, ref useSiteInfo);
+                }
+
+                extensions.Free();
+                result.Free();
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (bestTrue?.HasValue != true || bestFalse?.HasValue != true)
+                {
+                    Error(diagnostics, ErrorCode.ERR_MustHaveOpTF, syntax, signature.Method, signature.Method.OriginalDefinition.ContainingType.ContainingType);
+
+                    trueOperator = null;
+                    falseOperator = null;
+                    return false;
+                }
+
+                Debug.Assert(bestTrue is { HasValue: true });
+                Debug.Assert(bestFalse is { HasValue: true });
+                Debug.Assert(!bestTrue.GetValueOrDefault().Signature.Kind.IsLifted());
+                Debug.Assert(!bestFalse.GetValueOrDefault().Signature.Kind.IsLifted());
+
+                trueOperator = bestTrue.GetValueOrDefault().Signature.Method;
+                falseOperator = bestFalse.GetValueOrDefault().Signature.Method;
+
+                return true;
+
+                UnaryOperatorAnalysisResult? unaryOperatorOverloadResolution(
+                    CSharpSyntaxNode syntax,
+                    ArrayBuilder<NamedTypeSymbol> extensions,
+                    UnaryOperatorOverloadResolutionResult result,
+                    UnaryOperatorKind kind,
+                    BoundValuePlaceholder leftPlaceholder,
+                    ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+                {
+                    UnaryOperatorAnalysisResult? possiblyBest = null;
+
+                    if (this.OverloadResolution.UnaryOperatorExtensionOverloadResolutionInSingleScope(
+                        extensions,
+                        kind,
+                        isChecked: false,
+                        OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false),
+                        name2Opt: null,
+                        leftPlaceholder,
+                        result, ref useSiteInfo))
+                    {
+                        possiblyBest = AnalyzeUnaryOperatorOverloadResolutionResult(result, kind, leftPlaceholder, syntax, diagnostics: BindingDiagnosticBag.Discarded, resultKind: out _, originalUserDefinedOperators: out _);
+                    }
+
+                    return possiblyBest;
+                }
+            }
+
+#nullable disable
         }
 
         private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out MethodSymbol @operator)
