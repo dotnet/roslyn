@@ -890,4 +890,30 @@ public sealed class AddOrRemoveAccessibilityModifiersTests
             }
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78395")]
+    public async Task TestOmitIfDefaultWithFixedField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                unsafe struct MyStruct
+                {
+                    private fixed long [|_data|][100];
+                }
+                """,
+            FixedCode = """
+                unsafe struct MyStruct
+                {
+                    fixed long _data[100];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            CodeActionEquivalenceKey = nameof(AnalyzersResources.Remove_accessibility_modifiers),
+            Options =
+            {
+                { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.OmitIfDefault }
+            }
+        }.RunAsync();
+    }
 }
