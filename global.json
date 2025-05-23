@@ -7,7 +7,7 @@
   "tools": {
     "dotnet": "9.0.105",
     "vs": {
-      "version": "17.8.0"
+      "version": "18.0.0"
     }
   },
   "msbuild-sdks": {
