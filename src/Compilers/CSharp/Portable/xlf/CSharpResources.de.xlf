@@ -1633,7 +1633,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
-        <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
+        <source>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</source>
         <target state="translated">„{0}“ ist keine Instanzmethode, der Empfänger kann kein Handlerargument einer interpolierten Zeichenfolge sein.</target>
         <note />
       </trans-unit>

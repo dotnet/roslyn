@@ -892,16 +892,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
+                        if (ContainingSymbol is { IsStatic: false, ContainingSymbol: TypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName } }
+                            && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
+                        {
+                            builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);
+                            break;
+                        }
+
                         var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
                         if (param is not null && (object)param != this)
                         {
                             builder.Add(param.Ordinal);
-                            break;
-                        }
-                        else if (ContainingSymbol.ContainingSymbol is TypeSymbol { IsExtension: true, ExtensionParameter.Name: var extensionParameterName }
-                                 && string.Equals(extensionParameterName, name, StringComparison.Ordinal))
-                        {
-                            builder.Add(BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver);
                             break;
                         }
                         else

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ReceiverParameterSymbol : RewrittenParameterSymbol
@@ -23,5 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _underlyingParameter.HasEnumeratorCancellationAttribute; }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+        {
+            get
+            {
+                var originalIndexes = _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+                Debug.Assert(originalIndexes.IsEmpty);
+                return originalIndexes;
+            }
+        }
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
     }
 }

@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Name refers to the "this" instance parameter.
                     if (!ContainingSymbol.RequiresInstanceReceiver() || ContainingSymbol is MethodSymbol { MethodKind: MethodKind.Constructor or MethodKind.DelegateInvoke or MethodKind.LambdaMethod })
                     {
-                        // '{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
                         diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
                         return null;
                     }
@@ -1345,6 +1345,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (extensionParameter?.Name == name)
                 {
+                    if (extensionParameter.ContainingSymbol.IsStatic)
+                    {
+                        // '{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.
+                        diagnostics.Add(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt.Location, ContainingSymbol);
+                        return null;
+                    }
+
                     return BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver;
                 }
 

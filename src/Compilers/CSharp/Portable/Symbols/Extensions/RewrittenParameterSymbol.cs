@@ -24,31 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override int CallerArgumentExpressionParameterIndex => _underlyingParameter.CallerArgumentExpressionParameterIndex;
 
-        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
-        {
-            get
-            {
-                var originalIndexes = this._underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
-                if (originalIndexes.IsDefaultOrEmpty)
-                {
-                    return originalIndexes;
-                }
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-                // If this is the extension method receiver (ie, parameter 0), then any non-empty list of indexes must
-                // be an error, and we should have already returned an empty list.
-                Debug.Assert(_underlyingParameter.ContainingSymbol is not NamedTypeSymbol);
-                Debug.Assert(originalIndexes.All(static index => index != BoundInterpolatedStringArgumentPlaceholder.InstanceParameter));
-                return originalIndexes.SelectAsArray(static (index) => index switch
-                {
-                    BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => throw ExceptionUtilities.Unreachable(),
-                    BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => 0,
-                    BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter,
-                    BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter,
-                    _ => index + 1
-                });
-            }
-        }
-
-        internal sealed override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
     }
 }

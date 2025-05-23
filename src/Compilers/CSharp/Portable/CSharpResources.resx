@@ -7165,7 +7165,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.</value>
   </data>
   <data name="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
-    <value>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</value>
+    <value>'{0}' is not an instance method, the receiver or extension receiver parameter cannot be an interpolated string handler argument.</value>
   </data>
   <data name="ERR_InvalidInterpolatedStringHandlerArgumentName" xml:space="preserve">
     <value>'{0}' is not a valid parameter name from '{1}'.</value>

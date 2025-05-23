@@ -159,6 +159,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ordinal + 1;
                 }
             }
+
+            internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes
+            {
+                get
+                {
+                    var originalIndexes = this._underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
+                    if (originalIndexes.IsDefaultOrEmpty || this._underlyingParameter.ContainingSymbol.IsStatic)
+                    {
+                        return originalIndexes;
+                    }
+
+                    // If this is the extension method receiver (ie, parameter 0), then any non-empty list of indexes must
+                    // be an error, and we should have already returned an empty list.
+                    Debug.Assert(_underlyingParameter.ContainingSymbol is not NamedTypeSymbol);
+                    return originalIndexes.SelectAsArray(static (index) => index switch
+                    {
+                        BoundInterpolatedStringArgumentPlaceholder.InstanceParameter => throw ExceptionUtilities.Unreachable(),
+                        BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver => 0,
+                        BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter => BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter,
+                        BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter => BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter,
+                        >= 0 => index + 1,
+                        _ => throw ExceptionUtilities.UnexpectedValue(index),
+                    });
+                }
+            }
+
+            internal sealed override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
         }
     }
 }
