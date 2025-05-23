@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis
         public bool NoWin32Manifest { get; internal set; }
 
         /// <summary>
-        /// Resources specified as arguments to the compilation.
+        /// Manifest resource information parsed from <c>/resource</c> arguments.
         /// </summary>
-        public ImmutableArray<ResourceDescription> ManifestResources { get; internal set; }
+        public ImmutableArray<CommandLineResource> ManifestResourceArguments { get; internal set; }
 
         /// <summary>
         /// Encoding to be used for source files or 'null' for autodetect/default.
@@ -314,6 +314,12 @@ namespace Microsoft.CodeAnalysis
         internal CommandLineArguments()
         {
         }
+
+        /// <summary>
+        /// Resources specified as arguments to the compilation.
+        /// </summary>
+        public ImmutableArray<ResourceDescription> ManifestResources
+            => ManifestResourceArguments.SelectAsArray(static r => r.ToDescription());
 
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
