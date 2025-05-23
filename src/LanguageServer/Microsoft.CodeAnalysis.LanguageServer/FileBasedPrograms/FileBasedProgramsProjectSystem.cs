@@ -4,8 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Security;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -22,7 +24,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>Handles loading both miscellaneous files and file-based program projects.</summary>
 internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoader, ILspMiscellaneousFilesWorkspaceProvider
@@ -30,10 +32,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+    private readonly VirtualProjectXmlProvider _projectXmlProvider;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
         IMetadataAsSourceFileService metadataAsSourceFileService,
+        VirtualProjectXmlProvider projectXmlProvider,
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
         IGlobalOptionService globalOptionService,
@@ -57,6 +61,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
         _metadataAsSourceFileService = metadataAsSourceFileService;
+        _projectXmlProvider = projectXmlProvider;
     }
 
     public Workspace Workspace => ProjectFactory.Workspace;
@@ -124,20 +129,33 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await UnloadProjectAsync(documentPath);
     }
 
-    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
+    protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
+        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, cancellationToken);
+        if (content is not var (virtualProjectContent, diagnostics))
+        {
+            // 'GetVirtualProjectContentAsync' will log errors when it fails
+            return null;
+        }
 
-        var loader = ProjectFactory.CreateFileTextLoader(documentPath);
-        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
-        var (virtualProjectContent, isFileBasedProgram) = VirtualCSharpFileBasedProgramProject.MakeVirtualProjectContent(documentPath, textAndVersion.Text);
+        foreach (var diagnostic in diagnostics)
+        {
+            // https://github.com/dotnet/roslyn/issues/78688: Surface diagnostics in editor
+            _logger.LogError($"{diagnostic.Location.Path}{diagnostic.Location.Span.Start}: {diagnostic.Message}");
+        }
 
         // When loading a virtual project, the path to the on-disk source file is not used. Instead the path is adjusted to end with .csproj.
         // This is necessary in order to get msbuild to apply the standard c# props/targets to the project.
-        var virtualProjectPath = VirtualCSharpFileBasedProgramProject.GetVirtualProjectPath(documentPath);
+        var virtualProjectPath = VirtualProjectXmlProvider.GetVirtualProjectPath(documentPath);
+
+        var loader = ProjectFactory.CreateFileTextLoader(documentPath);
+        var textAndVersion = await loader.LoadTextAsync(new LoadTextOptions(SourceHashAlgorithms.Default), cancellationToken);
+        var isFileBasedProgram = VirtualProjectXmlProvider.IsFileBasedProgram(documentPath, textAndVersion.Text);
+
+        const BuildHostProcessKind buildHostKind = BuildHostProcessKind.NetCore;
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
-        return (loadedFile, hasAllInformation: isFileBasedProgram, preferred: buildHostKind, actual: buildHostKind);
+        return new RemoteProjectLoadResult(loadedFile, HasAllInformation: isFileBasedProgram, Preferred: buildHostKind, Actual: buildHostKind);
     }
 }
