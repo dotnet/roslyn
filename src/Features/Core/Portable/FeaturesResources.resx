@@ -2681,7 +2681,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Adding_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
     <value>Adding or updating manifest resource '{0}' has no effect until the project is rebuit.</value>
   </data>
-  <data name="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
+  <data name="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
     <value>Deleting manifest resource '{0}' has no effect until the project is rebuit.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">

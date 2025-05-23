@@ -700,7 +700,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">런타임에서 지원하지 않기 때문에 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+      <trans-unit id="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
         <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
         <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />

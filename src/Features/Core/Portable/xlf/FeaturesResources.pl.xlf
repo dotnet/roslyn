@@ -700,7 +700,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Usunięcie {0} wymaga ponownego uruchomienia aplikacji, ponieważ nie jest to obsługiwane przez środowisko uruchomieniowe.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+      <trans-unit id="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
         <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
         <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />

@@ -700,7 +700,7 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La suppression de {0} requiert le redémarrage de l’application, car elle n’est pas prise en charge par le Runtime.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+      <trans-unit id="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
         <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
         <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />

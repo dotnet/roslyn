@@ -700,7 +700,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para eliminar {0} se requiere reiniciar la aplicación porque no es compatible con el tiempo de ejecución.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_or_updating_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
+      <trans-unit id="Deleting_manifest_resource_0_has_no_effect_until_the_project_is_rebuit">
         <source>Deleting manifest resource '{0}' has no effect until the project is rebuit.</source>
         <target state="new">Deleting manifest resource '{0}' has no effect until the project is rebuit.</target>
         <note />

@@ -1023,7 +1023,7 @@ internal sealed class EditSession
                     // instead of the true C.M(string).
 
                     var (changedDocumentAnalyses, hasOutOfSyncChangedDocument) =
-                        await AnalyzeProjectDifferencesAsync(solution, documentDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                        await AnalyzeProjectDifferencesAsync(solution, projectDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
 
                     if (hasOutOfSyncChangedDocument)
                     {

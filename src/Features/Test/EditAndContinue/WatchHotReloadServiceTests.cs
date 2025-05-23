@@ -242,10 +242,9 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
             .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
 
         var result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
-        var diagnostic = result.CompilationDiagnostics.Single();
-
-        //Assert.Equal("CS8785", diagnostic.Id);
-        //Assert.Contains("Source generator failed", diagnostic.GetMessage());
+        Assert.Empty(result.CompilationDiagnostics);
+        AssertEx.SequenceEqual(["ENC1010"], result.RudeEdits.Single().diagnostics.Select(d => d.Id));
+        AssertEx.SequenceEqual(["A"], result.ProjectsToRestart.Select(p => p.Key.DebugName));
         hotReload.EndSession();
     }
 }
