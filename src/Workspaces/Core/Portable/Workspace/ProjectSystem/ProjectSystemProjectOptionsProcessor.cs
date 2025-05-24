@@ -196,6 +196,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         _project.GeneratedFilesOutputDirectory = _commandLineArgumentsForCommandLine.GeneratedFilesOutputDirectory;
         _project.ParseOptions = parseOptions;
         _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
+
+        _project.ManifestResources = _commandLineArgumentsForCommandLine.ManifestResourceArguments
+            .SelectAsArray(static r => new MetadataResourceInfo(r.ResourceName, r.FullPath, r.LinkedResourceFileName, r.IsPublic, contentVersion: 0));
     }
 
     private void RuleSetFile_UpdatedOnDisk(object? sender, EventArgs e)

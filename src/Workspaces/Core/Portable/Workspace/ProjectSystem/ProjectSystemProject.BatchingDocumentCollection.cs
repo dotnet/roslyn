@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -125,7 +126,7 @@ internal sealed partial class ProjectSystemProject
                 _orderedDocumentsInBatch = _orderedDocumentsInBatch?.Add(documentId);
 
                 _documentPathsToDocumentIds.Add(fullPath, documentId);
-                _project._documentWatchedFiles.Add(documentId, _project._documentFileChangeContext.EnqueueWatchingFile(fullPath));
+                _project._documentWatchedFiles.Add(documentId, _project._fileChangeContext.EnqueueWatchingFile(fullPath));
 
                 if (_project._activeBatchScopes > 0)
                 {
@@ -395,58 +396,51 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
-        public async ValueTask ProcessRegularFileChangesAsync(ImmutableSegmentedList<string> filePaths)
+        public bool TryGetDocumentChangeNoLock(string filePath, [NotNullWhen(true)] out DocumentId? documentId, [NotNullWhen(true)] out TextLoader? loader)
         {
-            using (await _project._gate.DisposableWaitAsync().ConfigureAwait(false))
+            Contract.ThrowIfTrue(_project.HasBeenRemoved);
+
+            if (_documentPathsToDocumentIds.TryGetValue(filePath, out documentId))
             {
-                // If our project has already been removed, this is a stale notification, and we can disregard.
-                if (_project.HasBeenRemoved)
+                // We create file watching prior to pushing the file to the workspace in batching, so it's
+                // possible we might see a file change notification early. In this case, toss it out. Since
+                // all adds/removals of documents for this project happen under our lock, it's safe to do this
+                // check without taking the main workspace lock. We don't have to check for documents removed in
+                // the batch, since those have already been removed out of _documentPathsToDocumentIds.
+                if (!_documentsAddedInBatch.Any(static (info, documentId) => info.Id == documentId, documentId))
                 {
-                    return;
+                    loader = new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.SolutionServices, filePath, defaultEncoding: null);
+                    return true;
                 }
-
-                var documentsToChange = ArrayBuilder<(DocumentId, TextLoader)>.GetInstance(filePaths.Count);
-
-                foreach (var filePath in filePaths)
-                {
-                    if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
-                    {
-                        // We create file watching prior to pushing the file to the workspace in batching, so it's
-                        // possible we might see a file change notification early. In this case, toss it out. Since
-                        // all adds/removals of documents for this project happen under our lock, it's safe to do this
-                        // check without taking the main workspace lock. We don't have to check for documents removed in
-                        // the batch, since those have already been removed out of _documentPathsToDocumentIds.
-                        if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
-                        {
-                            documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.SolutionServices, filePath, defaultEncoding: null)));
-                        }
-                    }
-                }
-
-                // Nothing actually matched, so we're done
-                if (documentsToChange.Count == 0)
-                {
-                    return;
-                }
-
-                await _project._projectSystemProjectFactory.ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
-                {
-                    foreach (var (documentId, textLoader) in documentsToChange)
-                    {
-                        if (!_project._projectSystemProjectFactory.Workspace.IsDocumentOpen(documentId))
-                        {
-                            solutionChanges.UpdateSolutionForDocumentAction(
-                                _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
-                                _documentChangedWorkspaceKind,
-                                [documentId]);
-                        }
-                    }
-
-                    return projectUpdateState;
-                }, onAfterUpdateAlways: null).ConfigureAwait(false);
-
-                documentsToChange.Free();
             }
+
+            documentId = null;
+            loader = null;
+            return false;
+        }
+
+        public async ValueTask ProcessDocumentChangesNoLockAsync(ArrayBuilder<(DocumentId, TextLoader)> documentsToChange)
+        {
+            Contract.ThrowIfTrue(_project.HasBeenRemoved);
+            Contract.ThrowIfTrue(documentsToChange.IsEmpty);
+
+            await _project._projectSystemProjectFactory.ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
+            {
+                foreach (var (documentId, textLoader) in documentsToChange)
+                {
+                    if (!_project._projectSystemProjectFactory.Workspace.IsDocumentOpen(documentId))
+                    {
+                        solutionChanges.UpdateSolutionForDocumentAction(
+                            _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
+                            _documentChangedWorkspaceKind,
+                            [documentId]);
+                    }
+                }
+
+                return projectUpdateState;
+            }, onAfterUpdateAlways: null).ConfigureAwait(false);
+
+            documentsToChange.Free();
         }
 
         /// <summary>

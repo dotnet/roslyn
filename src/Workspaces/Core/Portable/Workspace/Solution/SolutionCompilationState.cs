@@ -463,6 +463,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithProjectManifestResources"/>
+    public SolutionCompilationState WithProjectManifestResources(
+        ProjectId projectId, ImmutableArray<MetadataResourceInfo> resources)
+    {
+        return ForkProject(
+            this.SolutionState.WithProjectManifestResources(projectId, resources),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectName"/>
     public SolutionCompilationState WithProjectName(
         ProjectId projectId, string name)
