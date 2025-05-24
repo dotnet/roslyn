@@ -210,8 +210,9 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         hotReload.EndSession();
     }
 
-    [Fact]
-    public async Task ManifestResourceUpdates()
+    [Theory]
+    [CombinatorialData]
+    public async Task ManifestResourceUpdateOrDelete(bool isDelete)
     {
         using var workspace = CreateWorkspace(out var solution, out _);
 
@@ -234,16 +235,23 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
 
         await hotReload.StartSessionAsync(solution, CancellationToken.None);
 
-        solution = WatchHotReloadService.WithManifestResourceUpdate(solution, resourceFile.Path);
+        solution = WatchHotReloadService.WithManifestResourceChanged(solution, resourceFile.Path, isDelete);
 
-        Assert.Equal(1, solution.GetRequiredProject(projectId).State.Attributes.ManifestResources.Single().ContentVersion);
+        if (isDelete)
+        {
+            Assert.Empty(solution.GetRequiredProject(projectId).State.Attributes.ManifestResources);
+        }
+        else
+        {
+            Assert.Equal(1, solution.GetRequiredProject(projectId).State.Attributes.ManifestResources.Single().ContentVersion);
+        }
 
         var runningProjects = ImmutableDictionary<ProjectId, WatchHotReloadService.RunningProjectInfo>.Empty
             .Add(projectId, new WatchHotReloadService.RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true });
 
         var result = await hotReload.GetUpdatesAsync(solution, runningProjects, CancellationToken.None);
         Assert.Empty(result.CompilationDiagnostics);
-        AssertEx.SequenceEqual(["ENC1010"], result.RudeEdits.Single().diagnostics.Select(d => d.Id));
+        AssertEx.SequenceEqual([isDelete ? "ENC1009" : "ENC1010"], result.RudeEdits.Single().diagnostics.Select(d => d.Id));
         AssertEx.SequenceEqual(["A"], result.ProjectsToRestart.Select(p => p.Key.DebugName));
         hotReload.EndSession();
     }

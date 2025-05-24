@@ -279,7 +279,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     /// 
     /// Currently we only track whether or not a resource changed, not its updated content since the runtime does not support updating resources.
     /// </summary>
-    public static Solution WithManifestResourceUpdate(Solution solution, string resourcePath)
+    public static Solution WithManifestResourceChanged(Solution solution, string resourcePath, bool isDelete)
     {
         var newSolution = solution;
 
@@ -293,7 +293,10 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             if (resourceIndex >= 0)
             {
                 var resource = projectResources[resourceIndex];
-                var newResources = projectResources.SetItem(resourceIndex, resource.WithContentVersion(resource.ContentVersion + 1));
+
+                var newResources = isDelete
+                    ? projectResources.RemoveAt(resourceIndex)
+                    : projectResources.SetItem(resourceIndex, resource.WithContentVersion(resource.ContentVersion + 1));
 
                 newSolution = newSolution.WithProjectAttributes(
                     project.State.Attributes.With(manifestResources: newResources));
