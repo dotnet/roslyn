@@ -1136,6 +1136,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
+        private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver)
+        {
+            if (member.GetIsNewExtensionMember())
+            {
+                Debug.Assert(!member.IsStatic);
+                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this._compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
+#endif
+
+                return MakeConversionNode(receiver, extensionParameter.Type, @checked: false, acceptFailingConversion: false, markAsChecked: true);
+            }
+
+            return receiver;
+        }
+
 #if DEBUG
         /// <summary>
         /// Note: do not use a static/singleton instance of this type, as it holds state.

@@ -216,6 +216,48 @@ static class E
     }
 
     [Fact]
+    public void PositionalPattern_03()
+    {
+        // implicit span conversion
+        var src = """
+int[] i = new int[] { 1, 2 };
+if (i is var (x, y))
+    System.Console.Write((x, y));
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PositionalPattern_04()
+    {
+        // implicit tuple conversion
+        var src = """
+var t = (42, "ran");
+if (t is var (x, y))
+    System.Console.Write((x, y));
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, ran)")).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InvocationOnNull()
     {
         var src = """
