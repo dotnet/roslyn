@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -168,7 +169,22 @@ internal partial class WpfBackgroundWorkIndicatorFactory
 
         bool IUIThreadOperationContext.AllowCancellation => true;
 
-        public IDisposable SuppressAutoCancel()
-            => _backgroundWorkIndicator.SuppressAutoCancel();
+        public async Task<IAsyncDisposable> SuppressAutoCancelAsync()
+        {
+            // TODO: Simplify this once the platform's work indicator supports suppression from any thread.
+            await _factory._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(this.UserCancellationToken);
+            return new SuppressAutoCancelDisposer(this, _backgroundWorkIndicator.SuppressAutoCancel());
+        }
+
+        private sealed class SuppressAutoCancelDisposer(
+            BackgroundWorkIndicatorContext owner,
+            IDisposable disposable) : IAsyncDisposable
+        {
+            public async ValueTask DisposeAsync()
+            {
+                await owner._factory._threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(owner.UserCancellationToken);
+                disposable.Dispose();
+            }
+        }
     }
 }
