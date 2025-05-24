@@ -515,7 +515,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilationUnit,
                 parser.Directives,
                 diagnosticOptions: diagnosticOptions,
-                cloneRoot: true);
+                cloneRoot: false);
+            Debug.Assert(compilationUnit._syntaxTree == null);
+            compilationUnit._syntaxTree = tree;
             tree.VerifySource();
             return tree;
         }
