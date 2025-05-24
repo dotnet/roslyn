@@ -7,7 +7,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.IntroduceVariable
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
@@ -19,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetContainingExecutableBlocks(expression As ExpressionSyntax) As IEnumerable(Of SyntaxNode)
             Return expression.GetContainingExecutableBlocks()

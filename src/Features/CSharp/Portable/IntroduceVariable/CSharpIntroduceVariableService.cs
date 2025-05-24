@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -11,22 +9,22 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
 [ExportLanguageService(typeof(IIntroduceVariableService), LanguageNames.CSharp), Shared]
-internal sealed partial class CSharpIntroduceVariableService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpIntroduceVariableService() :
     AbstractIntroduceVariableService<CSharpIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeDeclarationSyntax, QueryExpressionSyntax, NameSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpIntroduceVariableService()
-    {
-    }
+    protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
     protected override bool IsInNonFirstQueryClause(ExpressionSyntax expression)
     {
@@ -45,10 +43,9 @@ internal sealed partial class CSharpIntroduceVariableService :
     }
 
     protected override bool IsInFieldInitializer(ExpressionSyntax expression)
-    {
-        return expression.GetAncestorOrThis<VariableDeclaratorSyntax>()
-                         .GetAncestorOrThis<FieldDeclarationSyntax>() != null;
-    }
+        => expression
+            .GetAncestorOrThis<VariableDeclaratorSyntax>()
+            .GetAncestorOrThis<FieldDeclarationSyntax>() != null;
 
     protected override bool IsInParameterInitializer(ExpressionSyntax expression)
         => expression.GetAncestorOrThis<EqualsValueClauseSyntax>().IsParentKind(SyntaxKind.Parameter);
@@ -62,7 +59,7 @@ internal sealed partial class CSharpIntroduceVariableService :
     protected override bool IsInExpressionBodiedMember(ExpressionSyntax expression)
     {
         // walk up until we find a nearest enclosing block or arrow expression.
-        for (SyntaxNode node = expression; node != null; node = node.Parent)
+        for (SyntaxNode? node = expression; node != null; node = node.Parent)
         {
             // If we are in an expression bodied member and if the expression has a block body, then,
             // act as if we're in a block context and not in an expression body context at all.

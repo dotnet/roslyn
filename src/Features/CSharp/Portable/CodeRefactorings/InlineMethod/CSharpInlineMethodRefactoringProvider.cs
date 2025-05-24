@@ -85,17 +85,16 @@ internal sealed class CSharpInlineMethodRefactoringProvider
         //     ;
         var isNullConditionalInvocationExpression = IsNullConditionalInvocationExpression(expressionNode);
 
-        return expressionNode.IsKind(SyntaxKind.InvocationExpression)
-               || isNullConditionalInvocationExpression
-               || expressionNode is AssignmentExpressionSyntax
-               || expressionNode.Kind()
-                    is SyntaxKind.InvocationExpression
-                    or SyntaxKind.ObjectCreationExpression
-                    or SyntaxKind.PreIncrementExpression
-                    or SyntaxKind.PreDecrementExpression
-                    or SyntaxKind.PostIncrementExpression
-                    or SyntaxKind.PostDecrementExpression
-                    or SyntaxKind.AwaitExpression;
+        return isNullConditionalInvocationExpression
+            || expressionNode is AssignmentExpressionSyntax
+            || expressionNode.Kind()
+                is SyntaxKind.InvocationExpression
+                or SyntaxKind.ObjectCreationExpression
+                or SyntaxKind.PreIncrementExpression
+                or SyntaxKind.PreDecrementExpression
+                or SyntaxKind.PostIncrementExpression
+                or SyntaxKind.PostDecrementExpression
+                or SyntaxKind.AwaitExpression;
     }
 
     protected override bool CanBeReplacedByThrowExpression(SyntaxNode syntaxNode)
