@@ -213,7 +213,6 @@ public sealed class RemoteEditAndContinueServiceTests
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = [],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, []),

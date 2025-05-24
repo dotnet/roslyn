@@ -143,6 +143,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public readonly Status Status { get; init; }
 
         /// <summary>
+        /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
         /// Syntactic, semantic and emit diagnostics.
         /// </summary>
         /// <remarks>
@@ -151,7 +152,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public required ImmutableArray<Diagnostic> CompilationDiagnostics { get; init; }
 
         /// <summary>
-        /// Rude edits per project.
+        /// Transient diagnostics (rude edits) per project.
+        /// All diagnostics that can be addressed by rebuilding/restarting the project.
         /// </summary>
         public required ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> RudeEdits { get; init; }
 
@@ -315,8 +317,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
                 ModuleUpdateStatus.Blocked => Status.Blocked,
                 _ => throw ExceptionUtilities.UnexpectedValue(results.ModuleUpdates.Status)
             },
-            CompilationDiagnostics = results.GetAllCompilationDiagnostics(),
-            RudeEdits = results.RudeEdits.SelectAsArray(static re => (re.ProjectId, re.Diagnostics)),
+            CompilationDiagnostics = results.GetPersistentDiagnostics(),
+            RudeEdits = results.GetTransientDiagnostics(),
             ProjectUpdates = results.ModuleUpdates.Updates.SelectAsArray(static update => new Update(
                 update.Module,
                 update.ProjectId,
