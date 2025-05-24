@@ -15,7 +15,7 @@ internal static class EditorConfigParser
     // Matches EditorConfig section header such as "[*.{js,py}]", see https://editorconfig.org for details
     private static readonly Regex s_sectionMatcher = new(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
     // Matches EditorConfig property such as "indent_style = space", see https://editorconfig.org for details
-    private static readonly Regex s_propertyMatcher = new(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
+    private static readonly Regex s_propertyMatcher = new(@"^[^\S\r\n]*((?:[^=:\s]+[^\S\r\n]*?)+?)[^\S\r\n]*[=:][^\S\r\n]*(.*?)[^\S\r\n]*([#;].*)?$", RegexOptions.Compiled);
 
     private static ImmutableHashSet<string> ReservedKeys { get; }
         = ImmutableHashSet.CreateRange(AnalyzerConfigOptions.KeyComparer, [
