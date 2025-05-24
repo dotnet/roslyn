@@ -2,8 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Text
 Imports System.Reflection
+Imports System.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 

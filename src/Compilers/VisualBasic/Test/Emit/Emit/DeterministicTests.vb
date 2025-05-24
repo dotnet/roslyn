@@ -3,13 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System
-Imports System.IO
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 

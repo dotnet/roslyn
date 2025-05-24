@@ -4,13 +4,14 @@
 
 Imports System.IO
 Imports System.Text.RegularExpressions
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 

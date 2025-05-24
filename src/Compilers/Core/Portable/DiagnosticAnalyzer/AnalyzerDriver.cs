@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 

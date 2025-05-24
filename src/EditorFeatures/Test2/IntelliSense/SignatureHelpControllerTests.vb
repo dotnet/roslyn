@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities

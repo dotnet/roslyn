@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;

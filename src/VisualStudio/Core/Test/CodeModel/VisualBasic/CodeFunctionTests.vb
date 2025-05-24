@@ -4,6 +4,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop

@@ -5,9 +5,10 @@
 Imports System.IO
 Imports System.Text
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ''' <summary>
