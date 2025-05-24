@@ -1940,7 +1940,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return scriptClass.GetScriptEntryPoint();
                     }
 
-                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
+                    var nameParts = mainTypeName.Split('.');
+                    if (nameParts.Any(n => string.IsNullOrWhiteSpace(n)))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadCompilationOptionValue, NoLocation.Singleton, nameof(CSharpCompilationOptions.MainTypeName), mainTypeName);
+                        return null;
+                    }
+
+                    var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(nameParts).OfMinimalArity();
                     if (mainTypeOrNamespace is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
@@ -2157,6 +2164,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<Symbol> members)
         {
             foreach (var member in members)
+            {
+                if (member.GetIsNewExtensionMember())
+                {
+                    if (member is MethodSymbol method && method.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
+                    {
+                        addIfCandidate(entryPointCandidates, implementationMethod);
+                    }
+                }
+                else
+                {
+                    addIfCandidate(entryPointCandidates, member);
+                }
+            }
+
+            static void addIfCandidate(ArrayBuilder<MethodSymbol> entryPointCandidates, Symbol member)
             {
                 if (member is MethodSymbol method &&
                     method.IsEntryPointCandidate)
