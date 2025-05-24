@@ -188,7 +188,7 @@ internal abstract class EditAndContinueTestVerifier
             Contract.ThrowIfNull(newModel);
 
             var lazyOldActiveStatementMap = AsyncLazy.Create(expectedResult.ActiveStatements.OldStatementsMap);
-            var result = Analyzer.AnalyzeDocumentAsync(oldProject, lazyOldActiveStatementMap, newDocument, newActiveStatementSpans, lazyCapabilities, log, CancellationToken.None).Result;
+            var result = Analyzer.AnalyzeDocumentAsync(newDocument.Id, oldProject, newProject, lazyOldActiveStatementMap, newActiveStatementSpans, lazyCapabilities, log, CancellationToken.None).Result;
             var oldText = oldDocument.GetTextSynchronously(default);
             var newText = newDocument.GetTextSynchronously(default);
 
@@ -462,19 +462,13 @@ internal abstract class EditAndContinueTestVerifier
 
     private void CreateProjects(EditScriptDescription[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
     {
-        var projectInfo = ProjectInfo.Create(
-            new ProjectInfo.ProjectAttributes(
-                id: ProjectId.CreateNewId(),
-                version: VersionStamp.Create(),
-                name: "project",
-                assemblyName: "project",
-                language: LanguageName,
-                compilationOutputInfo: default,
-                filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
-                checksumAlgorithm: SourceHashAlgorithms.Default),
-            parseOptions: ParseOptions);
+        var oldSolution = workspace.CurrentSolution;
+        oldProject = oldSolution.AddTestProject("project", LanguageName, targetFramework, out _);
 
-        oldProject = workspace.AddProject(projectInfo).WithMetadataReferences(TargetFrameworkUtil.GetReferences(targetFramework));
+        oldProject = oldProject
+            .WithParseOptions(ParseOptions)
+            .WithCompilationOptions(oldProject.CompilationOptions!.WithOutputKind(OutputKind.ConsoleApplication));
+
         foreach (var editScript in editScripts)
         {
             var oldRoot = editScript.Match.OldRoot;

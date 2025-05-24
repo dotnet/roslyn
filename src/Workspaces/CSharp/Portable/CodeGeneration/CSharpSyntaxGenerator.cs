@@ -1710,6 +1710,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         AddIf(modifiers.IsVolatile, VolatileKeyword);
         AddIf(modifiers.IsExtern, ExternKeyword);
         AddIf(modifiers.IsRequired, RequiredKeyword);
+        AddIf(modifiers.IsFixed, FixedKeyword);
 
         // partial and ref must be last
         AddIf(modifiers.IsRef, RefKeyword);

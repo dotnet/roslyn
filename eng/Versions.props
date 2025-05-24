@@ -96,56 +96,74 @@
   <!--
     Microsoft.CodeAnalysis.* versions used by the RoslynAnalyzers.
   -->
-  <PropertyGroup>
-    <!-- Microsoft.CodeAnalysis.* versions. Read this!
-        This repo uses a wide variety of M.CA.* package versions. This is an atypical pattern in
-        .NET's repositories but a necessary one for roslyn-analyzers.
+  <Choose>
+    <When Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+      <PropertyGroup>
+        <!-- Microsoft.CodeAnalysis.* versions. Read this!
+            This repo uses a wide variety of M.CA.* package versions. This is an atypical pattern in
+            .NET's repositories but a necessary one for roslyn-analyzers.
 
-        Some facts:
-        - These versions are chosen on purpose.
-        - They often represent the base required surface area of Microsoft.CA to support for a given feature or analyzer.
-          This means that the analyzer would be supported in the widest array of C# compilation scenarios.
-        - Most of these dependencies only represent target surface area. In some cases, the M.CA libraries are
-          redistributed (tools) or used within the build.
-        - Some of these versions are used for testing to ensure that analyzers built against older surface area
-          still work against new implementations.
-        - Linux source-build only builds a single implementation of M.CA.*.
-        - Linux source-build does have some ability to provide surface area packages via the source-build-reference-packages repo.
-          However, because these reference packages do not provide implementations, they cannot be used in any case
-          where the package contents would be redisted or executed. An SBRP may not be created for a version that is used both
-          as a reference assembly and redisted.
+            Some facts:
+            - These versions are chosen on purpose.
+            - They often represent the base required surface area of Microsoft.CA to support for a given feature or analyzer.
+              This means that the analyzer would be supported in the widest array of C# compilation scenarios.
+            - Most of these dependencies only represent target surface area. In some cases, the M.CA libraries are
+              redistributed (tools) or used within the build.
+            - Some of these versions are used for testing to ensure that analyzers built against older surface area
+              still work against new implementations.
+            - Linux source-build only builds a single implementation of M.CA.*.
+            - Linux source-build does have some ability to provide surface area packages via the source-build-reference-packages repo.
+              However, because these reference packages do not provide implementations, they cannot be used in any case
+              where the package contents would be redisted or executed. An SBRP may not be created for a version that is used both
+              as a reference assembly and redisted.
 
-          In this repo, the MicrosoftCodeAnalysis property should **not** be set globally in this file. Instead, it should
-          be set for each project, based on the properties below. When the project is executable, it should be
-          set only for non-source build or repo-source build. Product source build will set an incoming MicrosoftCodeAnalysis property
-          that will denote the available implementation version.
+              In this repo, the MicrosoftCodeAnalysis property should **not** be set globally in this file. Instead, it should
+              be set for each project, based on the properties below. When the project is executable, it should be
+              set only for non-source build or repo-source build. Product source build will set an incoming MicrosoftCodeAnalysis property
+              that will denote the available implementation version.
 
-          Example of surface area usage:
+              Example of surface area usage:
 
-          <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers)</MicrosoftCodeAnalysisVersion>
+              <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers)</MicrosoftCodeAnalysisVersion>
 
-          Example of executable usage:
+              Example of executable usage:
 
-          <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
-    -->
-    <!-- Microsoft.CodeAnalysis versions for different purposes. -->
-    <!-- Surface area that various projects compile against. These should have source-build reference packages -->
-    <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
-    <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>1.2.1</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
-    <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
-    <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
-    <MicrosoftCodeAnalysisVersionForResxSourceGenerators>4.0.1</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
-    <MicrosoftCodeAnalysisVersionForNetAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForNetAnalyzers>
-    <MicrosoftCodeAnalysisVersionForTextAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForTextAnalyzers>
-    <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
-    <MicrosoftCodeAnalysisVersionForToolsAndUtilities>3.11.0</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
-    <MicrosoftCodeAnalysisVersionForMetrics>4.0.1</MicrosoftCodeAnalysisVersionForMetrics>
-    <!-- Versions for tests and general utility execution. -->
-    <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
-         area versions. -->
-    <MicrosoftCodeAnalysisVersionForTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForTests>
-    <MicrosoftCodeAnalysisVersionForExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForExecution>
-  </PropertyGroup>
+              <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+        -->
+        <!-- Microsoft.CodeAnalysis versions for different purposes. -->
+        <!-- Surface area that various projects compile against. These should have source-build reference packages -->
+        <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>3.11.0</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
+        <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>1.2.1</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
+        <MicrosoftCodeAnalysisVersionForResxSourceGenerators>4.0.1</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
+        <MicrosoftCodeAnalysisVersionForTextAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForTextAnalyzers>
+        <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>3.11.0</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
+        <MicrosoftCodeAnalysisVersionForToolsAndUtilities>3.11.0</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
+        <MicrosoftCodeAnalysisVersionForMetrics>4.0.1</MicrosoftCodeAnalysisVersionForMetrics>
+        <!-- Versions for tests and general utility execution. -->
+        <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
+            area versions. -->
+        <MicrosoftCodeAnalysisVersionForTests>4.9.0-3.final</MicrosoftCodeAnalysisVersionForTests>
+        <MicrosoftCodeAnalysisVersionForExecution>4.6.0-1.final</MicrosoftCodeAnalysisVersionForExecution>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MicrosoftCodeAnalysisVersionFromSbrp>4.0.1</MicrosoftCodeAnalysisVersionFromSbrp>
+        <MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisForRoslynDiagnosticsAnalyzersVersion>
+        <MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForPublicApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForBannedApiAnalyzers>
+        <MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForPerfSensitiveAnalyzers>
+        <MicrosoftCodeAnalysisVersionForResxSourceGenerators>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForResxSourceGenerators>
+        <MicrosoftCodeAnalysisVersionForTextAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForTextAnalyzers>
+        <MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers>
+        <MicrosoftCodeAnalysisVersionForToolsAndUtilities>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForToolsAndUtilities>
+        <MicrosoftCodeAnalysisVersionForMetrics>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForMetrics>
+        <MicrosoftCodeAnalysisVersionForTests>$(MicrosoftCodeAnalysisVersionFromSbrp)</MicrosoftCodeAnalysisVersionForTests>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
     <UsingToolPdbConverter>false</UsingToolPdbConverter>

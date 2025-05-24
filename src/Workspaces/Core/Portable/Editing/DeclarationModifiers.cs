@@ -37,7 +37,8 @@ public readonly record struct DeclarationModifiers
         bool isVolatile = false,
         bool isExtern = false,
         bool isRequired = false,
-        bool isFile = false)
+        bool isFile = false,
+        bool isFixed = false)
         : this(
               (isStatic ? Modifiers.Static : Modifiers.None) |
               (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -56,17 +57,19 @@ public readonly record struct DeclarationModifiers
               (isVolatile ? Modifiers.Volatile : Modifiers.None) |
               (isExtern ? Modifiers.Extern : Modifiers.None) |
               (isRequired ? Modifiers.Required : Modifiers.None) |
-              (isFile ? Modifiers.File : Modifiers.None))
+              (isFile ? Modifiers.File : Modifiers.None) |
+              (isFixed ? Modifiers.Fixed : Modifiers.None))
     {
     }
 
     public static DeclarationModifiers From(ISymbol symbol)
     {
-        if (symbol is INamedTypeSymbol or
-             IFieldSymbol or
-             IPropertySymbol or
-             IMethodSymbol or
-             IEventSymbol)
+        if (symbol
+                is INamedTypeSymbol
+                or IFieldSymbol
+                or IPropertySymbol
+                or IMethodSymbol
+                or IEventSymbol)
         {
             var field = symbol as IFieldSymbol;
             var property = symbol as IPropertySymbol;
@@ -88,7 +91,8 @@ public readonly record struct DeclarationModifiers
                 isExtern: symbol.IsExtern,
                 isAsync: method?.IsAsync == true,
                 isRequired: symbol.IsRequired(),
-                isFile: type?.IsFileLocal == true);
+                isFile: type?.IsFileLocal == true,
+                isFixed: field?.IsFixedSizeBuffer == true);
         }
 
         // Only named types, members of named types, and local functions have modifiers.
@@ -131,6 +135,8 @@ public readonly record struct DeclarationModifiers
     public bool IsRequired => (_modifiers & Modifiers.Required) != 0;
 
     public bool IsFile => (_modifiers & Modifiers.File) != 0;
+
+    internal bool IsFixed => (_modifiers & Modifiers.Fixed) != 0;
 
     public DeclarationModifiers WithIsStatic(bool isStatic)
         => new(SetFlag(_modifiers, Modifiers.Static, isStatic));
@@ -213,6 +219,7 @@ public readonly record struct DeclarationModifiers
         Extern      = 1 << 15,
         Required    = 1 << 16,
         File        = 1 << 17,
+        Fixed       = 1 << 18,
 #pragma warning restore format
     }
 
@@ -236,6 +243,7 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers Extern => new(Modifiers.Extern);
     public static DeclarationModifiers Required => new(Modifiers.Required);
     public static DeclarationModifiers File => new(Modifiers.File);
+    internal static DeclarationModifiers Fixed => new(Modifiers.Fixed);
 
     public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)
         => new(left._modifiers | right._modifiers);
