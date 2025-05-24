@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto case SyntaxKind.InterfaceDeclaration;
                     }
                 case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.ExtensionBlockDeclaration:
                     {
                         var t = (TypeDeclarationSyntax)node;
                         foreach (var decl in t.Members)

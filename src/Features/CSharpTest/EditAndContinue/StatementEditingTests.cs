@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 [UseExportProvider]
-public class StatementEditingTests : EditingTestBase
+public sealed class StatementEditingTests : EditingTestBase
 {
     private readonly string s_asyncIteratorStateMachineAttributeSource = @"
 namespace System.Runtime.CompilerServices
@@ -6637,6 +6637,78 @@ class Test
             capabilities: EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation);
     }
 
+    [Fact]
+    public void Lambdas_BodyUpdate_RestartRequired()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 1);
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 2);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "()", GetResource("lambda")));
+    }
+
+    [Fact]
+    public void Lambdas_BodyUpdate_RestartRequired_ContainingMethod()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F(System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(() => 1);
+                }
+            }
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F(System.Func<int> f)
+                    => f();
+
+                [RestartRequiredOnMetadataUpdateAttribute]
+                public void G()
+                {
+                    F(() => 2);
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported since the change is in the lambda body:
+        edits.VerifySemanticDiagnostics(
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
     #endregion
 
     #region Local Functions
@@ -9717,7 +9789,48 @@ class Test
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"))],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(2);", GetResource("top-level code"))]);
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "2", GetResource("top-level code"))]);
+    }
+
+    [Fact]
+    public void LocalFunctions_BodyUpdate_RestartRequired()
+    {
+        var src1 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(L);
+
+                    int L() => 1;
+                }
+            }
+        
+            """;
+
+        var src2 = RestartRequiredOnMetadataUpdateAttributeSrc + """
+            
+            public class C
+            {
+                public int F([RestartRequiredOnMetadataUpdateAttribute] System.Func<int> f)
+                    => f();
+
+                public void G()
+                {
+                    F(L);
+            
+                    int L() => 2;
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        // UpdateMightNotHaveAnyEffect not reported for local functions.
+        edits.VerifySemanticDiagnostics();
     }
 
     #endregion
@@ -13328,7 +13441,7 @@ var x = new Func<int>(() => 2);
         var edits = GetTopEdits(src1, src2);
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "Console.WriteLine(1);", GetResource("top-level code"))],
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "var", GetResource("top-level code"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
     }
 
@@ -13428,17 +13541,7 @@ var f1 = new Func<int, int>(a1 =>
 
         edits.VerifySemantics(
             [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Program.<Main>$"), preserveLocalVariables: true)],
-            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, """
-                foreach (int x0 in new[] { 1 })  // Group #0
-                {                                // Group #1
-                    int x1 = 0;
-
-                    int f0(int a) => x0;
-                    int f1(int a) => x1;
-
-                    int f2(int a) => x0 + x1;   // runtime rude edit: connecting previously disconnected closures
-                }
-                """, GetResource("top-level code"))],
+            [Diagnostic(RudeEditKind.UpdateMightNotHaveAnyEffect, "int", GetResource("top-level code"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
     }
 

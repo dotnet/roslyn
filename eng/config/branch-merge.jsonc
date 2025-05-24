@@ -1,0 +1,9 @@
+// Used by .github/workflows/main-merge.yml
+{
+    "merge-flow-configurations": {
+        // "main": {
+        //     "MergeToBranch": "release/dev17.15",
+        //     "ExtraSwitches": "-QuietComments"
+        // }
+    }
+}

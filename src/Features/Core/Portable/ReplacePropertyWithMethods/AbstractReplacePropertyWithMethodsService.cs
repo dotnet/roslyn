@@ -4,11 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +28,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
 {
     public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
     public abstract Task<ImmutableArray<SyntaxNode>> GetReplacementMembersAsync(
-        Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
+        Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol? propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
 
     protected abstract TCrefSyntax? TryGetCrefSyntax(TIdentifierNameSyntax identifierName);
     protected abstract TCrefSyntax CreateCrefSyntax(TCrefSyntax originalCref, SyntaxToken identifierToken, SyntaxNode? parameterType);
@@ -54,7 +55,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
     public async Task ReplaceReferenceAsync(
         Document document,
         SyntaxEditor editor, SyntaxNode identifierName,
-        IPropertySymbol property, IFieldSymbol propertyBackingField,
+        IPropertySymbol property, IFieldSymbol? propertyBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
         CancellationToken cancellationToken)
     {
@@ -79,7 +80,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
         private readonly ISemanticFactsService _semanticFacts;
         private readonly SyntaxEditor _editor;
         private readonly IPropertySymbol _property;
-        private readonly IFieldSymbol _propertyBackingField;
+        private readonly IFieldSymbol? _propertyBackingField;
         private readonly string _desiredGetMethodName;
         private readonly string _desiredSetMethodName;
 
@@ -96,7 +97,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             SyntaxEditor editor,
             TIdentifierNameSyntax identifierName,
             IPropertySymbol property,
-            IFieldSymbol propertyBackingField,
+            IFieldSymbol? propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName,
             CancellationToken cancellationToken)
@@ -316,12 +317,12 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             return _service.CreateCrefSyntax(originalCref, newIdentifierToken, parameterType);
         }
 
-        private SyntaxNode QualifyIfAppropriate(SyntaxNode newIdentifierName)
+        private SyntaxNode QualifyIfAppropriate(IFieldSymbol propertyBackingField, SyntaxNode newIdentifierName)
         {
             // See if already qualified appropriate.
             if (_expression is TIdentifierNameSyntax)
             {
-                var container = _propertyBackingField.IsStatic
+                var container = propertyBackingField.IsStatic
                     ? Generator.TypeExpression(_property.ContainingType)
                     : Generator.ThisExpression();
 
@@ -338,7 +339,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             if (ShouldReadFromBackingField())
             {
                 var newIdentifierToken = AddConflictAnnotation(Generator.Identifier(_propertyBackingField.Name), conflictMessage);
-                var newIdentifierName = QualifyIfAppropriate(Generator.IdentifierName(newIdentifierToken));
+                var newIdentifierName = QualifyIfAppropriate(_propertyBackingField, Generator.IdentifierName(newIdentifierToken));
 
                 if (keepTrivia)
                 {
@@ -361,7 +362,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             if (ShouldWriteToBackingField())
             {
                 var newIdentifierToken = AddConflictAnnotation(Generator.Identifier(_propertyBackingField.Name), conflictMessage);
-                var newIdentifierName = QualifyIfAppropriate(Generator.IdentifierName(newIdentifierToken));
+                var newIdentifierName = QualifyIfAppropriate(_propertyBackingField, Generator.IdentifierName(newIdentifierToken));
 
                 if (keepTrivia)
                 {
@@ -411,6 +412,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             return (TExpressionSyntax)invocation;
         }
 
+        [MemberNotNullWhen(true, nameof(_propertyBackingField))]
         private bool ShouldReadFromBackingField()
             => _propertyBackingField != null && _property.GetMethod == null;
 
@@ -423,6 +425,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
                 conflictMessage: conflictMessage);
         }
 
+        [MemberNotNullWhen(true, nameof(_propertyBackingField))]
         private bool ShouldWriteToBackingField()
             => _propertyBackingField != null && _property.SetMethod == null;
 

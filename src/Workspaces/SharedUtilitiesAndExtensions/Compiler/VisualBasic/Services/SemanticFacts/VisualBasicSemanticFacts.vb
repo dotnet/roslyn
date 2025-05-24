@@ -3,9 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -325,6 +327,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Select
             End While
 
+            Return False
+        End Function
+
+        Public Function TryGetPrimaryConstructor(typeSymbol As INamedTypeSymbol, <NotNullWhen(True)> ByRef primaryConstructor As IMethodSymbol) As Boolean Implements ISemanticFacts.TryGetPrimaryConstructor
+            ' VB does not support primary constructors
             Return False
         End Function
 

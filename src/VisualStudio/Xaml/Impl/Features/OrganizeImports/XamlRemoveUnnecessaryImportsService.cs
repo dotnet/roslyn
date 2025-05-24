@@ -7,31 +7,29 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Xaml.Features.OrganizeImports;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
-namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
+namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports;
+
+[ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), StringConstants.XamlLanguageName), Shared]
+internal sealed class XamlRemoveUnnecessaryImportsService : IRemoveUnnecessaryImportsService
 {
-    [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), StringConstants.XamlLanguageName), Shared]
-    internal class XamlRemoveUnnecessaryImportsService : IRemoveUnnecessaryImportsService
+    private readonly IXamlRemoveUnnecessaryNamespacesService _removeService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public XamlRemoveUnnecessaryImportsService(IXamlRemoveUnnecessaryNamespacesService removeService)
     {
-        private readonly IXamlRemoveUnnecessaryNamespacesService _removeService;
+        _removeService = removeService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRemoveUnnecessaryImportsService(IXamlRemoveUnnecessaryNamespacesService removeService)
-        {
-            _removeService = removeService;
-        }
+    public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
+        => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
 
-        public Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken)
-            => RemoveUnnecessaryImportsAsync(document, predicate: null, cancellationToken: cancellationToken);
-
-        public Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken)
-        {
-            return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
-        }
+    public Task<Document> RemoveUnnecessaryImportsAsync(
+        Document document, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken)
+    {
+        return _removeService.RemoveUnnecessaryNamespacesAsync(document, cancellationToken) ?? Task.FromResult(document);
     }
 }

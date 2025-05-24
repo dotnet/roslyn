@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseNotPatternCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseNotPattern)]
-public partial class CSharpUseNotPatternTests
+public sealed partial class CSharpUseNotPatternTests
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50690")]
     public async Task BinaryIsExpression()

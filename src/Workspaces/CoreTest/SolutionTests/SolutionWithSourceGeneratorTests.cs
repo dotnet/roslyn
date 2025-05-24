@@ -11,10 +11,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -103,7 +104,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
 
-    private class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
+    private sealed class TestGeneratorReferenceWithFilePathEquality : TestGeneratorReference, IEquatable<AnalyzerReference>
     {
         public TestGeneratorReferenceWithFilePathEquality(ISourceGenerator generator, string analyzerFilePath)
             : base(generator, analyzerFilePath)
@@ -976,6 +977,415 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum2, checksum3);
     }
 
+    [Theory, CombinatorialData]
+    public async Task WithDocumentTexts_OrdinaryAndSourceGeneratedDocuments(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var ordinaryDocument = project.Documents.First();
+
+        var solution = project.Solution.WithDocumentTexts(
+            [(ordinaryDocument.Id, SourceText.From("// Regular modified")),
+            (sourceGeneratedDocument.Id, SourceText.From("// Source gen modified"))]);
+
+        generatedDocuments = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        var sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Source gen modified", sourceText.ToString());
+
+        sourceText = await solution.GetRequiredDocument(ordinaryDocument.Id).GetTextAsync();
+        Assert.Equal("// Regular modified", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithSyntaxRootWorksOnSourceGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var modifiedRoot = root.WithTrailingTrivia(root.GetLeadingTrivia());
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Hello World!// Hello World!", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Hello World!// Hello World!", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithSyntaxRootWorksOnSourceGeneratedDocument_OldCSharpVersion(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7))
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+        var modifiedRoot = SyntaxFactory.ParseCompilationUnit("// Changed document");
+        // Default tree is the default language version
+        Assert.NotEqual(LanguageVersion.CSharp7, modifiedRoot.SyntaxTree.Options.LanguageVersion());
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Changed document", sourceText.ToString());
+
+        var newTree = await sourceGeneratedDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(LanguageVersion.CSharp7, newTree.Options.LanguageVersion());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Changed document", sourceText.ToString());
+
+        newTree = await updatedDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(LanguageVersion.CSharp7, newTree.Options.LanguageVersion());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithSyntaxRootWorksOnSourceGeneratedDocument_SameRoot_Noop(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithSyntaxRoot(root);
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Same(root, await sourceGeneratedDocument.GetSyntaxRootAsync());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        Assert.Same(root, await updatedDocument.GetSyntaxRootAsync());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithSyntaxRootOnSourceGeneratedDocument_AnnotationsPreserved(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var annotation = new SyntaxAnnotation("yellow");
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+        var root = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var modifiedRoot = root.WithAdditionalAnnotations(annotation);
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithSyntaxRoot(modifiedRoot);
+        var newRoot = await sourceGeneratedDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        Assert.True(newRoot.HasAnnotations("yellow"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithTextWorksOnSourceGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithText(SourceText.From("// Something else"));
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithTextWorksOnSourceGeneratedDocument_Multiple(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument = generatedDocuments.First();
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithText(SourceText.From("// Something else"));
+        var sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Something else", sourceText.ToString());
+
+        sourceGeneratedDocument = sourceGeneratedDocument.WithText(SourceText.From("// Thrice is nice"));
+        sourceText = await sourceGeneratedDocument.GetTextAsync();
+        Assert.Equal("// Thrice is nice", sourceText.ToString());
+
+        generatedDocuments = await sourceGeneratedDocument.Project.GetSourceGeneratedDocumentsAsync();
+        var updatedDocument = Assert.Single(generatedDocuments);
+        sourceText = await updatedDocument.GetTextAsync();
+        Assert.Equal("// Thrice is nice", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task MultipleWithTextUnfreezesFully(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Generated document 1"));
+        var analyzerReference2 = new TestGeneratorReference(new CallbackGenerator2(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Generated document 2"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddAnalyzerReference(analyzerReference2)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+
+        var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocument1 = generatedDocuments.Single(d => d.Identity.Generator.TypeName.EndsWith("CallbackGenerator"));
+        var sourceGeneratedDocument2 = generatedDocuments.Single(d => d.Identity.Generator.TypeName.EndsWith("CallbackGenerator2"));
+
+        // Change doc 1 and make sure it worked
+        var solution = sourceGeneratedDocument1.WithText(SourceText.From("// Change doc 1")).Project.Solution;
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        var sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Change doc 1", sourceText.ToString());
+
+        // Change doc 2
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        solution = sourceGeneratedDocument2!.WithText(SourceText.From("// Change doc 2")).Project.Solution;
+
+        // Doc 1 should still be our modified version
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Change doc 1", sourceText.ToString());
+
+        // Doc 2 should have changed too
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        sourceText = await sourceGeneratedDocument2!.GetTextAsync();
+        Assert.Equal("// Change doc 2", sourceText.ToString());
+
+        solution = solution.WithoutFrozenSourceGeneratedDocuments();
+
+        // Doc 1 should be back to the original
+        sourceGeneratedDocument1 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument1.Id);
+        sourceText = await sourceGeneratedDocument1!.GetTextAsync();
+        Assert.Equal("// Generated document 1", sourceText.ToString());
+
+        // Doc 2 should be back to the original
+        sourceGeneratedDocument2 = await solution.GetRequiredProject(project.Id).GetSourceGeneratedDocumentAsync(sourceGeneratedDocument2.Id);
+        sourceText = await sourceGeneratedDocument2!.GetTextAsync();
+        Assert.Equal("// Generated document 2", sourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithTextWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var analyzerReference = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World"));
+
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+        var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+        // Now remove the generator, and re-freeze it as a completely new source generated document
+        project = project.RemoveAnalyzerReference(analyzerReference);
+        var newDocument = await FreezeAndGetDocument(project, sourceGeneratedDocumentIdentity);
+
+        newDocument = newDocument.WithText(SourceText.From("// Changed frozen document"));
+
+        var syntaxTrees = (await newDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+        var frozenTree = Assert.Single(syntaxTrees);
+        Assert.Equal("// Changed frozen document", frozenTree.ToString());
+
+        static async Task<SourceGeneratedDocument> FreezeAndGetDocument(Project project, SourceGeneratedDocumentIdentity identity)
+        {
+            var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                identity, DateTime.Now, SourceText.From("// Frozen Document"));
+            Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
+            var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+            var frozenTree = Assert.Single(syntaxTrees);
+            Assert.Equal("// Frozen Document", frozenTree.ToString());
+            return (SourceGeneratedDocument)frozenWithSingleDocument;
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task WithSyntaxRootWorksOnUnrealisedGeneratedDocument(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var analyzerReference = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World"));
+
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+        var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+        // Now remove the generator, and re-freeze it as a completely new source generated document
+        project = project.RemoveAnalyzerReference(analyzerReference);
+        var newDocument = await FreezeAndGetDocument(project, sourceGeneratedDocumentIdentity);
+
+        var root = await newDocument.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var modifiedRoot = root.WithTrailingTrivia(root.GetLeadingTrivia());
+        newDocument = newDocument.WithSyntaxRoot(modifiedRoot);
+
+        var syntaxTrees = (await newDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+        var frozenTree = Assert.Single(syntaxTrees);
+        Assert.Equal("// Frozen Document// Frozen Document", frozenTree.ToString());
+
+        static async Task<SourceGeneratedDocument> FreezeAndGetDocument(Project project, SourceGeneratedDocumentIdentity identity)
+        {
+            var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                identity, DateTime.Now, SourceText.From("// Frozen Document"));
+            Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
+            var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+            var frozenTree = Assert.Single(syntaxTrees);
+            Assert.Equal("// Frozen Document", frozenTree.ToString());
+            return (SourceGeneratedDocument)frozenWithSingleDocument;
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task SolutionChanges_IncludesFrozenSourceGeneratedDocuments(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var analyzerReference = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World"));
+
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+        var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+        // Do some assertions with freezing that document
+        var newSolution = await FreezeDocumentAndGetSolution(project, sourceGeneratedDocumentIdentity);
+        var changes = new SolutionChanges(newSolution, project.Solution);
+        var documentId = Assert.Single(changes.GetExplicitlyChangedSourceGeneratedDocuments());
+        Assert.Equal(documentId, sourceGeneratedDocument.Id);
+
+        static async Task<Solution> FreezeDocumentAndGetSolution(Project project, SourceGeneratedDocumentIdentity identity)
+        {
+            var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                identity, DateTime.Now, SourceText.From("// Frozen Document"));
+            Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
+            var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+            var frozenTree = Assert.Single(syntaxTrees);
+            Assert.Equal("// Frozen Document", frozenTree.ToString());
+            return frozenWithSingleDocument.Project.Solution;
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task SolutionChanges_ExcludesRemovedFrozenSourceGeneratedDocuments(TestHost testHost)
+    {
+        using var workspace = CreateWorkspace(testHost: testHost);
+
+        var analyzerReference = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World"));
+
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference);
+
+        var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
+
+        // Do some assertions with freezing that document
+        await FreezeDocumentAndGetSolution(project, sourceGeneratedDocumentIdentity);
+
+        // Now remove the generator, and re-freeze it as a completely new source generated document
+        project = project.RemoveAnalyzerReference(analyzerReference);
+        var newSolution = await FreezeDocumentAndGetSolution(project, sourceGeneratedDocumentIdentity);
+
+        var changes = new SolutionChanges(newSolution, project.Solution);
+        Assert.Empty(changes.GetExplicitlyChangedSourceGeneratedDocuments());
+
+        static async Task<Solution> FreezeDocumentAndGetSolution(Project project, SourceGeneratedDocumentIdentity identity)
+        {
+            var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                identity, DateTime.Now, SourceText.From("// Frozen Document"));
+            Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
+            var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+            var frozenTree = Assert.Single(syntaxTrees);
+            Assert.Equal("// Frozen Document", frozenTree.ToString());
+            return frozenWithSingleDocument.Project.Solution;
+        }
+    }
+
 #if NET
 
     private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
@@ -1019,8 +1429,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
 
-        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
-            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, cancellationToken),
+        _ = await client.TryInvokeAsync<IRemoteInitializationService, (int, string?)>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, TempRoot.Root, cancellationToken),
             CancellationToken.None).ConfigureAwait(false);
 
         var solution = workspace.CurrentSolution;

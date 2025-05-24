@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Map
+internal sealed record Map
 {
     [JsonPropertyName("result")]
     public required string Result { get; init; }

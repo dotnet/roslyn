@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
 [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class AlwaysActiveLanguageClientEventListener(
+internal sealed class AlwaysActiveLanguageClientEventListener(
     AlwaysActivateInProcLanguageClient languageClient,
     Lazy<ILanguageClientBroker> languageClientBroker,
     IAsynchronousOperationListenerProvider listenerProvider) : IEventListener
@@ -78,7 +78,7 @@ internal class AlwaysActiveLanguageClientEventListener(
     /// The implementation of <see cref="ILanguageClientMetadata"/> is not public, so have to re-implement.
     /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1043922 tracking to remove this.
     /// </summary>
-    private class LanguageClientMetadata(string[] contentTypes, string clientName = null) : ILanguageClientMetadata
+    private sealed class LanguageClientMetadata(string[] contentTypes, string clientName = null) : ILanguageClientMetadata
     {
         public string ClientName { get; } = clientName;
 

@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
 
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
@@ -19,7 +20,8 @@
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
-    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <!-- RestoreUseStaticGraphEvaluation will cause prebuilts when building source-only. -->
+    <RestoreUseStaticGraphEvaluation Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</RestoreUseStaticGraphEvaluation>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
@@ -167,13 +169,6 @@
   <PropertyGroup>
     <EnableNetAnalyzers>false</EnableNetAnalyzers>
   </PropertyGroup>
-
-  <!--
-     Code indexing targets to help generating LSIF from indexing builds.
-  -->
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PackageReference Include="RichCodeNav.EnvVarDump" PrivateAssets="all" />
-  </ItemGroup>
 
   <!--
     Don't inject PerformanceSensitiveAttribute source by default to avoid duplicate definitions caused by IVT.

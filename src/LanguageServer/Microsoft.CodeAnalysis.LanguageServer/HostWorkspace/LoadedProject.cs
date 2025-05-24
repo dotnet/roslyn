@@ -100,13 +100,17 @@ internal sealed class LoadedProject : IDisposable
         return _mostRecentFileInfo.TargetFramework;
     }
 
+    /// <summary>
+    /// Unloads the project and removes it from the workspace.
+    /// </summary>
     public void Dispose()
     {
+        _fileChangeContext.Dispose();
         _optionsProcessor.Dispose();
         _projectSystemProject.RemoveFromWorkspace();
     }
 
-    public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, ILogger logger)
+    public async ValueTask<(ProjectLoadTelemetryReporter.TelemetryInfo, bool NeedsRestore)> UpdateWithNewProjectInfoAsync(ProjectFileInfo newProjectInfo, bool hasAllInformation, ILogger logger)
     {
         if (_mostRecentFileInfo != null)
         {
@@ -133,6 +137,8 @@ internal sealed class LoadedProject : IDisposable
         _projectSystemProject.OutputRefFilePath = newProjectInfo.OutputRefFilePath;
         _projectSystemProject.GeneratedFilesOutputDirectory = newProjectInfo.GeneratedFilesOutputDirectory;
         _projectSystemProject.CompilationOutputAssemblyFilePath = newProjectInfo.IntermediateOutputFilePath;
+        _projectSystemProject.DefaultNamespace = newProjectInfo.DefaultNamespace;
+        _projectSystemProject.HasAllInformation = hasAllInformation;
 
         if (newProjectInfo.TargetFrameworkIdentifier != null)
         {

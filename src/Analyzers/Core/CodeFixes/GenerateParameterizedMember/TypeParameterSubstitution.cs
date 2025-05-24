@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -82,7 +80,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 Substitutions.Add(symbol, commonDerivedType);
         }
 
-        private async ValueTask<ITypeSymbol> DetermineCommonDerivedTypeAsync(ITypeParameterSymbol symbol)
+        private async ValueTask<ITypeSymbol?> DetermineCommonDerivedTypeAsync(ITypeParameterSymbol symbol)
         {
             if (!symbol.ConstraintTypes.All(t => t is INamedTypeSymbol))
                 return null;

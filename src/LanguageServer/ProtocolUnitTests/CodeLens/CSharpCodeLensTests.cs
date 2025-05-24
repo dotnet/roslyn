@@ -14,7 +14,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
-public class CSharpCodeLensTests : AbstractCodeLensTests
+public sealed class CSharpCodeLensTests : AbstractCodeLensTests
 {
     public CSharpCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {

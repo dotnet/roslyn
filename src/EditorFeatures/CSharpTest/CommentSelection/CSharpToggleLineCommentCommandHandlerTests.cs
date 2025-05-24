@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.ToggleLineComment)]
-public class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
+public sealed class CSharpToggleLineCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
     [WpfFact]
     public void AddComment_EmptyCaret()

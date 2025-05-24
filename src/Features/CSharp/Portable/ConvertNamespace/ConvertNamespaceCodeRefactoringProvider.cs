@@ -27,7 +27,7 @@ using static ConvertNamespaceTransform;
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
+internal sealed class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
     protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
         => [FixAllScope.Project, FixAllScope.Solution];

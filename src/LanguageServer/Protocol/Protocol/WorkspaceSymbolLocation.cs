@@ -10,11 +10,11 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A workspace symbol location without a range
 /// </summary>
-internal class WorkspaceSymbolLocation
+internal sealed class WorkspaceSymbolLocation
 {
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; init; }
+    public DocumentUri Uri { get; init; }
 }
 

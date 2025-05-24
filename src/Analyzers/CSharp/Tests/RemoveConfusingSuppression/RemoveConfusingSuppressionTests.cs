@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Confusing;
 
 using VerifyCS = CSharpCodeFixVerifier<CSharpRemoveConfusingSuppressionDiagnosticAnalyzer, CSharpRemoveConfusingSuppressionCodeFixProvider>;
 
-public class RemoveConfusingSuppressionTests
+public sealed class RemoveConfusingSuppressionTests
 {
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44872")]
     public async Task TestRemoveWithIsExpression1()

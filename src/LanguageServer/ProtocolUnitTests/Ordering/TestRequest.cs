@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
-{
-    internal class TestRequest
-    {
-        public string MethodName { get; }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
 
-        public TestRequest(string methodName)
-        {
-            MethodName = methodName;
-        }
+internal sealed class TestRequest
+{
+    public string MethodName { get; }
+
+    public TestRequest(string methodName)
+    {
+        MethodName = methodName;
     }
 }

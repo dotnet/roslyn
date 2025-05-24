@@ -14,7 +14,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpFixIncorrectConstraintCodeFixProvider>;
 
-public class FixIncorrectConstraintTests
+public sealed class FixIncorrectConstraintTests
 {
     [Fact]
     public async Task TestEnumConstraint()

@@ -97,7 +97,7 @@ internal sealed class CSharpTextStructureNavigatorProvider(
                     contentStart++;
             }
 
-            var end = token.Span.End;
+            var end = Math.Max(contentStart, token.Span.End);
             var contentEnd = end;
 
             if (CharAt(contentEnd - 1) == '8')
@@ -115,6 +115,8 @@ internal sealed class CSharpTextStructureNavigatorProvider(
                     contentEnd--;
             }
 
+            // Ensure that in error conditions like a naked `"` that we don't end up with invalid bounds.
+            contentEnd = Math.Max(contentStart, contentEnd);
             return (TextSpan.FromBounds(start, contentStart), TextSpan.FromBounds(contentStart, contentEnd), TextSpan.FromBounds(contentEnd, end));
         }
 

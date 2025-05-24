@@ -285,15 +285,19 @@ internal sealed partial class ManagedHotReloadLanguageService(
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
 
+            using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+            runningProjectPaths.AddAll(runningProjects);
+
+            // TODO: Update once implemented: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2449700
+            var runningProjectInfos = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).ToImmutableDictionary(
+                keySelector: static p => p.Id,
+                elementSelector: static p => new RunningProjectInfo { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = false });
+
             EmitSolutionUpdateResults.Data results;
 
             try
             {
-                using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
-                runningProjectPaths.AddAll(runningProjects);
-                var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
-
-                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectIds, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
+                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, runningProjectInfos, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -304,14 +308,15 @@ internal sealed partial class ManagedHotReloadLanguageService(
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
+                var firstProject = designTimeSolution.GetProject(runningProjectInfos.FirstOrDefault().Key) ?? designTimeSolution.Projects.First();
                 results = new EmitSolutionUpdateResults.Data()
                 {
-                    Diagnostics = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)],
+                    Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
                     RudeEdits = [],
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
                     SyntaxError = null,
                     ProjectsToRebuild = [],
-                    ProjectsToRestart = [],
+                    ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
                 };
             }
 

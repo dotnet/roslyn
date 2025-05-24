@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7687,6 +7688,50 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
+    public async Task TestGenerateMethodInConditionalAccess7_B()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public C B { get; private set; }
+                public E D { get; private set; }
+
+                void Main(C a)
+                {
+                    int? x = a?.B.B.D.[|C|]();
+                }
+
+                public class E
+                {
+                }
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                public C B { get; private set; }
+                public E D { get; private set; }
+
+                void Main(C a)
+                {
+                    int? x = a?.B.B.D.C();
+                }
+
+                public class E
+                {
+                    internal int C()
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
     public async Task TestGenerateMethodInConditionalAccess8()
     {
         await TestInRegularAndScriptAsync(
@@ -11144,5 +11189,81 @@ new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
                 }
             }
             """, parseOptions: CSharpParseOptions.Default);
+    }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment1()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            internal class Program
+            {
+                int x;
+
+                void M(Program p)
+                {
+                    p?.x = [|Goo|]();
+                }
+            }
+            """,
+            """
+            using System;
+
+            internal class Program
+            {
+                int x;
+            
+                void M(Program p)
+                {
+                    p?.x = [|Goo|]();
+                }
+
+                private int Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+    }
+
+    [Fact]
+    public async Task TestNullConditionalAssignment2()
+    {
+        await TestAsync(
+            """
+            using System;
+
+            internal class Program
+            {
+                Program P;
+                int x;
+
+                void M(Program p)
+                {
+                    p?.P.x = [|Goo|]();
+                }
+            }
+            """,
+            """
+            using System;
+
+            internal class Program
+            {
+                Program P;
+                int x;
+            
+                void M(Program p)
+                {
+                    p?.P.x = [|Goo|]();
+                }
+
+                private int Goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
     }
 }

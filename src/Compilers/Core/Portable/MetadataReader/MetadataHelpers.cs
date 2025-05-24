@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -20,6 +19,17 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class MetadataHelpers
     {
+        /// <summary>
+        /// Once the #UserString heap reaches this size, we can't emit any more string literals to it.
+        /// 
+        /// The max number of bytes that can fit into #US the heap is 2^29 - 1,
+        /// but each string also needs to have an offset that's at most 0xffffff (2^24 - 1) to be addressable by a token.
+        /// First byte of the heap is reserved (0), hence there is 2 ^ 24 - 2 bytes available for user strings.
+        /// 
+        /// See https://github.com/dotnet/runtime/blob/2bd17019c1c01a6bf17a2de244ff92591fc3c334/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/Ecma335/MetadataBuilder.Heaps.cs#L82
+        /// </summary>
+        internal const int UserStringHeapCapacity = 0xfffffe;
+
         // https://github.com/dotnet/roslyn/issues/73548:
         // Remove this constant and refer to GenericParameterAttributes.AllowByRefLike directly once the new enum member becomes available.
         // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
@@ -42,24 +52,24 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly struct AssemblyQualifiedTypeName
         {
-            internal readonly string TopLevelType;
-            internal readonly string[] NestedTypes;
-            internal readonly AssemblyQualifiedTypeName[] TypeArguments;
+            internal readonly string? TopLevelType;
+            internal readonly string[]? NestedTypes;
+            internal readonly AssemblyQualifiedTypeName[]? TypeArguments;
             internal readonly int PointerCount;
 
             /// <summary>
             /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
             /// </summary>
-            internal readonly int[] ArrayRanks;
-            internal readonly string AssemblyName;
+            internal readonly int[]? ArrayRanks;
+            internal readonly string? AssemblyName;
 
             internal AssemblyQualifiedTypeName(
-                string topLevelType,
-                string[] nestedTypes,
-                AssemblyQualifiedTypeName[] typeArguments,
+                string? topLevelType,
+                string[]? nestedTypes,
+                AssemblyQualifiedTypeName[]? typeArguments,
                 int pointerCount,
-                int[] arrayRanks,
-                string assemblyName)
+                int[]? arrayRanks,
+                string? assemblyName)
             {
                 this.TopLevelType = topLevelType;
                 this.NestedTypes = nestedTypes;
@@ -135,12 +145,12 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(!isTypeArgumentWithAssemblyName || isTypeArgument);
 
-                string topLevelType = null;
-                ArrayBuilder<string> nestedTypesBuilder = null;
-                AssemblyQualifiedTypeName[] typeArguments = null;
+                string? topLevelType = null;
+                ArrayBuilder<string>? nestedTypesBuilder = null;
+                AssemblyQualifiedTypeName[]? typeArguments = null;
                 int pointerCount = 0;
-                ArrayBuilder<int> arrayRanksBuilder = null;
-                string assemblyName = null;
+                ArrayBuilder<int>? arrayRanksBuilder = null;
+                string? assemblyName = null;
                 bool decodingTopLevelType = true;
                 bool isGenericTypeName = false;
 
@@ -279,7 +289,7 @@ ExitDecodeTypeName:
                     assemblyName);
             }
 
-            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string topLevelType, ref ArrayBuilder<string> nestedTypesBuilder)
+            private static void HandleDecodedTypeName(string decodedTypeName, bool decodingTopLevelType, ref string? topLevelType, ref ArrayBuilder<string>? nestedTypesBuilder)
             {
                 if (decodedTypeName.Length != 0)
                 {
@@ -321,7 +331,7 @@ ExitDecodeTypeName:
                 return _input.Substring(start, _offset - start);
             }
 
-            private AssemblyQualifiedTypeName[] DecodeTypeArguments()
+            private AssemblyQualifiedTypeName[]? DecodeTypeArguments()
             {
                 if (EndOfInput)
                 {
@@ -383,7 +393,7 @@ ExitDecodeTypeName:
                 return result;
             }
 
-            private string DecodeAssemblyName(bool isTypeArgumentWithAssemblyName)
+            private string? DecodeAssemblyName(bool isTypeArgumentWithAssemblyName)
             {
                 if (EndOfInput)
                 {
@@ -412,7 +422,7 @@ ExitDecodeTypeName:
             /// <summary>
             /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
             /// </summary>
-            private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int> arrayRanksBuilder)
+            private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int>? arrayRanksBuilder)
             {
                 Debug.Assert(Current == '[');
 
@@ -478,12 +488,10 @@ ExitDecodeTypeName:
             return (arity <= 9) ? s_aritySuffixesOneToNine[arity - 1] : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
-#nullable enable
         internal static string ComposeAritySuffixedMetadataName(string name, int arity, string? associatedFileIdentifier)
         {
             return associatedFileIdentifier + (arity == 0 ? name : name + GetAritySuffix(arity));
         }
-#nullable disable
 
         internal static int InferTypeArityFromMetadataName(string emittedTypeName)
         {
@@ -717,7 +725,7 @@ ExitDecodeTypeName:
         }
 
         internal static string BuildQualifiedName(
-            string qualifier,
+            string? qualifier,
             string name)
         {
             Debug.Assert(name != null);
@@ -771,8 +779,8 @@ ExitDecodeTypeName:
             int namespaceNameLength,
             IEnumerable<IGrouping<string, TypeDefinitionHandle>> typesByNS,
             StringComparer nameComparer,
-            out IEnumerable<IGrouping<string, TypeDefinitionHandle>> types,
-            out IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>> namespaces)
+            [NotNull] out IEnumerable<IGrouping<string, TypeDefinitionHandle>>? types,
+            [NotNull] out IEnumerable<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>? namespaces)
         {
             Debug.Assert(typesByNS != null);
             Debug.Assert(namespaceNameLength >= 0);
@@ -798,11 +806,11 @@ ExitDecodeTypeName:
                     var pair = enumerator.Current;
 
                     // Simple name of the last encountered child namespace.
-                    string lastChildNamespaceName = null;
+                    string? lastChildNamespaceName = null;
 
                     // A list accumulating information about types within the last encountered child namespace.
                     // The list is similar to the sequence passed to this function.
-                    List<IGrouping<string, TypeDefinitionHandle>> typesInLastChildNamespace = null;
+                    List<IGrouping<string, TypeDefinitionHandle>>? typesInLastChildNamespace = null;
 
                     // if there are any types in this namespace,
                     // they will be in the first several groups if their key length 
@@ -834,6 +842,11 @@ ExitDecodeTypeName:
                         int cmp = nameComparer.Compare(lastChildNamespaceName, childNamespaceName);
                         if (cmp == 0)
                         {
+                            // This cannot be null because the starting state for lastChildNamespaceName is null and 
+                            // hence we can't hit this branch in the first iteration. The else branch will always 
+                            // allocate this value.
+                            Debug.Assert((object?)typesInLastChildNamespace != null);
+
                             // We are still processing the same child namespace
                             typesInLastChildNamespace.Add(pair);
                         }
@@ -843,13 +856,14 @@ ExitDecodeTypeName:
                             if (cmp > 0)
                             {
                                 // The sort order is violated for child namespace names. Obfuscation is the likely reason for this. 
-                                Debug.Assert((object)lastChildNamespaceName != null);
+                                Debug.Assert(lastChildNamespaceName != null);
                                 possiblyHavePairsWithDuplicateKey = true;
                             }
 
                             // Preserve information about previous child namespace.
                             if (typesInLastChildNamespace != null)
                             {
+                                Debug.Assert(lastChildNamespaceName != null);
                                 Debug.Assert(typesInLastChildNamespace.Count != 0);
                                 nestedNamespaces.Add(
                                     new KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>(
@@ -858,7 +872,6 @@ ExitDecodeTypeName:
 
                             typesInLastChildNamespace = new List<IGrouping<string, TypeDefinitionHandle>>();
                             lastChildNamespaceName = childNamespaceName;
-                            Debug.Assert((object)lastChildNamespaceName != null);
 
                             typesInLastChildNamespace.Add(pair);
                         }
@@ -868,6 +881,7 @@ ExitDecodeTypeName:
                     // Preserve information about last child namespace.
                     if (typesInLastChildNamespace != null)
                     {
+                        Debug.Assert(lastChildNamespaceName != null);
                         Debug.Assert(typesInLastChildNamespace.Count != 0);
                         nestedNamespaces.Add(
                             new KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>(
@@ -950,7 +964,7 @@ DoneWithSequence:
         /// <summary>
         /// Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF-8 string).
         /// </summary>
-        internal static bool IsValidMetadataIdentifier(string str)
+        internal static bool IsValidMetadataIdentifier(string? str)
         {
             return !string.IsNullOrEmpty(str) && str.IsValidUnicodeString() && str.IndexOf('\0') == -1;
         }
@@ -958,19 +972,19 @@ DoneWithSequence:
         /// <summary>
         /// True if the string doesn't contain incomplete surrogates.
         /// </summary>
-        internal static bool IsValidUnicodeString(string str)
+        internal static bool IsValidUnicodeString(string? str)
         {
             return str == null || str.IsValidUnicodeString();
         }
 
-        internal static bool IsValidAssemblyOrModuleName(string name)
+        internal static bool IsValidAssemblyOrModuleName(string? name)
         {
             return GetAssemblyOrModuleNameErrorArgumentResourceName(name) == null;
         }
 
         internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, DiagnosticBag diagnostics)
         {
-            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            string? errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
             if (errorArgumentResourceId != null)
             {
                 diagnostics.Add(
@@ -981,7 +995,7 @@ DoneWithSequence:
 
         internal static void CheckAssemblyOrModuleName(string name, CommonMessageProvider messageProvider, int code, ArrayBuilder<Diagnostic> builder)
         {
-            string errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
+            string? errorArgumentResourceId = GetAssemblyOrModuleNameErrorArgumentResourceName(name);
             if (errorArgumentResourceId != null)
             {
                 builder.Add(
@@ -990,7 +1004,7 @@ DoneWithSequence:
             }
         }
 
-        private static string GetAssemblyOrModuleNameErrorArgumentResourceName(string name)
+        private static string? GetAssemblyOrModuleNameErrorArgumentResourceName(string? name)
         {
             if (name == null)
             {
@@ -1065,6 +1079,36 @@ DoneWithSequence:
             s.Replace('.', '_');
 
             return pooledStrBuilder.ToStringAndFree();
+        }
+
+        /// <summary>
+        /// Calculates the number of bytes written on #UserHeap for the given string.
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobBuilder.cs#L1044
+        /// </summary>
+        internal static int GetUserStringBlobSize(string value)
+        {
+            var byteLength = value.Length * 2 + 1;
+            return GetCompressedIntegerSize(byteLength) + byteLength;
+        }
+
+        /// <summary>
+        /// See https://github.com/dotnet/runtime/blob/5bfc0bec9d627c946f154dd99103a393d278f841/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/BlobWriterImpl.cs#L16
+        /// </summary>
+        private static int GetCompressedIntegerSize(int value)
+        {
+            Debug.Assert(value <= 0x1fffffff);
+
+            if (value <= 0x7f)
+            {
+                return 1;
+            }
+
+            if (value <= 0x3fff)
+            {
+                return 2;
+            }
+
+            return 4;
         }
     }
 }

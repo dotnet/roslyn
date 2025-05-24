@@ -7,10 +7,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Structure;
+
+internal interface IFSharpBlockStructureService
 {
-    internal interface IFSharpBlockStructureService
-    {
-        Task<FSharpBlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
-    }
+    Task<FSharpBlockStructure> GetBlockStructureAsync(Document document, CancellationToken cancellationToken);
 }

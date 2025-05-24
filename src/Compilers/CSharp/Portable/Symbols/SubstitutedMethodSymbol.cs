@@ -329,6 +329,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal override int TryGetOverloadResolutionPriority()
+            => OriginalDefinition.TryGetOverloadResolutionPriority();
+
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
             var unsubstitutedParameters = OriginalDefinition.Parameters;

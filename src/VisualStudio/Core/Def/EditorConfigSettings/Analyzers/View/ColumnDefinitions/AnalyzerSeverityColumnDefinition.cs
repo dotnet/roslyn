@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Severity)]
-internal class AnalyzerSeverityColumnDefinition : TableColumnDefinitionBase
+internal sealed class AnalyzerSeverityColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

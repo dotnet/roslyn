@@ -11,26 +11,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal readonly struct SolutionUpdate(
     ModuleUpdates moduleUpdates,
+    ImmutableArray<ProjectId> projectsToStale,
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
-    ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits,
+    ImmutableArray<DocumentWithRudeEdits> documentsWithRudeEdits,
     Diagnostic? syntaxError)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
+    public readonly ImmutableArray<ProjectId> ProjectsToStale = projectsToStale;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
     public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
     public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
-    public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits = documentsWithRudeEdits;
+    public readonly ImmutableArray<DocumentWithRudeEdits> DocumentsWithRudeEdits = documentsWithRudeEdits;
     public readonly Diagnostic? SyntaxError = syntaxError;
 
-    public static SolutionUpdate Blocked(
+    public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
-        ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits,
+        ImmutableArray<DocumentWithRudeEdits> documentsWithRudeEdits,
         Diagnostic? syntaxError,
-        bool hasEmitErrors)
+        ModuleUpdateStatus status)
         => new(
-            new(syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired, []),
+            new(status, Updates: []),
+            projectsToStale: [],
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,
@@ -62,9 +65,9 @@ internal readonly struct SolutionUpdate(
 
         foreach (var documentWithRudeEdits in DocumentsWithRudeEdits)
         {
-            foreach (var rudeEdit in documentWithRudeEdits.Diagnostics)
+            foreach (var rudeEdit in documentWithRudeEdits.RudeEdits)
             {
-                log.Write($"Document {documentWithRudeEdits.DocumentId.DebugName} rude edit: {rudeEdit.Kind} {rudeEdit.SyntaxKind}", LogMessageSeverity.Error);
+                log.Write($"Document {documentWithRudeEdits.Id.DebugName} rude edit: {rudeEdit.Kind} {rudeEdit.SyntaxKind}", LogMessageSeverity.Error);
             }
         }
     }

@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddParameterCheckCodeRefact
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-public class AddParameterCheckTests
+public sealed class AddParameterCheckTests
 {
     [Fact]
     public async Task TestEmptyFile()
@@ -30,7 +30,7 @@ public class AddParameterCheckTests
     }
 
     [Fact]
-    public async Task TestSimpleReferenceType_AlreadyNullChecked()
+    public async Task TestSimpleReferenceType_AlreadyNullChecked1()
     {
         var testCode = """
             using System;
@@ -50,6 +50,27 @@ public class AddParameterCheckTests
         {
             LanguageVersion = LanguageVersion.CSharp11,
             TestCode = testCode
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSimpleReferenceType_AlreadyNullChecked2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
         }.RunAsync();
     }
 
@@ -81,6 +102,36 @@ public class AddParameterCheckTests
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSimpleReferenceType_ThrowIfNull()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    public C([||]string s)
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    public C(string s)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
+        }.RunAsync();
     }
 
     [Fact]
@@ -521,42 +572,78 @@ public class AddParameterCheckTests
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, string b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, string b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(b))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                    if (string.IsNullOrEmpty(b))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(b));
-        }}
+                                        """)}}", nameof(b));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                                  "
                                                  """, """
                                                  \"
-                                                 """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                                 """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestMultiNullableParameters_Net7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public C([||]string a, string b, string c)
+                {
+                }
+            }
+            """,
+            FixedCode = $$"""
+            using System;
+
+            class C
+            {
+                public C(string a, string b, string c)
+                {
+                    ArgumentException.ThrowIfNullOrEmpty(a);
+                    ArgumentException.ThrowIfNullOrEmpty(b);
+                    ArgumentException.ThrowIfNullOrEmpty(c);
+                }
+            }
+            """,
+            CodeActionIndex = 3,
+            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters),
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
         }.RunAsync();
     }
 
@@ -577,33 +664,35 @@ class C
                 }
             }
             """,
-            FixedCode = @$"#nullable enable
+            FixedCode = $$"""
+            #nullable enable
 
-using System;
+            using System;
 
-class C
-{{
-    public C(string a, string b, string? c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, string b, string? c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(b))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
+                    if (string.IsNullOrEmpty(b))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(b)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(b));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(b));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -640,32 +729,33 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, bool b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, bool b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
-            CodeActionIndex = 0,
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
     }
@@ -685,31 +775,33 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, bool b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, bool b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -730,36 +822,38 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string a, object b, string c)
-    {{
-        if (string.IsNullOrEmpty(a))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
+            class C
+            {
+                public C(string a, object b, string c)
+                {
+                    if (string.IsNullOrEmpty(a))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(a)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(a));
-        }}
+                               """)}}", nameof(a));
+                    }
 
-        if (b is null)
-        {{
-            throw new ArgumentNullException(nameof(b));
-        }}
+                    if (b is null)
+                    {
+                        throw new ArgumentNullException(nameof(b));
+                    }
 
-        if (string.IsNullOrEmpty(c))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
+                    if (string.IsNullOrEmpty(c))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(c)}").Replace("""
                                         "
                                         """, """
                                         \"
-                                        """)}"", nameof(c));
-        }}
-    }}
-}}",
+                                        """)}}", nameof(c));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 3,
             CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
         }.RunAsync();
@@ -1864,24 +1958,26 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -1900,24 +1996,58 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrWhiteSpace(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrWhiteSpace(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check"
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61181")]
+    public async Task TestSpecialStringCheck2_Net8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public C([||]string s)
+                {
+                }
+            }
+            """,
+            FixedCode = $$"""
+            using System;
+
+            class C
+            {
+                public C(string s)
+                {
+                    ArgumentException.ThrowIfNullOrWhiteSpace(s);
+                }
+            }
+            """,
+            CodeActionIndex = 2,
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check",
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -1937,24 +2067,26 @@ class C
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -1991,24 +2123,26 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class Program
-{{
-    static void Main(String bar)
-    {{
-        if (String.IsNullOrEmpty(bar))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("""
+            class Program
+            {
+                static void Main(String bar)
+                {
+                    if (String.IsNullOrEmpty(bar))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(bar)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(bar));
-        }}
-    }}
-}}",
+                               """)}}", nameof(bar));
+                    }
+                }
+            }
+            """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check",
             Options =
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
@@ -2583,20 +2717,22 @@ class Program
                 }
             }
             """,
-            FixedCode = $@"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2604,7 +2740,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2623,20 +2759,22 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2644,7 +2782,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2663,22 +2801,24 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2686,7 +2826,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2705,19 +2845,21 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s)) throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2725,7 +2867,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2744,19 +2886,21 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s)) throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s)) throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-    }}
-}}",
+                               """)}}", nameof(s));
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2764,7 +2908,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2783,22 +2927,24 @@ class C
                 }
             }
             """,
-            FixedCode = @$"using System;
+            FixedCode = $$"""
+            using System;
 
-class C
-{{
-    public C(string s)
-    {{
-        if (string.IsNullOrEmpty(s))
-        {{
-            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
+            class C
+            {
+                public C(string s)
+                {
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        throw new ArgumentException($"{{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("""
                                "
                                """, """
                                \"
-                               """)}"", nameof(s));
-        }}
-    }}
-}}",
+                               """)}}", nameof(s));
+                    }
+                }
+            }
+            """,
             Options =
             {
                 { CSharpCodeStyleOptions.PreferThrowExpression, false },
@@ -2806,7 +2952,7 @@ class C
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -3056,5 +3202,384 @@ class C
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_ModernEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_OldEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForOutEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(out DayOfWeek [|result|])
+                {
+                    result = default;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForFlagsEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(MyFlags [|myFlags|])
+                {
+                }
+            }
+
+            [Flags]
+            enum MyFlags
+            {
+                A = 1,
+                B = 2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_ModernEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_OldEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek [|dayOfWeek2|])
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek1|], DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(string s, DayOfWeek [|dayOfWeek|])
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(string s, DayOfWeek dayOfWeek)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|], object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek, object o)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckInBetweenChecks()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(object o, DayOfWeek [|dayOfWeek|], string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(object o, DayOfWeek dayOfWeek, string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
     }
 }

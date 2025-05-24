@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Renamer;
 
-public class CSharpRenamerTests : RenamerTests
+public sealed class CSharpRenamerTests : RenamerTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
 

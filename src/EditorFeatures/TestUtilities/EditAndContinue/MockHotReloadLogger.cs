@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
-internal class MockHotReloadLogger : IHotReloadLogger
+internal sealed class MockHotReloadLogger : IHotReloadLogger
 {
     public ValueTask LogAsync(HotReloadLogMessage message, CancellationToken cancellation)
         => default;

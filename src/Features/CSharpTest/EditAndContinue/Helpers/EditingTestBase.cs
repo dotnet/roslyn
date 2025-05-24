@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -14,20 +13,29 @@ using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 public abstract class EditingTestBase : CSharpTestBase
 {
-    public static readonly string ReloadableAttributeSrc = @"
+    public static readonly string ReloadableAttributeDefSrc =
+        "namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }";
+
+    public static readonly string ReloadableAttributeSrc = $@"
 using System.Runtime.CompilerServices;
-namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttribute : Attribute {} }
+{ReloadableAttributeDefSrc}
 ";
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeDefSrc = @"
+namespace System.Runtime.CompilerServices { class RestartRequiredOnMetadataUpdateAttribute : Attribute {} }
+";
+
+    public static readonly string RestartRequiredOnMetadataUpdateAttributeSrc = $@"
+using System.Runtime.CompilerServices;
+{RestartRequiredOnMetadataUpdateAttributeDefSrc}";
 
     internal enum MethodKind
     {
@@ -126,7 +134,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     private static SyntaxTree ParseSource(string markedSource, int documentIndex = 0)
         => SyntaxFactory.ParseSyntaxTree(
             SourceMarkers.Clear(markedSource),
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
             path: GetDocumentFilePath(documentIndex));
 
     internal static EditScriptDescription GetTopEdits(string methodBody1, string methodBody2, MethodKind kind)

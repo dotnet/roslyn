@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 [ExportHighlighter(LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTrivia: false)
+internal sealed class AsyncAwaitHighlighter() : AbstractKeywordHighlighter(findInsideTrivia: false)
 {
     private static readonly ObjectPool<Stack<SyntaxNode>> s_stackPool
         = SharedPools.Default<Stack<SyntaxNode>>();

@@ -20,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
-public class PatternMatcherTests
+public sealed class PatternMatcherTests
 {
     [Fact]
     public void BreakIntoCharacterParts_EmptyIdentifier()

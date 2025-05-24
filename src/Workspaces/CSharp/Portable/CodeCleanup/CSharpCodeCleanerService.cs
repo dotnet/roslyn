@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup;
 
-internal class CSharpCodeCleanerService : AbstractCodeCleanerService
+internal sealed class CSharpCodeCleanerService : AbstractCodeCleanerService
 {
     private static readonly ImmutableArray<ICodeCleanupProvider> s_defaultProviders = [new SimplificationCodeCleanupProvider(), new FormatCodeCleanupProvider()];
 

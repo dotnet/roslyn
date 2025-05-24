@@ -2751,7 +2751,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\file.cs">
+                    <Document FilePath = "file.cs">
             public class Foo
             {
             	private readonly object o;
@@ -2759,7 +2759,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             	[||]public object O => o;
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             [*]
             indent_style = tab
             </AnalyzerConfigDocument>
@@ -2769,13 +2769,13 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\file.cs">
+                    <Document FilePath = "file.cs">
             public class Foo
             {
             	public object O { get; }
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             [*]
             indent_style = tab
             </AnalyzerConfigDocument>
@@ -2791,7 +2791,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\file.cs">
+                    <Document FilePath = "file.cs">
             public class Foo
             {
             	private readonly object o;
@@ -2799,7 +2799,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             	[||]public object O => o;
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             [*]
             indent_style = space
             </AnalyzerConfigDocument>
@@ -2809,13 +2809,13 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\file.cs">
+                    <Document FilePath = "file.cs">
             public class Foo
             {
                 public object O { get; }
             }
                     </Document>
-                    <AnalyzerConfigDocument FilePath = "z:\\.editorconfig">
+                    <AnalyzerConfigDocument FilePath = ".editorconfig">
             [*]
             indent_style = space
             </AnalyzerConfigDocument>
@@ -3131,6 +3131,54 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                         return i;
                     }
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P
+                {
+                    get
+                    {
+                        return ref i;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                ref int P => ref i;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78225")]
+    public async Task TestRefProperty3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                readonly ref int P => ref i;
             }
             """);
     }

@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -64,7 +63,7 @@ internal sealed partial class ConvertSwitchStatementToExpressionDiagnosticAnalyz
 
         var additionalLocations = ArrayBuilder<Location>.GetInstance();
         additionalLocations.Add(switchStatement.GetLocation());
-        additionalLocations.AddOptional(declaratorToRemoveOpt?.GetLocation());
+        additionalLocations.AddIfNotNull(declaratorToRemoveOpt?.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor,
             // Report the diagnostic on the "switch" keyword.

@@ -32,7 +32,6 @@ internal static partial class ExtensionMethodImportCompletionHelper
         private readonly ITypeSymbol _receiverTypeSymbol;
         private readonly ImmutableArray<string> _receiverTypeNames;
         private readonly ISet<string> _namespaceInScope;
-        private readonly IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> _cacheService;
 
         // This dictionary is used as cache among all projects and PE references. 
         // The key is the receiver type as in the extension method declaration (symbol retrived from originating compilation).
@@ -54,14 +53,10 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
             var receiverTypeNames = GetReceiverTypeNames(receiverTypeSymbol);
             _receiverTypeNames = AddComplexTypes(receiverTypeNames);
-            _cacheService = GetCacheService(document.Project);
         }
 
         private static IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object> GetCacheService(Project project)
             => project.Solution.Services.GetRequiredService<IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>>();
-
-        private static string? GetPEReferenceCacheKey(PortableExecutableReference peReference)
-            => peReference.FilePath ?? peReference.Display;
 
         /// <summary>
         /// Force create/update all relevant indices
@@ -74,16 +69,15 @@ internal static partial class ExtensionMethodImportCompletionHelper
         public static async ValueTask UpdateCacheAsync(Project project, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var cacheService = GetCacheService(project);
 
             foreach (var relevantProject in GetAllRelevantProjects(project))
-                await GetUpToDateCacheEntryAsync(relevantProject, cacheService, cancellationToken).ConfigureAwait(false);
+                await GetUpToDateCacheEntryAsync(relevantProject, cancellationToken).ConfigureAwait(false);
 
             foreach (var peReference in GetAllRelevantPeReferences(project))
                 await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(project.Solution, peReference, checksum: null, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<(ImmutableArray<IMethodSymbol> symbols, bool isPartialResult)> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IMethodSymbol>> GetExtensionMethodSymbolsAsync(bool forceCacheCreation, bool hideAdvancedMembers, CancellationToken cancellationToken)
         {
             try
             {
@@ -104,31 +98,18 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
                 var results = await Task.WhenAll(peReferenceMethodSymbolsTask, projectMethodSymbolsTask).ConfigureAwait(false);
 
-                var isPartialResult = false;
-
                 using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(results[0].Length + results[1].Length, out var symbols);
                 foreach (var methodArray in results)
                 {
                     foreach (var method in methodArray)
-                    {
-                        // `null` indicates we don't have the index ready for the corresponding project/PE.
-                        // returns what we have even it means we only show partial results.
-                        if (method is null)
-                        {
-                            isPartialResult = true;
-                        }
-                        else
-                        {
-                            symbols.Add(method);
-                        }
-                    }
+                        symbols.AddIfNotNull(method);
                 }
 
                 var browsableSymbols = symbols
                     .ToImmutable()
-                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
+                    .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation, inclusionFilter: static s => true);
 
-                return (browsableSymbols, isPartialResult);
+                return browsableSymbols;
             }
             finally
             {
@@ -156,12 +137,12 @@ internal static partial class ExtensionMethodImportCompletionHelper
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
-            ExtensionMethodImportCompletionCacheEntry cacheEntry;
+            ExtensionMethodImportCompletionCacheEntry? cacheEntry;
             if (forceCacheCreation)
             {
-                cacheEntry = await GetUpToDateCacheEntryAsync(project, _cacheService, cancellationToken).ConfigureAwait(false);
+                cacheEntry = await GetUpToDateCacheEntryAsync(project, cancellationToken).ConfigureAwait(false);
             }
-            else if (!_cacheService.ProjectItemsCache.TryGetValue(project.Id, out cacheEntry))
+            else if (!s_projectItemsCache.TryGetValue(project.Id, out cacheEntry))
             {
                 // Use cached data if available, even checksum doesn't match. otherwise, returns null indicating cache not ready.
                 callback(null);

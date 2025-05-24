@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -142,8 +141,7 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
         var hasMissingDefaultCase = bool.Parse(diagnostic.Properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
 
         var switchLocation = diagnostic.AdditionalLocations[0];
-        var switchNode = switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSwitchSyntax;
-        if (switchNode == null)
+        if (switchLocation.FindNode(getInnermostNodeForTie: true, cancellationToken) is not TSwitchSyntax switchNode)
             return;
 
         var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

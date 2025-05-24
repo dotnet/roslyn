@@ -10,13 +10,11 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
-using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -240,6 +238,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = activityId;
 
+                    using var loggerScope = _logger.CreateContext(work.MethodName);
+
                     // Serially in the queue determine which language is appropriate for handling the request (based on the request URI).
                     //
                     // The client can send us the language associated with a URI in the didOpen notification.  It is important that all prior didOpen
@@ -247,6 +247,8 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
                     var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
+
+                    using var languageScope = _logger.CreateLanguageContext(language);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
                     var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);

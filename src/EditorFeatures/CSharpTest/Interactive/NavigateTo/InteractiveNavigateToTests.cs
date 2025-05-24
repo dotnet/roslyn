@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo;
 
 [Trait(Traits.Feature, Traits.Features.NavigateTo)]
-public class InteractiveNavigateToTests : AbstractNavigateToTests
+public sealed class InteractiveNavigateToTests : AbstractNavigateToTests
 {
     protected override string Language => "csharp";
 
@@ -621,7 +621,7 @@ public class InteractiveNavigateToTests : AbstractNavigateToTests
                 Assert.Equal(value, descriptionItem.Details.Single().Text);
             }
 
-            assertDescription("File:", w.Documents.Single().Name);
+            assertDescription("File:", w.Documents.Single().FilePath);
             assertDescription("Line:", "3"); // one based line number
             assertDescription("Project:", "Test");
         });

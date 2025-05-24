@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 
 internal sealed partial class SettingsEditorPane
 {
-    internal class SearchFilter : IEntryFilter
+    internal sealed class SearchFilter : IEntryFilter
     {
         private readonly IEnumerable<IVsSearchToken> _searchTokens;
         private readonly IReadOnlyList<ITableColumnDefinition>? _visibleColumns;

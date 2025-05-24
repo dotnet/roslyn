@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
 
 [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
     [Fact]
     public async Task AddParameter_Formatting_KeepCountsPerLine()
@@ -516,7 +516,7 @@ class CustomAttribute : System.Attribute
         var markup = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document FilePath=""z:\\file.cs"">
+        <Document FilePath=""file.cs"">
 public class C
     {
     public void M$$()
@@ -524,7 +524,7 @@ public class C
         }
     }
         </Document>
-        <AnalyzerConfigDocument FilePath=""z:\\.editorconfig"">[*.cs]
+        <AnalyzerConfigDocument FilePath="".editorconfig"">[*.cs]
 csharp_indent_braces = true
         </AnalyzerConfigDocument>
     </Project>

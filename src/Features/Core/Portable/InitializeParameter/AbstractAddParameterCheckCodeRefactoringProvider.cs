@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
 
@@ -43,6 +42,17 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     where TBinaryExpressionSyntax : TExpressionSyntax
     where TSimplifierOptions : SimplifierOptions
 {
+    private const string s_isPrefix = "Is";
+    private const string s_throwIfPrefix = "ThrowIf";
+
+    private const string s_nullSuffix = "Null";
+    private const string s_nullOrEmptySuffix = "NullOrEmpty";
+    private const string s_nullOrWhiteSpaceSuffix = "NullOrWhiteSpace";
+
+    private const string s_throwIfNullName = s_throwIfPrefix + s_nullSuffix;
+    private const string s_throwIfNullOrEmptyName = s_throwIfPrefix + s_nullOrEmptySuffix;
+    private const string s_throwIfNullOrWhiteSpaceName = s_throwIfPrefix + s_nullOrWhiteSpaceSuffix;
+
     protected abstract bool CanOffer(SyntaxNode body);
     protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
     protected abstract string EscapeResourceString(string input);
@@ -52,7 +62,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         Document document,
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         ImmutableArray<SyntaxNode> listOfParameterNodes,
         TextSpan parameterSpan,
         CancellationToken cancellationToken)
@@ -64,7 +74,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         foreach (var parameterNode in listOfParameterNodes)
         {
             var parameter = (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(parameterNode, cancellationToken);
-            if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
+            if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatement, cancellationToken))
                 listOfParametersOrdinals.Add(parameter.Ordinal);
         }
 
@@ -75,7 +85,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Great.  The list has parameters that need null checks. Offer to add null checks for all.
         return [CodeAction.Create(
             FeaturesResources.Add_null_checks_for_all_parameters,
-            c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
+            c => UpdateDocumentForRefactoringAsync(document, blockStatement, listOfParametersOrdinals, parameterSpan, c),
             nameof(FeaturesResources.Add_null_checks_for_all_parameters))];
     }
 
@@ -85,45 +95,58 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // Only should provide null-checks for reference types and nullable types.
-        if (!ParameterValidForNullCheck(document, parameter, semanticModel, blockStatementOpt, cancellationToken))
-            return [];
-
-        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        // Great.  There was no null check.  Offer to add one.
-        using var result = TemporaryArray<CodeAction>.Empty;
-        result.Add(CodeAction.Create(
-            FeaturesResources.Add_null_check,
-            cancellationToken => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, simplifierOptions, cancellationToken),
-            nameof(FeaturesResources.Add_null_check)));
-
-        // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
-        // string.IsNullOrWhitespace.
-        if (parameter.Type.SpecialType == SpecialType.System_String)
+        if (ParameterValidForNullCheck(document, parameter, semanticModel, blockStatement, cancellationToken))
         {
-            result.Add(CodeAction.Create(
-                FeaturesResources.Add_string_IsNullOrEmpty_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), simplifierOptions, cancellationToken),
-                nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
+            var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
+            // Great.  There was no null check.  Offer to add one.
+            using var result = TemporaryArray<CodeAction>.Empty;
             result.Add(CodeAction.Create(
-                FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), simplifierOptions, cancellationToken),
-                nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
+                FeaturesResources.Add_null_check,
+                cancellationToken => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, simplifierOptions, cancellationToken),
+                nameof(FeaturesResources.Add_null_check)));
+
+            // Also, if this was a string, offer to add the special checks to string.IsNullOrEmpty and
+            // string.IsNullOrWhitespace.
+            if (parameter.Type.SpecialType == SpecialType.System_String)
+            {
+                result.Add(CodeAction.Create(
+                    string.Format(FeaturesResources.Add_0_check, "string.IsNullOrEmpty"),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
+                    "Add_string_IsNullOrEmpty_check"));
+
+                result.Add(CodeAction.Create(
+                    string.Format(FeaturesResources.Add_0_check, "string.IsNullOrWhiteSpace"),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
+                    "Add_string_IsNullOrWhiteSpace_check"));
+            }
+
+            return result.ToImmutableAndClear();
         }
 
-        return result.ToImmutableAndClear();
+        // Provide 'Enum.IsDefined' check for suitable enum parameters
+        if (ParameterValidForEnumIsDefinedCheck(parameter, semanticModel.Compilation, blockStatement))
+        {
+            var action = CodeAction.Create(
+                string.Format(FeaturesResources.Add_0_check, "Enum.IsDefined"),
+                cancellationToken => AddEnumIsDefinedCheckStatementAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, cancellationToken),
+                "Add_Enum_IsDefined_check");
+
+            return [action];
+        }
+
+        return [];
     }
 
     private async Task<Document> UpdateDocumentForRefactoringAsync(
         Document document,
-        IBlockOperation? blockStatementOpt,
+        IBlockOperation? blockStatement,
         List<int> listOfParametersOrdinals,
         TextSpan parameterSpan,
         CancellationToken cancellationToken)
@@ -150,7 +173,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatementOpt))
+            if (!CanOfferRefactoring(functionDeclaration, semanticModel, syntaxFacts, cancellationToken, out blockStatement))
                 continue;
 
             lazySimplifierOptions ??= (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -159,13 +182,13 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             // commonly used in this regard according to telemetry and UX testing.
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
-                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, s_nullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
             // For all other parameters, add null check - updates document
             document = await AddNullCheckAsync(document, parameter, functionDeclaration,
-                (IMethodSymbol)parameter.ContainingSymbol, blockStatementOpt, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                (IMethodSymbol)parameter.ContainingSymbol, blockStatement, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         return document;
@@ -241,8 +264,8 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         return false;
     }
 
-    protected bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
-        IBlockOperation? blockStatementOpt, CancellationToken cancellationToken)
+    private bool ParameterValidForNullCheck(Document document, IParameterSymbol parameter, SemanticModel semanticModel,
+        IBlockOperation? blockStatement, CancellationToken cancellationToken)
     {
         if (parameter.Type.IsReferenceType)
         {
@@ -269,14 +292,17 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Note: we only check the top level statements of the block.  I think that's sufficient
         // as this will catch the 90% case, while not being that bad an experience even when 
         // people do strange things in their constructors.
-        if (blockStatementOpt != null)
+        if (blockStatement != null)
         {
-            if (!CanOffer(blockStatementOpt.Syntax))
+            if (!CanOffer(blockStatement.Syntax))
                 return false;
 
-            foreach (var statement in blockStatementOpt.Operations)
+            foreach (var statement in blockStatement.Operations)
             {
                 if (IsIfNullCheck(statement, parameter))
+                    return false;
+
+                if (IsAnyThrowIfNullInvocation(statement, parameter))
                     return false;
 
                 if (ContainsNullCoalesceCheck(
@@ -291,11 +317,103 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         return true;
     }
 
+    private static (IMethodSymbol? GenericOverload, IMethodSymbol? NonGenericOverload) GetEnumIsDefinedMethods(Compilation compilation)
+    {
+        var enumType = compilation.GetSpecialType(SpecialType.System_Enum);
+        var enumIsDefinedMembers = enumType.GetMembers(nameof(Enum.IsDefined));
+        var enumIsDefinedGenericMethod = (IMethodSymbol?)enumIsDefinedMembers.FirstOrDefault(m => m is IMethodSymbol { IsStatic: true, Arity: 1, Parameters.Length: 1 });
+        var enumIsDefinedNonGenericMethod = (IMethodSymbol?)enumIsDefinedMembers.FirstOrDefault(m => m is IMethodSymbol { IsStatic: true, Arity: 0, Parameters.Length: 2 });
+        return (enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod);
+    }
+
+    private bool ParameterValidForEnumIsDefinedCheck(IParameterSymbol parameter, Compilation compilation, IBlockOperation? blockStatement)
+    {
+        if (parameter.RefKind == RefKind.Out)
+            return false;
+
+        if (parameter.IsDiscard)
+            return false;
+
+        var parameterType = parameter.Type;
+
+        if (parameterType.TypeKind != TypeKind.Enum)
+            return false;
+
+        var flagsAttributeType = compilation.GetBestTypeByMetadataName(typeof(FlagsAttribute).FullName!);
+        if (parameterType.GetAttributes().Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, flagsAttributeType)))
+            return false;
+
+        if (blockStatement is not null)
+        {
+            if (!CanOffer(blockStatement.Syntax))
+                return false;
+
+            var (enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod) = GetEnumIsDefinedMethods(compilation);
+
+            foreach (var statement in blockStatement.Operations)
+            {
+                if (IsEnumIsDefinedCheck(statement, parameter, enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsEnumIsDefinedCheck(IOperation statement, IParameterSymbol parameter, IMethodSymbol? enumIsDefinedGenericMethod, IMethodSymbol? enumIsDefinedNonGenericMethod)
+    {
+        if (statement is IConditionalOperation ifStatement)
+        {
+            var condition = ifStatement.Condition;
+            condition = condition.UnwrapImplicitConversion();
+
+            if (condition is not IUnaryOperation { OperatorKind: UnaryOperatorKind.Not, Operand: IInvocationOperation invocation })
+                return false;
+
+            var method = invocation.TargetMethod;
+
+            if (method.OriginalDefinition.Equals(enumIsDefinedGenericMethod, SymbolEqualityComparer.Default) &&
+                IsParameterReference(invocation.Arguments[0].Value, parameter))
+            {
+                return true;
+            }
+
+            if (method.Equals(enumIsDefinedNonGenericMethod, SymbolEqualityComparer.Default) &&
+                IsParameterReference(invocation.Arguments[1].Value, parameter))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsAnyThrowIfNullInvocation(IOperation statement, IParameterSymbol? parameter)
+    {
+        if (statement is IExpressionStatementOperation
+            {
+                Operation: IInvocationOperation
+                {
+                    TargetMethod:
+                    {
+                        ContainingType.Name: nameof(ArgumentNullException) or nameof(ArgumentException),
+                        Name: s_throwIfNullName or s_throwIfNullOrEmptyName or s_throwIfNullOrWhiteSpaceName,
+                    },
+                    Arguments: [{ Value: var argumentValue }, ..]
+                }
+            })
+        {
+            if (argumentValue.UnwrapImplicitConversion() is IParameterReferenceOperation parameterReference)
+                return parameter is null || parameter.Equals(parameterReference.Parameter);
+        }
+
+        return false;
+    }
+
     private static bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
     {
-        if (condition is IInvocationOperation invocation &&
-            invocation.Arguments.Length == 1 &&
-            IsParameterReference(invocation.Arguments[0].Value, parameter))
+        if (condition is IInvocationOperation { Arguments: [{ Value: var argumentValue }] } invocation &&
+            IsParameterReference(argumentValue, parameter))
         {
             var targetMethod = invocation.TargetMethod;
             if (targetMethod?.Name is nameof(string.IsNullOrEmpty) or nameof(string.IsNullOrWhiteSpace))
@@ -336,14 +454,14 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
         IMethodSymbol method,
-        IBlockOperation? blockStatementOpt,
-        string methodName,
+        IBlockOperation? blockStatement,
+        string methodNameSuffix,
         TSimplifierOptions options,
         CancellationToken cancellationToken)
     {
         return await AddNullCheckStatementAsync(
-            document, parameter, functionDeclaration, method, blockStatementOpt,
-            (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodName, options),
+            document, parameter, functionDeclaration, method, blockStatement,
+            (s, g) => CreateStringCheckStatement(s.Compilation, g, parameter, methodNameSuffix, options),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -372,8 +490,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         // Find a good location to add the null check. In general, we want the order of checks
         // and assignments in the constructor to match the order of parameters in the method
         // signature.
-        var statementToAddAfter = GetStatementToAddNullCheckAfter(
-            semanticModel, parameter, blockStatement, cancellationToken);
+        var statementToAddAfter = GetStatementToAddCheckAfter(semanticModel, parameter, blockStatement, cancellationToken);
 
         var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
         initializeParameterService.InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, nullCheckStatement);
@@ -382,29 +499,129 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         return document.WithSyntaxRoot(newRoot);
     }
 
+    private static async Task<Document> AddEnumIsDefinedCheckStatementAsync(
+        Document document,
+        IParameterSymbol parameter,
+        SyntaxNode functionDeclaration,
+        IMethodSymbol method,
+        IBlockOperation? blockStatement,
+        CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var compilation = semanticModel.Compilation;
+
+        var enumType = compilation.GetSpecialType(SpecialType.System_Enum);
+        var enumIsDefinedGenericMethod = enumType.GetMembers(nameof(Enum.IsDefined)).FirstOrDefault(m => m is IMethodSymbol { IsStatic: true, Arity: 1, Parameters.Length: 1 });
+
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+        var generator = editor.Generator;
+
+        var parameterIdentifierName = generator.IdentifierName(parameter.Name);
+        var typeOfParameterExpression = generator.TypeOfExpression(generator.TypeExpression(parameter.Type));
+
+        SyntaxNode enumIsDefinedInvocation;
+        if (enumIsDefinedGenericMethod is not null)
+        {
+            enumIsDefinedInvocation = generator.InvocationExpression(
+                generator.MemberAccessExpression(
+                    generator.TypeExpression(enumType),
+                    generator.GenericName(enumIsDefinedGenericMethod.Name, parameter.Type)),
+                parameterIdentifierName);
+        }
+        else
+        {
+            enumIsDefinedInvocation = generator.InvocationExpression(
+                generator.MemberAccessExpression(
+                    generator.TypeExpression(enumType),
+                    nameof(Enum.IsDefined)),
+                typeOfParameterExpression,
+                parameterIdentifierName);
+        }
+
+        var finalCondition = generator.LogicalNotExpression(enumIsDefinedInvocation);
+
+        var throwStatement = generator.ThrowStatement(
+            generator.ObjectCreationExpression(
+                GetTypeNode(compilation, generator, typeof(InvalidEnumArgumentException)),
+                generator.NameOfExpression(parameterIdentifierName),
+                generator.CastExpression(
+                    compilation.GetSpecialType(SpecialType.System_Int32),
+                    parameterIdentifierName),
+                typeOfParameterExpression));
+
+        var enumIsDefinedCheckStatement = generator.IfStatement(finalCondition, [throwStatement]);
+
+        var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
+        var statementToAddAfter = GetStatementToAddCheckAfter(semanticModel, parameter, blockStatement, cancellationToken);
+        initializeParameterService.InsertStatement(editor, functionDeclaration, method.ReturnsVoid, statementToAddAfter, enumIsDefinedCheckStatement);
+
+        var newRoot = editor.GetChangedRoot();
+        return document.WithSyntaxRoot(newRoot);
+    }
+
     private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, TSimplifierOptions options)
-        => CreateParameterCheckIfStatement(
+    {
+        var argumentNullExceptionType = semanticModel.Compilation.ArgumentNullExceptionType();
+        if (parameter.Type.IsReferenceType && argumentNullExceptionType != null)
+        {
+            var throwIfNullMethod = argumentNullExceptionType
+                .GetMembers(s_throwIfNullName)
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Object }, ..]);
+            if (throwIfNullMethod != null)
+            {
+                return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(argumentNullExceptionType),
+                        s_throwIfNullName),
+                    generator.IdentifierName(parameter.Name)));
+            }
+        }
+
+        return CreateParameterCheckIfStatement(
             (TExpressionSyntax)generator.CreateNullCheckExpression(generator.SyntaxGeneratorInternal, semanticModel, parameter.Name),
             (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter),
             options);
+    }
 
     private TStatementSyntax CreateStringCheckStatement(
-        Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName, TSimplifierOptions options)
+        Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodNameSuffix, TSimplifierOptions options)
     {
+        var argumentExceptionType = compilation.ArgumentExceptionType();
+        if (argumentExceptionType != null)
+        {
+            var throwMethodName = "ThrowIf" + methodNameSuffix;
+            var throwIfNullMethod = argumentExceptionType
+                .GetMembers(throwMethodName)
+                .OfType<IMethodSymbol>()
+                .FirstOrDefault(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_String }, ..]);
+            if (throwIfNullMethod != null)
+            {
+                return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
+                    generator.MemberAccessExpression(
+                        generator.TypeExpression(argumentExceptionType),
+                        throwMethodName),
+                    generator.IdentifierName(parameter.Name)));
+            }
+        }
+
         var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
         // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
+        var isMethodName = s_isPrefix + methodNameSuffix;
         var condition = (TExpressionSyntax)generator.InvocationExpression(
-                            generator.MemberAccessExpression(
-                                generator.TypeExpression(stringType),
-                                generator.IdentifierName(methodName)),
-                            generator.Argument(generator.IdentifierName(parameter.Name)));
-        var throwStatement = (TStatementSyntax)generator.ThrowStatement(CreateArgumentException(compilation, generator, parameter, methodName));
+            generator.MemberAccessExpression(
+                generator.TypeExpression(stringType),
+                generator.IdentifierName(isMethodName)),
+            generator.Argument(generator.IdentifierName(parameter.Name)));
+        var throwStatement = (TStatementSyntax)generator.ThrowStatement(
+            CreateArgumentException(compilation, generator, parameter, isMethodName));
 
         return CreateParameterCheckIfStatement(condition, throwStatement, options);
     }
 
-    private static SyntaxNode? GetStatementToAddNullCheckAfter(
+    private static SyntaxNode? GetStatementToAddCheckAfter(
         SemanticModel semanticModel,
         IParameterSymbol parameter,
         IBlockOperation? blockStatement,
@@ -447,7 +664,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
     /// <summary>
     /// Tries to find an if-statement that looks like it is checking the provided parameter
-    /// in some way.  If we find a match, we'll place our new null-check statement before/after
+    /// in some way.  If we find a match, we'll place our new check statement before/after
     /// this statement as appropriate.
     /// </summary>
     private static IOperation? TryFindParameterCheckStatement(
@@ -458,12 +675,25 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     {
         if (blockStatement != null)
         {
+            var (enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod) = GetEnumIsDefinedMethods(semanticModel.Compilation);
+
             foreach (var statement in blockStatement.Operations)
             {
                 // Ignore implicit code the compiler inserted at the top of the block (for example, the implicit
                 // call to mybase.new() in VB).
                 if (statement.IsImplicit)
                     continue;
+
+                if (IsAnyThrowIfNullInvocation(statement, parameter: null))
+                {
+                    if (IsAnyThrowIfNullInvocation(statement, parameterSymbol))
+                        return statement;
+
+                    continue;
+                }
+
+                if (IsEnumIsDefinedCheck(statement, parameterSymbol, enumIsDefinedGenericMethod, enumIsDefinedNonGenericMethod))
+                    return statement;
 
                 if (statement is IConditionalOperation ifStatement)
                 {
@@ -473,7 +703,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                     continue;
                 }
 
-                // Stop hunting after we hit something that isn't an if-statement
+                // Stop hunting after we hit something that isn't an if-statement or a ThrowIfNull invocation.
                 break;
             }
         }
@@ -540,15 +770,11 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     private static SyntaxNode GetTypeNode(
         Compilation compilation, SyntaxGenerator generator, Type type)
     {
-        var typeSymbol = compilation.GetTypeByMetadataName(type.FullName!);
-        if (typeSymbol == null)
-        {
-            return generator.QualifiedName(
-                generator.IdentifierName(nameof(System)),
-                generator.IdentifierName(type.Name));
-        }
-
-        return generator.TypeExpression(typeSymbol);
+        var fullName = type.FullName!;
+        var typeSymbol = compilation.GetTypeByMetadataName(fullName);
+        return typeSymbol is null
+            ? generator.ParseTypeName(fullName)
+            : generator.TypeExpression(typeSymbol);
     }
 
     private static SyntaxNode CreateArgumentNullException(

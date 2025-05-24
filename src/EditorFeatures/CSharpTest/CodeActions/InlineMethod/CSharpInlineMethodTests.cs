@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-public class CSharpInlineMethodTests
+public sealed class CSharpInlineMethodTests
 {
-    private class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
+    private sealed class TestVerifier : CSharpCodeRefactoringVerifier<CSharpInlineMethodRefactoringProvider>.Test
     {
         private const string Marker = "##";
 

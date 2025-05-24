@@ -12,13 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class UShortKeywordRecommender : AbstractSpecialTypePreselectingKeywordRecommender
+internal sealed class UShortKeywordRecommender() : AbstractSpecialTypePreselectingKeywordRecommender(SyntaxKind.UShortKeyword)
 {
-    public UShortKeywordRecommender()
-        : base(SyntaxKind.UShortKeyword)
-    {
-    }
-
     /// <summary>
     /// We set the <see cref="MatchPriority"/> of this item less than the default value so that
     /// completion selects the <see langword="using"/> keyword over it as the user starts typing.
@@ -54,8 +49,8 @@ internal class UShortKeywordRecommender : AbstractSpecialTypePreselectingKeyword
             context.IsPossibleTupleContext ||
             context.IsMemberDeclarationContext(
                 validModifiers: SyntaxKindSet.AllMemberModifiers,
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                canBePartial: false,
+                validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
+                canBePartial: true,
                 cancellationToken: cancellationToken);
     }
 

@@ -8,13 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class OrderByKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class OrderByKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.OrderByKeyword)
 {
-    public OrderByKeywordRecommender()
-        : base(SyntaxKind.OrderByKeyword)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var token = context.TargetToken;

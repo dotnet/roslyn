@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -590,6 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return IsValueTypeFromConstraintTypes;
             }
         }
+
+        internal sealed override ParameterSymbol ExtensionParameter => null;
 
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {

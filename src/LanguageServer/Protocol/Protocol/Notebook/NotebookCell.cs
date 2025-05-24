@@ -17,7 +17,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#notebookCell">Language Server Protocol specification</see> for additional information.
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookCell
+internal sealed class NotebookCell
 {
 
     /// <summary>
@@ -33,7 +33,7 @@ internal class NotebookCell
     [JsonPropertyName("document")]
     [JsonConverter(typeof(DocumentUriConverter))]
     [JsonRequired]
-    public Uri Document { get; init; }
+    public DocumentUri Document { get; init; }
 
     /// <summary>
     /// Additional metadata stored with the cell.

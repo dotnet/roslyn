@@ -21,7 +21,7 @@ using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions2.IndentS
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
 [Trait(Traits.Feature, Traits.Features.SmartIndent)]
-public class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
+public sealed class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
 {
     public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
 

@@ -367,5 +367,210 @@ class C
                 Item("C", Glyph.ClassInternal), False,
                 Item("explicit operator checked string(C x)", Glyph.Operator), False)
         End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/59458")>
+        Public Async Function TestModernExtensionMethod1(host As TestHost) As Task
+            Await AssertSelectedItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                        <Document>
+static class C
+{
+    extension(string s)
+    {
+        public void Goo()$$
+        {
+        }
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C.extension(string)", Glyph.ClassPublic), False,
+                Item("Goo()", Glyph.ExtensionMethodPublic), False)
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestLocalFunction(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C { void M() { void Local() { } } }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPrivate, children:={
+                        Item("Local()", Glyph.MethodPrivate)})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestNestedLocalFunction(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C { void M() { void Local() { void NestedLocal() { } } } }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPrivate, children:={
+                        Item("Local()", Glyph.MethodPrivate, children:={
+                            Item("NestedLocal()", Glyph.MethodPrivate)})})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestMultipleLocalFunction(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C { void M() { void Local1() { } void Local2() { } } }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPrivate, children:={
+                        Item("Local1()", Glyph.MethodPrivate),
+                        Item("Local2()", Glyph.MethodPrivate)})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestMultipleAndNestedLocalFunction(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C
+                            {
+                                void M()
+                                {
+                                    void Local()
+                                    {
+                                        void NestedLocal() { }
+                                    }
+                                    void Local2()
+                                    {
+                                        void NestedLocal2() { }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M()", Glyph.MethodPrivate, children:={
+                        Item("Local()", Glyph.MethodPrivate, children:={
+                            Item("NestedLocal()", Glyph.MethodPrivate)}),
+                        Item("Local2()", Glyph.MethodPrivate, children:={
+                            Item("NestedLocal2()", Glyph.MethodPrivate)})})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestTopLevelProgram(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System;
+                            Console.WriteLine("Hello World!");
+                            
+                            void Method() { }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("Program", Glyph.ClassInternal, children:={
+                    Item("<top-level-statements-entry-point>", Glyph.MethodPrivate, children:={
+                        Item("Method()", Glyph.MethodPrivate)})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestLocalFunctionInProperty(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C
+                            {
+                                private string _field = string.Empty;
+                                public string Prop
+                                {
+                                    get
+                                    {
+                                        return GetField();
+
+                                        string GetField()
+                                        {
+                                            return _field;
+                                        }
+                                    }
+                                    set
+                                    {
+                                        if (IsValid())
+                                        {
+                                            _field = value;
+                                        }
+
+                                        bool IsValid()
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("_field", Glyph.FieldPrivate),
+                    Item("Prop", Glyph.PropertyPublic, children:={
+                        Item("GetField()", Glyph.MethodPrivate),
+                        Item("IsValid()", Glyph.MethodPrivate)})}))
+        End Function
+
+        <Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6767")>
+        Public Async Function TestNestedLocalFunctionInProperty(host As TestHost) As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C
+                            {
+                                private string _field = string.Empty;
+                                public string Prop
+                                {
+                                    get
+                                    {
+                                        return _field;
+                                    }
+                                    set
+                                    {
+                                        _field = value;
+                                        void Local()
+                                        {
+                                            void NestedLocal() { }
+                                        }
+                                    }
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                host,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("_field", Glyph.FieldPrivate),
+                    Item("Prop", Glyph.PropertyPublic, children:={
+                        Item("Local()", Glyph.MethodPrivate, children:={
+                            Item("NestedLocal()", Glyph.MethodPrivate)})})}))
+        End Function
     End Class
 End Namespace

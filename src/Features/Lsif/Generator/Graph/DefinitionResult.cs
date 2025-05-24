@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
+
+/// <summary>
+/// Represents a definitionResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentdefinition for further details.
+/// </summary>
+internal sealed class DefinitionResult : Vertex
 {
-    /// <summary>
-    /// Represents a definitionResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentdefinition for further details.
-    /// </summary>
-    internal sealed class DefinitionResult : Vertex
+    public DefinitionResult(IdFactory idFactory)
+        : base(label: "definitionResult", idFactory)
     {
-        public DefinitionResult(IdFactory idFactory)
-            : base(label: "definitionResult", idFactory)
-        {
-        }
     }
 }

@@ -77,14 +77,5 @@ internal interface IWorkspaceProjectContext : IDisposable
     /// </summary>
     ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
 
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    void StartBatch();
-
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    IAsyncDisposable CreateBatchScope();
-
-    // Can be removed once CPS starts consuming CreateBatchScopeAsync
-    ValueTask EndBatchAsync();
-
     void ReorderSourceFiles(IEnumerable<string> filePaths);
 }

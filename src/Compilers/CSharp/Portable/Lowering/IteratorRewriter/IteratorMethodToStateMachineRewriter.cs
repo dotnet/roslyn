@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nextFinalizeState = slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing: false) ?? StateMachineState.FirstIteratorFinalizeState;
         }
 
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
+
 #nullable disable
         protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
             => HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod;

@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
+using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class LanguageServerWorkspaceFactory
 {
     private readonly ILogger _logger;
+    private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,16 +31,36 @@ internal sealed class LanguageServerWorkspaceFactory
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ServerConfigurationFactory serverConfigurationFactory,
+        ExtensionAssemblyManager extensionManager,
         ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
 
-        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
-        Workspace = workspace;
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
-            Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
+        // Before we can create the workspace, let's figure out the solution-level analyzers; we'll pull in analyzers from our own binaries
+        // as well as anything coming from extensions.
+        _solutionLevelAnalyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
+            .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer", StringComparison.Ordinal))
+            .Select(f => f.FullName)
+            .Concat(extensionManager.ExtensionAssemblyPaths)
+            .ToImmutableArray();
+
+        // Create the workspace and set analyzer references for it
+        var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.Host);
+        workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(workspace)), WorkspaceChangeKind.SolutionChanged);
+
+        HostProjectFactory = new ProjectSystemProjectFactory(
+            workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
             CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
-        workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
+        workspace.ProjectSystemProjectFactory = HostProjectFactory;
+
+        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // 'CreateSolutionLevelAnalyzerReferencesForWorkspace' needs to be broken out into its own service for us to be able to move this.
+        var fileBasedProgramsWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
+        fileBasedProgramsWorkspace.SetCurrentSolution(s => s.WithAnalyzerReferences(CreateSolutionLevelAnalyzerReferencesForWorkspace(fileBasedProgramsWorkspace)), WorkspaceChangeKind.SolutionChanged);
+
+        FileBasedProgramsProjectFactory = new ProjectSystemProjectFactory(
+            fileBasedProgramsWorkspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { }, CancellationToken.None);
+        fileBasedProgramsWorkspace.ProjectSystemProjectFactory = FileBasedProgramsProjectFactory;
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
         ProjectSystemHostInfo = new ProjectSystemHostInfo(
@@ -49,23 +71,25 @@ internal sealed class LanguageServerWorkspaceFactory
         TargetFrameworkManager = projectTargetFrameworkManager;
     }
 
-    public Workspace Workspace { get; }
+    public Workspace HostWorkspace => HostProjectFactory.Workspace;
 
-    public ProjectSystemProjectFactory ProjectSystemProjectFactory { get; }
+    public ProjectSystemProjectFactory HostProjectFactory { get; }
+    public ProjectSystemProjectFactory FileBasedProgramsProjectFactory { get; }
+
     public ProjectSystemHostInfo ProjectSystemHostInfo { get; }
     public ProjectTargetFrameworkManager TargetFrameworkManager { get; }
 
-    public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
+    public ImmutableArray<AnalyzerFileReference> CreateSolutionLevelAnalyzerReferencesForWorkspace(Workspace workspace)
     {
-        var references = new List<AnalyzerFileReference>();
-        var loaderProvider = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var references = ImmutableArray.CreateBuilder<AnalyzerFileReference>();
+        var loaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
         // Load all analyzers into a fresh shadow copied load context.  In the future, if we want to support reloading
         // of solution-level analyzer references, we should just need to listen for changes to those analyzer paths and
         // then call back into this method to update the solution accordingly.
         var analyzerLoader = loaderProvider.CreateNewShadowCopyLoader();
 
-        foreach (var analyzerPath in analyzerPaths)
+        foreach (var analyzerPath in _solutionLevelAnalyzerPaths)
         {
             if (File.Exists(analyzerPath))
             {
@@ -78,9 +102,6 @@ internal sealed class LanguageServerWorkspaceFactory
             }
         }
 
-        await ProjectSystemProjectFactory.ApplyChangeToWorkspaceAsync(w =>
-        {
-            w.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);
-        });
+        return references.ToImmutableAndClear();
     }
 }

@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitOrImplicitType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
-public class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseImplicitTypeRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseImplicitTypeCodeRefactoringProvider();

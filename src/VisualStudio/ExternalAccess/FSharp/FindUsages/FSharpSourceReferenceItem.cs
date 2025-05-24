@@ -4,23 +4,22 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages;
+
+internal class FSharpSourceReferenceItem
 {
-    internal class FSharpSourceReferenceItem
-    {
 
 #pragma warning disable IDE0051 // Remove unused private members
-        private FSharpSourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
+    private FSharpSourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
 #pragma warning restore IDE0051 // Remove unused private members
-        {
-            RoslynSourceReferenceItem = roslynDefinitionItem;
-        }
-
-        public FSharpSourceReferenceItem(FSharpDefinitionItem definition, FSharpDocumentSpan sourceSpan)
-        {
-            RoslynSourceReferenceItem = new Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem(definition.RoslynDefinitionItem, sourceSpan.ToRoslynDocumentSpan(), classifiedSpans: null);
-        }
-
-        internal Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem RoslynSourceReferenceItem { get; }
+    {
+        RoslynSourceReferenceItem = roslynDefinitionItem;
     }
+
+    public FSharpSourceReferenceItem(FSharpDefinitionItem definition, FSharpDocumentSpan sourceSpan)
+    {
+        RoslynSourceReferenceItem = new Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem(definition.RoslynDefinitionItem, sourceSpan.ToRoslynDocumentSpan(), classifiedSpans: null);
+    }
+
+    internal Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem RoslynSourceReferenceItem { get; }
 }

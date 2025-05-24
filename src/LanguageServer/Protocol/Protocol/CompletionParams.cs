@@ -2,43 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+namespace Roslyn.LanguageServer.Protocol;
+
+using System;
+using System.Text.Json.Serialization;
+
+/// <summary>
+/// Class representing the parameters for the textDocument/completion request.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionParams">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+internal sealed class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
 {
-    using System;
-    using System.Text.Json.Serialization;
-
     /// <summary>
-    /// Class representing the parameters for the textDocument/completion request.
-    /// <para>
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionParams">Language Server Protocol specification</see> for additional information.
-    /// </para>
+    /// The completion context. This is only available if the client specifies the
+    /// client capability <see cref="CompletionSetting.ContextSupport"/>.
     /// </summary>
-    internal class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
+    [JsonPropertyName("context")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CompletionContext? Context
     {
-        /// <summary>
-        /// The completion context. This is only available if the client specifies the
-        /// client capability <see cref="CompletionSetting.ContextSupport"/>.
-        /// </summary>
-        [JsonPropertyName("context")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CompletionContext? Context
-        {
-            get;
-            set;
-        }
-
-        /// <inheritdoc/>
-        [JsonPropertyName(Methods.PartialResultTokenName)]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken
-        {
-            get;
-            set;
-        }
-
-        /// <inheritdoc/>
-        [JsonPropertyName("workDoneProgress")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public bool WorkDoneProgress { get; init; }
+        get;
+        set;
     }
+
+    /// <inheritdoc/>
+    [JsonPropertyName(Methods.PartialResultTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken
+    {
+        get;
+        set;
+    }
+
+    /// <inheritdoc/>
+    [JsonPropertyName("workDoneProgress")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool WorkDoneProgress { get; init; }
 }

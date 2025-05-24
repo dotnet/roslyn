@@ -26,10 +26,12 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private ImmutableDictionary<DocumentId, Document?> _idToDocumentMap = ImmutableDictionary<DocumentId, Document?>.Empty;
-    private ImmutableDictionary<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableDictionary<DocumentId, SourceGeneratedDocument>.Empty;
-    private ImmutableDictionary<DocumentId, AdditionalDocument?> _idToAdditionalDocumentMap = ImmutableDictionary<DocumentId, AdditionalDocument?>.Empty;
-    private ImmutableDictionary<DocumentId, AnalyzerConfigDocument?> _idToAnalyzerConfigDocumentMap = ImmutableDictionary<DocumentId, AnalyzerConfigDocument?>.Empty;
+    // Only access these dictionaries when holding them as a lock. These are intentionally simple dictionaries
+    // rather than ConcurrentDictionaries or ImmutableDictionaries for performance reasons.
+    private Dictionary<DocumentId, Document?>? _idToDocumentMap;
+    private Dictionary<DocumentId, SourceGeneratedDocument>? _idToSourceGeneratedDocumentMap;
+    private Dictionary<DocumentId, AdditionalDocument?>? _idToAdditionalDocumentMap;
+    private Dictionary<DocumentId, AnalyzerConfigDocument?>? _idToAnalyzerConfigDocumentMap;
 
     internal Project(Solution solution, ProjectState projectState)
     {
@@ -239,19 +241,48 @@ public partial class Project
     /// Get the document in this project with the specified document Id.
     /// </summary>
     public Document? GetDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToDocumentMap, documentId, s_tryCreateDocumentFunction, this);
+        => GetOrAddDocumentUnderLock(documentId, ref _idToDocumentMap, s_tryCreateDocumentFunction, this);
 
     /// <summary>
     /// Get the additional document in this project with the specified document Id.
     /// </summary>
     public TextDocument? GetAdditionalDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToAdditionalDocumentMap, documentId, s_tryCreateAdditionalDocumentFunction, this);
+        => GetOrAddDocumentUnderLock(documentId, ref _idToAdditionalDocumentMap, s_tryCreateAdditionalDocumentFunction, this);
 
     /// <summary>
     /// Get the analyzer config document in this project with the specified document Id.
     /// </summary>
     public AnalyzerConfigDocument? GetAnalyzerConfigDocument(DocumentId documentId)
-        => ImmutableInterlocked.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
+        => GetOrAddDocumentUnderLock(documentId, ref _idToAnalyzerConfigDocumentMap, s_tryCreateAnalyzerConfigDocumentFunction, this);
+
+    private static TDocument GetOrAddDocumentUnderLock<TDocument, TArg>(DocumentId documentId, ref Dictionary<DocumentId, TDocument>? idMap, Func<DocumentId, TArg, TDocument> tryCreate, TArg arg)
+    {
+        if (idMap == null)
+        {
+            // First call assigns a new dictionary. Any other simultaneous requests will not assign the
+            // dictionary they created to idMap. At that point, normal locking rules apply.
+            Interlocked.CompareExchange(ref idMap, new Dictionary<DocumentId, TDocument>(), null);
+        }
+
+        lock (idMap)
+        {
+            return idMap.GetOrAdd(documentId, tryCreate, arg);
+        }
+    }
+
+    private static bool TryGetDocumentValueUnderLock<TDocument>(DocumentId documentId, ref Dictionary<DocumentId, TDocument>? idMap, out TDocument? document)
+    {
+        if (idMap == null)
+        {
+            document = default;
+            return false;
+        }
+
+        lock (idMap)
+        {
+            return idMap.TryGetValue(documentId, out document);
+        }
+    }
 
     /// <summary>
     /// Gets a document or a source generated document in this solution with the specified document ID.
@@ -288,7 +319,7 @@ public partial class Project
 
         // return an iterator to avoid eagerly allocating all the document instances
         return generatedDocumentStates.States.Values.Select(state =>
-            ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
+            GetOrAddDocumentUnderLock(state.Id, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (state, this)));
     }
 
     internal async IAsyncEnumerable<Document> GetAllRegularAndSourceGeneratedDocumentsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
@@ -312,7 +343,7 @@ public partial class Project
             return null;
 
         // Quick check first: if we already have created a SourceGeneratedDocument wrapper, we're good
-        if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var sourceGeneratedDocument))
+        if (TryGetDocumentValueUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, out var sourceGeneratedDocument))
             return sourceGeneratedDocument;
 
         // We'll have to run generators if we haven't already and now try to find it.
@@ -325,15 +356,14 @@ public partial class Project
     }
 
     internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
-        => ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this));
+        => GetOrAddDocumentUnderLock(state.Id, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (state, this));
 
     /// <summary>
     /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
     /// </summary>
     /// <remarks>
     /// This is only safe to call if you already have seen the SyntaxTree or equivalent that indicates the document state has already been
-    /// generated. This method exists to implement <see cref="Solution.GetDocument(SyntaxTree?)"/> and is best avoided unless you're doing something
-    /// similarly tricky like that.
+    /// generated. This method is best avoided unless you manually ensure you realise the generated document before calling this method.
     /// </remarks>
     internal SourceGeneratedDocument? TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId documentId)
     {
@@ -347,7 +377,7 @@ public partial class Project
             return null;
 
         // Easy case: do we already have the SourceGeneratedDocument created?
-        if (_idToSourceGeneratedDocumentMap.TryGetValue(documentId, out var document))
+        if (TryGetDocumentValueUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, out var document))
             return document;
 
         // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
@@ -356,7 +386,7 @@ public partial class Project
         if (documentState == null)
             return null;
 
-        return ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, documentId, s_createSourceGeneratedDocumentFunction, (documentState, this));
+        return GetOrAddDocumentUnderLock(documentId, ref _idToSourceGeneratedDocumentMap, s_createSourceGeneratedDocumentFunction, (documentState, this));
     }
 
     internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
@@ -543,36 +573,6 @@ public partial class Project
     /// </summary>
     public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         => State.GetSemanticVersionAsync(cancellationToken);
-
-    /// <summary>
-    /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
-    /// transitive dependencies.
-    /// </summary>
-    /// <remarks>
-    /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
-    /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
-    /// <list type="bullet">
-    ///    <item>Files inside the current project</item>
-    ///    <item>Project properties of the current project</item>
-    ///    <item>Visible files in referenced projects</item>
-    ///    <item>Project properties in referenced projects</item>
-    /// </list>
-    /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
-    /// semantic work.   
-    /// 
-    /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
-    /// <list type="bullet">
-    ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
-    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
-    ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
-    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
-    /// </list>   
-    /// </para>
-    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
-    /// As such, it is not usable across different sessions of a particular host.
-    /// </remarks>
-    internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
-        => Solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the new assembly name.

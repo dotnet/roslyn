@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpIntroduceParameterCodeRefactoringProvider();

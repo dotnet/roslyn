@@ -5,7 +5,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-internal class WindowsErrorReporting
+internal sealed class WindowsErrorReporting
 {
     internal static void SetErrorModeOnWindows()
     {

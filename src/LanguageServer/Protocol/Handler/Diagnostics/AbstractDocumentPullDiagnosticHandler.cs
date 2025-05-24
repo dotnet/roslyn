@@ -14,12 +14,10 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-    IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IDiagnosticsRefresher diagnosticRefresher,
     IDiagnosticSourceManager diagnosticSourceManager,
     IGlobalOptionService globalOptions)
     : AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
-        diagnosticAnalyzerService,
         diagnosticRefresher,
         globalOptions), ITextDocumentIdentifierHandler<TDiagnosticsParams, TextDocumentIdentifier?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
@@ -39,7 +37,7 @@ internal abstract class AbstractDocumentPullDiagnosticHandler<TDiagnosticsParams
         var textDocument = context.TextDocument;
         if (textDocument is null)
         {
-            context.TraceInformation("Ignoring diagnostics request because no text document was provided");
+            context.TraceDebug("Ignoring diagnostics request because no text document was provided");
             return new([]);
         }
 

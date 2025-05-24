@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentChangeCellsStructure
+internal sealed class NotebookDocumentChangeCellsStructure
 {
     /// <summary>
     /// The change to the cell array.

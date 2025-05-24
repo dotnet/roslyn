@@ -6,14 +6,12 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QualifyMemberAccess;
 
-public partial class QualifyMemberAccessTests
+public sealed partial class QualifyMemberAccessTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

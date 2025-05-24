@@ -51,7 +51,6 @@ end namespace"
                 .TestCode = source,
                 .FixedCode = fixedSource,
                 .NumberOfIncrementalIterations = 1,
-                .CodeActionIndex = 0,
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
             }.RunAsync()
         End Function
@@ -191,7 +190,6 @@ end namespace"
                 .TestCode = source,
                 .FixedCode = fixedSource,
                 .NumberOfIncrementalIterations = 2,
-                .CodeActionIndex = 0,
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
             }.RunAsync()
         End Function
@@ -331,7 +329,6 @@ end namespace"
                 .TestCode = source,
                 .FixedCode = fixedSource,
                 .NumberOfIncrementalIterations = 1,
-                .CodeActionIndex = 0,
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
             }.RunAsync()
         End Function
@@ -483,7 +480,6 @@ end namespace"
                 .TestCode = source,
                 .FixedCode = fixedSource,
                 .NumberOfIncrementalIterations = 2,
-                .CodeActionIndex = 0,
                 .CodeActionEquivalenceKey = AbstractResolveConflictMarkerCodeFixProvider.TakeTopEquivalenceKey
             }.RunAsync()
         End Function

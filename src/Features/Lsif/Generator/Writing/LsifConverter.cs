@@ -7,46 +7,45 @@ using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+
+internal sealed class LsifConverter : JsonConverter
 {
-    internal sealed class LsifConverter : JsonConverter
+    public override bool CanConvert(Type objectType)
     {
-        public override bool CanConvert(Type objectType)
+        if (typeof(ISerializableId).IsAssignableFrom(objectType) ||
+            objectType == typeof(Uri))
         {
-            if (typeof(ISerializableId).IsAssignableFrom(objectType) ||
-                objectType == typeof(Uri))
-            {
-                return true;
-            }
-
-            if (objectType.IsConstructedGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                return CanConvert(objectType.GenericTypeArguments.Single());
-            }
-
-            return false;
+            return true;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        if (objectType.IsConstructedGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>))
         {
-            throw new NotImplementedException();
+            return CanConvert(objectType.GenericTypeArguments.Single());
         }
 
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        return false;
+    }
+
+    public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        switch (value)
         {
-            switch (value)
-            {
-                case ISerializableId id:
-                    writer.WriteValue(id.NumericId);
-                    break;
+            case ISerializableId id:
+                writer.WriteValue(id.NumericId);
+                break;
 
-                case Uri uri:
-                    writer.WriteValue(uri.ToString());
-                    break;
+            case Uri uri:
+                writer.WriteValue(uri.ToString());
+                break;
 
-                default:
-                    throw new NotSupportedException();
-            }
+            default:
+                throw new NotSupportedException();
         }
     }
 }

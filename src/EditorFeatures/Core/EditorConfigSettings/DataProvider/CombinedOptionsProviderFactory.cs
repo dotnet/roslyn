@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-internal class CombinedOptionsProviderFactory<T>(ImmutableArray<ISettingsProviderFactory<T>> factories) : ISettingsProviderFactory<T>
+internal sealed class CombinedOptionsProviderFactory<T>(ImmutableArray<ISettingsProviderFactory<T>> factories) : ISettingsProviderFactory<T>
 {
     private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories = factories;
 

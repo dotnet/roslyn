@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType()
         => typeof(OverrideCompletionProvider);
@@ -1878,7 +1878,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.goo;$$
+                        [|return base.goo;|]
                     }
 
                     set
@@ -1921,7 +1921,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.goo;$$
+                        [|return base.goo;|]
                     }
 
                     set
@@ -1963,7 +1963,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.goo;$$
+                        [|return base.goo;|]
                     }
 
                     set
@@ -2005,7 +2005,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     set
                     {
-                        base.goo = value;$$
+                        [|base.goo = value;|]
                     }
                 }
             }
@@ -2041,7 +2041,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.goo;$$
+                        [|return base.goo;|]
                     }
                 }
             }
@@ -2102,7 +2102,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                     {
                         get
                         {
-                            return base[i];$$
+                            [|return base[i];|]
                         }
 
                         set
@@ -2392,7 +2392,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base[i];$$
+                        [|return base[i];|]
                     }
 
                     set
@@ -2435,7 +2435,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        throw new System.NotImplementedException();$$
+                        [|throw new System.NotImplementedException();|]
                     }
 
                     set
@@ -2624,7 +2624,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.@class;$$
+                        [|return base.@class;|]
                     }
 
                     set
@@ -2939,7 +2939,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                     {
                         get
                         {
-                            return base.Goo;$$
+                            [|return base.Goo;|]
                         }
                     }
                 }
@@ -3594,7 +3594,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -3635,7 +3635,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -3676,7 +3676,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base.Prop;$$
+                        [|return base.Prop;|]
                     }
                 }
             }
@@ -3743,7 +3743,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        return base[i];$$
+                        [|return base[i];|]
                     }
 
                     set
@@ -3885,7 +3885,7 @@ public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderT
                 {
                     get
                     {
-                        throw new System.NotImplementedException();$$
+                        [|throw new System.NotImplementedException();|]
                     }
 
                     set

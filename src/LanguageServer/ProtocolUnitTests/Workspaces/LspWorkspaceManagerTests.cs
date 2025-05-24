@@ -11,8 +11,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 
-public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
+public sealed class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 {
     public LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -246,7 +246,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Include some Unicode characters to test URL handling.
         var newDocumentFilePath = "C:\\NewDoc\\\ue25b\ud86d\udeac.cs";
         var newDocumentInfo = DocumentInfo.Create(newDocumentId, "NewDoc.cs", filePath: newDocumentFilePath, loader: new TestTextLoader("New Doc"));
-        var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(newDocumentFilePath);
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentFilePath);
 
         // Open the document via LSP before the workspace sees it.
         await testLspServer.OpenDocumentAsync(newDocumentUri, "LSP text");
@@ -372,8 +372,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(IsWorkspaceRegistered(testLspServer.TestWorkspace, testLspServer));
         Assert.True(IsWorkspaceRegistered(testWorkspaceTwo, testLspServer));
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -427,8 +427,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         // Wait for workspace operations to complete for the second workspace.
         await WaitForWorkspaceOperationsAsync(testWorkspaceTwo);
 
-        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\FirstWorkspace.cs");
-        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SecondWorkspace.cs");
+        var firstWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\FirstWorkspace.cs");
+        var secondWorkspaceDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\SecondWorkspace.cs");
         await testLspServer.OpenDocumentAsync(firstWorkspaceDocumentUri);
 
         // Verify we can get both documents from their respective workspaces.
@@ -543,7 +543,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         // Open the doc
         var filePath = "c:\\\ue25b\ud86d\udeac.cs";
-        var documentUri = ProtocolConversions.CreateAbsoluteUri(filePath);
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
         await testLspServer.OpenDocumentAsync(documentUri, "Text");
 
         // Initially the doc will be in the lsp misc workspace.
@@ -751,7 +751,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
     }
 
-    private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")
+    private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(DocumentUri documentUri, TestLspServer testLspServer, string openText = "LSP text")
     {
         await testLspServer.OpenDocumentAsync(documentUri, openText);
 
@@ -767,7 +767,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         return testLspServer.GetManagerAccessor().IsWorkspaceRegistered(workspace);
     }
 
-    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(Uri uri, TestLspServer testLspServer)
+    private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
         return (workspace, document as Document);

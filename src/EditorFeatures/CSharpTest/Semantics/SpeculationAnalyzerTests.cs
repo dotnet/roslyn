@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Semantics;
 
-public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
+public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
 {
     [Fact]
     public void SpeculationAnalyzerDifferentOverloads()

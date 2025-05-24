@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -25,21 +24,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.WinForms.Interfaces;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 /// <summary>
 /// The base class of both the Roslyn editor factories.
 /// </summary>
-internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
+internal abstract class AbstractEditorFactory(IComponentModel componentModel) : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
 {
-    private readonly IComponentModel _componentModel;
+    private readonly IComponentModel _componentModel = componentModel;
     private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
     private bool _encoding;
-
-    protected AbstractEditorFactory(IComponentModel componentModel)
-        => _componentModel = componentModel;
 
     protected abstract string ContentTypeName { get; }
     protected abstract string LanguageName { get; }

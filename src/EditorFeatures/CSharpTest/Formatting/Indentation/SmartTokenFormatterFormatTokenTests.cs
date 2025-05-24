@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation;
 
 [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-public class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
+public sealed class SmartTokenFormatterFormatTokenTests : CSharpFormatterTestsBase
 {
     public SmartTokenFormatterFormatTokenTests(ITestOutputHelper output) : base(output)
     {

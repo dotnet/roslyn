@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.SplitStringLiteral)]
-public class SplitStringLiteralCommandHandlerTests
+public sealed class SplitStringLiteralCommandHandlerTests
 {
     /// <summary>
     /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033

@@ -15,71 +15,70 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
+namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+
+[ExcludeFromCodeCoverage]
+[Guid(Guids.CSharpLanguageServiceIdString)]
+internal sealed partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService>
 {
-    [ExcludeFromCodeCoverage]
-    [Guid(Guids.CSharpLanguageServiceIdString)]
-    internal partial class CSharpLanguageService : AbstractLanguageService<CSharpPackage, CSharpLanguageService>
+    internal CSharpLanguageService(CSharpPackage package)
+        : base(package)
     {
-        internal CSharpLanguageService(CSharpPackage package)
-            : base(package)
-        {
-        }
+    }
 
-        protected override Guid DebuggerLanguageId
+    protected override Guid DebuggerLanguageId
+    {
+        get
         {
-            get
-            {
-                return Guids.CSharpDebuggerLanguageId;
-            }
+            return Guids.CSharpDebuggerLanguageId;
         }
+    }
 
-        protected override string ContentTypeName
+    protected override string ContentTypeName
+    {
+        get
         {
-            get
-            {
-                return ContentTypeNames.CSharpContentType;
-            }
+            return ContentTypeNames.CSharpContentType;
         }
+    }
 
-        public override Guid LanguageServiceId
+    public override Guid LanguageServiceId
+    {
+        get
         {
-            get
-            {
-                return Guids.CSharpLanguageServiceId;
-            }
+            return Guids.CSharpLanguageServiceId;
         }
+    }
 
-        protected override string LanguageName
+    protected override string LanguageName
+    {
+        get
         {
-            get
-            {
-                return CSharpVSResources.CSharp;
-            }
+            return CSharpVSResources.CSharp;
         }
+    }
 
-        protected override string RoslynLanguageName
+    protected override string RoslynLanguageName
+    {
+        get
         {
-            get
-            {
-                return LanguageNames.CSharp;
-            }
+            return LanguageNames.CSharp;
         }
+    }
 
-        protected override AbstractDebuggerIntelliSenseContext CreateContext(
-            IWpfTextView view,
-            IVsTextView vsTextView,
-            IVsTextLines debuggerBuffer,
-            ITextBuffer subjectBuffer,
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan)
-        {
-            return new CSharpDebuggerIntelliSenseContext(view,
-                vsTextView,
-                debuggerBuffer,
-                subjectBuffer,
-                currentStatementSpan,
-                this.Package.ComponentModel,
-                this.SystemServiceProvider);
-        }
+    protected override AbstractDebuggerIntelliSenseContext CreateContext(
+        IWpfTextView view,
+        IVsTextView vsTextView,
+        IVsTextLines debuggerBuffer,
+        ITextBuffer subjectBuffer,
+        Microsoft.VisualStudio.TextManager.Interop.TextSpan[] currentStatementSpan)
+    {
+        return new CSharpDebuggerIntelliSenseContext(view,
+            vsTextView,
+            debuggerBuffer,
+            subjectBuffer,
+            currentStatementSpan,
+            this.Package.ComponentModel,
+            this.SystemServiceProvider);
     }
 }

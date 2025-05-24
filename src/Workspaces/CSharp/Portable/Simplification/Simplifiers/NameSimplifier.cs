@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using static SyntaxFactory;
 
-internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
+internal sealed class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
 {
     public static readonly NameSimplifier Instance = new();
 

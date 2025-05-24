@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PickMembers;
 
 [ExportWorkspaceService(typeof(IPickMembersService), ServiceLayer.Host), Shared]
-internal class VisualStudioPickMembersService : IPickMembersService
+internal sealed class VisualStudioPickMembersService : IPickMembersService
 {
     private readonly IGlyphService _glyphService;
 

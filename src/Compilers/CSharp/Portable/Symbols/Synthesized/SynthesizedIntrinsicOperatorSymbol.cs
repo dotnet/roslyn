@@ -4,11 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -499,6 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return ImmutableArray<CustomModifier>.Empty; }
             }
+
+            internal override bool HasEnumeratorCancellationAttribute => false;
 
             internal override MarshalPseudoCustomAttributeData MarshallingInformation
             {

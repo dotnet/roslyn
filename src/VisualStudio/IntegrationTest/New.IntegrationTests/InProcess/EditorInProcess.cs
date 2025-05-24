@@ -60,7 +60,7 @@ using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
-internal partial class EditorInProcess : ITextViewWindowInProcess
+internal sealed partial class EditorInProcess : ITextViewWindowInProcess
 {
     TestServices ITextViewWindowInProcess.TestServices => TestServices;
 
@@ -566,7 +566,14 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var margin = await GetNavigationBarMarginAsync(textView, cancellationToken);
-        return margin.GetFieldValue<List<ComboBox>>("_combos");
+        try
+        {
+            return margin.GetFieldValue<List<ComboBox>>("_combos");
+        }
+        catch (FieldAccessException)
+        {
+            return margin.GetFieldValue<List<ComboBox>>("Combos");
+        }
     }
 
     private async Task<UIElement?> GetNavigationBarMarginAsync(IWpfTextView textView, CancellationToken cancellationToken)

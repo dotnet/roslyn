@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
+
+internal sealed class XamlAutoInsertResult
 {
-    internal class XamlAutoInsertResult
-    {
-        public TextChange TextChange { get; set; }
-        public int? CaretOffset { get; set; }
-    }
+    public TextChange TextChange { get; set; }
+    public int? CaretOffset { get; set; }
 }

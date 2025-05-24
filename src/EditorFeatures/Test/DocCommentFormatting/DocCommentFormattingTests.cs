@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting;
 
 [Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
-public class DocCommentFormattingTests
+public sealed class DocCommentFormattingTests
 {
     private readonly CSharpDocumentationCommentFormattingService _csharpService = new CSharpDocumentationCommentFormattingService();
     private readonly VisualBasicDocumentationCommentFormattingService _vbService = new VisualBasicDocumentationCommentFormattingService();

@@ -237,6 +237,47 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        public override void VisitMethod(MethodSymbol symbol)
+        {
+            if (symbol is SourceExtensionImplementationMethodSymbol implementation)
+            {
+                MethodSymbol underlyingMethod = implementation.UnderlyingMethod;
+                Symbol symbolForDocComment = underlyingMethod.IsAccessor()
+                    ? underlyingMethod.AssociatedSymbol
+                    : underlyingMethod;
+
+                if (!hasDocumentationTrivia(symbolForDocComment))
+                {
+                    return;
+                }
+
+                WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
+                Indent();
+                WriteLine("<inheritdoc cref=\"{0}\"/>", symbolForDocComment.GetDocumentationCommentId());
+                Unindent();
+                WriteLine("</member>");
+                return;
+            }
+
+            base.VisitMethod(symbol);
+            return;
+
+            static bool hasDocumentationTrivia(Symbol symbol)
+            {
+                foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
+                {
+                    foreach (var trivia in reference.GetSyntax().GetLeadingTrivia())
+                    {
+                        if (trivia.IsDocumentationCommentTrivia)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.
@@ -258,13 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool shouldSkipPartialDefinitionComments = false;
             if (symbol.IsPartialDefinition())
             {
-                Symbol? implementationPart = symbol switch
-                {
-                    MethodSymbol method => method.PartialImplementationPart,
-                    SourcePropertySymbol property => property.PartialImplementationPart,
-                    _ => null
-                };
-
+                Symbol? implementationPart = symbol.GetPartialImplementationPart();
                 if (implementationPart is not null)
                 {
                     Visit(implementationPart);

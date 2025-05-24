@@ -7,13 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class RestoreKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class RestoreKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.RestoreKeyword, isValidInPreprocessorContext: true)
 {
-    public RestoreKeywordRecommender()
-        : base(SyntaxKind.RestoreKeyword, isValidInPreprocessorContext: true)
-    {
-    }
-
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var previousToken1 = context.TargetToken;

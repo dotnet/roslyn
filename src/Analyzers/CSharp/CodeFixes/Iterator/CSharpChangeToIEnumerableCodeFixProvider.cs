@@ -30,6 +30,8 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
     /// </summary>
     private const string CS1624 = nameof(CS1624);
 
+    public override FixAllProvider? GetFixAllProvider() => base.GetFixAllProvider();
+
     public override ImmutableArray<string> FixableDiagnosticIds => [CS1624];
 
     protected override async Task<CodeAction?> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken)
@@ -84,14 +86,12 @@ internal sealed class CSharpChangeToIEnumerableCodeFixProvider() : AbstractItera
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
         }
 
-        var oldAccessor = node.Parent?.Parent as PropertyDeclarationSyntax;
-        if (oldAccessor != null)
+        if (node.Parent?.Parent is PropertyDeclarationSyntax oldAccessor)
         {
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
         }
 
-        var oldIndexer = node.Parent?.Parent as IndexerDeclarationSyntax;
-        if (oldIndexer != null)
+        if (node.Parent?.Parent is IndexerDeclarationSyntax oldIndexer)
         {
             newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));
         }

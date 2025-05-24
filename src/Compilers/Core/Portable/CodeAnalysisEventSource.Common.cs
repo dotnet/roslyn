@@ -109,6 +109,9 @@ namespace Microsoft.CodeAnalysis
         [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.Performance, Level = EventLevel.Error, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
         internal void DisposeAssemblyLoadContextException(string directory, string errorMessage) => WriteEvent(11, directory, errorMessage);
 
+        [Event(12, Message = "CreateNonLockingLoader", Keywords = Keywords.Performance, Level = EventLevel.Informational, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void CreateNonLockingLoader(string directory) => WriteEvent(12, directory);
+
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
             fixed (char* ptr2 = value)

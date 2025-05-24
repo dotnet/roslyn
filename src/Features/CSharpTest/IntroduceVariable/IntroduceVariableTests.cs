@@ -4375,12 +4375,10 @@ class SampleCollection<T>
             }
             """;
 
-        OptionsCollection optionsCollection = new(GetLanguage())
+        await TestInRegularAndScriptAsync(code, expected, options: new(GetLanguage())
         {
             { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
-        };
-
-        await TestInRegularAndScriptAsync(code, expected, options: optionsCollection);
+        });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77276")]
@@ -4423,6 +4421,57 @@ class SampleCollection<T>
         {
             { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
         });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77428")]
+    public async Task TestIntroduceLocalWithTargetTypedNew1_CSharp8()
+    {
+        var code =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    int sum = Sum([|new Numbers()|]);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        var expected =
+            """
+            using System;
+            class SampleType
+            {
+                public SampleType() 
+                {
+                    Numbers {|Rename:numbers|} = new Numbers();
+                    int sum = Sum(numbers);
+                }
+
+                private int Sum(Numbers numbers) 
+                {
+                    return 42;
+                }
+
+                private class Numbers {}
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(
+            code, expected,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8),
+            options: new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.ImplicitObjectCreationWhenTypeIsApparent, new CodeStyleOption2<bool>(true, NotificationOption2.Warning) },
+            });
     }
 
     [Fact]
@@ -9453,5 +9502,37 @@ namespace ConsoleApp1
                 }
             }
             """, index: 0, options: ImplicitTypingEverywhere());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78204")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77559")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77147")]
+    public async Task TestInTopLevelStatement()
+    {
+        await TestMissingAsync(
+            """
+            void M()
+            {
+                _ = ([|long|])0;
+            }
+            """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78204")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77559")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77147")]
+    public async Task TestInClassDeclaration()
+    {
+        await TestMissingAsync(
+            """
+            public class C {
+                void M()
+                {
+                    _ = ([|long|])0;
+                }
+            }
+            """);
     }
 }

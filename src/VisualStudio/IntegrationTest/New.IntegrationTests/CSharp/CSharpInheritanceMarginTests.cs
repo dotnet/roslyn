@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-public class CSharpInheritanceMarginTests : AbstractEditorTest
+public sealed class CSharpInheritanceMarginTests : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.CSharp;
 

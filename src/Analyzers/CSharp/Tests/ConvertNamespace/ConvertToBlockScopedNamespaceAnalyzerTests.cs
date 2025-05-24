@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
 
 using VerifyCS = CSharpCodeFixVerifier<ConvertToBlockScopedNamespaceDiagnosticAnalyzer, ConvertNamespaceCodeFixProvider>;
 
-public class ConvertToBlockScopedNamespaceAnalyzerTests
+public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
 {
     public static IEnumerable<object[]> EndOfDocumentSequences
     {

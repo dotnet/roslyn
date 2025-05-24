@@ -401,7 +401,7 @@ internal partial class VisualStudioWorkspaceImpl
             }
         }
 
-        private class HierarchyEventSink : IVsHierarchyEvents, IDisposable
+        private sealed class HierarchyEventSink : IVsHierarchyEvents, IDisposable
         {
             private readonly IVsHierarchy _hierarchy;
             private readonly uint _cookie;

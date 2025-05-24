@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
 [Guid(Guids.ValueTrackingToolWindowIdString)]
-internal class ValueTrackingToolWindow : ToolWindowPane
+internal sealed class ValueTrackingToolWindow : ToolWindowPane
 {
     private readonly ValueTrackingRoot _root = new();
 
@@ -66,10 +65,10 @@ internal class ValueTrackingToolWindow : ToolWindowPane
         _workspace = workspace;
         _threadingContext = threadingContext;
 
-        _workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _ = _workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
 
-    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         Contract.ThrowIfFalse(Initialized);
 

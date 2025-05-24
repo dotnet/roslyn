@@ -11,7 +11,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 
 [UseExportProvider]
-public class AbstractStructureTaggerProviderTests
+public sealed class AbstractStructureTaggerProviderTests
 {
     private static void TextContainsRegionOrUsing(string input, bool expected, string language)
     {

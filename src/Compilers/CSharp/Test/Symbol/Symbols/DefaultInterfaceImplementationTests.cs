@@ -44585,30 +44585,36 @@ interface I19
                 // (62,20): error CS0106: The modifier 'virtual' is not valid for this item
                 //     virtual static I13() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I13").WithArguments("virtual").WithLocation(62, 20),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
-                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (66,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I14();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(66, 5),
                 // (70,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(70, 12),
+                // (70,12): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static partial I15();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(70, 12),
                 // (70,20): error CS0501: 'I15.I15()' must declare a body because it is not marked abstract, extern, or partial
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "I15").WithArguments("I15.I15()").WithLocation(70, 20),
                 // (70,20): error CS0542: 'I15': member names cannot be the same as their enclosing type
                 //     static partial I15();
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I15").WithArguments("I15").WithLocation(70, 20),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
-                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (74,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I16() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(74, 5),
                 // (78,12): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //     static partial I17() => throw null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(78, 12),
+                // (78,12): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static partial I17() => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(78, 12),
                 // (78,20): error CS0542: 'I17': member names cannot be the same as their enclosing type
                 //     static partial I17() => throw null;
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "I17").WithArguments("I17").WithLocation(78, 20),

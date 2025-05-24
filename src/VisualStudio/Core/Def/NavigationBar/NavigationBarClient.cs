@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 
-internal class NavigationBarClient :
+internal sealed class NavigationBarClient :
     IVsDropdownBarClient,
     IVsDropdownBarClient3,
     IVsDropdownBarClient4,

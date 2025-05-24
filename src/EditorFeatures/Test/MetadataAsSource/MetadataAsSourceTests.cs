@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
+public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
 {
     public enum OriginatingProjectLanguage
     {

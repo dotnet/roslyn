@@ -7,10 +7,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 
 internal static partial class Extensions
 {
+    private static readonly ConditionalWeakTable<Project, AsyncLazy<Checksum>> s_projectToDiagnosticChecksum = new();
+
     public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
     {
         var result = ArrayBuilder<Diagnostic>.GetInstance();
@@ -428,5 +433,132 @@ internal static partial class Extensions
             await suppressionAnalyzer.AnalyzeAsync(
                 semanticModel, span, hostCompilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    /// <summary>
+    /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
+    /// transitive dependencies.
+    /// </summary>
+    /// <remarks>
+    /// This checksum calculation can be used for cases where a feature needs to know if the semantics in this project
+    /// changed.  For example, for diagnostics or caching computed semantic data. The goal is to ensure that changes to
+    /// <list type="bullet">
+    ///    <item>Files inside the current project</item>
+    ///    <item>Project properties of the current project</item>
+    ///    <item>Visible files in referenced projects</item>
+    ///    <item>Project properties in referenced projects</item>
+    /// </list>
+    /// are reflected in the metadata we keep so that comparing solutions accurately tells us when we need to recompute
+    /// semantic work.   
+    /// 
+    /// <para>This method of checking for changes has a few important properties that differentiate it from other methods of determining project version.
+    /// <list type="bullet">
+    ///    <item>Changes to methods inside the current project will be reflected to compute updated diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> does not change as it only returns top level changes.</item>
+    ///    <item>Reloading a project without making any changes will re-use cached diagnostics.
+    ///        <see cref="Project.GetDependentSemanticVersionAsync(CancellationToken)"/> changes as the project is removed, then added resulting in a version change.</item>
+    /// </list>   
+    /// </para>
+    /// This checksum is also affected by the <see cref="SourceGeneratorExecutionVersion"/> for this project.
+    /// As such, it is not usable across different sessions of a particular host.
+    /// </remarks>
+    public static Task<Checksum> GetDiagnosticChecksumAsync(this Project? project, CancellationToken cancellationToken)
+    {
+        if (project is null)
+            return SpecializedTasks.Default<Checksum>();
+
+        var lazyChecksum = s_projectToDiagnosticChecksum.GetValue(
+            project,
+            static project => AsyncLazy.Create(
+                static (project, cancellationToken) => ComputeDiagnosticChecksumAsync(project, cancellationToken),
+                project));
+
+        return lazyChecksum.GetValueAsync(cancellationToken);
+
+        static async Task<Checksum> ComputeDiagnosticChecksumAsync(Project project, CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+
+            using var _ = ArrayBuilder<Checksum>.GetInstance(out var tempChecksumArray);
+
+            // Mix in the SG information for this project.  That way if it changes, we will have a different
+            // checksum (since semantics could have changed because of this).
+            if (solution.CompilationState.SourceGeneratorExecutionVersionMap.Map.TryGetValue(project.Id, out var executionVersion))
+                tempChecksumArray.Add(executionVersion.Checksum);
+
+            // Get the checksum for the project itself.  Note: this will normally be cached.  As such, even if we
+            // have a different Project instance (due to a change in an unrelated project), this will be fast to
+            // compute and return.
+            var projectChecksum = await project.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+            tempChecksumArray.Add(projectChecksum);
+
+            // Calculate a checksum this project and for each dependent project that could affect semantics for this
+            // project. We order the projects guid so that we are resilient to the underlying in-memory graph structure
+            // changing this arbitrarily.
+            foreach (var projectRef in project.ProjectReferences.OrderBy(r => r.ProjectId.Id))
+            {
+                // Note that these checksums should only actually be calculated once, if the project is unchanged
+                // the same checksum will be returned.
+                tempChecksumArray.Add(await GetDiagnosticChecksumAsync(
+                    solution.GetProject(projectRef.ProjectId), cancellationToken).ConfigureAwait(false));
+            }
+
+            return Checksum.Create(tempChecksumArray);
+        }
+    }
+
+    public static async Task<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+    {
+        var options = project.Solution.Services.GetRequiredService<IWorkspaceConfigurationService>().Options;
+        var remoteHostClient = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+        if (remoteHostClient != null)
+        {
+            var result = await remoteHostClient.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableArray<DiagnosticData>>(
+                project.Solution,
+                invocation: (service, solutionInfo, cancellationToken) => service.GetSourceGeneratorDiagnosticsAsync(solutionInfo, project.Id, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+
+            if (!result.HasValue)
+                return [];
+
+            return await result.Value.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+        }
+
+        return await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public static IEnumerable<DiagnosticData> ConvertToLocalDiagnostics(IEnumerable<Diagnostic> diagnostics, TextDocument targetTextDocument, TextSpan? span = null)
+    {
+        foreach (var diagnostic in diagnostics)
+        {
+            if (!IsReportedInDocument(diagnostic, targetTextDocument))
+            {
+                continue;
+            }
+
+            if (span.HasValue && !span.Value.IntersectsWith(diagnostic.Location.SourceSpan))
+            {
+                continue;
+            }
+
+            yield return DiagnosticData.Create(diagnostic, targetTextDocument);
+        }
+    }
+
+    public static bool IsReportedInDocument(Diagnostic diagnostic, TextDocument targetTextDocument)
+    {
+        if (diagnostic.Location.SourceTree != null)
+        {
+            return targetTextDocument.Project.GetDocument(diagnostic.Location.SourceTree) == targetTextDocument;
+        }
+        else if (diagnostic.Location.Kind == LocationKind.ExternalFile)
+        {
+            var lineSpan = diagnostic.Location.GetLineSpan();
+
+            var documentIds = targetTextDocument.Project.Solution.GetDocumentIdsWithFilePath(lineSpan.Path);
+            return documentIds.Any(static (id, targetTextDocument) => id == targetTextDocument.Id, targetTextDocument);
+        }
+
+        return false;
     }
 }

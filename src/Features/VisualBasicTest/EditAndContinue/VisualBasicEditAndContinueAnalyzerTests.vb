@@ -22,12 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Function
 
         Private Shared Function AddDefaultTestProject(solution As Solution, source As String) As Solution
-
-            Dim pid = ProjectId.CreateNewId()
-
             Return solution.
-                AddProject(ProjectInfo.Create(pid, VersionStamp.Create(), "proj", "proj", LanguageNames.VisualBasic)).GetProject(pid).
-                AddDocument("test.vb", SourceText.From(source, Encoding.UTF8), filePath:=Path.Combine(TempRoot.Root, "test.vb")).Project.Solution
+                AddTestProject("proj", LanguageNames.VisualBasic).
+                AddTestDocument(source, path:=Path.Combine(TempRoot.Root, "test.vb")).Project.Solution
         End Function
 
         Private Shared Sub TestSpans(source As String, hasLabel As Func(Of SyntaxNode, Boolean))
@@ -124,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
             Dim capabilities = AsyncLazy.Create(EditAndContinueTestVerifier.Net5RuntimeCapabilities)
             Dim log = New TraceLog("Test")
-            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, log, CancellationToken.None)
+            Return Await analyzer.AnalyzeDocumentAsync(newDocument.Id, oldProject, newDocument.Project, baseActiveStatements, ImmutableArray(Of ActiveStatementLineSpan).Empty, capabilities, log, CancellationToken.None)
         End Function
 #End Region
 
