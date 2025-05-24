@@ -579,13 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
-                    if (valueKind == BindValueKind.RValue)
-                    {
-                        return expr;
-                    }
-                    break;
-
                 case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.TupleLiteral:
                     if (valueKind == BindValueKind.RValue)
                     {
                         return expr;
