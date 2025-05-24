@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     invokedAsExtensionMethod = true;
 
-                    Debug.Assert(receiverOpt.Type!.Equals(method.Parameters[0].Type, TypeCompareKind.ConsiderEverything));
+                    Debug.Assert(receiverOpt.Type!.Equals(method.Parameters[0].Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                     arguments = arguments.Insert(0, receiverOpt);
                     receiverOpt = null;

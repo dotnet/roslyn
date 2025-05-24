@@ -3624,6 +3624,64 @@ static void Test()
             verifier.VerifyDiagnostics();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExcludeFromCodeCoverageAttribute_Method_Extension()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+static class C
+{
+    extension(int i)
+    {
+        [ExcludeFromCodeCoverage]
+        void M1() { Console.WriteLine(1); }
+
+        void M2() { Console.WriteLine(1); }
+    }
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.<>E__0.M1");
+            AssertNotInstrumented(verifier, "C.<>E__0.M2");
+
+            AssertNotInstrumented(verifier, "C.M1");
+            AssertInstrumented(verifier, "C.M2");
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Extensions)]
+        public void ExcludeFromCodeCoverageAttribute_Accessors_Extension()
+        {
+            string source = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+
+static class C
+{
+    extension(int i)
+    {
+        [ExcludeFromCodeCoverage]
+        int P1 { get => 1; set { } }
+
+        int P2 { get => 1; set { } }
+    }              
+}
+";
+            var verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+
+            AssertNotInstrumented(verifier, "C.<>E__0.P1.get");
+            AssertNotInstrumented(verifier, "C.<>E__0.P1.set");
+            AssertNotInstrumented(verifier, "C.get_P1");
+            AssertNotInstrumented(verifier, "C.set_P1");
+
+            AssertNotInstrumented(verifier, "C.<>E__0.P2.get");
+            AssertNotInstrumented(verifier, "C.<>E__0.P2.set");
+            AssertInstrumented(verifier, "C.get_P2");
+            AssertInstrumented(verifier, "C.set_P2");
+        }
+
         private static void AssertNotInstrumented(CompilationVerifier verifier, string qualifiedMethodName)
             => AssertInstrumented(verifier, qualifiedMethodName, expected: false);
 
