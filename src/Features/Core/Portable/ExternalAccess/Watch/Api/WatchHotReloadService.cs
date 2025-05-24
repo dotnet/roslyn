@@ -143,6 +143,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public readonly Status Status { get; init; }
 
         /// <summary>
+        /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
         /// Syntactic, semantic and emit diagnostics.
         /// </summary>
         /// <remarks>
@@ -151,7 +152,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         public required ImmutableArray<Diagnostic> CompilationDiagnostics { get; init; }
 
         /// <summary>
-        /// Rude edits per project.
+        /// Transient diagnostics (rude edits) per project.
+        /// All diagnostics that can be addressed by rebuilding/restarting the project.
         /// </summary>
         public required ImmutableArray<(ProjectId project, ImmutableArray<Diagnostic> diagnostics)> RudeEdits { get; init; }
 
@@ -315,8 +317,8 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
                 ModuleUpdateStatus.Blocked => Status.Blocked,
                 _ => throw ExceptionUtilities.UnexpectedValue(results.ModuleUpdates.Status)
             },
-            CompilationDiagnostics = results.GetAllCompilationDiagnostics(),
-            RudeEdits = results.RudeEdits.SelectAsArray(static re => (re.ProjectId, re.Diagnostics)),
+            CompilationDiagnostics = results.GetPersistentDiagnostics(),
+            RudeEdits = results.GetTransientDiagnostics(),
             ProjectUpdates = results.ModuleUpdates.Updates.SelectAsArray(static update => new Update(
                 update.Module,
                 update.ProjectId,
@@ -345,6 +347,39 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
     // access to internal API:
     public static Solution WithProjectInfo(Solution solution, ProjectInfo info)
         => solution.WithProjectInfo(info);
+
+    /// <summary>
+    /// If <paramref name="resourcePath"/> is a manifest resource of any of the projects in <paramref name="solution"/>, updates the solution to include the resource.
+    /// Otherwise returns the solution unchanged.
+    /// 
+    /// Currently we only track whether or not a resource changed, not its updated content since the runtime does not support updating resources.
+    /// </summary>
+    public static Solution WithManifestResourceChanged(Solution solution, string resourcePath, bool isDelete)
+    {
+        var newSolution = solution;
+
+        foreach (var project in solution.Projects)
+        {
+            var projectResources = project.State.Attributes.ManifestResources;
+            var resourceIndex = projectResources.IndexOf(
+                static (r, resourcePath) => SolutionState.FilePathComparer.Equals(r.FilePath, resourcePath),
+                resourcePath);
+
+            if (resourceIndex >= 0)
+            {
+                var resource = projectResources[resourceIndex];
+
+                var newResources = isDelete
+                    ? projectResources.RemoveAt(resourceIndex)
+                    : projectResources.SetItem(resourceIndex, resource.WithContentVersion(resource.ContentVersion + 1));
+
+                newSolution = newSolution.WithProjectAttributes(
+                    project.State.Attributes.With(manifestResources: newResources));
+            }
+        }
+
+        return newSolution;
+    }
 
     internal TestAccessor GetTestAccessor()
         => new(this);

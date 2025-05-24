@@ -182,6 +182,7 @@ public sealed class ProjectInfoTests
         var projectId = ProjectId.CreateNewId();
         var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "doc");
         var instance = ProjectInfo.Create(name: "Name", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "AssemblyName", language: "C#");
+        var resources = ImmutableArray.Create(new MetadataResourceInfo("resource", "path.resources", linkedResourceFileName: null, isPublic: false, contentVersion: 1));
 
         SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, ProjectId.CreateNewId(), defaultThrows: true);
         SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithVersion(value), opt => opt.Version, VersionStamp.Create());
@@ -195,6 +196,7 @@ public sealed class ProjectInfoTests
         SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithChecksumAlgorithm(value), opt => opt.ChecksumAlgorithm, SourceHashAlgorithm.None);
         SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithHasAllInformation(value), opt => opt.HasAllInformation, false);
         SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithRunAnalyzers(value), opt => opt.RunAnalyzers, false);
+        SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithManifestResources(value), opt => opt.Attributes.ManifestResources, resources);
 
         SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithDocuments(value), opt => opt.Documents, documentInfo, allowDuplicates: false);
         SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAdditionalDocuments(value), opt => opt.AdditionalDocuments, documentInfo, allowDuplicates: false);

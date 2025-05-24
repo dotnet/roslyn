@@ -93,10 +93,10 @@ internal static class PooledBuilderExtensions
         }
     }
 
-    public static bool HasDuplicates<T>(this ArrayBuilder<T> builder)
+    public static bool HasDuplicates<T>(this IReadOnlyList<T> builder)
         => builder.HasDuplicates(static x => x);
 
-    public static bool HasDuplicates<T, U>(this ArrayBuilder<T> builder, Func<T, U> selector)
+    public static bool HasDuplicates<T, U>(this IReadOnlyList<T> builder, Func<T, U> selector)
     {
         switch (builder.Count)
         {

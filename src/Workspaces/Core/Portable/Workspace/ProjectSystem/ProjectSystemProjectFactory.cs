@@ -130,7 +130,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId,
-                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
+                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers,
+                manifestResources: []), // will be updated when command line is set
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 

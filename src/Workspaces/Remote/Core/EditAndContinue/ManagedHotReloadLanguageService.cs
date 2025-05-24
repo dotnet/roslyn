@@ -312,7 +312,6 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 results = new EmitSolutionUpdateResults.Data()
                 {
                     Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
-                    RudeEdits = [],
                     ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
                     SyntaxError = null,
                     ProjectsToRebuild = [],

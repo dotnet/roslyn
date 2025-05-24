@@ -234,6 +234,12 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static string InspectDiagnostic(DiagnosticData diagnostic)
         => $"{(string.IsNullOrWhiteSpace(diagnostic.DataLocation.MappedFileSpan.Path) ? diagnostic.ProjectId.ToString() : diagnostic.DataLocation.MappedFileSpan.ToString())}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}";
 
+    internal static IEnumerable<string> InspectDiagnostics(ImmutableArray<Diagnostic> actual)
+        => actual.Select(d => $"{d.Id}: {d.Severity}: {d.GetMessage()}");
+
+    internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<DiagnosticData> actual)
+        => actual.Select(d => d.Id);
+
     internal static Guid ReadModuleVersionId(Stream stream)
     {
         using var peReader = new PEReader(stream);
@@ -269,7 +275,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             project.Id,
             project.Documents.Select(d => (d.GetTextSynchronously(CancellationToken.None), d.FilePath ?? throw ExceptionUtilities.UnexpectedValue(null))),
             project.AssemblyName,
-            targetFramework: targetFramework);
+            targetFramework: targetFramework,
+            manifestResources: project.State.ManifestResources);
 
     internal Guid EmitLibrary(
         ProjectId projectId,
@@ -328,7 +335,8 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null,
-        TargetFramework targetFramework = DefaultTargetFramework)
+        TargetFramework targetFramework = DefaultTargetFramework,
+        IEnumerable<MetadataResourceInfo>? manifestResources = null)
     {
         var parseOptions = TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute();
 
@@ -354,12 +362,16 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
             compilation = outputCompilation;
         }
 
-        return EmitLibrary(projectId, compilation, pdbFormat);
+        return EmitLibrary(projectId, compilation, manifestResources ?? [], pdbFormat);
     }
 
-    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+    internal Guid EmitLibrary(ProjectId projectId, Compilation compilation, IEnumerable<MetadataResourceInfo> manifestResources, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
     {
-        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
+        var resourceDescriptions = manifestResources.Select(info => info.IsLinked
+            ? new ResourceDescription(info.ResourceName, info.LinkedResourceFileName, () => File.OpenRead(info.FilePath), isPublic: info.IsPublic)
+            : new ResourceDescription(info.ResourceName, () => File.OpenRead(info.FilePath), isPublic: info.IsPublic));
+
+        var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat), resourceDescriptions);
         var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
         var moduleMetadata = ModuleMetadata.CreateFromImage(peImage);
