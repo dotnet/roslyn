@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// equivalent.
 /// <list type="number">
 /// <item>The kinds of the two symbols must match.</item>
-/// <item>The names of the two symbols must match.</item>
+/// <item>The metadata names of the two symbols must match.</item>
 /// <item>The arity of the two symbols must match.</item>
 /// <item>If the symbols are methods or parameterized properties, then the signatures of the two
 /// symbols must match.</item>
