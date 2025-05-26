@@ -28,6 +28,8 @@ using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -243,9 +245,15 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
 }
 
-internal sealed class SymbolTreeItem() : BaseItem(nameof(SymbolTreeItem))
+internal sealed class SymbolTreeItem(
+    string name,
+    Glyph glyph,
+    SyntaxNode syntaxNode)
+    : BaseItem(name)
 {
+    public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
 
+    public readonly SyntaxNode SyntaxNode = syntaxNode;
 }
 
 internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
