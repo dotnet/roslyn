@@ -63,227 +63,227 @@ internal static class GraphNodeIdCreation
     //    }
     //}
 
-    private static async Task<IEnumerable<GraphNodeId>> GetPartialsForNamespaceAndTypeAsync(ITypeSymbol symbol, bool includeNamespace, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
-    {
-        var items = new List<GraphNodeId>();
+    //private static async Task<IEnumerable<GraphNodeId>> GetPartialsForNamespaceAndTypeAsync(ITypeSymbol symbol, bool includeNamespace, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
+    //{
+    //    var items = new List<GraphNodeId>();
 
-        Uri assembly = null;
-        if (includeNamespace)
-        {
-            assembly = await GetAssemblyFullPathAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-        }
+    //    Uri assembly = null;
+    //    if (includeNamespace)
+    //    {
+    //        assembly = await GetAssemblyFullPathAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+    //    }
 
-        var underlyingType = ChaseToUnderlyingType(symbol);
+    //    var underlyingType = ChaseToUnderlyingType(symbol);
 
-        if (symbol.TypeKind == TypeKind.TypeParameter)
-        {
-            var typeParameter = (ITypeParameterSymbol)symbol;
+    //    if (symbol.TypeKind == TypeKind.TypeParameter)
+    //    {
+    //        var typeParameter = (ITypeParameterSymbol)symbol;
 
-            if (typeParameter.TypeParameterKind == TypeParameterKind.Type)
-            {
-                if (includeNamespace && !typeParameter.ContainingNamespace.IsGlobalNamespace)
-                {
-                    if (assembly != null)
-                    {
-                        items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Assembly, assembly));
-                    }
+    //        if (typeParameter.TypeParameterKind == TypeParameterKind.Type)
+    //        {
+    //            if (includeNamespace && !typeParameter.ContainingNamespace.IsGlobalNamespace)
+    //            {
+    //                if (assembly != null)
+    //                {
+    //                    items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Assembly, assembly));
+    //                }
 
-                    items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, typeParameter.ContainingNamespace.ToDisplayString()));
-                }
+    //                items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, typeParameter.ContainingNamespace.ToDisplayString()));
+    //            }
 
-                items.Add(await GetPartialForTypeAsync(symbol.ContainingType, CodeGraphNodeIdName.Type, solution, cancellationToken).ConfigureAwait(false));
-            }
+    //            items.Add(await GetPartialForTypeAsync(symbol.ContainingType, CodeGraphNodeIdName.Type, solution, cancellationToken).ConfigureAwait(false));
+    //        }
 
-            items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, ((ITypeParameterSymbol)symbol).Ordinal.ToString()));
-        }
-        else
-        {
-            if (assembly != null)
-            {
-                items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Assembly, assembly));
-            }
+    //        items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, ((ITypeParameterSymbol)symbol).Ordinal.ToString()));
+    //    }
+    //    else
+    //    {
+    //        if (assembly != null)
+    //        {
+    //            items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Assembly, assembly));
+    //        }
 
-            if (underlyingType.TypeKind == TypeKind.Dynamic)
-            {
-                items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, "System"));
-            }
-            else if (underlyingType.ContainingNamespace != null && !underlyingType.ContainingNamespace.IsGlobalNamespace)
-            {
-                items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, underlyingType.ContainingNamespace.ToDisplayString()));
-            }
+    //        if (underlyingType.TypeKind == TypeKind.Dynamic)
+    //        {
+    //            items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, "System"));
+    //        }
+    //        else if (underlyingType.ContainingNamespace != null && !underlyingType.ContainingNamespace.IsGlobalNamespace)
+    //        {
+    //            items.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Namespace, underlyingType.ContainingNamespace.ToDisplayString()));
+    //        }
 
-            items.Add(await GetPartialForTypeAsync(symbol, CodeGraphNodeIdName.Type, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false));
-        }
+    //        items.Add(await GetPartialForTypeAsync(symbol, CodeGraphNodeIdName.Type, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false));
+    //    }
 
-        return items;
-    }
+    //    return items;
+    //}
 
-    private static async Task<GraphNodeId> GetPartialForTypeAsync(ITypeSymbol symbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
-    {
-        if (symbol is IArrayTypeSymbol arrayType)
-        {
-            return await GetPartialForArrayTypeAsync(arrayType, nodeName, solution, cancellationToken).ConfigureAwait(false);
-        }
-        else if (symbol is INamedTypeSymbol namedType)
-        {
-            return await GetPartialForNamedTypeAsync(namedType, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
-        }
-        else if (symbol is IPointerTypeSymbol pointerType)
-        {
-            return await GetPartialForPointerTypeAsync(pointerType, nodeName, solution, cancellationToken).ConfigureAwait(false);
-        }
-        else if (symbol is ITypeParameterSymbol typeParameter)
-        {
-            return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
-        }
-        else if (symbol is IDynamicTypeSymbol)
-        {
-            return GetPartialForDynamicType(nodeName);
-        }
+    //private static async Task<GraphNodeId> GetPartialForTypeAsync(ITypeSymbol symbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
+    //{
+    //    if (symbol is IArrayTypeSymbol arrayType)
+    //    {
+    //        return await GetPartialForArrayTypeAsync(arrayType, nodeName, solution, cancellationToken).ConfigureAwait(false);
+    //    }
+    //    else if (symbol is INamedTypeSymbol namedType)
+    //    {
+    //        return await GetPartialForNamedTypeAsync(namedType, nodeName, solution, cancellationToken, isInGenericArguments).ConfigureAwait(false);
+    //    }
+    //    else if (symbol is IPointerTypeSymbol pointerType)
+    //    {
+    //        return await GetPartialForPointerTypeAsync(pointerType, nodeName, solution, cancellationToken).ConfigureAwait(false);
+    //    }
+    //    else if (symbol is ITypeParameterSymbol typeParameter)
+    //    {
+    //        return await GetPartialForTypeParameterSymbolAsync(typeParameter, nodeName, solution, cancellationToken).ConfigureAwait(false);
+    //    }
+    //    else if (symbol is IDynamicTypeSymbol)
+    //    {
+    //        return GetPartialForDynamicType(nodeName);
+    //    }
 
-        throw ExceptionUtilities.Unreachable();
-    }
+    //    throw ExceptionUtilities.Unreachable();
+    //}
 
-    private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
-    {
-        // We always consider this to be the "Object" type since Progression takes a very metadata-ish view of the type
-        return GraphNodeId.GetPartial(nodeName, "Object");
-    }
+    //private static GraphNodeId GetPartialForDynamicType(GraphNodeIdName nodeName)
+    //{
+    //    // We always consider this to be the "Object" type since Progression takes a very metadata-ish view of the type
+    //    return GraphNodeId.GetPartial(nodeName, "Object");
+    //}
 
-    private static async Task<GraphNodeId> GetPartialForNamedTypeAsync(INamedTypeSymbol namedType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
-    {
-        // If this is a simple type, then we don't have much to do
-        if (namedType.ContainingType == null && Equals(namedType.ConstructedFrom, namedType) && namedType.Arity == 0)
-        {
-            return GraphNodeId.GetPartial(nodeName, namedType.Name);
-        }
-        else
-        {
-            // For a generic type, we need to populate "type" property with the following form:
-            //
-            //      Type = (Name =...GenericParameterCount = GenericArguments =...ParentType =...)
-            //
-            //  where "Name" contains a symbol name
-            //    and "GenericParameterCount" contains the number of type parameters,
-            //    and "GenericArguments" contains its type parameters' node information. 
-            //    and "ParentType" contains its containing type's node information.
+    //private static async Task<GraphNodeId> GetPartialForNamedTypeAsync(INamedTypeSymbol namedType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
+    //{
+    //    // If this is a simple type, then we don't have much to do
+    //    if (namedType.ContainingType == null && Equals(namedType.ConstructedFrom, namedType) && namedType.Arity == 0)
+    //    {
+    //        return GraphNodeId.GetPartial(nodeName, namedType.Name);
+    //    }
+    //    else
+    //    {
+    //        // For a generic type, we need to populate "type" property with the following form:
+    //        //
+    //        //      Type = (Name =...GenericParameterCount = GenericArguments =...ParentType =...)
+    //        //
+    //        //  where "Name" contains a symbol name
+    //        //    and "GenericParameterCount" contains the number of type parameters,
+    //        //    and "GenericArguments" contains its type parameters' node information. 
+    //        //    and "ParentType" contains its containing type's node information.
 
-            var partials = new List<GraphNodeId>
-            {
-                GraphNodeId.GetPartial(CodeQualifiedName.Name, namedType.Name)
-            };
+    //        var partials = new List<GraphNodeId>
+    //        {
+    //            GraphNodeId.GetPartial(CodeQualifiedName.Name, namedType.Name)
+    //        };
 
-            if (namedType.Arity > 0)
-            {
-                partials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.GenericParameterCountIdentifier, namedType.Arity.ToString()));
-            }
+    //        if (namedType.Arity > 0)
+    //        {
+    //            partials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.GenericParameterCountIdentifier, namedType.Arity.ToString()));
+    //        }
 
-            // For the property "GenericArguments", we only populate them 
-            // when type parameters are constructed using instance types (i.e., namedType.ConstructedFrom != namedType).
-            // However, there is a case where we need to populate "GenericArguments" even though arguments are not marked as "constructed"
-            // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
-            // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
+    //        // For the property "GenericArguments", we only populate them 
+    //        // when type parameters are constructed using instance types (i.e., namedType.ConstructedFrom != namedType).
+    //        // However, there is a case where we need to populate "GenericArguments" even though arguments are not marked as "constructed"
+    //        // because a symbol is not marked as "constructed" when a type is constructed using its own type parameters.
+    //        // To distinguish this case, we use "isInGenericArguments" flag which we pass either to populate arguments recursively or to populate "ParentType".
 
-            var hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
+    //        var hasGenericArguments = (!Equals(namedType.ConstructedFrom, namedType) || isInGenericArguments) && namedType.TypeArguments != null && namedType.TypeArguments.Any();
 
-            if (hasGenericArguments)
-            {
-                var genericArguments = new List<GraphNodeId>();
-                foreach (var arg in namedType.TypeArguments)
-                {
-                    var nodes = await GetPartialsForNamespaceAndTypeAsync(arg, includeNamespace: true, solution: solution, cancellationToken: cancellationToken, isInGenericArguments: true).ConfigureAwait(false);
-                    genericArguments.Add(GraphNodeId.GetNested([.. nodes]));
-                }
+    //        if (hasGenericArguments)
+    //        {
+    //            var genericArguments = new List<GraphNodeId>();
+    //            foreach (var arg in namedType.TypeArguments)
+    //            {
+    //                var nodes = await GetPartialsForNamespaceAndTypeAsync(arg, includeNamespace: true, solution: solution, cancellationToken: cancellationToken, isInGenericArguments: true).ConfigureAwait(false);
+    //                genericArguments.Add(GraphNodeId.GetNested([.. nodes]));
+    //            }
 
-                partials.Add(GraphNodeId.GetArray(
-                    CodeGraphNodeIdName.GenericArgumentsIdentifier,
-                    [.. genericArguments]));
-            }
+    //            partials.Add(GraphNodeId.GetArray(
+    //                CodeGraphNodeIdName.GenericArgumentsIdentifier,
+    //                [.. genericArguments]));
+    //        }
 
-            if (namedType.ContainingType != null)
-            {
-                partials.Add(await GetPartialForTypeAsync(namedType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken, hasGenericArguments).ConfigureAwait(false));
-            }
+    //        if (namedType.ContainingType != null)
+    //        {
+    //            partials.Add(await GetPartialForTypeAsync(namedType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken, hasGenericArguments).ConfigureAwait(false));
+    //        }
 
-            return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
-        }
-    }
+    //        return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
+    //    }
+    //}
 
-    private static async Task<GraphNodeId> GetPartialForPointerTypeAsync(IPointerTypeSymbol pointerType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
-    {
-        var indirection = 1;
+    //private static async Task<GraphNodeId> GetPartialForPointerTypeAsync(IPointerTypeSymbol pointerType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var indirection = 1;
 
-        while (pointerType.PointedAtType.TypeKind == TypeKind.Pointer)
-        {
-            indirection++;
-            pointerType = (IPointerTypeSymbol)pointerType.PointedAtType;
-        }
+    //    while (pointerType.PointedAtType.TypeKind == TypeKind.Pointer)
+    //    {
+    //        indirection++;
+    //        pointerType = (IPointerTypeSymbol)pointerType.PointedAtType;
+    //    }
 
-        var partials = new List<GraphNodeId>
-        {
-            GraphNodeId.GetPartial(CodeQualifiedName.Name, pointerType.PointedAtType.Name),
-            GraphNodeId.GetPartial(CodeQualifiedName.Indirection, indirection.ToString())
-        };
+    //    var partials = new List<GraphNodeId>
+    //    {
+    //        GraphNodeId.GetPartial(CodeQualifiedName.Name, pointerType.PointedAtType.Name),
+    //        GraphNodeId.GetPartial(CodeQualifiedName.Indirection, indirection.ToString())
+    //    };
 
-        if (pointerType.PointedAtType.ContainingType != null)
-        {
-            partials.Add(await GetPartialForTypeAsync(pointerType.PointedAtType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
-        }
+    //    if (pointerType.PointedAtType.ContainingType != null)
+    //    {
+    //        partials.Add(await GetPartialForTypeAsync(pointerType.PointedAtType.ContainingType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
+    //    }
 
-        return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
-    }
+    //    return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
+    //}
 
-    private static async Task<GraphNodeId> GetPartialForArrayTypeAsync(IArrayTypeSymbol arrayType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
-    {
-        var partials = new List<GraphNodeId>();
+    //private static async Task<GraphNodeId> GetPartialForArrayTypeAsync(IArrayTypeSymbol arrayType, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var partials = new List<GraphNodeId>();
 
-        var underlyingType = ChaseToUnderlyingType(arrayType);
+    //    var underlyingType = ChaseToUnderlyingType(arrayType);
 
-        if (underlyingType.TypeKind == TypeKind.Dynamic)
-        {
-            partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, "Object"));
-        }
-        else if (underlyingType.TypeKind != TypeKind.TypeParameter)
-        {
-            partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, underlyingType.Name));
-        }
+    //    if (underlyingType.TypeKind == TypeKind.Dynamic)
+    //    {
+    //        partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, "Object"));
+    //    }
+    //    else if (underlyingType.TypeKind != TypeKind.TypeParameter)
+    //    {
+    //        partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.Name, underlyingType.Name));
+    //    }
 
-        partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.ArrayRank, arrayType.Rank.ToString()));
-        partials.Add(await GetPartialForTypeAsync(arrayType.ElementType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
+    //    partials.Add(GraphNodeId.GetPartial(CodeQualifiedName.ArrayRank, arrayType.Rank.ToString()));
+    //    partials.Add(await GetPartialForTypeAsync(arrayType.ElementType, CodeGraphNodeIdName.ParentType, solution, cancellationToken).ConfigureAwait(false));
 
-        return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
-    }
+    //    return GraphNodeId.GetPartial(nodeName, MakeCollectionIfNecessary([.. partials]));
+    //}
 
-    private static async Task<GraphNodeId> GetPartialForTypeParameterSymbolAsync(ITypeParameterSymbol typeParameterSymbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
-    {
-        if (typeParameterSymbol.TypeParameterKind == TypeParameterKind.Method)
-        {
-            return GraphNodeId.GetPartial(nodeName,
-                new GraphNodeIdCollection(false,
-                    GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, typeParameterSymbol.Ordinal.ToString())));
-        }
-        else
-        {
-            var nodes = await GetPartialsForNamespaceAndTypeAsync(typeParameterSymbol, false, solution, cancellationToken).ConfigureAwait(false);
-            return GraphNodeId.GetPartial(nodeName,
-                new GraphNodeIdCollection(false, [.. nodes]));
-        }
-    }
+    //private static async Task<GraphNodeId> GetPartialForTypeParameterSymbolAsync(ITypeParameterSymbol typeParameterSymbol, GraphNodeIdName nodeName, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    if (typeParameterSymbol.TypeParameterKind == TypeParameterKind.Method)
+    //    {
+    //        return GraphNodeId.GetPartial(nodeName,
+    //            new GraphNodeIdCollection(false,
+    //                GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, typeParameterSymbol.Ordinal.ToString())));
+    //    }
+    //    else
+    //    {
+    //        var nodes = await GetPartialsForNamespaceAndTypeAsync(typeParameterSymbol, false, solution, cancellationToken).ConfigureAwait(false);
+    //        return GraphNodeId.GetPartial(nodeName,
+    //            new GraphNodeIdCollection(false, [.. nodes]));
+    //    }
+    //}
 
-    private static ITypeSymbol ChaseToUnderlyingType(ITypeSymbol symbol)
-    {
-        while (symbol.TypeKind == TypeKind.Array)
-        {
-            symbol = ((IArrayTypeSymbol)symbol).ElementType;
-        }
+    //private static ITypeSymbol ChaseToUnderlyingType(ITypeSymbol symbol)
+    //{
+    //    while (symbol.TypeKind == TypeKind.Array)
+    //    {
+    //        symbol = ((IArrayTypeSymbol)symbol).ElementType;
+    //    }
 
-        while (symbol.TypeKind == TypeKind.Pointer)
-        {
-            symbol = ((IPointerTypeSymbol)symbol).PointedAtType;
-        }
+    //    while (symbol.TypeKind == TypeKind.Pointer)
+    //    {
+    //        symbol = ((IPointerTypeSymbol)symbol).PointedAtType;
+    //    }
 
-        return symbol;
-    }
+    //    return symbol;
+    //}
 
     //public static async Task<GraphNodeId> GetIdForMemberAsync(ISymbol member, Solution solution, CancellationToken cancellationToken)
     //{
@@ -356,92 +356,92 @@ internal static class GraphNodeIdCreation
     //    return GraphNodeId.GetNested([.. partials]);
     //}
 
-    private static object MakeCollectionIfNecessary(GraphNodeId[] array)
-    {
-        // Place the array of GraphNodeId's into the collection if necessary, so to make them appear in VS Properties Panel
-        if (array.Length > 1)
-        {
-            return new GraphNodeIdCollection(false, array);
-        }
+    //private static object MakeCollectionIfNecessary(GraphNodeId[] array)
+    //{
+    //    // Place the array of GraphNodeId's into the collection if necessary, so to make them appear in VS Properties Panel
+    //    if (array.Length > 1)
+    //    {
+    //        return new GraphNodeIdCollection(false, array);
+    //    }
 
-        return GraphNodeId.GetNested(array);
-    }
+    //    return GraphNodeId.GetNested(array);
+    //}
 
-    private static IAssemblySymbol GetContainingAssembly(ISymbol symbol)
-    {
-        if (symbol.ContainingAssembly != null)
-        {
-            return symbol.ContainingAssembly;
-        }
+    //private static IAssemblySymbol GetContainingAssembly(ISymbol symbol)
+    //{
+    //    if (symbol.ContainingAssembly != null)
+    //    {
+    //        return symbol.ContainingAssembly;
+    //    }
 
-        if (symbol is not ITypeSymbol typeSymbol)
-        {
-            return null;
-        }
+    //    if (symbol is not ITypeSymbol typeSymbol)
+    //    {
+    //        return null;
+    //    }
 
-        var underlyingType = ChaseToUnderlyingType(typeSymbol);
-        if (Equals(typeSymbol, underlyingType))
-        {
-            // when symbol is for dynamic type
-            return null;
-        }
+    //    var underlyingType = ChaseToUnderlyingType(typeSymbol);
+    //    if (Equals(typeSymbol, underlyingType))
+    //    {
+    //        // when symbol is for dynamic type
+    //        return null;
+    //    }
 
-        return GetContainingAssembly(underlyingType);
-    }
+    //    return GetContainingAssembly(underlyingType);
+    //}
 
-    private static async Task<Uri> GetAssemblyFullPathAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var containingAssembly = GetContainingAssembly(symbol);
-        return await GetAssemblyFullPathAsync(containingAssembly, solution, cancellationToken).ConfigureAwait(false);
-    }
+    //private static async Task<Uri> GetAssemblyFullPathAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var containingAssembly = GetContainingAssembly(symbol);
+    //    return await GetAssemblyFullPathAsync(containingAssembly, solution, cancellationToken).ConfigureAwait(false);
+    //}
 
-    private static async Task<Uri> GetAssemblyFullPathAsync(IAssemblySymbol containingAssembly, Solution solution, CancellationToken cancellationToken)
-    {
-        if (containingAssembly == null)
-        {
-            return null;
-        }
+    //private static async Task<Uri> GetAssemblyFullPathAsync(IAssemblySymbol containingAssembly, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    if (containingAssembly == null)
+    //    {
+    //        return null;
+    //    }
 
-        var foundProject = solution.GetProject(containingAssembly, cancellationToken);
-        if (foundProject != null)
-        {
-            if (solution.Workspace is VisualStudioWorkspace)
-            {
-                // TODO: audit the OutputFilePath and whether this is bin or obj
-                if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
-                {
-                    return new Uri(foundProject.OutputFilePath, UriKind.RelativeOrAbsolute);
-                }
+    //    var foundProject = solution.GetProject(containingAssembly, cancellationToken);
+    //    if (foundProject != null)
+    //    {
+    //        if (solution.Workspace is VisualStudioWorkspace)
+    //        {
+    //            // TODO: audit the OutputFilePath and whether this is bin or obj
+    //            if (!string.IsNullOrWhiteSpace(foundProject.OutputFilePath))
+    //            {
+    //                return new Uri(foundProject.OutputFilePath, UriKind.RelativeOrAbsolute);
+    //            }
 
-                return null;
-            }
-        }
-        else
-        {
-            // This symbol is not present in the source code, we need to resolve it from the references!
-            // If a MetadataReference returned by Compilation.GetMetadataReference(AssemblySymbol) has a path, we could use it.                
-            foreach (var project in solution.Projects)
-            {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                if (compilation != null)
-                {
-                    if (compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference reference && !string.IsNullOrEmpty(reference.FilePath))
-                    {
-                        return new Uri(reference.FilePath, UriKind.RelativeOrAbsolute);
-                    }
-                }
-            }
-        }
+    //            return null;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        // This symbol is not present in the source code, we need to resolve it from the references!
+    //        // If a MetadataReference returned by Compilation.GetMetadataReference(AssemblySymbol) has a path, we could use it.                
+    //        foreach (var project in solution.Projects)
+    //        {
+    //            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+    //            if (compilation != null)
+    //            {
+    //                if (compilation.GetMetadataReference(containingAssembly) is PortableExecutableReference reference && !string.IsNullOrEmpty(reference.FilePath))
+    //                {
+    //                    return new Uri(reference.FilePath, UriKind.RelativeOrAbsolute);
+    //                }
+    //            }
+    //        }
+    //    }
 
-        // If we are not in VS, return project.OutputFilePath as a reasonable fallback.
-        // For an example, it could be AdhocWorkspace for unit tests.
-        if (foundProject != null && !string.IsNullOrEmpty(foundProject.OutputFilePath))
-        {
-            return new Uri(foundProject.OutputFilePath, UriKind.Absolute);
-        }
+    //    // If we are not in VS, return project.OutputFilePath as a reasonable fallback.
+    //    // For an example, it could be AdhocWorkspace for unit tests.
+    //    if (foundProject != null && !string.IsNullOrEmpty(foundProject.OutputFilePath))
+    //    {
+    //        return new Uri(foundProject.OutputFilePath, UriKind.Absolute);
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
     //internal static async Task<GraphNodeId> GetIdForAssemblyAsync(IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
     //{
