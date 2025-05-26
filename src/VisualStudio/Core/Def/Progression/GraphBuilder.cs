@@ -33,120 +33,120 @@ internal sealed partial class GraphBuilder
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
     private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
 
-    private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
-    private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
+    // private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
+    // private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
     // private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = [];
 
     /// <summary>
     /// The input solution. Never null.
     /// </summary>
-    private readonly Solution _solution;
+    // private readonly Solution _solution;
 
     public GraphBuilder(Solution solution)
     {
-        _solution = solution;
+        // _solution = solution;
     }
 
-    public static async Task<GraphBuilder> CreateForInputNodesAsync(
-        Solution solution, IEnumerable<GraphNode> inputNodes, CancellationToken cancellationToken)
-    {
-        var builder = new GraphBuilder(solution);
+    //public static async Task<GraphBuilder> CreateForInputNodesAsync(
+    //    Solution solution, IEnumerable<GraphNode> inputNodes, CancellationToken cancellationToken)
+    //{
+    //    var builder = new GraphBuilder(solution);
 
-        foreach (var inputNode in inputNodes)
-        {
-            if (inputNode.HasCategory(CodeNodeCategories.File))
-            {
-                builder.PopulateMapsForFileInputNode(inputNode, cancellationToken);
-            }
-            else if (!inputNode.HasCategory(CodeNodeCategories.SourceLocation))
-            {
-                await builder.PopulateMapsForSymbolInputNodeAsync(inputNode, cancellationToken).ConfigureAwait(false);
-            }
-        }
+    //    foreach (var inputNode in inputNodes)
+    //    {
+    //        if (inputNode.HasCategory(CodeNodeCategories.File))
+    //        {
+    //            // builder.PopulateMapsForFileInputNode(inputNode, cancellationToken);
+    //        }
+    //        else if (!inputNode.HasCategory(CodeNodeCategories.SourceLocation))
+    //        {
+    //            await builder.PopulateMapsForSymbolInputNodeAsync(inputNode, cancellationToken).ConfigureAwait(false);
+    //        }
+    //    }
 
-        return builder;
-    }
+    //    return builder;
+    //}
 
-    private void PopulateMapsForFileInputNode(GraphNode inputNode, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            var projectPath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.Assembly);
-            var filePath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.File);
+    //private void PopulateMapsForFileInputNode(GraphNode inputNode, CancellationToken cancellationToken)
+    //{
+    //    using (_gate.DisposableWait(cancellationToken))
+    //    {
+    //        var projectPath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.Assembly);
+    //        var filePath = inputNode.Id.GetNestedValueByName<Uri>(CodeGraphNodeIdName.File);
 
-            if (projectPath == null || filePath == null)
-            {
-                return;
-            }
+    //        if (projectPath == null || filePath == null)
+    //        {
+    //            return;
+    //        }
 
-            var docIdsWithPath = _solution.GetDocumentIdsWithFilePath(filePath.OriginalString);
-            Document? document = null;
-            Project? project = null;
+    //        var docIdsWithPath = _solution.GetDocumentIdsWithFilePath(filePath.OriginalString);
+    //        Document? document = null;
+    //        Project? project = null;
 
-            foreach (var docIdWithPath in docIdsWithPath)
-            {
-                var projectState = _solution.GetProjectState(docIdWithPath.ProjectId);
-                if (projectState == null)
-                {
-                    FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
-                    continue;
-                }
+    //        foreach (var docIdWithPath in docIdsWithPath)
+    //        {
+    //            var projectState = _solution.GetProjectState(docIdWithPath.ProjectId);
+    //            if (projectState == null)
+    //            {
+    //                FatalError.ReportAndCatch(new Exception("GetDocumentIdsWithFilePath returned a document in a project that does not exist."));
+    //                continue;
+    //            }
 
-                if (string.Equals(projectState.FilePath, projectPath.OriginalString))
-                {
-                    project = _solution.GetRequiredProject(projectState.Id);
-                    document = project.GetDocument(docIdWithPath);
-                    break;
-                }
-            }
+    //            if (string.Equals(projectState.FilePath, projectPath.OriginalString))
+    //            {
+    //                project = _solution.GetRequiredProject(projectState.Id);
+    //                document = project.GetDocument(docIdWithPath);
+    //                break;
+    //            }
+    //        }
 
-            if (document == null || project == null)
-            {
-                return;
-            }
+    //        if (document == null || project == null)
+    //        {
+    //            return;
+    //        }
 
-            _nodeToContextProjectMap.Add(inputNode, project);
-            _nodeToContextDocumentMap.Add(inputNode, document);
-        }
-    }
+    //        _nodeToContextProjectMap.Add(inputNode, project);
+    //        // _nodeToContextDocumentMap.Add(inputNode, document);
+    //    }
+    //}
 
-    private async Task PopulateMapsForSymbolInputNodeAsync(GraphNode inputNode, CancellationToken cancellationToken)
-    {
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            var projectId = (ProjectId)inputNode[RoslynGraphProperties.ContextProjectId];
-            if (projectId == null)
-            {
-                return;
-            }
+    //private async Task PopulateMapsForSymbolInputNodeAsync(GraphNode inputNode, CancellationToken cancellationToken)
+    //{
+    //    using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+    //    {
+    //        var projectId = (ProjectId)inputNode[RoslynGraphProperties.ContextProjectId];
+    //        if (projectId == null)
+    //        {
+    //            return;
+    //        }
 
-            var project = _solution.GetProject(projectId);
-            if (project == null)
-            {
-                return;
-            }
+    //        var project = _solution.GetProject(projectId);
+    //        if (project == null)
+    //        {
+    //            return;
+    //        }
 
-            _nodeToContextProjectMap.Add(inputNode, project);
+    //        // _nodeToContextProjectMap.Add(inputNode, project);
 
-            //var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            //var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
-            //var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-            //if (symbol != null)
-            //{
-            //    _nodeToSymbolMap.Add(inputNode, symbol);
-            //}
+    //        //var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+    //        //var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
+    //        //var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+    //        //if (symbol != null)
+    //        //{
+    //        //    _nodeToSymbolMap.Add(inputNode, symbol);
+    //        //}
 
-            var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
-            if (documentId != null)
-            {
-                var document = project.GetDocument(documentId);
-                if (document != null)
-                {
-                    _nodeToContextDocumentMap.Add(inputNode, document);
-                }
-            }
-        }
-    }
+    //        var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
+    //        if (documentId != null)
+    //        {
+    //            var document = project.GetDocument(documentId);
+    //            if (document != null)
+    //            {
+    //                // _nodeToContextDocumentMap.Add(inputNode, document);
+    //            }
+    //        }
+    //    }
+    //}
 
     //public Project GetContextProject(GraphNode node, CancellationToken cancellationToken)
     //{
@@ -702,8 +702,8 @@ internal sealed partial class GraphBuilder
 
             var node = Graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
 
-            _nodeToContextDocumentMap[node] = document;
-            _nodeToContextProjectMap[node] = document.Project;
+            // _nodeToContextDocumentMap[node] = document;
+            // _nodeToContextProjectMap[node] = document.Project;
 
             _createdNodes.Add(node);
 
