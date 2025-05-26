@@ -35,15 +35,14 @@ internal abstract class BaseItem :
 
     protected readonly string Name;
 
-    public BaseItem(string name, bool isExpandable = true)
+    public BaseItem(string name)
     {
         Name = name;
-        IsExpandable = isExpandable;
     }
 
     public IEnumerable<string> Children => [];
 
-    public bool IsExpandable { get; }
+    public bool IsExpandable => true;
 
     public FontStyle FontStyle => FontStyles.Normal;
     public FontWeight FontWeight => FontWeights.Normal;

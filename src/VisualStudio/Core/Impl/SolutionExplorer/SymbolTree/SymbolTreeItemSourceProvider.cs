@@ -247,10 +247,9 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
 internal sealed class SymbolTreeItem(
     string name,
-    bool isExpandable,
     Glyph glyph,
     SyntaxNode syntaxNode)
-    : BaseItem(name, isExpandable)
+    : BaseItem(name)
 {
     public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
 

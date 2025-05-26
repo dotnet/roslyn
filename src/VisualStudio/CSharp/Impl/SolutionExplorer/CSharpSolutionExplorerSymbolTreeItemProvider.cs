@@ -98,7 +98,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
         items.Add(new(
             enumDeclaration.Identifier.ValueText,
-            isExpandable: enumDeclaration.Members.Count > 0,
             glyph,
             enumDeclaration));
     }
@@ -115,7 +114,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
         items.Add(new(
             nameBuilder.ToString(),
-            isExpandable: extensionBlock.Members.Count > 0,
             Glyph.ClassPublic,
             extensionBlock));
     }
@@ -138,7 +136,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
         items.Add(new(
             nameBuilder.ToString(),
-            isExpandable: false,
             glyph,
             delegateDeclaration));
     }
@@ -166,7 +163,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(kind, accessibility);
         items.Add(new(
             nameBuilder.ToString(),
-            isExpandable: typeDeclaration.Members.Count > 0,
             glyph,
             typeDeclaration));
     }
