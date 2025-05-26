@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 /// </summary>
 internal interface IHierarchyItemToProjectIdMap : IWorkspaceService
 {
+    bool TryGetDocumentId(IVsHierarchyItem parent, string? targetFrameworkMoniker, out DocumentId documentId);
+
     /// <summary>
     /// Given an <see cref="IVsHierarchyItem"/> representing a project and an optional target framework moniker,
     /// returns the <see cref="ProjectId"/> of the equivalent Roslyn <see cref="Project"/>.
