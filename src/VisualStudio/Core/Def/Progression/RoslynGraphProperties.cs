@@ -37,25 +37,25 @@ internal static class RoslynGraphProperties
     /// </summary>
     public static readonly GraphProperty Label;
 
-    /// <summary>
-    /// A graph property to hold the formatted label we have generated for the node.
-    /// </summary>
-    public static readonly GraphProperty FormattedLabelWithoutContainingSymbol;
+    ///// <summary>
+    ///// A graph property to hold the formatted label we have generated for the node.
+    ///// </summary>
+    //public static readonly GraphProperty FormattedLabelWithoutContainingSymbol;
 
-    /// <summary>
-    /// A graph property to hold the formatted label that has the containing symbol name.
-    /// </summary>
-    public static readonly GraphProperty FormattedLabelWithContainingSymbol;
+    ///// <summary>
+    ///// A graph property to hold the formatted label that has the containing symbol name.
+    ///// </summary>
+    //public static readonly GraphProperty FormattedLabelWithContainingSymbol;
 
-    /// <summary>
-    /// A graph property to hold the description we have generated for the node.
-    /// </summary>
-    public static readonly GraphProperty Description;
+    ///// <summary>
+    ///// A graph property to hold the description we have generated for the node.
+    ///// </summary>
+    //public static readonly GraphProperty Description;
 
-    /// <summary>
-    /// A graph property to hold the description that has the containing symbol name.
-    /// </summary>
-    public static readonly GraphProperty DescriptionWithContainingSymbol;
+    ///// <summary>
+    ///// A graph property to hold the description that has the containing symbol name.
+    ///// </summary>
+    //public static readonly GraphProperty DescriptionWithContainingSymbol;
 
     //public static readonly GraphProperty SymbolKind;
     //public static readonly GraphProperty TypeKind;
@@ -118,24 +118,24 @@ internal static class RoslynGraphProperties
             dataType: typeof(string),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        FormattedLabelWithoutContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "FormattedLabelWithoutContainingSymbol",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //FormattedLabelWithoutContainingSymbol = Schema.Properties.AddNewProperty(
+        //    id: "FormattedLabelWithoutContainingSymbol",
+        //    dataType: typeof(string),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        FormattedLabelWithContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "FormattedLabelWithContainingSymbol",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //FormattedLabelWithContainingSymbol = Schema.Properties.AddNewProperty(
+        //    id: "FormattedLabelWithContainingSymbol",
+        //    dataType: typeof(string),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        Description = Schema.Properties.AddNewProperty(
-            id: "Description",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //Description = Schema.Properties.AddNewProperty(
+        //    id: "Description",
+        //    dataType: typeof(string),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        DescriptionWithContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "DescriptionWithContainingSymbol",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //DescriptionWithContainingSymbol = Schema.Properties.AddNewProperty(
+        //    id: "DescriptionWithContainingSymbol",
+        //    dataType: typeof(string),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
     }
 }

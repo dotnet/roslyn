@@ -375,8 +375,8 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             if (typeof(T) == typeof(IGraphNavigateToItem))
                 return new GraphNavigatorExtension(_threadingContext, _workspace, _streamingPresenter) as T;
 
-            if (typeof(T) == typeof(IGraphFormattedLabel))
-                return new GraphFormattedLabelExtension() as T;
+            //if (typeof(T) == typeof(IGraphFormattedLabel))
+            //    return new GraphFormattedLabelExtension() as T;
         }
 
         return null;
