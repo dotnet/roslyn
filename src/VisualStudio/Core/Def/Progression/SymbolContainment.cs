@@ -1,91 +1,91 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//// Licensed to the .NET Foundation under one or more agreements.
+//// The .NET Foundation licenses this file to you under the MIT license.
+//// See the LICENSE file in the project root for more information.
 
-#nullable disable
+//#nullable disable
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+//using System.Collections.Generic;
+//using System.Collections.Immutable;
+//using System.Threading;
+//using System.Threading.Tasks;
+//using Microsoft.CodeAnalysis;
+//using Microsoft.CodeAnalysis.PooledObjects;
+//using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
+//namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
-internal static class SymbolContainment
-{
-    public static async Task<IEnumerable<SyntaxNode>> GetContainedSyntaxNodesAsync(Document document, CancellationToken cancellationToken)
-    {
-        var progressionLanguageService = document.GetLanguageService<IProgressionLanguageService>();
-        if (progressionLanguageService == null)
-            return [];
+//internal static class SymbolContainment
+//{
+//    public static async Task<IEnumerable<SyntaxNode>> GetContainedSyntaxNodesAsync(Document document, CancellationToken cancellationToken)
+//    {
+//        var progressionLanguageService = document.GetLanguageService<IProgressionLanguageService>();
+//        if (progressionLanguageService == null)
+//            return [];
 
-        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        return progressionLanguageService.GetTopLevelNodesFromDocument(root, cancellationToken);
-    }
+//        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+//        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+//        return progressionLanguageService.GetTopLevelNodesFromDocument(root, cancellationToken);
+//    }
 
-    public static async Task<ImmutableArray<ISymbol>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
-    {
-        var syntaxNodes = await GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+//    public static async Task<ImmutableArray<ISymbol>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
+//    {
+//        var syntaxNodes = await GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
+//        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+//        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-        foreach (var syntaxNode in syntaxNodes)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+//        foreach (var syntaxNode in syntaxNodes)
+//        {
+//            cancellationToken.ThrowIfCancellationRequested();
 
-            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-            if (symbol != null &&
-                !string.IsNullOrEmpty(symbol.Name) &&
-                IsTopLevelSymbol(symbol))
-            {
-                symbols.Add(symbol);
-            }
-        }
+//            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+//            if (symbol != null &&
+//                !string.IsNullOrEmpty(symbol.Name) &&
+//                IsTopLevelSymbol(symbol))
+//            {
+//                symbols.Add(symbol);
+//            }
+//        }
 
-        return symbols.ToImmutableAndClear();
-    }
+//        return symbols.ToImmutableAndClear();
+//    }
 
-    private static bool IsTopLevelSymbol(ISymbol symbol)
-    {
-        switch (symbol.Kind)
-        {
-            case SymbolKind.NamedType:
-            case SymbolKind.Method:
-            case SymbolKind.Field:
-            case SymbolKind.Property:
-            case SymbolKind.Event:
-                return true;
+//    private static bool IsTopLevelSymbol(ISymbol symbol)
+//    {
+//        switch (symbol.Kind)
+//        {
+//            case SymbolKind.NamedType:
+//            case SymbolKind.Method:
+//            case SymbolKind.Field:
+//            case SymbolKind.Property:
+//            case SymbolKind.Event:
+//                return true;
 
-            default:
-                return false;
-        }
-    }
+//            default:
+//                return false;
+//        }
+//    }
 
-    public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
-    {
-        if (symbol is INamedTypeSymbol namedType)
-        {
-            foreach (var member in namedType.GetMembers())
-            {
-                if (member.IsImplicitlyDeclared)
-                {
-                    continue;
-                }
+//    public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
+//    {
+//        if (symbol is INamedTypeSymbol namedType)
+//        {
+//            foreach (var member in namedType.GetMembers())
+//            {
+//                if (member.IsImplicitlyDeclared)
+//                {
+//                    continue;
+//                }
 
-                if (member is IMethodSymbol method && method.AssociatedSymbol != null)
-                {
-                    continue;
-                }
+//                if (member is IMethodSymbol method && method.AssociatedSymbol != null)
+//                {
+//                    continue;
+//                }
 
-                if (!string.IsNullOrEmpty(member.Name))
-                {
-                    yield return member;
-                }
-            }
-        }
-    }
-}
+//                if (!string.IsNullOrEmpty(member.Name))
+//                {
+//                    yield return member;
+//                }
+//            }
+//        }
+//    }
+//}

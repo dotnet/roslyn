@@ -73,69 +73,69 @@ internal sealed class RoslynGraphProvider : IGraphProvider
     {
         using var _ = ArrayBuilder<IGraphQuery>.GetInstance(out var graphQueries);
 
-        if (context.Direction == GraphContextDirection.Self && context.RequestedProperties.Contains(DgmlNodeProperties.ContainsChildren))
-        {
-            graphQueries.Add(new ContainsChildrenGraphQuery());
-        }
+        //if (context.Direction == GraphContextDirection.Self && context.RequestedProperties.Contains(DgmlNodeProperties.ContainsChildren))
+        //{
+        //    graphQueries.Add(new ContainsChildrenGraphQuery());
+        //}
 
-        if (context.Direction == GraphContextDirection.Contains ||
-            (context.Direction == GraphContextDirection.Target && context.LinkCategories.Contains(CodeLinkCategories.Contains)))
-        {
-            graphQueries.Add(new ContainsGraphQuery());
-        }
+        //if (context.Direction == GraphContextDirection.Contains ||
+        //    (context.Direction == GraphContextDirection.Target && context.LinkCategories.Contains(CodeLinkCategories.Contains)))
+        //{
+        //    graphQueries.Add(new ContainsGraphQuery());
+        //}
 
-        if (context.LinkCategories.Contains(CodeLinkCategories.InheritsFrom))
-        {
-            if (context.Direction == GraphContextDirection.Target)
-            {
-                graphQueries.Add(new InheritsGraphQuery());
-            }
-            else if (context.Direction == GraphContextDirection.Source)
-            {
-                graphQueries.Add(new InheritedByGraphQuery());
-            }
-        }
+        //if (context.LinkCategories.Contains(CodeLinkCategories.InheritsFrom))
+        //{
+        //    if (context.Direction == GraphContextDirection.Target)
+        //    {
+        //        graphQueries.Add(new InheritsGraphQuery());
+        //    }
+        //    else if (context.Direction == GraphContextDirection.Source)
+        //    {
+        //        graphQueries.Add(new InheritedByGraphQuery());
+        //    }
+        //}
 
-        if (context.LinkCategories.Contains(CodeLinkCategories.SourceReferences))
-        {
-            graphQueries.Add(new IsUsedByGraphQuery());
-        }
+        //if (context.LinkCategories.Contains(CodeLinkCategories.SourceReferences))
+        //{
+        //    graphQueries.Add(new IsUsedByGraphQuery());
+        //}
 
-        if (context.LinkCategories.Contains(CodeLinkCategories.Calls))
-        {
-            if (context.Direction == GraphContextDirection.Target)
-            {
-                graphQueries.Add(new CallsGraphQuery());
-            }
-            else if (context.Direction == GraphContextDirection.Source)
-            {
-                graphQueries.Add(new IsCalledByGraphQuery());
-            }
-        }
+        //if (context.LinkCategories.Contains(CodeLinkCategories.Calls))
+        //{
+        //    if (context.Direction == GraphContextDirection.Target)
+        //    {
+        //        graphQueries.Add(new CallsGraphQuery());
+        //    }
+        //    else if (context.Direction == GraphContextDirection.Source)
+        //    {
+        //        graphQueries.Add(new IsCalledByGraphQuery());
+        //    }
+        //}
 
-        if (context.LinkCategories.Contains(CodeLinkCategories.Implements))
-        {
-            if (context.Direction == GraphContextDirection.Target)
-            {
-                graphQueries.Add(new ImplementsGraphQuery());
-            }
-            else if (context.Direction == GraphContextDirection.Source)
-            {
-                graphQueries.Add(new ImplementedByGraphQuery());
-            }
-        }
+        //if (context.LinkCategories.Contains(CodeLinkCategories.Implements))
+        //{
+        //    if (context.Direction == GraphContextDirection.Target)
+        //    {
+        //        graphQueries.Add(new ImplementsGraphQuery());
+        //    }
+        //    else if (context.Direction == GraphContextDirection.Source)
+        //    {
+        //        graphQueries.Add(new ImplementedByGraphQuery());
+        //    }
+        //}
 
-        if (context.LinkCategories.Contains(RoslynGraphCategories.Overrides))
-        {
-            if (context.Direction == GraphContextDirection.Source)
-            {
-                graphQueries.Add(new OverridesGraphQuery());
-            }
-            else if (context.Direction == GraphContextDirection.Target)
-            {
-                graphQueries.Add(new OverriddenByGraphQuery());
-            }
-        }
+        //if (context.LinkCategories.Contains(RoslynGraphCategories.Overrides))
+        //{
+        //    if (context.Direction == GraphContextDirection.Source)
+        //    {
+        //        graphQueries.Add(new OverridesGraphQuery());
+        //    }
+        //    else if (context.Direction == GraphContextDirection.Target)
+        //    {
+        //        graphQueries.Add(new OverriddenByGraphQuery());
+        //    }
+        //}
 
         if (context.Direction == GraphContextDirection.Custom)
         {

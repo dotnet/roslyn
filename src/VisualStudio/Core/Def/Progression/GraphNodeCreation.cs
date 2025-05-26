@@ -57,23 +57,23 @@ public static class GraphNodeCreation
         }
     }
 
-    public static async Task<GraphNode> CreateNodeAsync(this Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        if (graph == null)
-        {
-            throw new ArgumentNullException(nameof(graph));
-        }
+    //public static async Task<GraphNode> CreateNodeAsync(this Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    if (graph == null)
+    //    {
+    //        throw new ArgumentNullException(nameof(graph));
+    //    }
 
-        if (symbol == null)
-        {
-            throw new ArgumentNullException(nameof(symbol));
-        }
+    //    if (symbol == null)
+    //    {
+    //        throw new ArgumentNullException(nameof(symbol));
+    //    }
 
-        if (solution == null)
-        {
-            throw new ArgumentNullException(nameof(solution));
-        }
+    //    if (solution == null)
+    //    {
+    //        throw new ArgumentNullException(nameof(solution));
+    //    }
 
-        return await GraphBuilder.GetOrCreateNodeAsync(graph, symbol, solution, cancellationToken).ConfigureAwait(false);
-    }
+    //    return await GraphBuilder.GetOrCreateNodeAsync(graph, symbol, solution, cancellationToken).ConfigureAwait(false);
+    //}
 }

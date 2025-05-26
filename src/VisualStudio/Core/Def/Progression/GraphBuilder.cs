@@ -181,131 +181,131 @@ internal sealed partial class GraphBuilder
         }
     }
 
-    public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode, CancellationToken cancellationToken)
-    {
-        // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
-        // never change for the same input.
-        return AddNodeAsync(
-            symbol,
-            GetContextProject(relatedNode, cancellationToken),
-            GetContextDocument(relatedNode, cancellationToken),
-            cancellationToken);
-    }
+    //public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode, CancellationToken cancellationToken)
+    //{
+    //    // The lack of a lock here is acceptable, since each of the functions lock, and GetContextProject/GetContextDocument
+    //    // never change for the same input.
+    //    return AddNodeAsync(
+    //        symbol,
+    //        GetContextProject(relatedNode, cancellationToken),
+    //        GetContextDocument(relatedNode, cancellationToken),
+    //        cancellationToken);
+    //}
 
-    public async Task<GraphNode> AddNodeAsync(
-        ISymbol symbol, Project contextProject, Document contextDocument, CancellationToken cancellationToken)
-    {
-        // Figure out what the location for this node should be. We'll arbitrarily pick the
-        // first one, unless we have a contextDocument to restrict it
-        var preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
+    //public async Task<GraphNode> AddNodeAsync(
+    //    ISymbol symbol, Project contextProject, Document contextDocument, CancellationToken cancellationToken)
+    //{
+    //    // Figure out what the location for this node should be. We'll arbitrarily pick the
+    //    // first one, unless we have a contextDocument to restrict it
+    //    var preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree != null);
 
-        if (contextDocument != null)
-        {
-            var syntaxTree = await contextDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+    //    if (contextDocument != null)
+    //    {
+    //        var syntaxTree = await contextDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            // If we have one in that tree, use it
-            preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree == syntaxTree) ?? preferredLocation;
-        }
+    //        // If we have one in that tree, use it
+    //        preferredLocation = symbol.Locations.FirstOrDefault(l => l.SourceTree == syntaxTree) ?? preferredLocation;
+    //    }
 
-        // We may need to look up source code within this solution
-        if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
-        {
-            var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
-            if (newSymbol != null)
-                preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
-        }
+    //    // We may need to look up source code within this solution
+    //    if (preferredLocation == null && symbol.Locations.Any(static loc => loc.IsInMetadata))
+    //    {
+    //        var newSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol, contextProject.Solution, cancellationToken).ConfigureAwait(false);
+    //        if (newSymbol != null)
+    //            preferredLocation = newSymbol.Locations.Where(loc => loc.IsInSource).FirstOrDefault();
+    //    }
 
-        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-        {
-            var node = await GetOrCreateNodeAsync(Graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
+    //    using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+    //    {
+    //        var node = await GetOrCreateNodeAsync(Graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
 
-            node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey(cancellationToken);
-            node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
-            node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
-            node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;
-            node[RoslynGraphProperties.SymbolModifiers] = symbol.GetSymbolModifiers();
-            node[RoslynGraphProperties.SymbolKind] = symbol.Kind;
+    //        node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey(cancellationToken);
+    //        node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
+    //        node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
+    //        node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;
+    //        node[RoslynGraphProperties.SymbolModifiers] = symbol.GetSymbolModifiers();
+    //        node[RoslynGraphProperties.SymbolKind] = symbol.Kind;
 
-            if (contextDocument != null)
-                node[RoslynGraphProperties.ContextDocumentId] = contextDocument.Id;
+    //        if (contextDocument != null)
+    //            node[RoslynGraphProperties.ContextDocumentId] = contextDocument.Id;
 
-            if (preferredLocation?.SourceTree != null)
-            {
-                var lineSpan = preferredLocation.GetLineSpan();
-                var sourceLocation = TryCreateSourceLocation(
-                    preferredLocation.SourceTree.FilePath,
-                    lineSpan.Span);
-                if (sourceLocation != null)
-                    node[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
-            }
+    //        if (preferredLocation?.SourceTree != null)
+    //        {
+    //            var lineSpan = preferredLocation.GetLineSpan();
+    //            var sourceLocation = TryCreateSourceLocation(
+    //                preferredLocation.SourceTree.FilePath,
+    //                lineSpan.Span);
+    //            if (sourceLocation != null)
+    //                node[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
+    //        }
 
-            // Keep track of this as a node we have added. Note this is a HashSet, so if the node was already added
-            // we won't double-count.
-            _createdNodes.Add(node);
+    //        // Keep track of this as a node we have added. Note this is a HashSet, so if the node was already added
+    //        // we won't double-count.
+    //        _createdNodes.Add(node);
 
-            _nodeToSymbolMap[node] = symbol;
-            _nodeToContextProjectMap[node] = contextProject;
+    //        _nodeToSymbolMap[node] = symbol;
+    //        _nodeToContextProjectMap[node] = contextProject;
 
-            if (contextDocument != null)
-                _nodeToContextDocumentMap[node] = contextDocument;
+    //        if (contextDocument != null)
+    //            _nodeToContextDocumentMap[node] = contextDocument;
 
-            return node;
-        }
-    }
+    //        return node;
+    //    }
+    //}
 
-    internal static async Task<GraphNode> GetOrCreateNodeAsync(Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        GraphNode node;
+    //internal static async Task<GraphNode> GetOrCreateNodeAsync(Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    GraphNode node;
 
-        switch (symbol.Kind)
-        {
-            case SymbolKind.Assembly:
-                node = await GetOrCreateNodeAssemblyAsync(graph, (IAssemblySymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //    switch (symbol.Kind)
+    //    {
+    //        case SymbolKind.Assembly:
+    //            node = await GetOrCreateNodeAssemblyAsync(graph, (IAssemblySymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Namespace:
-                node = await GetOrCreateNodeForNamespaceAsync(graph, (INamespaceSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Namespace:
+    //            node = await GetOrCreateNodeForNamespaceAsync(graph, (INamespaceSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.NamedType:
-            case SymbolKind.ErrorType:
-                node = await GetOrCreateNodeForNamedTypeAsync(graph, (INamedTypeSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.NamedType:
+    //        case SymbolKind.ErrorType:
+    //            node = await GetOrCreateNodeForNamedTypeAsync(graph, (INamedTypeSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Method:
-                node = await GetOrCreateNodeForMethodAsync(graph, (IMethodSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Method:
+    //            node = await GetOrCreateNodeForMethodAsync(graph, (IMethodSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Field:
-                node = await GetOrCreateNodeForFieldAsync(graph, (IFieldSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Field:
+    //            node = await GetOrCreateNodeForFieldAsync(graph, (IFieldSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Property:
-                node = await GetOrCreateNodeForPropertyAsync(graph, (IPropertySymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Property:
+    //            node = await GetOrCreateNodeForPropertyAsync(graph, (IPropertySymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Event:
-                node = await GetOrCreateNodeForEventAsync(graph, (IEventSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Event:
+    //            node = await GetOrCreateNodeForEventAsync(graph, (IEventSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Parameter:
-                node = await GetOrCreateNodeForParameterAsync(graph, (IParameterSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Parameter:
+    //            node = await GetOrCreateNodeForParameterAsync(graph, (IParameterSymbol)symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            case SymbolKind.Local:
-            case SymbolKind.RangeVariable:
-                node = await GetOrCreateNodeForLocalVariableAsync(graph, symbol, solution, cancellationToken).ConfigureAwait(false);
-                break;
+    //        case SymbolKind.Local:
+    //        case SymbolKind.RangeVariable:
+    //            node = await GetOrCreateNodeForLocalVariableAsync(graph, symbol, solution, cancellationToken).ConfigureAwait(false);
+    //            break;
 
-            default:
-                throw new ArgumentException("symbol");
-        }
+    //        default:
+    //            throw new ArgumentException("symbol");
+    //    }
 
-        UpdatePropertiesForNode(symbol, node);
-        UpdateLabelsForNode(symbol, solution, node);
+    //    UpdatePropertiesForNode(symbol, node);
+    //    UpdateLabelsForNode(symbol, solution, node);
 
-        return node;
-    }
+    //    return node;
+    //}
 
     private static async Task<GraphNode> GetOrCreateNodeForParameterAsync(Graph graph, IParameterSymbol parameterSymbol, Solution solution, CancellationToken cancellationToken)
     {
@@ -338,96 +338,96 @@ internal sealed partial class GraphBuilder
         return node;
     }
 
-    private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
-    {
-        var progressionLanguageService = solution.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
+    //private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
+    //{
+    //    var progressionLanguageService = solution.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
 
-        // A call from unittest may not have a proper language service.
-        if (progressionLanguageService != null)
-        {
-            node[RoslynGraphProperties.Description] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: false);
-            node[RoslynGraphProperties.DescriptionWithContainingSymbol] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: true);
+    //    // A call from unittest may not have a proper language service.
+    //    if (progressionLanguageService != null)
+    //    {
+    //        node[RoslynGraphProperties.Description] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: false);
+    //        node[RoslynGraphProperties.DescriptionWithContainingSymbol] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: true);
 
-            node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: false);
-            node[RoslynGraphProperties.FormattedLabelWithContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: true);
-        }
+    //        node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: false);
+    //        node[RoslynGraphProperties.FormattedLabelWithContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: true);
+    //    }
 
-        switch (symbol.Kind)
-        {
-            case SymbolKind.NamedType:
-                var typeSymbol = (INamedTypeSymbol)symbol;
-                if (typeSymbol.IsGenericType)
-                {
-                    // Symbol.name does not contain type params for generic types, so we populate them here for some requiring cases like VS properties panel.
-                    node.Label = (string)node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol];
+    //    switch (symbol.Kind)
+    //    {
+    //        case SymbolKind.NamedType:
+    //            var typeSymbol = (INamedTypeSymbol)symbol;
+    //            if (typeSymbol.IsGenericType)
+    //            {
+    //                // Symbol.name does not contain type params for generic types, so we populate them here for some requiring cases like VS properties panel.
+    //                node.Label = (string)node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol];
 
-                    // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
-                    // Therefore, populate a common label property using only name and its type parameters.
-                    // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
-                    // This property will be used for drag-and-drop case.
-                    var commonLabel = new System.Text.StringBuilder();
-                    commonLabel.Append(typeSymbol.Name);
-                    commonLabel.Append('<');
-                    commonLabel.Append(string.Join(", ", typeSymbol.TypeParameters.Select(t => t.Name)));
-                    commonLabel.Append('>');
-                    node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = commonLabel.ToString();
+    //                // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
+    //                // Therefore, populate a common label property using only name and its type parameters.
+    //                // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
+    //                // This property will be used for drag-and-drop case.
+    //                var commonLabel = new System.Text.StringBuilder();
+    //                commonLabel.Append(typeSymbol.Name);
+    //                commonLabel.Append('<');
+    //                commonLabel.Append(string.Join(", ", typeSymbol.TypeParameters.Select(t => t.Name)));
+    //                commonLabel.Append('>');
+    //                node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = commonLabel.ToString();
 
-                    return;
-                }
-                else
-                {
-                    node.Label = symbol.Name;
-                }
+    //                return;
+    //            }
+    //            else
+    //            {
+    //                node.Label = symbol.Name;
+    //            }
 
-                break;
+    //            break;
 
-            case SymbolKind.Method:
-                var methodSymbol = (IMethodSymbol)symbol;
-                if (methodSymbol.MethodKind == MethodKind.Constructor)
-                {
-                    node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetConstructorLabel(methodSymbol.ContainingSymbol.Name);
-                }
-                else if (methodSymbol.MethodKind == MethodKind.StaticConstructor)
-                {
-                    node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetStaticConstructorLabel(methodSymbol.ContainingSymbol.Name);
-                }
-                else if (methodSymbol.MethodKind == MethodKind.Destructor)
-                {
-                    node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetFinalizerLabel(methodSymbol.ContainingSymbol.Name);
-                }
-                else
-                {
-                    node.Label = methodSymbol.Name;
-                }
+    //        case SymbolKind.Method:
+    //            var methodSymbol = (IMethodSymbol)symbol;
+    //            if (methodSymbol.MethodKind == MethodKind.Constructor)
+    //            {
+    //                node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetConstructorLabel(methodSymbol.ContainingSymbol.Name);
+    //            }
+    //            else if (methodSymbol.MethodKind == MethodKind.StaticConstructor)
+    //            {
+    //                node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetStaticConstructorLabel(methodSymbol.ContainingSymbol.Name);
+    //            }
+    //            else if (methodSymbol.MethodKind == MethodKind.Destructor)
+    //            {
+    //                node.Label = CodeQualifiedIdentifierBuilder.SpecialNames.GetFinalizerLabel(methodSymbol.ContainingSymbol.Name);
+    //            }
+    //            else
+    //            {
+    //                node.Label = methodSymbol.Name;
+    //            }
 
-                break;
+    //            break;
 
-            case SymbolKind.Property:
-                node.Label = symbol.MetadataName;
+    //        case SymbolKind.Property:
+    //            node.Label = symbol.MetadataName;
 
-                var propertySymbol = (IPropertySymbol)symbol;
-                if (propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
-                {
-                    // For C# indexer, we will strip off the "[]"
-                    node.Label = symbol.Name.Replace("[]", string.Empty);
-                }
+    //            var propertySymbol = (IPropertySymbol)symbol;
+    //            if (propertySymbol.IsIndexer && LanguageNames.CSharp == propertySymbol.Language)
+    //            {
+    //                // For C# indexer, we will strip off the "[]"
+    //                node.Label = symbol.Name.Replace("[]", string.Empty);
+    //            }
 
-                break;
+    //            break;
 
-            case SymbolKind.Namespace:
-                // Use a name with its parents (e.g., A.B.C)
-                node.Label = symbol.ToDisplayString();
-                break;
+    //        case SymbolKind.Namespace:
+    //            // Use a name with its parents (e.g., A.B.C)
+    //            node.Label = symbol.ToDisplayString();
+    //            break;
 
-            default:
-                node.Label = symbol.Name;
-                break;
-        }
+    //        default:
+    //            node.Label = symbol.Name;
+    //            break;
+    //    }
 
-        // When a node is dragged and dropped from SE to CodeMap, its label could be reset during copying to clipboard.
-        // So, we try to keep its label that we computed above in a common label property, which CodeMap can access later.
-        node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = node.Label;
-    }
+    //    // When a node is dragged and dropped from SE to CodeMap, its label could be reset during copying to clipboard.
+    //    // So, we try to keep its label that we computed above in a common label property, which CodeMap can access later.
+    //    node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = node.Label;
+    //}
 
     private static void UpdatePropertiesForNode(ISymbol symbol, GraphNode node)
     {

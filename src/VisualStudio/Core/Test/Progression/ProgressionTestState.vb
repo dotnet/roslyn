@@ -32,19 +32,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             Return graphBuilder.Graph
         End Function
 
-        Public Async Function GetGraphWithMarkedSymbolNodeAsync(Optional symbolTransform As Func(Of ISymbol, ISymbol) = Nothing) As Task(Of Graph)
-            Dim hostDocument As TestHostDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
-            Dim document = Workspace.CurrentSolution.GetDocument(hostDocument.Id)
-            Dim symbol = Await GetMarkedSymbolAsync()
+        'Public Async Function GetGraphWithMarkedSymbolNodeAsync(Optional symbolTransform As Func(Of ISymbol, ISymbol) = Nothing) As Task(Of Graph)
+        '    Dim hostDocument As TestHostDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+        '    Dim document = Workspace.CurrentSolution.GetDocument(hostDocument.Id)
+        '    Dim symbol = Await GetMarkedSymbolAsync()
 
-            If symbolTransform IsNot Nothing Then
-                symbol = symbolTransform(symbol)
-            End If
+        '    If symbolTransform IsNot Nothing Then
+        '        symbol = symbolTransform(symbol)
+        '    End If
 
-            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution)
-            Await graphBuilder.AddNodeAsync(symbol, document.Project, document, CancellationToken.None)
-            Return graphBuilder.Graph
-        End Function
+        '    Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution)
+        '    Await graphBuilder.AddNodeAsync(symbol, document.Project, document, CancellationToken.None)
+        '    Return graphBuilder.Graph
+        'End Function
 
         Public Async Function GetGraphContextAfterQuery(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
@@ -66,13 +66,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             Workspace.Dispose()
         End Sub
 
-        Public Async Function AssertMarkedSymbolLabelIsAsync(graphCommandId As String, label As String, description As String) As Task
-            Dim graphNode = (Await GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
-            Dim formattedLabelExtension As New GraphFormattedLabelExtension()
+        'Public Async Function AssertMarkedSymbolLabelIsAsync(graphCommandId As String, label As String, description As String) As Task
+        '    Dim graphNode = (Await GetGraphWithMarkedSymbolNodeAsync()).Nodes.Single()
+        '    Dim formattedLabelExtension As New GraphFormattedLabelExtension()
 
-            Assert.Equal(label, formattedLabelExtension.Label(graphNode, graphCommandId))
-            Assert.Equal(description, formattedLabelExtension.Description(graphNode, graphCommandId))
-        End Function
+        '    Assert.Equal(label, formattedLabelExtension.Label(graphNode, graphCommandId))
+        '    Assert.Equal(description, formattedLabelExtension.Description(graphNode, graphCommandId))
+        'End Function
 
         Public Function GetMarkedSymbolAsync() As Task(Of ISymbol)
             Dim hostDocument As TestHostDocument = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
