@@ -4,14 +4,22 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -30,7 +38,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
     private readonly ConcurrentSet<WeakReference<SymbolTreeItemCollectionSource>> _weakCollectionSources = [];
 
-    private readonly AsyncBatchingWorkQueue _updateSourcesQueue;
+    private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
 
     // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
 
@@ -48,15 +56,55 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
         _threadingContext = threadingContext;
         _workspace = workspace;
 
-        _updateSourcesQueue = new AsyncBatchingWorkQueue(
+        _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
             DelayTimeSpan.Medium,
             UpdateCollectionSourcesAsync,
+            EqualityComparer<DocumentId>.Default,
             listenerProvider.GetListener(FeatureAttribute.SolutionExplorer),
             _threadingContext.DisposalToken);
 
         _workspace.RegisterWorkspaceChangedHandler(
-            e => _updateSourcesQueue.AddWork(cancelExistingWork: true),
+            e =>
+            {
+                if (e is { Kind: WorkspaceChangeKind.DocumentChanged, DocumentId: not null })
+                    _updateSourcesQueue.AddWork(e.DocumentId);
+            },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+    }
+
+    private async ValueTask UpdateCollectionSourcesAsync(
+        ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
+    {
+        using var _1 = Microsoft.CodeAnalysis.PooledObjects.PooledHashSet<DocumentId>.GetInstance(out var documentIdSet);
+        using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<SymbolTreeItemCollectionSource>.GetInstance(out var sources);
+
+        documentIdSet.AddRange(documentIds);
+
+        foreach (var weakSource in _weakCollectionSources)
+        {
+            // If solution explorer has released this collection source, we can drop it as well.
+            if (!weakSource.TryGetTarget(out var source))
+            {
+                _weakCollectionSources.Remove(weakSource);
+                continue;
+            }
+
+            sources.Add(source);
+        }
+
+        await RoslynParallel.ForEachAsync(
+            sources,
+            cancellationToken,
+            async (source, cancellationToken) =>
+            {
+                try
+                {
+                    await source.UpdateIfAffectedAsync(documentIdSet, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
+                {
+                }
+            }).ConfigureAwait(false);
     }
 
     //private IHierarchyItemToProjectIdMap? TryGetProjectMap()
@@ -105,6 +153,8 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
         IVsHierarchyItem hierarchyItem)
         : IAttachedCollectionSource
     {
+        private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems;
+
         public object SourceItem => hierarchyItem;
 
         public bool HasItems => true;
