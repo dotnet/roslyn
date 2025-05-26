@@ -130,6 +130,9 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         AppendTypeParameterList(nameBuilder, delegateDeclaration.TypeParameterList);
         AppendParameterList(nameBuilder, delegateDeclaration.ParameterList);
 
+        nameBuilder.Append(" : ");
+        AppendType(delegateDeclaration.ReturnType, nameBuilder);
+
         var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
 
@@ -216,29 +219,29 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         AppendCommaSeparatedList(
             builder, "(", ")", parameterList,
             static parameterList => parameterList.Parameters,
-            static (parameter, builder) => BuildDisplayText(parameter.Type, builder));
+            static (parameter, builder) => AppendType(parameter.Type, builder));
     }
 
-    private static void BuildDisplayText(TypeSyntax? type, StringBuilder builder)
+    private static void AppendType(TypeSyntax? type, StringBuilder builder)
     {
         if (type is null)
             return;
 
         if (type is ArrayTypeSyntax arrayType)
         {
-            BuildDisplayText(arrayType.ElementType, builder);
+            AppendType(arrayType.ElementType, builder);
             AppendCommaSeparatedList(
                 builder, "[", "]", arrayType.RankSpecifiers,
                 static (_, _) => { }, ",");
         }
         else if (type is PointerTypeSyntax pointerType)
         {
-            BuildDisplayText(pointerType.ElementType, builder);
+            AppendType(pointerType.ElementType, builder);
             builder.Append('*');
         }
         else if (type is NullableTypeSyntax nullableType)
         {
-            BuildDisplayText(nullableType.ElementType, builder);
+            AppendType(nullableType.ElementType, builder);
             builder.Append('?');
         }
         else if (type is TupleTypeSyntax tupleType)
@@ -249,12 +252,12 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         else if (type is RefTypeSyntax refType)
         {
             builder.Append("ref ");
-            BuildDisplayText(refType.Type, builder);
+            AppendType(refType.Type, builder);
         }
         else if (type is ScopedTypeSyntax scopedType)
         {
             builder.Append("scoped ");
-            BuildDisplayText(scopedType.Type, builder);
+            AppendType(scopedType.Type, builder);
         }
         else if (type is PredefinedTypeSyntax predefinedType)
         {
@@ -265,7 +268,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             builder.Append("delegate*");
             AppendCommaSeparatedList(
                 builder, "(", ")", functionPointerType.ParameterList.Parameters,
-                static (parameter, builder) => BuildDisplayText(parameter.Type, builder));
+                static (parameter, builder) => AppendType(parameter.Type, builder));
         }
         else if (type is OmittedTypeArgumentSyntax)
         {
@@ -273,11 +276,11 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
         else if (type is QualifiedNameSyntax qualifiedName)
         {
-            BuildDisplayText(qualifiedName.Right, builder);
+            AppendType(qualifiedName.Right, builder);
         }
         else if (type is AliasQualifiedNameSyntax aliasQualifiedName)
         {
-            BuildDisplayText(aliasQualifiedName.Name, builder);
+            AppendType(aliasQualifiedName.Name, builder);
         }
         else if (type is IdentifierNameSyntax identifierName)
         {
@@ -287,7 +290,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         {
             builder.Append(genericName.Identifier.ValueText);
             AppendCommaSeparatedList(
-                builder, "<", ">", genericName.TypeArgumentList.Arguments, BuildDisplayText);
+                builder, "<", ">", genericName.TypeArgumentList.Arguments, AppendType);
         }
         else
         {
@@ -297,7 +300,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private static void BuildDisplayText(TupleElementSyntax tupleElement, StringBuilder builder)
     {
-        BuildDisplayText(tupleElement.Type, builder);
+        AppendType(tupleElement.Type, builder);
         if (tupleElement.Identifier != default)
         {
             builder.Append(' ');
