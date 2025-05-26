@@ -96,7 +96,11 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration, enumDeclaration.Modifiers));
 
-        items.Add(new(enumDeclaration.Identifier.ValueText, glyph, enumDeclaration));
+        items.Add(new(
+            enumDeclaration.Identifier.ValueText,
+            isExpandable: enumDeclaration.Members.Count > 0,
+            glyph,
+            enumDeclaration));
     }
 
     private static void AddExtensionBlock(
@@ -109,7 +113,11 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         AppendTypeParameterList(nameBuilder, extensionBlock.TypeParameterList);
         AppendParameterList(nameBuilder, extensionBlock.ParameterList);
 
-        items.Add(new(nameBuilder.ToString(), Glyph.ClassPublic, extensionBlock));
+        items.Add(new(
+            nameBuilder.ToString(),
+            isExpandable: extensionBlock.Members.Count > 0,
+            Glyph.ClassPublic,
+            extensionBlock));
     }
 
     private static void AddDelegateDeclaration(
@@ -125,7 +133,11 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
 
-        items.Add(new(nameBuilder.ToString(), glyph, delegateDeclaration));
+        items.Add(new(
+            nameBuilder.ToString(),
+            isExpandable: false,
+            glyph,
+            delegateDeclaration));
     }
 
     private static void AddTypeDeclaration(
@@ -149,7 +161,11 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         };
 
         var glyph = GlyphExtensions.GetGlyph(kind, accessibility);
-        items.Add(new(nameBuilder.ToString(), glyph, typeDeclaration));
+        items.Add(new(
+            nameBuilder.ToString(),
+            isExpandable: typeDeclaration.Members.Count > 0,
+            glyph,
+            typeDeclaration));
     }
 
     private static void AppendCommaSeparatedList<TArgumentList, TArgument>(
