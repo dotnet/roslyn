@@ -33,35 +33,35 @@ internal static class GraphNodeIdCreation
                 GraphNodeId.GetPartial(CodeGraphNodeIdName.File, new Uri(document.FilePath, UriKind.RelativeOrAbsolute)));
     }
 
-    internal static async Task<GraphNodeId> GetIdForNamespaceAsync(INamespaceSymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var builder = new CodeQualifiedIdentifierBuilder();
+    //internal static async Task<GraphNodeId> GetIdForNamespaceAsync(INamespaceSymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var builder = new CodeQualifiedIdentifierBuilder();
 
-        var assembly = await GetAssemblyFullPathAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-        if (assembly != null)
-        {
-            builder.Assembly = assembly;
-        }
+    //    var assembly = await GetAssemblyFullPathAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+    //    if (assembly != null)
+    //    {
+    //        builder.Assembly = assembly;
+    //    }
 
-        builder.Namespace = symbol.ToDisplayString();
+    //    builder.Namespace = symbol.ToDisplayString();
 
-        return builder.ToQualifiedIdentifier();
-    }
+    //    return builder.ToQualifiedIdentifier();
+    //}
 
-    internal static async Task<GraphNodeId> GetIdForTypeAsync(ITypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var nodes = await GetPartialsForNamespaceAndTypeAsync(symbol, true, solution, cancellationToken).ConfigureAwait(false);
-        var partials = nodes.ToArray();
+    //internal static async Task<GraphNodeId> GetIdForTypeAsync(ITypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var nodes = await GetPartialsForNamespaceAndTypeAsync(symbol, true, solution, cancellationToken).ConfigureAwait(false);
+    //    var partials = nodes.ToArray();
 
-        if (partials.Length == 1)
-        {
-            return partials[0];
-        }
-        else
-        {
-            return GraphNodeId.GetNested(partials);
-        }
-    }
+    //    if (partials.Length == 1)
+    //    {
+    //        return partials[0];
+    //    }
+    //    else
+    //    {
+    //        return GraphNodeId.GetNested(partials);
+    //    }
+    //}
 
     private static async Task<IEnumerable<GraphNodeId>> GetPartialsForNamespaceAndTypeAsync(ITypeSymbol symbol, bool includeNamespace, Solution solution, CancellationToken cancellationToken, bool isInGenericArguments = false)
     {
@@ -285,76 +285,76 @@ internal static class GraphNodeIdCreation
         return symbol;
     }
 
-    public static async Task<GraphNodeId> GetIdForMemberAsync(ISymbol member, Solution solution, CancellationToken cancellationToken)
-    {
-        var partials = new List<GraphNodeId>();
+    //public static async Task<GraphNodeId> GetIdForMemberAsync(ISymbol member, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var partials = new List<GraphNodeId>();
 
-        partials.AddRange(await GetPartialsForNamespaceAndTypeAsync(member.ContainingType, true, solution, cancellationToken).ConfigureAwait(false));
+    //    partials.AddRange(await GetPartialsForNamespaceAndTypeAsync(member.ContainingType, true, solution, cancellationToken).ConfigureAwait(false));
 
-        var parameters = member.GetParameters();
-        if (parameters.Any() || member.GetArity() > 0)
-        {
-            var memberPartials = new List<GraphNodeId>
-            {
-                GraphNodeId.GetPartial(CodeQualifiedName.Name, member.MetadataName)
-            };
+    //    var parameters = member.GetParameters();
+    //    if (parameters.Any() || member.GetArity() > 0)
+    //    {
+    //        var memberPartials = new List<GraphNodeId>
+    //        {
+    //            GraphNodeId.GetPartial(CodeQualifiedName.Name, member.MetadataName)
+    //        };
 
-            if (member.GetArity() > 0)
-            {
-                memberPartials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.GenericParameterCountIdentifier, member.GetArity().ToString()));
-            }
+    //        if (member.GetArity() > 0)
+    //        {
+    //            memberPartials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.GenericParameterCountIdentifier, member.GetArity().ToString()));
+    //        }
 
-            if (parameters.Any())
-            {
-                var parameterTypeIds = new List<GraphNodeId>();
-                foreach (var p in parameters)
-                {
-                    var parameterIds = await GetPartialsForNamespaceAndTypeAsync(p.Type, true, solution, cancellationToken).ConfigureAwait(false);
-                    var nodes = parameterIds.ToList();
-                    if (p.IsRefOrOut())
-                    {
-                        nodes.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, ParamKind.Ref));
-                    }
+    //        if (parameters.Any())
+    //        {
+    //            var parameterTypeIds = new List<GraphNodeId>();
+    //            foreach (var p in parameters)
+    //            {
+    //                var parameterIds = await GetPartialsForNamespaceAndTypeAsync(p.Type, true, solution, cancellationToken).ConfigureAwait(false);
+    //                var nodes = parameterIds.ToList();
+    //                if (p.IsRefOrOut())
+    //                {
+    //                    nodes.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, ParamKind.Ref));
+    //                }
 
-                    parameterTypeIds.Add(GraphNodeId.GetNested([.. nodes]));
-                }
+    //                parameterTypeIds.Add(GraphNodeId.GetNested([.. nodes]));
+    //            }
 
-                if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
-                {
-                    // For explicit/implicit conversion operators, we need to include the return type in the method Id,
-                    // because there can be several conversion operators with same parameters and only differ by return type.
-                    // For example,
-                    // 
-                    //     public class Class1
-                    //     {
-                    //         public static explicit (explicit) operator int(Class1 c) { ... }
-                    //         public static explicit (explicit) operator double(Class1 c) { ... }
-                    //     }
+    //            if (member is IMethodSymbol methodSymbol && methodSymbol.MethodKind == MethodKind.Conversion)
+    //            {
+    //                // For explicit/implicit conversion operators, we need to include the return type in the method Id,
+    //                // because there can be several conversion operators with same parameters and only differ by return type.
+    //                // For example,
+    //                // 
+    //                //     public class Class1
+    //                //     {
+    //                //         public static explicit (explicit) operator int(Class1 c) { ... }
+    //                //         public static explicit (explicit) operator double(Class1 c) { ... }
+    //                //     }
 
-                    var nodes = await GetPartialsForNamespaceAndTypeAsync(methodSymbol.ReturnType, true, solution, cancellationToken).ConfigureAwait(false);
-                    var returnTypePartial = nodes.ToList();
-                    returnTypePartial.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, Microsoft.VisualStudio.GraphModel.CodeSchema.ParamKind.Return));
+    //                var nodes = await GetPartialsForNamespaceAndTypeAsync(methodSymbol.ReturnType, true, solution, cancellationToken).ConfigureAwait(false);
+    //                var returnTypePartial = nodes.ToList();
+    //                returnTypePartial.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.ParamKind, Microsoft.VisualStudio.GraphModel.CodeSchema.ParamKind.Return));
 
-                    var returnCollection = GraphNodeId.GetNested([.. returnTypePartial]);
-                    parameterTypeIds.Add(returnCollection);
-                }
+    //                var returnCollection = GraphNodeId.GetNested([.. returnTypePartial]);
+    //                parameterTypeIds.Add(returnCollection);
+    //            }
 
-                memberPartials.Add(GraphNodeId.GetArray(
-                                   CodeGraphNodeIdName.OverloadingParameters,
-                                   [.. parameterTypeIds]));
-            }
+    //            memberPartials.Add(GraphNodeId.GetArray(
+    //                               CodeGraphNodeIdName.OverloadingParameters,
+    //                               [.. parameterTypeIds]));
+    //        }
 
-            partials.Add(GraphNodeId.GetPartial(
-                        CodeGraphNodeIdName.Member,
-                        MakeCollectionIfNecessary([.. memberPartials])));
-        }
-        else
-        {
-            partials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Member, member.MetadataName));
-        }
+    //        partials.Add(GraphNodeId.GetPartial(
+    //                    CodeGraphNodeIdName.Member,
+    //                    MakeCollectionIfNecessary([.. memberPartials])));
+    //    }
+    //    else
+    //    {
+    //        partials.Add(GraphNodeId.GetPartial(CodeGraphNodeIdName.Member, member.MetadataName));
+    //    }
 
-        return GraphNodeId.GetNested([.. partials]);
-    }
+    //    return GraphNodeId.GetNested([.. partials]);
+    //}
 
     private static object MakeCollectionIfNecessary(GraphNodeId[] array)
     {
@@ -506,56 +506,56 @@ internal static class GraphNodeIdCreation
     //    return null;
     //}
 
-    /// <summary>
-    /// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
-    /// For example, in "int M() { { int goo = 0; ...} { int goo = 1; ...} }",
-    /// the return value for the first "goo" would be 0 while the value for the second one would be 1.
-    /// It will be used to create a node with LocalVariableIndex for a non-zero value.
-    /// In the above example, hence, a node id for the first "goo" would look like (... Member=M LocalVariable=bar)
-    /// but an id for the second "goo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
-    /// </summary>
-    private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var pos = 0;
+    ///// <summary>
+    ///// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
+    ///// For example, in "int M() { { int goo = 0; ...} { int goo = 1; ...} }",
+    ///// the return value for the first "goo" would be 0 while the value for the second one would be 1.
+    ///// It will be used to create a node with LocalVariableIndex for a non-zero value.
+    ///// In the above example, hence, a node id for the first "goo" would look like (... Member=M LocalVariable=bar)
+    ///// but an id for the second "goo" would be (... Member=M LocalVariable=bar LocalVariableIndex=1)
+    ///// </summary>
+    //private static async Task<int> GetLocalVariableIndexAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var pos = 0;
 
-        foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
-        {
-            var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+    //    foreach (var reference in symbol.ContainingSymbol.DeclaringSyntaxReferences)
+    //    {
+    //        var currentNode = await reference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
 
-            // For VB, we have to ask its parent to get local variables within this method body
-            // since DeclaringSyntaxReferences return statement rather than enclosing block.
-            if (currentNode != null && symbol.Language == LanguageNames.VisualBasic)
-            {
-                currentNode = currentNode.Parent;
-            }
+    //        // For VB, we have to ask its parent to get local variables within this method body
+    //        // since DeclaringSyntaxReferences return statement rather than enclosing block.
+    //        if (currentNode != null && symbol.Language == LanguageNames.VisualBasic)
+    //        {
+    //            currentNode = currentNode.Parent;
+    //        }
 
-            if (currentNode != null)
-            {
-                var document = solution.GetDocument(currentNode.SyntaxTree);
-                if (document == null)
-                {
-                    continue;
-                }
+    //        if (currentNode != null)
+    //        {
+    //            var document = solution.GetDocument(currentNode.SyntaxTree);
+    //            if (document == null)
+    //            {
+    //                continue;
+    //            }
 
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var node in currentNode.DescendantNodes())
-                {
-                    var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                    if (current is { Kind: SymbolKind.Local or SymbolKind.RangeVariable } && current.Name == symbol.Name)
-                    {
-                        if (!current.Equals(symbol))
-                        {
-                            pos++;
-                        }
-                        else
-                        {
-                            return pos;
-                        }
-                    }
-                }
-            }
-        }
+    //            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+    //            foreach (var node in currentNode.DescendantNodes())
+    //            {
+    //                var current = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+    //                if (current is { Kind: SymbolKind.Local or SymbolKind.RangeVariable } && current.Name == symbol.Name)
+    //                {
+    //                    if (!current.Equals(symbol))
+    //                    {
+    //                        pos++;
+    //                    }
+    //                    else
+    //                    {
+    //                        return pos;
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
 
-        throw ExceptionUtilities.Unreachable();
-    }
+    //    throw ExceptionUtilities.Unreachable();
+    //}
 }
