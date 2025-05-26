@@ -366,7 +366,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
                 return null;
 
             // Has to have at least a symbolid, or source location to navigate to.
-            if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null &&
+            if (// graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null &&
                 graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation).FileName == null)
             {
                 return null;

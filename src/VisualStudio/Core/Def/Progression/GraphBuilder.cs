@@ -35,7 +35,7 @@ internal sealed partial class GraphBuilder
 
     private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
     private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
-    private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = [];
+    // private readonly Dictionary<GraphNode, ISymbol> _nodeToSymbolMap = [];
 
     /// <summary>
     /// The input solution. Never null.
@@ -128,13 +128,13 @@ internal sealed partial class GraphBuilder
 
             _nodeToContextProjectMap.Add(inputNode, project);
 
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
-            var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-            if (symbol != null)
-            {
-                _nodeToSymbolMap.Add(inputNode, symbol);
-            }
+            //var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            //var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
+            //var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            //if (symbol != null)
+            //{
+            //    _nodeToSymbolMap.Add(inputNode, symbol);
+            //}
 
             var documentId = (DocumentId)inputNode[RoslynGraphProperties.ContextDocumentId];
             if (documentId != null)

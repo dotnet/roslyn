@@ -26,7 +26,7 @@ internal sealed class GraphNavigatorExtension(
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly Workspace _workspace = workspace;
-    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+    // private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
 
     public void NavigateTo(GraphObject graphObject)
     {
@@ -50,21 +50,21 @@ internal sealed class GraphNavigatorExtension(
 
         // Go through the mainline symbol id path if we have it.  That way we notify third parties, and we can navigate
         // to metadata.
-        var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
-        if (symbolId is not null)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation is not null)
-            {
-                var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
-                if (symbol is not null)
-                {
-                    await GoToDefinitionHelpers.TryNavigateToLocationAsync(
-                        symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
-                    return;
-                }
-            }
-        }
+        //var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
+        //if (symbolId is not null)
+        //{
+        //    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+        //    if (compilation is not null)
+        //    {
+        //        var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
+        //        if (symbol is not null)
+        //        {
+        //            await GoToDefinitionHelpers.TryNavigateToLocationAsync(
+        //                symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+        //            return;
+        //        }
+        //    }
+        //}
 
         // If we didn't have a symbol id, attempt to navigate to the source location directly if the node includes one.
         var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);

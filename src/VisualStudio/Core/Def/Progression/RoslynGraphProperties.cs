@@ -13,10 +13,10 @@ internal static class RoslynGraphProperties
 {
     public static readonly GraphSchema Schema;
 
-    /// <summary>
-    /// A graph property that holds the SymbolId of the symbol.
-    /// </summary>
-    public static readonly GraphProperty SymbolId;
+    ///// <summary>
+    ///// A graph property that holds the SymbolId of the symbol.
+    ///// </summary>
+    //public static readonly GraphProperty SymbolId;
 
     /// <summary>
     /// A graph property that holds the ProjectId where you can find the symbol. Note this is
@@ -98,10 +98,10 @@ internal static class RoslynGraphProperties
         //    dataType: typeof(IList<SymbolKey>),
         //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        SymbolId = Schema.Properties.AddNewProperty(
-            id: "SymbolId",
-            dataType: typeof(SymbolKey?),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //SymbolId = Schema.Properties.AddNewProperty(
+        //    id: "SymbolId",
+        //    dataType: typeof(SymbolKey?),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         ContextProjectId = Schema.Properties.AddNewProperty(
             id: "ContextProjectId",
