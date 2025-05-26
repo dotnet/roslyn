@@ -443,68 +443,68 @@ internal static class GraphNodeIdCreation
         return null;
     }
 
-    internal static async Task<GraphNodeId> GetIdForAssemblyAsync(IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var assembly = await GetAssemblyFullPathAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
-        if (assembly != null)
-        {
-            var builder = new CodeQualifiedIdentifierBuilder();
-            builder.Assembly = assembly;
-            return builder.ToQualifiedIdentifier();
-        }
+    //internal static async Task<GraphNodeId> GetIdForAssemblyAsync(IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var assembly = await GetAssemblyFullPathAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    if (assembly != null)
+    //    {
+    //        var builder = new CodeQualifiedIdentifierBuilder();
+    //        builder.Assembly = assembly;
+    //        return builder.ToQualifiedIdentifier();
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
-    internal static async Task<GraphNodeId> GetIdForParameterAsync(IParameterSymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        if (symbol.ContainingSymbol == null ||
-            (symbol.ContainingSymbol.Kind != SymbolKind.Method && symbol.ContainingSymbol.Kind != SymbolKind.Property))
-        {
-            // We are only support parameters inside methods or properties.
-            throw new ArgumentException("symbol");
-        }
+    //internal static async Task<GraphNodeId> GetIdForParameterAsync(IParameterSymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    if (symbol.ContainingSymbol == null ||
+    //        (symbol.ContainingSymbol.Kind != SymbolKind.Method && symbol.ContainingSymbol.Kind != SymbolKind.Property))
+    //    {
+    //        // We are only support parameters inside methods or properties.
+    //        throw new ArgumentException("symbol");
+    //    }
 
-        var containingSymbol = symbol.ContainingSymbol;
-        if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
-        {
-            var property = (IPropertySymbol)method.AssociatedSymbol;
-            if (property.Parameters.Any(static (p, symbol) => p.Name == symbol.Name, symbol))
-            {
-                containingSymbol = property;
-            }
-        }
+    //    var containingSymbol = symbol.ContainingSymbol;
+    //    if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
+    //    {
+    //        var property = (IPropertySymbol)method.AssociatedSymbol;
+    //        if (property.Parameters.Any(static (p, symbol) => p.Name == symbol.Name, symbol))
+    //        {
+    //            containingSymbol = property;
+    //        }
+    //    }
 
-        var memberId = await GetIdForMemberAsync(containingSymbol, solution, cancellationToken).ConfigureAwait(false);
-        if (memberId != null)
-        {
-            return memberId + GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, symbol.Name);
-        }
+    //    var memberId = await GetIdForMemberAsync(containingSymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    if (memberId != null)
+    //    {
+    //        return memberId + GraphNodeId.GetPartial(CodeGraphNodeIdName.Parameter, symbol.Name);
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
-    internal static async Task<GraphNodeId> GetIdForLocalVariableAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        if (symbol.ContainingSymbol == null ||
-            (symbol.ContainingSymbol.Kind != SymbolKind.Method && symbol.ContainingSymbol.Kind != SymbolKind.Property))
-        {
-            // We are only support local variables inside methods or properties.
-            throw new ArgumentException("symbol");
-        }
+    //internal static async Task<GraphNodeId> GetIdForLocalVariableAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    if (symbol.ContainingSymbol == null ||
+    //        (symbol.ContainingSymbol.Kind != SymbolKind.Method && symbol.ContainingSymbol.Kind != SymbolKind.Property))
+    //    {
+    //        // We are only support local variables inside methods or properties.
+    //        throw new ArgumentException("symbol");
+    //    }
 
-        var memberId = await GetIdForMemberAsync(symbol.ContainingSymbol, solution, cancellationToken).ConfigureAwait(false);
-        if (memberId != null)
-        {
-            var builder = new CodeQualifiedIdentifierBuilder(memberId);
-            builder.LocalVariable = symbol.Name;
-            builder.LocalVariableIndex = await GetLocalVariableIndexAsync(symbol, solution, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+    //    var memberId = await GetIdForMemberAsync(symbol.ContainingSymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    if (memberId != null)
+    //    {
+    //        var builder = new CodeQualifiedIdentifierBuilder(memberId);
+    //        builder.LocalVariable = symbol.Name;
+    //        builder.LocalVariableIndex = await GetLocalVariableIndexAsync(symbol, solution, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
 
-            return builder.ToQualifiedIdentifier();
-        }
+    //        return builder.ToQualifiedIdentifier();
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
     /// <summary>
     /// Get the position of where a given local variable is defined considering there could be multiple variables with the same name in method body.
