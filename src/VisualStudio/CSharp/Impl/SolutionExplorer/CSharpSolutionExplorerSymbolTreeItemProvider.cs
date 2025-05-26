@@ -7,14 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -71,35 +68,63 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private void AddType(MemberDeclarationSyntax baseType, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         switch (baseType)
         {
             case ExtensionBlockDeclarationSyntax extensionBlock:
-                AddExtensionBlock(extensionBlock, items, cancellationToken);
+                AddExtensionBlock(extensionBlock, items);
                 return;
 
             case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclaration(typeDeclaration, items, cancellationToken);
+                AddTypeDeclaration(typeDeclaration, items);
                 return;
 
             case EnumDeclarationSyntax enumDeclaration:
-                AddEnumDeclaration(enumDeclaration, items, cancellationToken);
+                AddEnumDeclaration(enumDeclaration, items);
                 return;
 
             case DelegateDeclarationSyntax delegateDeclaration:
-                AddDelegateDeclaration(delegateDeclaration, items, cancellationToken);
+                AddDelegateDeclaration(delegateDeclaration, items);
                 return;
         }
     }
 
-    private void AddTypeDeclaration(
-        TypeDeclarationSyntax typeDeclaration,
-        ArrayBuilder<SymbolTreeItem> items,
-        CancellationToken cancellationToken)
+    private static void AddEnumDeclaration(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItem> items)
     {
-        var name = GetName(
-            typeDeclaration.Identifier.ValueText, "<", ">",
-            typeDeclaration.TypeParameterList,
-            static typeParameterList => typeParameterList.Parameters.Select(p => p.Identifier.ValueText));
+        var glyph = Microsoft.CodeAnalysis.GlyphExtensions.GetGlyph(
+            DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration, enumDeclaration.Modifiers));
+
+        items.Add(new(enumDeclaration.Identifier.ValueText, glyph, enumDeclaration));
+    }
+
+    private static void AddExtensionBlock(
+        ExtensionBlockDeclarationSyntax extensionBlock,
+        ArrayBuilder<SymbolTreeItem> items)
+    {
+        var baseName = WithTypeParameterList("extension", extensionBlock.TypeParameterList);
+        var name = WithParameterList(baseName, extensionBlock.ParameterList);
+
+        items.Add(new(name, Glyph.ClassPublic, extensionBlock));
+    }
+
+    private static void AddDelegateDeclaration(
+        DelegateDeclarationSyntax delegateDeclaration,
+        ArrayBuilder<SymbolTreeItem> items)
+    {
+        var baseName = WithTypeParameterList(delegateDeclaration.Identifier.ValueText, delegateDeclaration.TypeParameterList);
+        var name = WithParameterList(baseName, delegateDeclaration.ParameterList);
+
+        var glyph = Microsoft.CodeAnalysis.GlyphExtensions.GetGlyph(
+            DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
+
+        items.Add(new(name, glyph, delegateDeclaration));
+    }
+
+    private static void AddTypeDeclaration(
+        TypeDeclarationSyntax typeDeclaration,
+        ArrayBuilder<SymbolTreeItem> items)
+    {
+        var name = WithTypeParameterList(typeDeclaration.Identifier.ValueText, typeDeclaration.TypeParameterList);
 
         var accessibility = GetAccessibility(typeDeclaration, typeDeclaration.Modifiers);
         var kind = typeDeclaration.Kind() switch
@@ -116,7 +141,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         items.Add(new(name, glyph, typeDeclaration));
     }
 
-    private static string GetName<TArguments>(
+    private static string BuildText<TArguments>(
         string baseName,
         string openBrace,
         string closeBrace,
@@ -127,5 +152,23 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             return baseName;
 
         return $"{baseName}{openBrace}{string.Join(", ", getPieces(arguments))}{closeBrace}";
+    }
+
+    private static string WithTypeParameterList(
+        string baseText,
+        TypeParameterListSyntax? typeParameterList)
+    {
+        return BuildText(
+            baseText, "<", ">", typeParameterList,
+            static typeParameterList => typeParameterList.Parameters.Select(p => p.Identifier.ValueText));
+    }
+
+    private static string WithParameterList(
+        string baseText,
+        ParameterListSyntax? parameterList)
+    {
+        return BuildText(
+            baseText, "(", ")", parameterList,
+            static parameterList => parameterList.Parameters.Select(p => GetDisplayText(p.Type)));
     }
 }
