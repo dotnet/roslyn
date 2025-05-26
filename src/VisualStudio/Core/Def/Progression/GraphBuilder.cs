@@ -307,36 +307,36 @@ internal sealed partial class GraphBuilder
     //    return node;
     //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForParameterAsync(Graph graph, IParameterSymbol parameterSymbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForParameterAsync(parameterSymbol, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
-        node.AddCategory(CodeNodeCategories.Parameter);
+    //private static async Task<GraphNode> GetOrCreateNodeForParameterAsync(Graph graph, IParameterSymbol parameterSymbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForParameterAsync(parameterSymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
+    //    node.AddCategory(CodeNodeCategories.Parameter);
 
-        node.SetValue<bool>(Properties.IsByReference, parameterSymbol.RefKind == RefKind.Ref);
-        node.SetValue<bool>(Properties.IsOut, parameterSymbol.RefKind == RefKind.Out);
-        node.SetValue<bool>(Properties.IsParameterArray, parameterSymbol.IsParams);
+    //    node.SetValue<bool>(Properties.IsByReference, parameterSymbol.RefKind == RefKind.Ref);
+    //    node.SetValue<bool>(Properties.IsOut, parameterSymbol.RefKind == RefKind.Out);
+    //    node.SetValue<bool>(Properties.IsParameterArray, parameterSymbol.IsParams);
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForLocalVariableAsync(Graph graph, ISymbol localSymbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForLocalVariableAsync(localSymbol, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
-        node.AddCategory(NodeCategories.LocalExpression);
+    //private static async Task<GraphNode> GetOrCreateNodeForLocalVariableAsync(Graph graph, ISymbol localSymbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForLocalVariableAsync(localSymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
+    //    node.AddCategory(NodeCategories.LocalExpression);
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeAssemblyAsync(Graph graph, IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForAssemblyAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
-        node.AddCategory(CodeNodeCategories.Assembly);
+    //private static async Task<GraphNode> GetOrCreateNodeAssemblyAsync(Graph graph, IAssemblySymbol assemblySymbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForAssemblyAsync(assemblySymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
+    //    node.AddCategory(CodeNodeCategories.Assembly);
 
-        return node;
-    }
+    //    return node;
+    //}
 
     //private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
     //{
@@ -429,253 +429,253 @@ internal sealed partial class GraphBuilder
     //    node[Microsoft.VisualStudio.ArchitectureTools.ProgressiveReveal.ProgressiveRevealSchema.CommonLabel] = node.Label;
     //}
 
-    private static void UpdatePropertiesForNode(ISymbol symbol, GraphNode node)
-    {
-        // Set accessibility properties
-        switch (symbol.DeclaredAccessibility)
-        {
-            case Accessibility.Public:
-                node[Properties.IsPublic] = true;
-                break;
+    //private static void UpdatePropertiesForNode(ISymbol symbol, GraphNode node)
+    //{
+    //    // Set accessibility properties
+    //    switch (symbol.DeclaredAccessibility)
+    //    {
+    //        case Accessibility.Public:
+    //            node[Properties.IsPublic] = true;
+    //            break;
 
-            case Accessibility.Internal:
-                node[Properties.IsInternal] = true;
-                break;
+    //        case Accessibility.Internal:
+    //            node[Properties.IsInternal] = true;
+    //            break;
 
-            case Accessibility.Protected:
-                node[Properties.IsProtected] = true;
-                break;
+    //        case Accessibility.Protected:
+    //            node[Properties.IsProtected] = true;
+    //            break;
 
-            case Accessibility.Private:
-                node[Properties.IsPrivate] = true;
-                break;
+    //        case Accessibility.Private:
+    //            node[Properties.IsPrivate] = true;
+    //            break;
 
-            case Accessibility.ProtectedOrInternal:
-                node[Properties.IsProtectedOrInternal] = true;
-                break;
+    //        case Accessibility.ProtectedOrInternal:
+    //            node[Properties.IsProtectedOrInternal] = true;
+    //            break;
 
-            case Accessibility.ProtectedAndInternal:
-                node[Properties.IsProtected] = true;
-                node[Properties.IsInternal] = true;
-                break;
+    //        case Accessibility.ProtectedAndInternal:
+    //            node[Properties.IsProtected] = true;
+    //            node[Properties.IsInternal] = true;
+    //            break;
 
-            case Accessibility.NotApplicable:
-                break;
-        }
+    //        case Accessibility.NotApplicable:
+    //            break;
+    //    }
 
-        // Set common properties
-        if (symbol.IsAbstract)
-        {
-            node[Properties.IsAbstract] = true;
-        }
+    //    // Set common properties
+    //    if (symbol.IsAbstract)
+    //    {
+    //        node[Properties.IsAbstract] = true;
+    //    }
 
-        if (symbol.IsSealed)
-        {
-            // For VB module, do not set IsFinal since it's not inheritable.
-            if (!symbol.IsModuleType())
-            {
-                node[Properties.IsFinal] = true;
-            }
-        }
+    //    if (symbol.IsSealed)
+    //    {
+    //        // For VB module, do not set IsFinal since it's not inheritable.
+    //        if (!symbol.IsModuleType())
+    //        {
+    //            node[Properties.IsFinal] = true;
+    //        }
+    //    }
 
-        if (symbol.IsStatic)
-        {
-            node[Properties.IsStatic] = true;
-        }
+    //    if (symbol.IsStatic)
+    //    {
+    //        node[Properties.IsStatic] = true;
+    //    }
 
-        if (symbol.IsVirtual)
-        {
-            node[Properties.IsVirtual] = true;
-        }
+    //    if (symbol.IsVirtual)
+    //    {
+    //        node[Properties.IsVirtual] = true;
+    //    }
 
-        if (symbol.IsOverride)
-        {
-            // The property name is a misnomer, but this is what the previous providers do.
-            node[Microsoft.VisualStudio.Progression.DgmlProperties.IsOverloaded] = true;
-        }
+    //    if (symbol.IsOverride)
+    //    {
+    //        // The property name is a misnomer, but this is what the previous providers do.
+    //        node[Microsoft.VisualStudio.Progression.DgmlProperties.IsOverloaded] = true;
+    //    }
 
-        // Set type-specific properties
-        if (symbol is ITypeSymbol typeSymbol && typeSymbol.IsAnonymousType)
-        {
-            node[Properties.IsAnonymous] = true;
-        }
-        else if (symbol is IMethodSymbol methodSymbol)
-        {
-            UpdateMethodPropertiesForNode(methodSymbol, node);
-        }
-    }
+    //    // Set type-specific properties
+    //    if (symbol is ITypeSymbol typeSymbol && typeSymbol.IsAnonymousType)
+    //    {
+    //        node[Properties.IsAnonymous] = true;
+    //    }
+    //    else if (symbol is IMethodSymbol methodSymbol)
+    //    {
+    //        UpdateMethodPropertiesForNode(methodSymbol, node);
+    //    }
+    //}
 
-    private static void UpdateMethodPropertiesForNode(IMethodSymbol symbol, GraphNode node)
-    {
-        if (symbol.HidesBaseMethodsByName)
-        {
-            node[Properties.IsHideBySignature] = true;
-        }
+    //private static void UpdateMethodPropertiesForNode(IMethodSymbol symbol, GraphNode node)
+    //{
+    //    if (symbol.HidesBaseMethodsByName)
+    //    {
+    //        node[Properties.IsHideBySignature] = true;
+    //    }
 
-        if (symbol.IsExtensionMethod)
-        {
-            node[Properties.IsExtension] = true;
-        }
+    //    if (symbol.IsExtensionMethod)
+    //    {
+    //        node[Properties.IsExtension] = true;
+    //    }
 
-        switch (symbol.MethodKind)
-        {
-            case MethodKind.AnonymousFunction:
-                node[Properties.IsAnonymous] = true;
-                break;
+    //    switch (symbol.MethodKind)
+    //    {
+    //        case MethodKind.AnonymousFunction:
+    //            node[Properties.IsAnonymous] = true;
+    //            break;
 
-            case MethodKind.BuiltinOperator:
-            case MethodKind.UserDefinedOperator:
-                node[Properties.IsOperator] = true;
-                break;
+    //        case MethodKind.BuiltinOperator:
+    //        case MethodKind.UserDefinedOperator:
+    //            node[Properties.IsOperator] = true;
+    //            break;
 
-            case MethodKind.Constructor:
-            case MethodKind.StaticConstructor:
-                node[Properties.IsConstructor] = true;
-                break;
+    //        case MethodKind.Constructor:
+    //        case MethodKind.StaticConstructor:
+    //            node[Properties.IsConstructor] = true;
+    //            break;
 
-            case MethodKind.Conversion:
-                // Operator implicit/explicit
-                node[Properties.IsOperator] = true;
-                break;
+    //        case MethodKind.Conversion:
+    //            // Operator implicit/explicit
+    //            node[Properties.IsOperator] = true;
+    //            break;
 
-            case MethodKind.Destructor:
-                node[Properties.IsFinalizer] = true;
-                break;
+    //        case MethodKind.Destructor:
+    //            node[Properties.IsFinalizer] = true;
+    //            break;
 
-            case MethodKind.PropertyGet:
-                node[Properties.IsPropertyGet] = true;
-                break;
+    //        case MethodKind.PropertyGet:
+    //            node[Properties.IsPropertyGet] = true;
+    //            break;
 
-            case MethodKind.PropertySet:
-                node[Properties.IsPropertySet] = true;
-                break;
-        }
-    }
+    //        case MethodKind.PropertySet:
+    //            node[Properties.IsPropertySet] = true;
+    //            break;
+    //    }
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForNamespaceAsync(Graph graph, INamespaceSymbol symbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForNamespaceAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
-        node.AddCategory(CodeNodeCategories.Namespace);
+    //private static async Task<GraphNode> GetOrCreateNodeForNamespaceAsync(Graph graph, INamespaceSymbol symbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForNamespaceAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
+    //    node.AddCategory(CodeNodeCategories.Namespace);
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForNamedTypeAsync(Graph graph, INamedTypeSymbol namedType, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForTypeAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
-        string iconGroupName;
+    //private static async Task<GraphNode> GetOrCreateNodeForNamedTypeAsync(Graph graph, INamedTypeSymbol namedType, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForTypeAsync(namedType, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
+    //    string iconGroupName;
 
-        switch (namedType.TypeKind)
-        {
-            case TypeKind.Class:
-                node.AddCategory(CodeNodeCategories.Class);
-                iconGroupName = "Class";
-                break;
+    //    switch (namedType.TypeKind)
+    //    {
+    //        case TypeKind.Class:
+    //            node.AddCategory(CodeNodeCategories.Class);
+    //            iconGroupName = "Class";
+    //            break;
 
-            case TypeKind.Delegate:
-                node.AddCategory(CodeNodeCategories.Delegate);
-                iconGroupName = "Delegate";
-                break;
+    //        case TypeKind.Delegate:
+    //            node.AddCategory(CodeNodeCategories.Delegate);
+    //            iconGroupName = "Delegate";
+    //            break;
 
-            case TypeKind.Enum:
-                node.AddCategory(CodeNodeCategories.Enum);
-                iconGroupName = "Enum";
-                break;
+    //        case TypeKind.Enum:
+    //            node.AddCategory(CodeNodeCategories.Enum);
+    //            iconGroupName = "Enum";
+    //            break;
 
-            case TypeKind.Interface:
-                node.AddCategory(CodeNodeCategories.Interface);
-                iconGroupName = "Interface";
-                break;
+    //        case TypeKind.Interface:
+    //            node.AddCategory(CodeNodeCategories.Interface);
+    //            iconGroupName = "Interface";
+    //            break;
 
-            case TypeKind.Module:
-                node.AddCategory(CodeNodeCategories.Module);
-                iconGroupName = "Module";
-                break;
+    //        case TypeKind.Module:
+    //            node.AddCategory(CodeNodeCategories.Module);
+    //            iconGroupName = "Module";
+    //            break;
 
-            case TypeKind.Struct:
-                node.AddCategory(CodeNodeCategories.Struct);
-                iconGroupName = "Struct";
-                break;
+    //        case TypeKind.Struct:
+    //            node.AddCategory(CodeNodeCategories.Struct);
+    //            iconGroupName = "Struct";
+    //            break;
 
-            case TypeKind.Error:
-                node.AddCategory(CodeNodeCategories.Type);
-                iconGroupName = "Error";
-                break;
+    //        case TypeKind.Error:
+    //            node.AddCategory(CodeNodeCategories.Type);
+    //            iconGroupName = "Error";
+    //            break;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
-        }
+    //        default:
+    //            throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
+    //    }
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = namedType.TypeKind;
+    //    node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);
+    //    node[RoslynGraphProperties.TypeKind] = namedType.TypeKind;
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForMethodAsync(Graph graph, IMethodSymbol method, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForMemberAsync(method, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
+    //private static async Task<GraphNode> GetOrCreateNodeForMethodAsync(Graph graph, IMethodSymbol method, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForMemberAsync(method, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
 
-        node.AddCategory(CodeNodeCategories.Method);
+    //    node.AddCategory(CodeNodeCategories.Method);
 
-        var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
-        node[DgmlNodeProperties.Icon] = isOperator
-            ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
-            : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
+    //    var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
+    //    node[DgmlNodeProperties.Icon] = isOperator
+    //        ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
+    //        : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
 
-        node[RoslynGraphProperties.TypeKind] = method.ContainingType.TypeKind;
-        node[RoslynGraphProperties.MethodKind] = method.MethodKind;
+    //    node[RoslynGraphProperties.TypeKind] = method.ContainingType.TypeKind;
+    //    node[RoslynGraphProperties.MethodKind] = method.MethodKind;
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForFieldAsync(Graph graph, IFieldSymbol field, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForMemberAsync(field, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
+    //private static async Task<GraphNode> GetOrCreateNodeForFieldAsync(Graph graph, IFieldSymbol field, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForMemberAsync(field, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
 
-        node.AddCategory(CodeNodeCategories.Field);
+    //    node.AddCategory(CodeNodeCategories.Field);
 
-        if (field.ContainingType.TypeKind == TypeKind.Enum)
-        {
-            node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("EnumMember", field.DeclaredAccessibility);
-        }
-        else
-        {
-            node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Field", field.DeclaredAccessibility);
-        }
+    //    if (field.ContainingType.TypeKind == TypeKind.Enum)
+    //    {
+    //        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("EnumMember", field.DeclaredAccessibility);
+    //    }
+    //    else
+    //    {
+    //        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Field", field.DeclaredAccessibility);
+    //    }
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForPropertyAsync(Graph graph, IPropertySymbol property, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForMemberAsync(property, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
+    //private static async Task<GraphNode> GetOrCreateNodeForPropertyAsync(Graph graph, IPropertySymbol property, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForMemberAsync(property, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
 
-        node.AddCategory(CodeNodeCategories.Property);
+    //    node.AddCategory(CodeNodeCategories.Property);
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Property", property.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = property.ContainingType.TypeKind;
+    //    node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Property", property.DeclaredAccessibility);
+    //    node[RoslynGraphProperties.TypeKind] = property.ContainingType.TypeKind;
 
-        return node;
-    }
+    //    return node;
+    //}
 
-    private static async Task<GraphNode> GetOrCreateNodeForEventAsync(Graph graph, IEventSymbol eventSymbol, Solution solution, CancellationToken cancellationToken)
-    {
-        var id = await GraphNodeIdCreation.GetIdForMemberAsync(eventSymbol, solution, cancellationToken).ConfigureAwait(false);
-        var node = graph.Nodes.GetOrCreate(id);
+    //private static async Task<GraphNode> GetOrCreateNodeForEventAsync(Graph graph, IEventSymbol eventSymbol, Solution solution, CancellationToken cancellationToken)
+    //{
+    //    var id = await GraphNodeIdCreation.GetIdForMemberAsync(eventSymbol, solution, cancellationToken).ConfigureAwait(false);
+    //    var node = graph.Nodes.GetOrCreate(id);
 
-        node.AddCategory(CodeNodeCategories.Event);
+    //    node.AddCategory(CodeNodeCategories.Event);
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Event", eventSymbol.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = eventSymbol.ContainingType.TypeKind;
+    //    node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Event", eventSymbol.DeclaredAccessibility);
+    //    node[RoslynGraphProperties.TypeKind] = eventSymbol.ContainingType.TypeKind;
 
-        return node;
-    }
+    //    return node;
+    //}
 
     public void AddLink(GraphNode from, GraphCategory category, GraphNode to, CancellationToken cancellationToken)
     {
