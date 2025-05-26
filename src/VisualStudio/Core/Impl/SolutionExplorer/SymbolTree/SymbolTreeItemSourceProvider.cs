@@ -24,6 +24,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Extensions;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -66,7 +70,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
         _workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
-                if (e is { Kind: WorkspaceChangeKind.DocumentChanged, DocumentId: not null })
+                if (e is { Kind: WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.DocumentAdded, DocumentId: not null })
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
@@ -153,13 +157,67 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
         IVsHierarchyItem hierarchyItem)
         : IAttachedCollectionSource
     {
+        private readonly SymbolTreeItemSourceProvider _provider = provider;
+        private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
+
         private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems;
 
-        public object SourceItem => hierarchyItem;
+        private DocumentId? _documentId;
 
+        public object SourceItem => _hierarchyItem;
         public bool HasItems => true;
+        public IEnumerable Items => _symbolTreeItems;
 
-        public IEnumerable Items => Array.Empty<SymbolTreeItem>();
+        internal async Task UpdateIfAffectedAsync(
+            HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
+        {
+            var documentId = DetermineDocumentId();
+
+            // If we successfully handle this request, we're done.
+            if (await TryUpdateItemsAsync(updateSet, documentId).ConfigureAwait(false))
+                return;
+
+            // If we failed for any reason, clear out all our items.
+            using (_symbolTreeItems.GetBulkOperation())
+                _symbolTreeItems.Clear();
+        }
+        private async ValueTask<bool> TryUpdateItemsAsync(
+            HashSet<DocumentId> updateSet, DocumentId? documentId, CancellationToken cancellationToken)
+        {
+            if (documentId is null)
+                return false;
+
+            if (!updateSet.Contains(documentId))
+            {
+                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
+                // to update a different document than our own.  So we can just ignore this.
+                return true;
+            }
+
+            var solution = _provider._workspace.CurrentSolution;
+            var document = solution.GetDocument(documentId);
+
+            // If we can't find this document anymore, clear everything out.
+            if (document is null)
+                return false;
+
+            var service = document.Project.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
+            if (service is null)
+                return false;
+
+            var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        private DocumentId? DetermineDocumentId()
+        {
+            if (_documentId == null)
+            {
+                var idMap = _provider._workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+                idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
+            }
+
+            return _documentId;
+        }
     }
 
     private sealed class SymbolTreeItem() : BaseItem(nameof(SymbolTreeItem))
@@ -179,5 +237,10 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     //        return [];
     //    }
     //}
+
+}
+
+internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
+{
 
 }

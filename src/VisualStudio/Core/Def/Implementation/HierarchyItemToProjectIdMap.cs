@@ -26,16 +26,8 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
         documentId = null;
 
         var identity = hierarchyItem.HierarchyIdentity;
-        //if (!identity.IsNestedItem)
-        //    return false;
-
-        TryGetProjectId(hierarchyItem.Parent, targetFrameworkMoniker, out var projectId3);
-
         var solution = _workspace.CurrentSolution;
-        var project1 = solution.ProjectIds.FirstOrDefault(projectId => _workspace.GetHierarchy(projectId) == hierarchyItem.Parent.HierarchyIdentity.Hierarchy);
-        var project2 = solution.ProjectIds.FirstOrDefault(projectId => _workspace.GetHierarchy(projectId) == hierarchyItem.Parent.HierarchyIdentity.NestedHierarchy);
-
-        if (project1 is null)
+        if (!TryGetProjectId(solution, hierarchyItem.Parent, targetFrameworkMoniker, out var projectId))
             return false;
 
         var hierarchy = identity.Hierarchy;
@@ -44,12 +36,17 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
         if (!hierarchy.TryGetCanonicalName(itemId, out var itemName))
             return false;
 
-        //var document = project1.Documents.FirstOrDefault(d => d.FilePath == itemName);
-        //documentId = document?.Id;
+        var documentIds = solution.GetDocumentIdsWithFilePath(itemName);
+        documentId = documentIds.FirstOrDefault(d => d.ProjectId == projectId);
+
         return documentId != null;
     }
 
     public bool TryGetProjectId(IVsHierarchyItem? hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
+        => TryGetProjectId(_workspace.CurrentSolution, hierarchyItem, targetFrameworkMoniker, out projectId);
+
+    private bool TryGetProjectId(
+        Solution solution, IVsHierarchyItem? hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
     {
         projectId = null;
 
@@ -65,7 +62,7 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
 
         // First filter the projects by matching up properties on the input hierarchy against properties on each
         // project's hierarchy.
-        var candidateProjects = _workspace.CurrentSolution.Projects
+        var candidateProjects = solution.Projects
             .Where(p =>
             {
                 // We're about to access various properties of the IVsHierarchy associated with the project.
