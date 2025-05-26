@@ -31,7 +31,7 @@ internal sealed partial class GraphBuilder
 #pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
-    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
+    // private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
 
     // private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
     // private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
@@ -825,11 +825,11 @@ internal sealed partial class GraphBuilder
             using var graphTransaction = new GraphTransactionScope();
             graph.Merge(this.Graph);
 
-            foreach (var deferredProperty in _deferredPropertySets)
-            {
-                var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
-                nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
-            }
+            //foreach (var deferredProperty in _deferredPropertySets)
+            //{
+            //    var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
+            //    nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
+            //}
 
             graphTransaction.Complete();
         }
