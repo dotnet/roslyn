@@ -57,46 +57,46 @@ internal static class RoslynGraphProperties
     /// </summary>
     public static readonly GraphProperty DescriptionWithContainingSymbol;
 
-    public static readonly GraphProperty SymbolKind;
-    public static readonly GraphProperty TypeKind;
-    public static readonly GraphProperty MethodKind;
-    public static readonly GraphProperty DeclaredAccessibility;
-    public static readonly GraphProperty SymbolModifiers;
-    public static readonly GraphProperty ExplicitInterfaceImplementations;
+    //public static readonly GraphProperty SymbolKind;
+    //public static readonly GraphProperty TypeKind;
+    //public static readonly GraphProperty MethodKind;
+    //public static readonly GraphProperty DeclaredAccessibility;
+    //public static readonly GraphProperty SymbolModifiers;
+    //public static readonly GraphProperty ExplicitInterfaceImplementations;
 
     static RoslynGraphProperties()
     {
         Schema = new GraphSchema("Roslyn");
 
-        SymbolKind = Schema.Properties.AddNewProperty(
-            id: "SymbolKind",
-            dataType: typeof(SymbolKind),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //SymbolKind = Schema.Properties.AddNewProperty(
+        //    id: "SymbolKind",
+        //    dataType: typeof(SymbolKind),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        TypeKind = Schema.Properties.AddNewProperty(
-            id: "TypeKind",
-            dataType: typeof(TypeKind),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //TypeKind = Schema.Properties.AddNewProperty(
+        //    id: "TypeKind",
+        //    dataType: typeof(TypeKind),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        MethodKind = Schema.Properties.AddNewProperty(
-            id: "MethodKind",
-            dataType: typeof(MethodKind),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //MethodKind = Schema.Properties.AddNewProperty(
+        //    id: "MethodKind",
+        //    dataType: typeof(MethodKind),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        DeclaredAccessibility = Schema.Properties.AddNewProperty(
-            id: "DeclaredAccessibility",
-            dataType: typeof(Accessibility),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //DeclaredAccessibility = Schema.Properties.AddNewProperty(
+        //    id: "DeclaredAccessibility",
+        //    dataType: typeof(Accessibility),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        SymbolModifiers = Schema.Properties.AddNewProperty(
-            id: "SymbolModifiers",
-            dataType: typeof(DeclarationModifiers),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //SymbolModifiers = Schema.Properties.AddNewProperty(
+        //    id: "SymbolModifiers",
+        //    dataType: typeof(DeclarationModifiers),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        ExplicitInterfaceImplementations = Schema.Properties.AddNewProperty(
-            id: "ExplicitInterfaceImplementations",
-            dataType: typeof(IList<SymbolKey>),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //ExplicitInterfaceImplementations = Schema.Properties.AddNewProperty(
+        //    id: "ExplicitInterfaceImplementations",
+        //    dataType: typeof(IList<SymbolKey>),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         SymbolId = Schema.Properties.AddNewProperty(
             id: "SymbolId",
