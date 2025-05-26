@@ -250,6 +250,10 @@ internal static class GlyphExtensions
 
         var rawGlyph = GetPublicGlyph(kind);
 
+        // No accessibility supported for operators yet.
+        if (rawGlyph == Glyph.Operator)
+            return rawGlyph;
+
         switch (accessibility)
         {
             case Accessibility.Private:
@@ -284,6 +288,7 @@ internal static class GlyphExtensions
             DeclaredSymbolInfoKind.Interface => Glyph.InterfacePublic,
             DeclaredSymbolInfoKind.Method => Glyph.MethodPublic,
             DeclaredSymbolInfoKind.Module => Glyph.ModulePublic,
+            DeclaredSymbolInfoKind.Operator => Glyph.Operator,
             DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
             DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
             DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,

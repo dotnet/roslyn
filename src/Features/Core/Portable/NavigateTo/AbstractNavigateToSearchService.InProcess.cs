@@ -215,6 +215,8 @@ internal abstract partial class AbstractNavigateToSearchService
                 return NavigateToItemKind.Property;
             case DeclaredSymbolInfoKind.Struct:
                 return NavigateToItemKind.Structure;
+            case DeclaredSymbolInfoKind.Operator:
+                return NavigateToItemKind.OtherSymbol;
             default:
                 throw ExceptionUtilities.UnexpectedValue(declaredSymbolInfo.Kind);
         }

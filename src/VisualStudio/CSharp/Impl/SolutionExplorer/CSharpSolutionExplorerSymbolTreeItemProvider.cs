@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -108,28 +109,82 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         return items.ToImmutableAndClear();
     }
 
-    private void AddTypeDeclarationMembers(TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddTypeDeclarationMembers(TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
         foreach (var member in typeDeclaration.Members)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (TryAddType(member, items, cancellationToken))
                 continue;
 
-            AddMemberDeclaration(member, items, cancellationToken);
+            AddMemberDeclaration(member, items);
         }
     }
 
-    private void AddMemberDeclaration(MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddMemberDeclaration(
+        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItem> items)
     {
         switch (member)
         {
-            case FieldDeclarationSyntax fieldDeclaration:
-                AddFieldDeclaration(fieldDeclaration, items, cancellationToken);
+            case BaseFieldDeclarationSyntax fieldDeclaration:
+                AddFieldDeclaration(fieldDeclaration, items);
+                return;
+
+            case MethodDeclarationSyntax methodDeclaration:
+                AddMethodDeclaration(methodDeclaration, items);
+                return;
+
+            case OperatorDeclarationSyntax operatorDeclaration:
+                AddOperatorDeclaration(operatorDeclaration, items);
                 return;
         }
     }
 
-    private static void AddFieldDeclaration(FieldDeclarationSyntax fieldDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddOperatorDeclaration(
+        OperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItem> items)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append("operator ");
+        nameBuilder.Append(operatorDeclaration.OperatorToken.ToString());
+        AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
+        nameBuilder.Append(" : ");
+        AppendType(operatorDeclaration.ReturnType, nameBuilder);
+
+        var accessibility = GetAccessibility(operatorDeclaration, operatorDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToString(),
+            glyph,
+            operatorDeclaration,
+            hasItems: false));
+    }
+
+    private static void AddMethodDeclaration(
+        MethodDeclarationSyntax methodDeclaration, ArrayBuilder<SymbolTreeItem> items)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append(methodDeclaration.Identifier.ValueText);
+        AppendTypeParameterList(nameBuilder, methodDeclaration.TypeParameterList);
+        AppendParameterList(nameBuilder, methodDeclaration.ParameterList);
+        nameBuilder.Append(" : ");
+        AppendType(methodDeclaration.ReturnType, nameBuilder);
+
+        var accessibility = GetAccessibility(methodDeclaration, methodDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToString(),
+            glyph,
+            methodDeclaration,
+            hasItems: false));
+    }
+
+    private static void AddFieldDeclaration(
+        BaseFieldDeclarationSyntax fieldDeclaration, ArrayBuilder<SymbolTreeItem> items)
     {
         using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
 
@@ -142,11 +197,13 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
 
             var accessibility = GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers);
-            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Field, accessibility);
+            var kind = fieldDeclaration is EventFieldDeclarationSyntax
+                ? DeclaredSymbolInfoKind.Event
+                : DeclaredSymbolInfoKind.Field;
 
             items.Add(new(
                 nameBuilder.ToString(),
-                glyph,
+                GlyphExtensions.GetGlyph(kind, accessibility),
                 variable,
                 hasItems: false));
         }
