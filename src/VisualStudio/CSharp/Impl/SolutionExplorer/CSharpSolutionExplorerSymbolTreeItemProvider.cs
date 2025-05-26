@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -38,7 +40,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         return items.ToImmutableAndClear();
     }
 
-    private void AddTopLevelTypes(CompilationUnitSyntax root, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddTopLevelTypes(CompilationUnitSyntax root, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
         foreach (var member in root.Members)
         {
@@ -51,7 +53,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
     }
 
-    private void AddTopLevelTypes(BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddTopLevelTypes(BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
         foreach (var member in baseNamespace.Members)
         {
@@ -66,7 +68,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
     }
 
-    private void AddType(MemberDeclarationSyntax baseType, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static void AddType(MemberDeclarationSyntax baseType, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         switch (baseType)
@@ -91,7 +93,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private static void AddEnumDeclaration(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItem> items)
     {
-        var glyph = Microsoft.CodeAnalysis.GlyphExtensions.GetGlyph(
+        var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration, enumDeclaration.Modifiers));
 
         items.Add(new(enumDeclaration.Identifier.ValueText, glyph, enumDeclaration));
@@ -101,30 +103,39 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         ExtensionBlockDeclarationSyntax extensionBlock,
         ArrayBuilder<SymbolTreeItem> items)
     {
-        var baseName = WithTypeParameterList("extension", extensionBlock.TypeParameterList);
-        var name = WithParameterList(baseName, extensionBlock.ParameterList);
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
 
-        items.Add(new(name, Glyph.ClassPublic, extensionBlock));
+        nameBuilder.Append("extension");
+        AppendTypeParameterList(nameBuilder, extensionBlock.TypeParameterList);
+        AppendParameterList(nameBuilder, extensionBlock.ParameterList);
+
+        items.Add(new(nameBuilder.ToString(), Glyph.ClassPublic, extensionBlock));
     }
 
     private static void AddDelegateDeclaration(
         DelegateDeclarationSyntax delegateDeclaration,
         ArrayBuilder<SymbolTreeItem> items)
     {
-        var baseName = WithTypeParameterList(delegateDeclaration.Identifier.ValueText, delegateDeclaration.TypeParameterList);
-        var name = WithParameterList(baseName, delegateDeclaration.ParameterList);
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
 
-        var glyph = Microsoft.CodeAnalysis.GlyphExtensions.GetGlyph(
+        nameBuilder.Append(delegateDeclaration.Identifier.ValueText);
+        AppendTypeParameterList(nameBuilder, delegateDeclaration.TypeParameterList);
+        AppendParameterList(nameBuilder, delegateDeclaration.ParameterList);
+
+        var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
 
-        items.Add(new(name, glyph, delegateDeclaration));
+        items.Add(new(nameBuilder.ToString(), glyph, delegateDeclaration));
     }
 
     private static void AddTypeDeclaration(
         TypeDeclarationSyntax typeDeclaration,
         ArrayBuilder<SymbolTreeItem> items)
     {
-        var name = WithTypeParameterList(typeDeclaration.Identifier.ValueText, typeDeclaration.TypeParameterList);
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append(typeDeclaration.Identifier.ValueText);
+        AppendTypeParameterList(nameBuilder, typeDeclaration.TypeParameterList);
 
         var accessibility = GetAccessibility(typeDeclaration, typeDeclaration.Modifiers);
         var kind = typeDeclaration.Kind() switch
@@ -137,38 +148,143 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
         };
 
-        var glyph = Microsoft.CodeAnalysis.GlyphExtensions.GetGlyph(kind, accessibility);
-        items.Add(new(name, glyph, typeDeclaration));
+        var glyph = GlyphExtensions.GetGlyph(kind, accessibility);
+        items.Add(new(nameBuilder.ToString(), glyph, typeDeclaration));
     }
 
-    private static string BuildText<TArguments>(
-        string baseName,
+    private static void AppendCommaSeparatedList<TArgumentList, TArgument>(
+        StringBuilder builder,
         string openBrace,
         string closeBrace,
-        TArguments? arguments,
-        Func<TArguments, IEnumerable<string>> getPieces) where TArguments : SyntaxNode
+        TArgumentList? argumentList,
+        Func<TArgumentList, IEnumerable<TArgument>> getArguments,
+        Action<TArgument, StringBuilder> append)
+        where TArgumentList : SyntaxNode
+        where TArgument : SyntaxNode
     {
-        if (arguments is null)
-            return baseName;
+        if (argumentList is null)
+            return;
 
-        return $"{baseName}{openBrace}{string.Join(", ", getPieces(arguments))}{closeBrace}";
+        builder.Append(openBrace);
+        builder.AppendJoinedValues(", ", getArguments(argumentList), append);
+        builder.Append(closeBrace);
     }
 
-    private static string WithTypeParameterList(
-        string baseText,
+    private static void AppendTypeParameterList(
+        StringBuilder builder,
         TypeParameterListSyntax? typeParameterList)
     {
-        return BuildText(
-            baseText, "<", ">", typeParameterList,
-            static typeParameterList => typeParameterList.Parameters.Select(p => p.Identifier.ValueText));
+        AppendCommaSeparatedList(
+            builder, "<", ">", typeParameterList,
+            static typeParameterList => typeParameterList.Parameters,
+            static (parameter, builder) => builder.Append(parameter.Identifier.ValueText));
     }
 
-    private static string WithParameterList(
-        string baseText,
+    private static void AppendParameterList(
+        StringBuilder builder,
         ParameterListSyntax? parameterList)
     {
-        return BuildText(
-            baseText, "(", ")", parameterList,
-            static parameterList => parameterList.Parameters.Select(p => GetDisplayText(p.Type)));
+        AppendCommaSeparatedList(
+            builder, "(", ")", parameterList,
+            static parameterList => parameterList.Parameters,
+            static (parameter, builder) => BuildDisplayText(builder, parameter.Type));
+    }
+
+    private static string GetDisplayText(TypeSyntax? type)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+        BuildDisplayText(builder, type);
+        return builder.ToString();
+    }
+
+    private static void BuildDisplayText(StringBuilder builder, TypeSyntax? type)
+    {
+        if (type is null)
+            return;
+
+        if (type is ArrayTypeSyntax arrayType)
+        {
+            BuildDisplayText(builder, arrayType.ElementType);
+            builder.Append('[');
+            builder.Append(',', arrayType.RankSpecifiers.Count);
+            builder.Append(']');
+        }
+        else if (type is PointerTypeSyntax pointerType)
+        {
+            BuildDisplayText(builder, pointerType.ElementType);
+            builder.Append('*');
+        }
+        else if (type is NullableTypeSyntax nullableType)
+        {
+            BuildDisplayText(builder, nullableType.ElementType);
+            builder.Append('?');
+        }
+        else if (type is TupleTypeSyntax tupleType)
+        {
+            builder.Append('(');
+            builder.AppendJoinedValues(", ", tupleType.Elements, static (tupleElement, builder) => BuildDisplayText(builder, tupleElement));
+            builder.Append(')');
+        }
+        else if (type is RefTypeSyntax refType)
+        {
+            builder.Append("ref ");
+            BuildDisplayText(builder, refType.Type);
+        }
+        else if (type is ScopedTypeSyntax scopedType)
+        {
+            builder.Append("scoped ");
+            BuildDisplayText(builder, scopedType.Type);
+        }
+        else if (type is PredefinedTypeSyntax predefinedType)
+        {
+            builder.Append(predefinedType.ToString());
+        }
+        else if (type is FunctionPointerTypeSyntax functionPointerType)
+        {
+            builder.Append("delegate");
+            builder.Append("*(");
+            builder.AppendJoinedValues(
+                ", ", functionPointerType.ParameterList.Parameters,
+                static (parameter, builder) => BuildDisplayText(builder, parameter.Type));
+            builder.Append(')');
+        }
+        else if (type is OmittedTypeArgumentSyntax)
+        {
+            // nothing to do here.
+        }
+        else if (type is QualifiedNameSyntax qualifiedName)
+        {
+            BuildDisplayText(builder, qualifiedName.Right);
+        }
+        else if (type is AliasQualifiedNameSyntax aliasQualifiedName)
+        {
+            BuildDisplayText(builder, aliasQualifiedName.Name);
+        }
+        else if (type is IdentifierNameSyntax identifierName)
+        {
+            builder.Append(identifierName.Identifier.ValueText);
+        }
+        else if (type is GenericNameSyntax genericName)
+        {
+            builder.Append(genericName.Identifier.ValueText);
+            builder.Append('<');
+            builder.AppendJoinedValues(
+                ", ", genericName.TypeArgumentList.Arguments, static (type, builder) => BuildDisplayText(builder, type));
+            builder.Append('>');
+        }
+        else
+        {
+            Debug.Fail("Unhandled type: " + type.GetType().FullName);
+        }
+    }
+
+    private static void BuildDisplayText(StringBuilder builder, TupleElementSyntax tupleElement)
+    {
+        BuildDisplayText(builder, tupleElement.Type);
+        if (tupleElement.Identifier != default)
+        {
+            builder.Append(' ');
+            builder.Append(tupleElement.Identifier.ValueText);
+        }
     }
 }
