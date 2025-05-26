@@ -35,7 +35,7 @@ internal static class RoslynGraphProperties
     /// <summary>
     /// A graph property to hold the label we have generated for the node.
     /// </summary>
-    public static readonly GraphProperty Label;
+    // public static readonly GraphProperty Label;
 
     ///// <summary>
     ///// A graph property to hold the formatted label we have generated for the node.
@@ -113,10 +113,10 @@ internal static class RoslynGraphProperties
             dataType: typeof(DocumentId),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
-        Label = Schema.Properties.AddNewProperty(
-            id: "Label",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
+        //Label = Schema.Properties.AddNewProperty(
+        //    id: "Label",
+        //    dataType: typeof(string),
+        //    callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         //FormattedLabelWithoutContainingSymbol = Schema.Properties.AddNewProperty(
         //    id: "FormattedLabelWithoutContainingSymbol",
