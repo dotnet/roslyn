@@ -28,9 +28,6 @@ using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.CodeAnalysis.Editor.Wpf;
-using System.Linq;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 
@@ -48,8 +45,10 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     private readonly ConcurrentSet<WeakReference<SymbolTreeItemCollectionSource>> _weakCollectionSources = [];
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
-    private readonly CancellationSeries _cancellationSeries;
     private readonly IAsynchronousOperationListener _listener;
+
+
+    private readonly CancellationSeries _navigationCancellationSeries;
 
     // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
 
@@ -66,7 +65,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     {
         _threadingContext = threadingContext;
         _workspace = workspace;
-        _cancellationSeries = new(_threadingContext.DisposalToken);
+        _navigationCancellationSeries = new(_threadingContext.DisposalToken);
         _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
 
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
@@ -88,7 +87,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     public void NavigateTo(SymbolTreeItem item, bool preview)
     {
         // Cancel any in flight navigation and kick off a new one.
-        var cancellationToken = _cancellationSeries.CreateNext();
+        var cancellationToken = _navigationCancellationSeries.CreateNext();
         var navigationService = _workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         var token = _listener.BeginAsyncOperation(nameof(NavigateTo));
@@ -274,35 +273,4 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     //    }
     //}
 
-}
-
-internal sealed class SymbolTreeItem(
-    string name,
-    Glyph glyph,
-    SyntaxNode syntaxNode)
-    : BaseItem(name, canPreview: true),
-    IInvocationController
-{
-    public SymbolTreeItemSourceProvider Provider = null!;
-    public DocumentId DocumentId = null!;
-
-    public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
-
-    public readonly SyntaxNode SyntaxNode = syntaxNode;
-
-    public override IInvocationController? InvocationController => this;
-
-    public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
-    {
-        if (items.FirstOrDefault() is not SymbolTreeItem item)
-            return false;
-
-        Provider.NavigateTo(item, preview);
-        return true;
-    }
-}
-
-internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
-{
-    Task<ImmutableArray<SymbolTreeItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
 }
