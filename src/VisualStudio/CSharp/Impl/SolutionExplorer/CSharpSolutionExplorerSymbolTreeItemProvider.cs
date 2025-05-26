@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -138,7 +139,31 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             case OperatorDeclarationSyntax operatorDeclaration:
                 AddOperatorDeclaration(operatorDeclaration, items);
                 return;
+
+            case ConversionOperatorDeclarationSyntax conversionOperatorDeclaration:
+                AddConversionOperatorDeclaration(conversionOperatorDeclaration, items);
+                return;
         }
+    }
+
+    private static void AddConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItem> items)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append(operatorDeclaration.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
+            ? "implicit operator "
+            : "explicit operator ");
+        AppendType(operatorDeclaration.Type, nameBuilder);
+        AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
+
+        var accessibility = GetAccessibility(operatorDeclaration, operatorDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToString(),
+            glyph,
+            operatorDeclaration,
+            hasItems: false));
     }
 
     private static void AddOperatorDeclaration(
