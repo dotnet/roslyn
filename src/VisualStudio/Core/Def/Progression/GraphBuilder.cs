@@ -148,38 +148,38 @@ internal sealed partial class GraphBuilder
         }
     }
 
-    public Project GetContextProject(GraphNode node, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            _nodeToContextProjectMap.TryGetValue(node, out var project);
-            return project;
-        }
-    }
+    //public Project GetContextProject(GraphNode node, CancellationToken cancellationToken)
+    //{
+    //    using (_gate.DisposableWait(cancellationToken))
+    //    {
+    //        _nodeToContextProjectMap.TryGetValue(node, out var project);
+    //        return project;
+    //    }
+    //}
 
-    public ProjectId GetContextProjectId(Project project, ISymbol symbol)
-    {
-        var thisProject = project.Solution.GetProject(symbol.ContainingAssembly) ?? project;
-        return thisProject.Id;
-    }
+    //public ProjectId GetContextProjectId(Project project, ISymbol symbol)
+    //{
+    //    var thisProject = project.Solution.GetProject(symbol.ContainingAssembly) ?? project;
+    //    return thisProject.Id;
+    //}
 
-    public Document GetContextDocument(GraphNode node, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            _nodeToContextDocumentMap.TryGetValue(node, out var document);
-            return document;
-        }
-    }
+    //public Document GetContextDocument(GraphNode node, CancellationToken cancellationToken)
+    //{
+    //    using (_gate.DisposableWait(cancellationToken))
+    //    {
+    //        _nodeToContextDocumentMap.TryGetValue(node, out var document);
+    //        return document;
+    //    }
+    //}
 
-    public ISymbol GetSymbol(GraphNode node, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            _nodeToSymbolMap.TryGetValue(node, out var symbol);
-            return symbol;
-        }
-    }
+    //public ISymbol GetSymbol(GraphNode node, CancellationToken cancellationToken)
+    //{
+    //    using (_gate.DisposableWait(cancellationToken))
+    //    {
+    //        _nodeToSymbolMap.TryGetValue(node, out var symbol);
+    //        return symbol;
+    //    }
+    //}
 
     //public Task<GraphNode> AddNodeAsync(ISymbol symbol, GraphNode relatedNode, CancellationToken cancellationToken)
     //{
@@ -835,13 +835,13 @@ internal sealed partial class GraphBuilder
         }
     }
 
-    public void AddDeferredPropertySet(GraphNode node, GraphProperty property, object value, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            _deferredPropertySets.Add(Tuple.Create(node, property, value));
-        }
-    }
+    //public void AddDeferredPropertySet(GraphNode node, GraphProperty property, object value, CancellationToken cancellationToken)
+    //{
+    //    using (_gate.DisposableWait(cancellationToken))
+    //    {
+    //        _deferredPropertySets.Add(Tuple.Create(node, property, value));
+    //    }
+    //}
 
     public Graph Graph { get; } = new();
 
