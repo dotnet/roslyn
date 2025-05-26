@@ -47,7 +47,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly IAsynchronousOperationListener _listener;
 
-
     private readonly CancellationSeries _navigationCancellationSeries;
 
     // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
@@ -137,9 +136,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
                 }
             }).ConfigureAwait(false);
     }
-
-    //private IHierarchyItemToProjectIdMap? TryGetProjectMap()
-    //    => _projectMap ??= _workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
 
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
@@ -259,18 +255,4 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             return _documentId;
         }
     }
-
-    //private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
-    //{
-    //    if (hierarchy.GetProperty(itemId, (int)__VSHPROPID7.VSHPROPID_ProjectTreeCapabilities, out var capabilitiesObj) == VSConstants.S_OK)
-    //    {
-    //        var capabilitiesString = (string)capabilitiesObj;
-    //        return ImmutableArray.Create(capabilitiesString.Split(' '));
-    //    }
-    //    else
-    //    {
-    //        return [];
-    //    }
-    //}
-
 }
