@@ -33,7 +33,7 @@ internal sealed partial class SearchGraphQuery
         }
 
         public void ReportProgress(int current, int maximum)
-            => _context.ReportProgress(current, maximum, null);
+            => _context.ReportProgress(current, maximum, message: null);
 
         public void ReportIncomplete()
         {
