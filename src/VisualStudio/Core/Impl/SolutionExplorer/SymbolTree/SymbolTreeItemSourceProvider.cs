@@ -34,10 +34,10 @@ using Microsoft.Internal.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
 [Export(typeof(IAttachedCollectionSourceProvider))]
-[Name(nameof(SymbolTreeItemSourceProvider))]
+[Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly IThreadingContext _threadingContext;
     private readonly Workspace _workspace;
@@ -56,7 +56,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     [ImportingConstructor]
-    public SymbolTreeItemSourceProvider(
+    public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider
@@ -180,11 +180,11 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     }
 
     private sealed class SymbolTreeItemCollectionSource(
-        SymbolTreeItemSourceProvider provider,
+        RootSymbolTreeItemSourceProvider provider,
         IVsHierarchyItem hierarchyItem)
         : IAttachedCollectionSource
     {
-        private readonly SymbolTreeItemSourceProvider _provider = provider;
+        private readonly RootSymbolTreeItemSourceProvider _provider = provider;
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
 
         private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems = [];

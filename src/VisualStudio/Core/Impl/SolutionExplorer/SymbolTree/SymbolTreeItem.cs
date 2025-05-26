@@ -19,7 +19,7 @@ internal sealed class SymbolTreeItem(
     : BaseItem(name, canPreview: true),
     IInvocationController
 {
-    public SymbolTreeItemSourceProvider Provider = null!;
+    public RootSymbolTreeItemSourceProvider Provider = null!;
     public DocumentId DocumentId = null!;
 
     public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
