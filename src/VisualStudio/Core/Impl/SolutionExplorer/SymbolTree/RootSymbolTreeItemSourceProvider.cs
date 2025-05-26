@@ -28,56 +28,9 @@ using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
-
-internal abstract class AbstractSymbolTreeItemSourceProvider<TItem> : AttachedCollectionSourceProvider<TItem>
-{
-    protected readonly IThreadingContext ThreadingContext;
-    protected readonly Workspace Workspace;
-
-    protected readonly IAsynchronousOperationListener Listener;
-
-    private readonly CancellationSeries _navigationCancellationSeries;
-
-    // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-
-    // private IHierarchyItemToProjectIdMap? _projectMap;
-
-    protected AbstractSymbolTreeItemSourceProvider(
-        IThreadingContext threadingContext,
-        VisualStudioWorkspace workspace,
-        IAsynchronousOperationListenerProvider listenerProvider
-    /*,
-[Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler*/)
-    {
-        ThreadingContext = threadingContext;
-        Workspace = workspace;
-        _navigationCancellationSeries = new(ThreadingContext.DisposalToken);
-        Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
-    }
-
-    public void NavigateTo(SymbolTreeItem item, bool preview)
-    {
-        // Cancel any in flight navigation and kick off a new one.
-        var cancellationToken = _navigationCancellationSeries.CreateNext();
-        var navigationService = Workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-        var token = Listener.BeginAsyncOperation(nameof(NavigateTo));
-        navigationService.TryNavigateToPositionAsync(
-            ThreadingContext,
-            Workspace,
-            item.DocumentId,
-            item.SyntaxNode.SpanStart,
-            virtualSpace: 0,
-            // May be calling this on stale data.  Allow the position to be invalid
-            allowInvalidPosition: true,
-            new NavigationOptions(PreferProvisionalTab: preview),
-            cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).CompletesAsyncOperation(token);
-    }
-}
 
 [Export(typeof(IAttachedCollectionSourceProvider))]
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
@@ -248,7 +201,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
             var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
             foreach (var item in items)
             {
-                item.Provider = _provider;
+                item.SourceProvider = _provider;
+                item.ItemProvider = service;
                 item.DocumentId = document.Id;
             }
 
@@ -266,148 +220,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
             if (_documentId == null)
             {
                 var idMap = _provider.Workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-                idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
-            }
-
-            return _documentId;
-        }
-    }
-}
-
-
-
-[Export(typeof(IAttachedCollectionSourceProvider))]
-[Name(nameof(NonRootSymbolTreeItemSourceProvider))]
-[Order(Before = HierarchyItemsProviderNames.Contains)]
-[AppliesToProject("CSharp | VB")]
-internal sealed class NonRootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<SymbolTreeItem>
-{
-    private readonly IThreadingContext _threadingContext;
-    private readonly Workspace _workspace;
-
-    private readonly ConcurrentSet<WeakReference<SymbolTreeItemCollectionSource>> _weakCollectionSources = [];
-
-    // private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
-    private readonly IAsynchronousOperationListener _listener;
-
-    private readonly CancellationSeries _navigationCancellationSeries;
-
-    // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-
-    // private IHierarchyItemToProjectIdMap? _projectMap;
-
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    [ImportingConstructor]
-    public NonRootSymbolTreeItemSourceProvider(
-        IThreadingContext threadingContext,
-        VisualStudioWorkspace workspace,
-        IAsynchronousOperationListenerProvider listenerProvider
-    /*,
-[Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler*/)
-    {
-        _threadingContext = threadingContext;
-        _workspace = workspace;
-        _navigationCancellationSeries = new(_threadingContext.DisposalToken);
-        _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
-
-        //_updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
-        //    DelayTimeSpan.Medium,
-        //    UpdateCollectionSourcesAsync,
-        //    EqualityComparer<DocumentId>.Default,
-        //    _listener,
-        //    _threadingContext.DisposalToken);
-
-        //_workspace.RegisterWorkspaceChangedHandler(
-        //    e =>
-        //    {
-        //        if (e is { Kind: WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.DocumentAdded, DocumentId: not null })
-        //            _updateSourcesQueue.AddWork(e.DocumentId);
-        //    },
-        //    options: new WorkspaceEventOptions(RequiresMainThread: false));
-    }
-
-    protected override IAttachedCollectionSource? CreateCollectionSource(SymbolTreeItem item, string relationshipName)
-    {
-        if (relationshipName != KnownRelationships.Contains)
-            return null;
-
-        return null;
-    }
-
-    private sealed class SymbolTreeItemCollectionSource(
-        RootSymbolTreeItemSourceProvider provider,
-        IVsHierarchyItem hierarchyItem)
-        : IAttachedCollectionSource
-    {
-        private readonly RootSymbolTreeItemSourceProvider _provider = provider;
-        private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
-
-        private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems = [];
-
-        private DocumentId? _documentId;
-
-        public object SourceItem => _hierarchyItem;
-        public bool HasItems => true;
-        public IEnumerable Items => _symbolTreeItems;
-
-        internal async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
-        {
-            var documentId = DetermineDocumentId();
-
-            // If we successfully handle this request, we're done.
-            if (await TryUpdateItemsAsync(updateSet, documentId, cancellationToken).ConfigureAwait(false))
-                return;
-
-            // If we failed for any reason, clear out all our items.
-            using (_symbolTreeItems.GetBulkOperation())
-                _symbolTreeItems.Clear();
-        }
-        private async ValueTask<bool> TryUpdateItemsAsync(
-            HashSet<DocumentId> updateSet, DocumentId? documentId, CancellationToken cancellationToken)
-        {
-            if (documentId is null)
-                return false;
-
-            if (!updateSet.Contains(documentId))
-            {
-                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
-                // to update a different document than our own.  So we can just ignore this.
-                return true;
-            }
-
-            var solution = _provider.Workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-
-            // If we can't find this document anymore, clear everything out.
-            if (document is null)
-                return false;
-
-            var service = document.Project.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
-            if (service is null)
-                return false;
-
-            var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            foreach (var item in items)
-            {
-                item.Provider = _provider;
-                item.DocumentId = document.Id;
-            }
-
-            using (_symbolTreeItems.GetBulkOperation())
-            {
-                _symbolTreeItems.Clear();
-                _symbolTreeItems.AddRange(items);
-            }
-
-            return true;
-        }
-
-        private DocumentId? DetermineDocumentId()
-        {
-            if (_documentId == null)
-            {
-                var idMap = _provider._workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
                 idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
             }
 

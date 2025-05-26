@@ -19,8 +19,9 @@ internal sealed class SymbolTreeItem(
     : BaseItem(name, canPreview: true),
     IInvocationController
 {
-    public RootSymbolTreeItemSourceProvider Provider = null!;
+    public RootSymbolTreeItemSourceProvider SourceProvider = null!;
     public DocumentId DocumentId = null!;
+    public ISolutionExplorerSymbolTreeItemProvider ItemProvider = null!;
 
     public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
 
@@ -33,7 +34,7 @@ internal sealed class SymbolTreeItem(
         if (items.FirstOrDefault() is not SymbolTreeItem item)
             return false;
 
-        Provider.NavigateTo(item, preview);
+        SourceProvider.NavigateTo(item, preview);
         return true;
     }
 }
