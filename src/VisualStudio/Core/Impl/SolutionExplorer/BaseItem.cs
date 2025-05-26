@@ -35,9 +35,10 @@ internal abstract class BaseItem :
 
     protected readonly string Name;
 
-    public BaseItem(string name)
+    public BaseItem(string name, bool canPreview = false)
     {
         Name = name;
+        CanPreview = canPreview;
     }
 
     public IEnumerable<string> Children => [];
@@ -103,7 +104,7 @@ internal abstract class BaseItem :
         return null;
     }
 
-    public bool CanPreview => false;
+    public bool CanPreview { get; }
 
     public virtual IInvocationController? InvocationController => null;
 

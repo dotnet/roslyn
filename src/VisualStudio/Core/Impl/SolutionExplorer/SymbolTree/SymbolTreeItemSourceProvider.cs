@@ -30,6 +30,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.CodeAnalysis.Editor.Wpf;
+using System.Linq;
+using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -45,6 +48,8 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     private readonly ConcurrentSet<WeakReference<SymbolTreeItemCollectionSource>> _weakCollectionSources = [];
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
+    private readonly CancellationSeries _cancellationSeries;
+    private readonly IAsynchronousOperationListener _listener;
 
     // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
 
@@ -61,12 +66,14 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
     {
         _threadingContext = threadingContext;
         _workspace = workspace;
+        _cancellationSeries = new(_threadingContext.DisposalToken);
+        _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
 
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
             DelayTimeSpan.Medium,
             UpdateCollectionSourcesAsync,
             EqualityComparer<DocumentId>.Default,
-            listenerProvider.GetListener(FeatureAttribute.SolutionExplorer),
+            _listener,
             _threadingContext.DisposalToken);
 
         _workspace.RegisterWorkspaceChangedHandler(
@@ -76,6 +83,25 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+    }
+
+    public void NavigateTo(SymbolTreeItem item, bool preview)
+    {
+        // Cancel any in flight navigation and kick off a new one.
+        var cancellationToken = _cancellationSeries.CreateNext();
+        var navigationService = _workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+        var token = _listener.BeginAsyncOperation(nameof(NavigateTo));
+        navigationService.TryNavigateToPositionAsync(
+            _threadingContext,
+            _workspace,
+            item.DocumentId,
+            item.SyntaxNode.SpanStart,
+            virtualSpace: 0,
+            // May be calling this on stale data.  Allow the position to be invalid
+            allowInvalidPosition: true,
+            new NavigationOptions(PreferProvisionalTab: preview),
+            cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).CompletesAsyncOperation(token);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
@@ -208,6 +234,11 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
                 return false;
 
             var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+            foreach (var item in items)
+            {
+                item.Provider = _provider;
+                item.DocumentId = document.Id;
+            }
 
             using (_symbolTreeItems.GetBulkOperation())
             {
@@ -249,11 +280,26 @@ internal sealed class SymbolTreeItem(
     string name,
     Glyph glyph,
     SyntaxNode syntaxNode)
-    : BaseItem(name)
+    : BaseItem(name, canPreview: true),
+    IInvocationController
 {
+    public SymbolTreeItemSourceProvider Provider = null!;
+    public DocumentId DocumentId = null!;
+
     public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
 
     public readonly SyntaxNode SyntaxNode = syntaxNode;
+
+    public override IInvocationController? InvocationController => this;
+
+    public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
+    {
+        if (items.FirstOrDefault() is not SymbolTreeItem item)
+            return false;
+
+        Provider.NavigateTo(item, preview);
+        return true;
+    }
 }
 
 internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
