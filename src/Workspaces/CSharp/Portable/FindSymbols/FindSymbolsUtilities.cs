@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols;
 
@@ -55,5 +57,18 @@ internal static class FindSymbolsUtilities
                 // Otherwise it's internal
                 return Accessibility.Internal;
         }
+    }
+
+    public static DeclaredSymbolInfoKind GetDeclaredSymbolInfoKind(TypeDeclarationSyntax typeDeclaration)
+    {
+        return typeDeclaration.Kind() switch
+        {
+            SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
+            SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
+            SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
+            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
+            _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
+        };
     }
 }

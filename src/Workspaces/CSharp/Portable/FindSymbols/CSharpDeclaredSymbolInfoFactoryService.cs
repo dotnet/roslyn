@@ -234,15 +234,7 @@ internal sealed class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredS
             fullyQualifiedContainerName,
             typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
             typeDeclaration.AttributeLists.Any(),
-            typeDeclaration.Kind() switch
-            {
-                SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-                SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-                SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-                SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
-            },
+            GetDeclaredSymbolInfoKind(typeDeclaration),
             GetAccessibility(container, typeDeclaration.Modifiers),
             typeDeclaration.Identifier.Span,
             GetInheritanceNames(stringTable, typeDeclaration.BaseList),

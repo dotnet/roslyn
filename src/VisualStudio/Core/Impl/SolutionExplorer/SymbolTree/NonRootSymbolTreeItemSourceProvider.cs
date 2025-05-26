@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -49,65 +50,45 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
         if (relationshipName != KnownRelationships.Contains)
             return null;
 
-        return new NonRootSymbolTreeItemCollectionSource;
+        return new NonRootSymbolTreeItemCollectionSource(item);
     }
 
     private sealed class NonRootSymbolTreeItemCollectionSource(
-        NonRootSymbolTreeItemSourceProvider provider,
         SymbolTreeItem symbolTreeItem)
         : IAttachedCollectionSource, ISupportExpansionEvents
     {
-        private readonly NonRootSymbolTreeItemSourceProvider _provider = provider;
         private readonly SymbolTreeItem _symbolTreeItem = symbolTreeItem;
 
-        private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems = [];
+        private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
+
+        private int _expanded = 0;
 
         public object SourceItem => _symbolTreeItem;
         public bool HasItems => _symbolTreeItem.HasItems;
-        public IEnumerable Items => _symbolTreeItem.GetItems();
+        public IEnumerable Items => _symbolTreeItems;
 
-        internal async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
+        public void BeforeExpand()
         {
-            var documentId = DetermineDocumentId();
-
-            // If we successfully handle this request, we're done.
-            if (await TryUpdateItemsAsync(updateSet, documentId, cancellationToken).ConfigureAwait(false))
-                return;
-
-            // If we failed for any reason, clear out all our items.
-            using (_symbolTreeItems.GetBulkOperation())
-                _symbolTreeItems.Clear();
-        }
-        private async ValueTask<bool> TryUpdateItemsAsync(
-            HashSet<DocumentId> updateSet, DocumentId? documentId, CancellationToken cancellationToken)
-        {
-            if (documentId is null)
-                return false;
-
-            if (!updateSet.Contains(documentId))
+            if (Interlocked.CompareExchange(ref _expanded, 1, 0) == 0)
             {
-                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
-                // to update a different document than our own.  So we can just ignore this.
-                return true;
+                var provider = _symbolTreeItem.SourceProvider;
+                var token = provider.Listener.BeginAsyncOperation(nameof(BeforeExpand));
+                var cancellationToken = provider.ThreadingContext.DisposalToken;
+                BeforeExpandAsync(cancellationToken)
+                    .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
+                    .CompletesAsyncOperation(token);
             }
+        }
 
-            var solution = _provider.Workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-
-            // If we can't find this document anymore, clear everything out.
-            if (document is null)
-                return false;
-
-            var service = document.Project.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
-            if (service is null)
-                return false;
-
-            var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+        private async Task BeforeExpandAsync(CancellationToken cancellationToken)
+        {
+            var items = await _symbolTreeItem.ItemProvider.GetItemsAsync(
+                _symbolTreeItem, cancellationToken).ConfigureAwait(false);
             foreach (var item in items)
             {
-                item.Provider = _provider;
-                item.DocumentId = document.Id;
+                item.SourceProvider = _symbolTreeItem.SourceProvider;
+                item.ItemProvider = _symbolTreeItem.ItemProvider;
+                item.DocumentId = _symbolTreeItem.DocumentId;
             }
 
             using (_symbolTreeItems.GetBulkOperation())
@@ -116,18 +97,12 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
                 _symbolTreeItems.AddRange(items);
             }
 
-            return true;
+            _symbolTreeItems.MarkAsInitialized();
         }
 
-        private DocumentId? DetermineDocumentId()
+        public void AfterCollapse()
         {
-            if (_documentId == null)
-            {
-                var idMap = _provider._workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-                idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
-            }
-
-            return _documentId;
+            // No op
         }
     }
 }

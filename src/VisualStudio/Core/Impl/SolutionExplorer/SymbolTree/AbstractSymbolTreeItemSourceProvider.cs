@@ -14,10 +14,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
 internal abstract class AbstractSymbolTreeItemSourceProvider<TItem> : AttachedCollectionSourceProvider<TItem>
 {
-    protected readonly IThreadingContext ThreadingContext;
+    public readonly IThreadingContext ThreadingContext;
     protected readonly Workspace Workspace;
 
-    protected readonly IAsynchronousOperationListener Listener;
+    public readonly IAsynchronousOperationListener Listener;
 
     private static readonly CancellationSeries s_navigationCancellationSeries = new();
 

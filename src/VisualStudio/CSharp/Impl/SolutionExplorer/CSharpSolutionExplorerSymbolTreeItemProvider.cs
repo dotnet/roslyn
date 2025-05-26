@@ -7,12 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -48,8 +46,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
             if (member is BaseNamespaceDeclarationSyntax baseNamespace)
                 AddTopLevelTypes(baseNamespace, items, cancellationToken);
-            else if (member is BaseTypeDeclarationSyntax baseType)
-                AddType(baseType, items, cancellationToken);
+            else
+                TryAddType(member, items, cancellationToken);
         }
     }
 
@@ -61,33 +59,109 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
             if (member is BaseNamespaceDeclarationSyntax childNamespace)
                 AddTopLevelTypes(childNamespace, items, cancellationToken);
-            else if (member is BaseTypeDeclarationSyntax baseType)
-                AddType(baseType, items, cancellationToken);
-            else if (member is DelegateDeclarationSyntax delegateType)
-                AddType(delegateType, items, cancellationToken);
+            else
+                TryAddType(member, items, cancellationToken);
         }
     }
 
-    private static void AddType(MemberDeclarationSyntax baseType, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    private static bool TryAddType(MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        switch (baseType)
+        switch (member)
         {
             case ExtensionBlockDeclarationSyntax extensionBlock:
                 AddExtensionBlock(extensionBlock, items);
-                return;
+                return true;
 
             case TypeDeclarationSyntax typeDeclaration:
                 AddTypeDeclaration(typeDeclaration, items);
-                return;
+                return true;
 
             case EnumDeclarationSyntax enumDeclaration:
                 AddEnumDeclaration(enumDeclaration, items);
-                return;
+                return true;
 
             case DelegateDeclarationSyntax delegateDeclaration:
                 AddDelegateDeclaration(delegateDeclaration, items);
+                return true;
+        }
+
+        return false;
+    }
+
+    public ImmutableArray<SymbolTreeItem> GetItems(SymbolTreeItem item, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SymbolTreeItem>.GetInstance(out var items);
+
+        var memberDeclaration = (MemberDeclarationSyntax)item.SyntaxNode;
+        switch (memberDeclaration)
+        {
+            case EnumDeclarationSyntax enumDeclaration:
+                AddEnumDeclarationMembers(enumDeclaration, items, cancellationToken);
+                break;
+
+            case TypeDeclarationSyntax typeDeclaration:
+                AddTypeDeclarationMembers(typeDeclaration, items, cancellationToken);
+                break;
+        }
+
+        return items.ToImmutableAndClear();
+    }
+
+    private void AddTypeDeclarationMembers(TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    {
+        foreach (var member in typeDeclaration.Members)
+        {
+            if (TryAddType(member, items, cancellationToken))
+                continue;
+
+            AddMemberDeclaration(member, items, cancellationToken);
+        }
+    }
+
+    private void AddMemberDeclaration(MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    {
+        switch (member)
+        {
+            case FieldDeclarationSyntax fieldDeclaration:
+                AddFieldDeclaration(fieldDeclaration, items, cancellationToken);
                 return;
+        }
+    }
+
+    private static void AddFieldDeclaration(FieldDeclarationSyntax fieldDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        foreach (var variable in fieldDeclaration.Declaration.Variables)
+        {
+            nameBuilder.Clear();
+
+            nameBuilder.Append(variable.Identifier.ValueText);
+            nameBuilder.Append(" : ");
+            AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
+
+            var accessibility = GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Field, accessibility);
+
+            items.Add(new(
+                nameBuilder.ToString(),
+                glyph,
+                variable,
+                hasItems: false));
+        }
+    }
+
+    private static void AddEnumDeclarationMembers(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItem> items, CancellationToken cancellationToken)
+    {
+        foreach (var member in enumDeclaration.Members)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            items.Add(new(
+                member.Identifier.ValueText,
+                Glyph.EnumMemberPublic,
+                member,
+                hasItems: false));
         }
     }
 
@@ -99,7 +173,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         items.Add(new(
             enumDeclaration.Identifier.ValueText,
             glyph,
-            enumDeclaration));
+            enumDeclaration,
+            hasItems: enumDeclaration.Members.Count > 0));
     }
 
     private static void AddExtensionBlock(
@@ -115,7 +190,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         items.Add(new(
             nameBuilder.ToString(),
             Glyph.ClassPublic,
-            extensionBlock));
+            extensionBlock,
+            hasItems: extensionBlock.Members.Count > 0));
     }
 
     private static void AddDelegateDeclaration(
@@ -137,7 +213,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         items.Add(new(
             nameBuilder.ToString(),
             glyph,
-            delegateDeclaration));
+            delegateDeclaration,
+            hasItems: false));
     }
 
     private static void AddTypeDeclaration(
@@ -149,22 +226,14 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         nameBuilder.Append(typeDeclaration.Identifier.ValueText);
         AppendTypeParameterList(nameBuilder, typeDeclaration.TypeParameterList);
 
-        var accessibility = GetAccessibility(typeDeclaration, typeDeclaration.Modifiers);
-        var kind = typeDeclaration.Kind() switch
-        {
-            SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-            SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
-            SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
-            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
-            SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
-            _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.Kind()),
-        };
-
-        var glyph = GlyphExtensions.GetGlyph(kind, accessibility);
+        var glyph = GlyphExtensions.GetGlyph(
+            GetDeclaredSymbolInfoKind(typeDeclaration),
+            GetAccessibility(typeDeclaration, typeDeclaration.Modifiers));
         items.Add(new(
             nameBuilder.ToString(),
             glyph,
-            typeDeclaration));
+            typeDeclaration,
+            hasItems: typeDeclaration.Members.Count > 0));
     }
 
     private static void AppendCommaSeparatedList<TArgumentList, TArgument>(
