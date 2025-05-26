@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -234,35 +231,6 @@ internal sealed class SourceGeneratedFileItemSource(
 
                     return UpdateSourceGeneratedFileItemsAsync(_workspace.CurrentSolution, cancellationToken);
                 }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap().CompletesAsyncOperation(asyncToken);
-            }
-        }
-    }
-
-    /// <summary>
-    /// This derivation of <see cref="ObservableCollection{T}"/> also supports raising an initialized event through
-    /// <see cref="ISupportInitializeNotification"/>. This is used to show the spinning icon in the solution explorer
-    /// the first time you expand it.
-    /// </summary>
-    private sealed class BulkObservableCollectionWithInit<T> : BulkObservableCollection<T>, ISupportInitializeNotification
-    {
-        public bool IsInitialized { get; private set; } = false;
-
-        public event EventHandler? Initialized;
-
-        void ISupportInitialize.BeginInit()
-        {
-        }
-
-        void ISupportInitialize.EndInit()
-        {
-        }
-
-        public void MarkAsInitialized()
-        {
-            if (!IsInitialized)
-            {
-                IsInitialized = true;
-                Initialized?.Invoke(this, EventArgs.Empty);
             }
         }
     }

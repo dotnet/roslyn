@@ -15,7 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 internal sealed class SymbolTreeItem(
     string name,
     Glyph glyph,
-    SyntaxNode syntaxNode)
+    SyntaxNode syntaxNode,
+    bool hasItems)
     : BaseItem(name, canPreview: true),
     IInvocationController
 {
@@ -26,6 +27,7 @@ internal sealed class SymbolTreeItem(
     public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
 
     public readonly SyntaxNode SyntaxNode = syntaxNode;
+    public readonly bool HasItems = hasItems;
 
     public override IInvocationController? InvocationController => this;
 

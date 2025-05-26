@@ -49,24 +49,22 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
         if (relationshipName != KnownRelationships.Contains)
             return null;
 
-        return null;
+        return new NonRootSymbolTreeItemCollectionSource;
     }
 
-    private sealed class SymbolTreeItemCollectionSource(
-        RootSymbolTreeItemSourceProvider provider,
+    private sealed class NonRootSymbolTreeItemCollectionSource(
+        NonRootSymbolTreeItemSourceProvider provider,
         SymbolTreeItem symbolTreeItem)
-        : IAttachedCollectionSource
+        : IAttachedCollectionSource, ISupportExpansionEvents
     {
-        private readonly RootSymbolTreeItemSourceProvider _provider = provider;
-        private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
+        private readonly NonRootSymbolTreeItemSourceProvider _provider = provider;
+        private readonly SymbolTreeItem _symbolTreeItem = symbolTreeItem;
 
         private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems = [];
 
-        private DocumentId? _documentId;
-
-        public object SourceItem => _hierarchyItem;
-        public bool HasItems => true;
-        public IEnumerable Items => _symbolTreeItems;
+        public object SourceItem => _symbolTreeItem;
+        public bool HasItems => _symbolTreeItem.HasItems;
+        public IEnumerable Items => _symbolTreeItem.GetItems();
 
         internal async Task UpdateIfAffectedAsync(
             HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
