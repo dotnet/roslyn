@@ -160,7 +160,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
         private readonly SymbolTreeItemSourceProvider _provider = provider;
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
 
-        private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems;
+        private readonly BulkObservableCollection<SymbolTreeItem> _symbolTreeItems = [];
 
         private DocumentId? _documentId;
 
@@ -174,7 +174,7 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
             var documentId = DetermineDocumentId();
 
             // If we successfully handle this request, we're done.
-            if (await TryUpdateItemsAsync(updateSet, documentId).ConfigureAwait(false))
+            if (await TryUpdateItemsAsync(updateSet, documentId, cancellationToken).ConfigureAwait(false))
                 return;
 
             // If we failed for any reason, clear out all our items.
@@ -206,6 +206,14 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
                 return false;
 
             var items = await service.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+
+            using (_symbolTreeItems.GetBulkOperation())
+            {
+                _symbolTreeItems.Clear();
+                _symbolTreeItems.AddRange(items);
+            }
+
+            return true;
         }
 
         private DocumentId? DetermineDocumentId()
@@ -218,11 +226,6 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
             return _documentId;
         }
-    }
-
-    private sealed class SymbolTreeItem() : BaseItem(nameof(SymbolTreeItem))
-    {
-
     }
 
     //private static ImmutableArray<string> GetProjectTreeCapabilities(IVsHierarchy hierarchy, uint itemId)
@@ -240,7 +243,12 @@ internal sealed class SymbolTreeItemSourceProvider : AttachedCollectionSourcePro
 
 }
 
-internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
+internal sealed class SymbolTreeItem() : BaseItem(nameof(SymbolTreeItem))
 {
 
+}
+
+internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
+{
+    Task<ImmutableArray<SymbolTreeItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
 }
