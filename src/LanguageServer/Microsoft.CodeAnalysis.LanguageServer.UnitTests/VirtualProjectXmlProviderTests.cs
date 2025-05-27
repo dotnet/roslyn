@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Uncomment this to test run-api locally.
+// Eventually when a new enough SDK is adopted in-repo we can remove this
+//#define RoslynTestRunApi
+
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -26,11 +30,22 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
     {
     }
 
+    private class EnableRunApiTests : ExecutionCondition
+    {
+        public override bool ShouldSkip =>
+#if RoslynTestRunApi
+            false;
+#else
+            true;
+#endif
+
+        public override string SkipReason => $"Compilation symbol 'RoslynTestRunApi' is not defined.";
+    }
+
     private async Task<VirtualProjectXmlProvider> GetProjectXmlProviderAsync()
     {
-        var (exportProvider, assemblyLoader) = await LanguageServerTestComposition.CreateExportProviderAsync(
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
-
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
     }
 
@@ -46,11 +61,10 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: these tests should be conditioned on availability of an SDK which supports run-api
         globalJsonFile.WriteAllBytes(Encoding.UTF8.GetBytes("""
             {
               "sdk": {
-                "version": "9.0.300"
+                "version": "9.0.105"
               }
             }
             """));
@@ -59,7 +73,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Null(contentNullable);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(EnableRunApiTests))]
     public async Task GetProjectXml_FileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -71,7 +85,6 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             """);
 
         var globalJsonFile = tempDir.CreateFile("global.json");
-        // TODO: these tests should be conditioned on availability of an SDK which supports run-api
         await globalJsonFile.WriteAllTextAsync("""
             {
               "sdk": {
@@ -90,7 +103,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(EnableRunApiTests))]
     public async Task GetProjectXml_NonFileBasedProgram_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -121,7 +134,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Empty(content.Diagnostics);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(EnableRunApiTests))]
     public async Task GetProjectXml_BadPath_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
@@ -141,7 +154,7 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
         Assert.Null(content);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(EnableRunApiTests))]
     public async Task GetProjectXml_BadDirective_01()
     {
         var projectProvider = await GetProjectXmlProviderAsync();
