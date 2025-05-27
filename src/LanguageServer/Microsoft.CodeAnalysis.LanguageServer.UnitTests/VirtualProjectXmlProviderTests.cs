@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,31 @@ public sealed class VirtualProjectXmlProviderTests : AbstractLanguageServerHostT
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, extensionPaths: null);
 
         return exportProvider.GetExportedValue<VirtualProjectXmlProvider>();
+    }
+
+    [Fact]
+    public async Task GetProjectXml_FileBasedProgram_SdkTooOld_01()
+    {
+        var projectProvider = await GetProjectXmlProviderAsync();
+
+        var tempDir = TempRoot.CreateDirectory();
+        var appFile = tempDir.CreateFile("app.cs");
+        await appFile.WriteAllTextAsync("""
+            Console.WriteLine("Hello, world!");
+            """);
+
+        var globalJsonFile = tempDir.CreateFile("global.json");
+        // TODO: these tests should be conditioned on availability of an SDK which supports run-api
+        globalJsonFile.WriteAllBytes(Encoding.UTF8.GetBytes("""
+            {
+              "sdk": {
+                "version": "9.0.300"
+              }
+            }
+            """));
+
+        var contentNullable = await projectProvider.GetVirtualProjectContentAsync(appFile.Path, CancellationToken.None);
+        Assert.Null(contentNullable);
     }
 
     [Fact]

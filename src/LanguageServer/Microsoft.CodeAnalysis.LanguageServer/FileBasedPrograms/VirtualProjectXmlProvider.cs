@@ -40,37 +40,54 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper, ILogge
         await process.StandardInput.WriteAsync(inputJson);
         process.StandardInput.Close();
 
+        // Debug severity is used for these because we think it will be common for the user environment to have too old of an SDK for the call to work.
+        // Rather than representing a hard error condition, it represents a condition where we need to gracefully downgrade the experience.
         process.ErrorDataReceived += (sender, args) => _logger.LogDebug($"dotnet run-api: {args.Data}");
         process.BeginErrorReadLine();
 
         var responseJson = await process.StandardOutput.ReadLineAsync(cancellationToken);
         await process.WaitForExitAsync(cancellationToken);
 
+        if (process.ExitCode != 0)
+        {
+            _logger.LogDebug($"dotnet run-api exited with exit code '{process.ExitCode}'.");
+            return null;
+        }
+
         if (string.IsNullOrWhiteSpace(responseJson))
         {
-            _logger.LogError($"dotnet run-api returned exit code '{process.ExitCode}' but did not return a response.");
+            _logger.LogError($"dotnet run-api exited with exit code, but did not return any response.");
             return null;
         }
 
-        var response = JsonSerializer.Deserialize(responseJson, RunFileApiJsonSerializerContext.Default.RunApiOutput);
-        if (response is RunApiOutput.Error error)
+        try
         {
-            _logger.LogError($"dotnet run-api version: {error.Version}. Latest known version: {RunApiOutput.LatestKnownVersion}");
-            _logger.LogError($"dotnet run-api returned error: '{error.Message}'");
-            return null;
-        }
-
-        if (response is RunApiOutput.Project project)
-        {
-            if (project.Version > RunApiOutput.LatestKnownVersion)
+            var response = JsonSerializer.Deserialize(responseJson, RunFileApiJsonSerializerContext.Default.RunApiOutput);
+            if (response is RunApiOutput.Error error)
             {
-                _logger.LogWarning($"'dotnet run-api' version '{project.Version}' is newer than latest known version {RunApiOutput.LatestKnownVersion}");
+                _logger.LogError($"dotnet run-api version: {error.Version}. Latest known version: {RunApiOutput.LatestKnownVersion}");
+                _logger.LogError($"dotnet run-api returned error: '{error.Message}'");
+                return null;
             }
 
-            return (project.Content, project.Diagnostics);
-        }
+            if (response is RunApiOutput.Project project)
+            {
+                if (project.Version > RunApiOutput.LatestKnownVersion)
+                {
+                    _logger.LogWarning($"'dotnet run-api' version '{project.Version}' is newer than latest known version {RunApiOutput.LatestKnownVersion}");
+                }
 
-        throw ExceptionUtilities.UnexpectedValue(response);
+                return (project.Content, project.Diagnostics);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(response);
+        }
+        catch (JsonException ex)
+        {
+            // In this case, run-api returned 0 exit code, but gave us back JSON that we don't know how to parse.
+            _logger.LogError(ex, "Could not deserialize run-api response.");
+            return null;
+        }
     }
 
     /// <summary>
