@@ -161,7 +161,31 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             case PropertyDeclarationSyntax propertyDeclaration:
                 AddPropertyDeclaration(propertyDeclaration, items, nameBuilder);
                 return;
+
+            case EventDeclarationSyntax eventDeclaration:
+                AddEventDeclaration(eventDeclaration, items, nameBuilder);
+                return;
         }
+    }
+
+    private static void AddEventDeclaration(
+        EventDeclarationSyntax eventDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
+    {
+        nameBuilder.Append(eventDeclaration.Identifier.ValueText);
+        nameBuilder.Append(" : ");
+        AppendType(eventDeclaration.Type, nameBuilder);
+
+        var accessibility = GetAccessibility(eventDeclaration, eventDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToStringAndClear(),
+            glyph,
+            hasItems: false,
+            eventDeclaration,
+            eventDeclaration.Identifier));
     }
 
     private static void AddPropertyDeclaration(
