@@ -12,6 +12,7 @@ using System.Linq;
 using System;
 using Microsoft.VisualStudio.Shell;
 using System.Collections;
+using System.ComponentModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -25,32 +26,48 @@ internal readonly record struct SymbolTreeItemSyntax(
     SyntaxToken NavigationToken);
 
 internal readonly record struct SymbolTreeItemData(
-    string Name,
-    Glyph Glyph,
-    bool HasItems,
-    SyntaxNode DeclarationNode,
-    SyntaxToken NavigationToken)
+    SymbolTreeItemKey ItemKey,
+    SymbolTreeItemSyntax ItemSyntax)
 {
-    public SymbolTreeItemKey Key => new(Name, Glyph, HasItems);
+    public SymbolTreeItemData(
+        string name,
+        Glyph glyph,
+        bool hasItems,
+        SyntaxNode declarationNode,
+        SyntaxToken navigationToken)
+        : this(new(name, glyph, hasItems), new(declarationNode, navigationToken))
+    {
+    }
 }
 
-internal sealed class SymbolTreeItem(
-    RootSymbolTreeItemSourceProvider sourceProvider,
-    DocumentId documentId,
-    ISolutionExplorerSymbolTreeItemProvider itemProvider,
-    SymbolTreeItemKey itemKey)
-    : BaseItem(canPreview: true),
+internal sealed class SymbolTreeItem : BaseItem,
     IInvocationController,
     IAttachedCollectionSource,
-    ISupportExpansionEvents
+    ISupportExpansionEvents,
+    INotifyPropertyChanged
 {
-    public readonly RootSymbolTreeItemSourceProvider SourceProvider = sourceProvider;
-    public readonly DocumentId DocumentId = documentId;
-    public readonly ISolutionExplorerSymbolTreeItemProvider ItemProvider = itemProvider;
-    public readonly SymbolTreeItemKey ItemKey = itemKey;
+    public readonly RootSymbolTreeItemSourceProvider SourceProvider;
+    public readonly DocumentId DocumentId;
+    public readonly ISolutionExplorerSymbolTreeItemProvider ItemProvider;
+    public readonly SymbolTreeItemKey ItemKey;
+
+    private readonly SymbolTreeChildCollection _childCollection;
 
     private bool _expanded;
     private SymbolTreeItemSyntax _itemSyntax;
+
+    public SymbolTreeItem(
+        RootSymbolTreeItemSourceProvider sourceProvider,
+        DocumentId documentId,
+        ISolutionExplorerSymbolTreeItemProvider itemProvider,
+        SymbolTreeItemKey itemKey) : base(canPreview: true)
+    {
+        SourceProvider = sourceProvider;
+        DocumentId = documentId;
+        ItemProvider = itemProvider;
+        ItemKey = itemKey;
+        _childCollection = new(this);
+    }
 
     public SymbolTreeItemSyntax ItemSyntax
     {
@@ -63,6 +80,12 @@ internal sealed class SymbolTreeItem(
             // Then when we're expanded the next time, we'll recompute the child items properly.  If we 
             // are already expanded, then recompute our children which will recursively push the change
             // down further.
+            if (_expanded)
+            {
+                var items = this.ItemProvider.GetItems(
+                    value.DeclarationNode, this.SourceProvider.ThreadingContext.DisposalToken);
+                _childCollection.UpdateItems(this.DocumentId, this.ItemProvider, items);
+            }
         }
     }
 
@@ -91,11 +114,18 @@ internal sealed class SymbolTreeItem(
     {
         Contract.ThrowIfFalse(SourceProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
         _expanded = false;
+        _childCollection.Reset();
     }
 
-    object IAttachedCollectionSource.SourceItem => this;
+    object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
 
-    bool IAttachedCollectionSource.HasItems => ;
+    bool IAttachedCollectionSource.HasItems => _childCollection.HasItems;
 
-    IEnumerable IAttachedCollectionSource.Items => throw new NotImplementedException();
+    IEnumerable IAttachedCollectionSource.Items => _childCollection.Items;
+
+    event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+    {
+        add => _childCollection.PropertyChanged += value;
+        remove => _childCollection.PropertyChanged -= value;
+    }
 }

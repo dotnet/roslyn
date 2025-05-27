@@ -13,5 +13,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 internal interface ISolutionExplorerSymbolTreeItemProvider : ILanguageService
 {
     Task<ImmutableArray<SymbolTreeItemData>> GetItemsAsync(Document document, CancellationToken cancellationToken);
-    ImmutableArray<SymbolTreeItemData> GetItems(SymbolTreeItemData item, CancellationToken cancellationToken);
+    ImmutableArray<SymbolTreeItemData> GetItems(SyntaxNode declarationNode, CancellationToken cancellationToken);
 }
