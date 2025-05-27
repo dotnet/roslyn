@@ -147,7 +147,30 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             case ConstructorDeclarationSyntax constructorDeclaration:
                 AddConstructorDeclaration(constructorDeclaration, items);
                 return;
+
+            case DestructorDeclarationSyntax destructorDeclaration:
+                AddDestructorDeclaration(destructorDeclaration, items);
+                return;
         }
+    }
+
+    private static void AddDestructorDeclaration(DestructorDeclarationSyntax destructorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append('~');
+        nameBuilder.Append(destructorDeclaration.Identifier.ValueText);
+        AppendParameterList(nameBuilder, destructorDeclaration.ParameterList);
+
+        var accessibility = GetAccessibility(destructorDeclaration, destructorDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToString(),
+            glyph,
+            hasItems: false,
+            destructorDeclaration,
+            destructorDeclaration.Identifier));
     }
 
     private static void AddConstructorDeclaration(ConstructorDeclarationSyntax constructorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
