@@ -736,11 +736,16 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
     /// </remarks>
     public void Commit(bool previewChanges = false, IUIThreadOperationContext editorOperationContext = null)
-        => CommitSynchronously(previewChanges, editorOperationContext);
+    {
+        var token = _asyncListener.BeginAsyncOperation(nameof(Commit));
+        _ = CommitAsync(previewChanges, editorOperationContext)
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+    }
+        // => CommitSynchronously(previewChanges, editorOperationContext);
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
-    private bool CommitSynchronously(bool previewChanges, IUIThreadOperationContext operationContext = null)
+    /*private bool CommitSynchronously(bool previewChanges, IUIThreadOperationContext operationContext = null)
     {
         // We're going to synchronously block the UI thread here.  So we can't use the background work indicator (as
         // it needs the UI thread to update itself.  This will force us to go through the Threaded-Wait-Dialog path
@@ -748,7 +753,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, operationContext));
-    }
+    }*/
 
     /// <summary>
     /// Start to commit the rename session.
@@ -768,14 +773,16 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     /// </remarks>
     public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
     {
-        if (this.RenameService.GlobalOptions.ShouldCommitAsynchronously())
+        /*if (this.RenameService.GlobalOptions.ShouldCommitAsynchronously())
         {
             await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, editorOperationContext).ConfigureAwait(false);
         }
         else
         {
             CommitSynchronously(previewChanges, editorOperationContext);
-        }
+        }*/
+
+        await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, editorOperationContext).ConfigureAwait(false);
     }
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
@@ -1036,7 +1043,7 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
     {
         private readonly InlineRenameSession _inlineRenameSession = inlineRenameSession;
 
-        public bool CommitWorker(bool previewChanges)
-            => _inlineRenameSession.CommitSynchronously(previewChanges);
+        public async bool CommitWorker(bool previewChanges)
+            => _inlineRenameSession.CommitAsync(previewChanges);
     }
 }
