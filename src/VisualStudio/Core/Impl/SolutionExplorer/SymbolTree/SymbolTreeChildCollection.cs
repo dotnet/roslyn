@@ -21,7 +21,7 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
     public bool HasItems => !_symbolTreeItems.IsInitialized || _symbolTreeItems.Count > 0;
     public IEnumerable Items => _symbolTreeItems;
 
-    public event PropertyChangedEventHandler PropertyChanged = null!;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public void Reset()
     {
