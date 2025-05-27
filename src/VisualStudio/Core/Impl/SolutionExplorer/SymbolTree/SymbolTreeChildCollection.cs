@@ -6,10 +6,10 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -18,12 +18,18 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
     private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
 
     public object SourceItem { get; } = parentItem;
+
+    /// <summary>
+    /// Whether or not we think we have items.  If we aren't fully initialized, then we'll guess that we do have items.
+    /// Once fully initialized, we'll return the real result based on what is in our child item list.
+    /// </summary>
     public bool HasItems => !_symbolTreeItems.IsInitialized || _symbolTreeItems.Count > 0;
+
     public IEnumerable Items => _symbolTreeItems;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public void Reset()
+    public void ResetToUncomputedState()
     {
         _symbolTreeItems.Clear();
 
@@ -35,7 +41,7 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
     }
 
-    public void UpdateItems(
+    public void SetItems(
         RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
@@ -48,6 +54,22 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
             IncorporateNewItems(rootProvider, documentId, itemProvider, items);
         }
 
+        MarkComputed();
+    }
+
+    public void Clear()
+    {
+        using (this._symbolTreeItems.GetBulkOperation())
+        {
+            _symbolTreeItems.Clear();
+        }
+
+
+        MarkComputed();
+    }
+
+    private void MarkComputed()
+    {
         // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
         _symbolTreeItems.IsInitialized = true;
 
@@ -65,6 +87,8 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
         foreach (var item in _symbolTreeItems)
             keyToItems.MultiAdd(item.ItemKey, item);
 
+        // Clear out the old items we have.  Then go through setting the final list of items.
+        // Attempt to reuse old items if they have the same visible data from before.
         _symbolTreeItems.Clear();
 
         foreach (var data in datas)
@@ -77,11 +101,11 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
                 if (matchingItems.Count == 0)
                     keyToItems.Remove(data.ItemKey);
 
-                // And update it to point to the new syntax information.
                 Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
                 Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
                 Contract.ThrowIfFalse(matchingItem.ItemKey == data.ItemKey);
 
+                // And update it to point to the new syntax information.
                 matchingItem.ItemSyntax = data.ItemSyntax;
                 _symbolTreeItems.Add(matchingItem);
             }
