@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -46,9 +48,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
-        IAsynchronousOperationListenerProvider listenerProvider
-        /*,
-    [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler*/)
+        IAsynchronousOperationListenerProvider listenerProvider)
         : base(threadingContext, workspace, listenerProvider)
     {
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
@@ -140,12 +140,23 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         //return null;
     }
 
-    private sealed class RootSymbolTreeItemCollectionSource(
-        RootSymbolTreeItemSourceProvider provider,
-        IVsHierarchyItem hierarchyItem)
-        : AbstractSymbolTreeItemCollectionSource<IVsHierarchyItem>(provider, hierarchyItem)
+    private sealed class RootSymbolTreeItemCollectionSource : IAttachedCollectionSource, INotifyPropertyChanged
     {
+        private readonly RootSymbolTreeItemSourceProvider _rootProvider;
+        private readonly IVsHierarchyItem _hierarchyItem;
+
+        private readonly SymbolTreeChildCollection _childCollection;
+
         private DocumentId? _documentId;
+
+        public RootSymbolTreeItemCollectionSource(
+            RootSymbolTreeItemSourceProvider rootProvider,
+            IVsHierarchyItem hierarchyItem)
+        {
+            _rootProvider = rootProvider;
+            _hierarchyItem = hierarchyItem;
+            _childCollection = new(hierarchyItem);
+        }
 
         internal async Task UpdateIfAffectedAsync(
             HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
@@ -157,8 +168,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
                 return;
 
             // If we didn't have a doc id, or we failed for any reason, clear out all our items.
-            using (this.SymbolTreeItems.GetBulkOperation())
-                SymbolTreeItems.Clear();
+            _childCollection.Clear();
         }
 
         private async ValueTask<bool> TryUpdateItemsAsync(
@@ -171,7 +181,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
                 return true;
             }
 
-            var solution = this.RootProvider.Workspace.CurrentSolution;
+            var solution = _rootProvider.Workspace.CurrentSolution;
             var document = solution.GetDocument(documentId);
 
             // If we can't find this document anymore, clear everything out.
@@ -183,7 +193,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
                 return false;
 
             var items = await itemProvider.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            this.UpdateItems(documentId, itemProvider, items);
+            _childCollection.UpdateItems(_rootProvider, documentId, itemProvider, items);
             return true;
         }
 
@@ -191,11 +201,23 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         {
             if (_documentId == null)
             {
-                var idMap = this.RootProvider.Workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-                idMap?.TryGetDocumentId(this.ParentItem, targetFrameworkMoniker: null, out _documentId);
+                var idMap = _rootProvider.Workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+                idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
             }
 
             return _documentId;
+        }
+
+        object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
+
+        bool IAttachedCollectionSource.HasItems => _childCollection.HasItems;
+
+        IEnumerable IAttachedCollectionSource.Items => _childCollection.Items;
+
+        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
+        {
+            add => _childCollection.PropertyChanged += value;
+            remove => _childCollection.PropertyChanged -= value;
         }
     }
 }
