@@ -4,8 +4,6 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
@@ -18,11 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [AppliesToProject("CSharp | VB")]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 [method: ImportingConstructor]
-internal sealed class NonRootSymbolTreeItemSourceProvider(
-    IThreadingContext threadingContext,
-    VisualStudioWorkspace workspace,
-    IAsynchronousOperationListenerProvider listenerProvider)
-    : AbstractSymbolTreeItemSourceProvider<SymbolTreeItem>(threadingContext, workspace, listenerProvider)
+internal sealed class NonRootSymbolTreeItemSourceProvider()
+    : AttachedCollectionSourceProvider<SymbolTreeItem>
 {
     protected override IAttachedCollectionSource? CreateCollectionSource(SymbolTreeItem item, string relationshipName)
     {
