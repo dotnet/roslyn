@@ -432,7 +432,10 @@ internal static partial class Extensions
 
             Glyph.OpenFolder => (KnownImageIds.ImageCatalogGuid, KnownImageIds.OpenFolder),
 
-            Glyph.Operator => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Operator),
+            Glyph.OperatorPublic => (KnownImageIds.ImageCatalogGuid, KnownImageIds.OperatorPublic),
+            Glyph.OperatorProtected => (KnownImageIds.ImageCatalogGuid, KnownImageIds.OperatorProtected),
+            Glyph.OperatorPrivate => (KnownImageIds.ImageCatalogGuid, KnownImageIds.OperatorPrivate),
+            Glyph.OperatorInternal => (KnownImageIds.ImageCatalogGuid, KnownImageIds.OperatorInternal),
 
             Glyph.Parameter or Glyph.Local => (KnownImageIds.ImageCatalogGuid, KnownImageIds.LocalVariable),
 

@@ -90,7 +90,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
             CreateSymbolInformation(LSP.SymbolKind.Class, "Test.A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),
             CreateSymbolInformation(LSP.SymbolKind.Method, "A()", testLspServer.GetLocations("constructor").Single(), Glyph.MethodPublic, "Test.A"),
             CreateSymbolInformation(LSP.SymbolKind.Method, "M()", testLspServer.GetLocations("method").Single(), Glyph.MethodPrivate, "Test.A"),
-            CreateSymbolInformation(LSP.SymbolKind.Operator, "operator +(A a1, A a2)", testLspServer.GetLocations("operator").Single(), Glyph.Operator, "Test.A"),
+            CreateSymbolInformation(LSP.SymbolKind.Operator, "operator +(A a1, A a2)", testLspServer.GetLocations("operator").Single(), Glyph.OperatorPublic, "Test.A"),
         ];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
