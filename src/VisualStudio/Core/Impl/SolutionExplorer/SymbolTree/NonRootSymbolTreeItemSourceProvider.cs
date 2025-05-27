@@ -54,26 +54,19 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
     }
 
     private sealed class NonRootSymbolTreeItemCollectionSource(
-        SymbolTreeItem symbolTreeItem)
-        : IAttachedCollectionSource, ISupportExpansionEvents
+        RootSymbolTreeItemSourceProvider rootProvider,
+        SymbolTreeItem parentItem)
+        : AbstractSymbolTreeItemCollectionSource<SymbolTreeItem>(
+            rootProvider, parentItem), ISupportExpansionEvents
     {
-        private readonly SymbolTreeItem _symbolTreeItem = symbolTreeItem;
-
-        private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
-
         private int _expanded = 0;
-
-        public object SourceItem => _symbolTreeItem;
-        public bool HasItems => _symbolTreeItem.Data.HasItems;
-        public IEnumerable Items => _symbolTreeItems;
 
         public void BeforeExpand()
         {
             if (Interlocked.CompareExchange(ref _expanded, 1, 0) == 0)
             {
-                var provider = _symbolTreeItem.SourceProvider;
-                var token = provider.Listener.BeginAsyncOperation(nameof(BeforeExpand));
-                var cancellationToken = provider.ThreadingContext.DisposalToken;
+                var token = this.RootProvider.Listener.BeginAsyncOperation(nameof(BeforeExpand));
+                var cancellationToken = this.RootProvider.ThreadingContext.DisposalToken;
                 BeforeExpandAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .CompletesAsyncOperation(token);
