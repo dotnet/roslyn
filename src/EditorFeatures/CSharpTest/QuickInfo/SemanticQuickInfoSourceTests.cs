@@ -7965,7 +7965,7 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             }
             """,
             MainDescription("bool string.operator ==(string a, string b)"),
-            SymbolGlyph(Glyph.Operator));
+            SymbolGlyph(Glyph.OperatorPublic));
     }
 
     [Fact]
