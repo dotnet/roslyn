@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class StringBuilderExtensions
 {
+    public static string ToStringAndClear(this StringBuilder builder)
+    {
+        var result = builder.ToString();
+        builder.Clear();
+        return result;
+    }
+
     public static StringBuilder AppendJoinedValues<T>(this StringBuilder builder, string separator, IEnumerable<T> values, Action<T, StringBuilder> append)
     {
         var first = true;

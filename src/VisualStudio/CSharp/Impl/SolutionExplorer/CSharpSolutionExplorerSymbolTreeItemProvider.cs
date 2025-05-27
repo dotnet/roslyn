@@ -33,50 +33,54 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
     {
         var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
+        using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
+        using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
 
-        AddTopLevelTypes(root, items, cancellationToken);
+        AddTopLevelTypes(root, items, nameBuilder, cancellationToken);
 
         return items.ToImmutableAndClear();
     }
 
-    private static void AddTopLevelTypes(CompilationUnitSyntax root, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken)
+    private static void AddTopLevelTypes(
+        CompilationUnitSyntax root, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
     {
         foreach (var member in root.Members)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (member is BaseNamespaceDeclarationSyntax baseNamespace)
-                AddTopLevelTypes(baseNamespace, items, cancellationToken);
+                AddTopLevelTypes(baseNamespace, items, nameBuilder, cancellationToken);
             else
-                TryAddType(member, items, cancellationToken);
+                TryAddType(member, items, nameBuilder, cancellationToken);
         }
     }
 
-    private static void AddTopLevelTypes(BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken)
+    private static void AddTopLevelTypes(
+        BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
     {
         foreach (var member in baseNamespace.Members)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (member is BaseNamespaceDeclarationSyntax childNamespace)
-                AddTopLevelTypes(childNamespace, items, cancellationToken);
+                AddTopLevelTypes(childNamespace, items, nameBuilder, cancellationToken);
             else
-                TryAddType(member, items, cancellationToken);
+                TryAddType(member, items, nameBuilder, cancellationToken);
         }
     }
 
-    private static bool TryAddType(MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken)
+    private static bool TryAddType(
+        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         switch (member)
         {
             case ExtensionBlockDeclarationSyntax extensionBlock:
-                AddExtensionBlock(extensionBlock, items);
+                AddExtensionBlock(extensionBlock, items, nameBuilder);
                 return true;
 
             case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclaration(typeDeclaration, items);
+                AddTypeDeclaration(typeDeclaration, items, nameBuilder);
                 return true;
 
             case EnumDeclarationSyntax enumDeclaration:
@@ -84,7 +88,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
                 return true;
 
             case DelegateDeclarationSyntax delegateDeclaration:
-                AddDelegateDeclaration(delegateDeclaration, items);
+                AddDelegateDeclaration(delegateDeclaration, items, nameBuilder);
                 return true;
         }
 
@@ -93,7 +97,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     public ImmutableArray<SymbolTreeItemData> GetItems(SyntaxNode node, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
+        using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
+        using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
 
         var memberDeclaration = (MemberDeclarationSyntax)node;
         switch (memberDeclaration)
@@ -103,64 +108,86 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
                 break;
 
             case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclarationMembers(typeDeclaration, items, cancellationToken);
+                AddTypeDeclarationMembers(typeDeclaration, items, nameBuilder, cancellationToken);
                 break;
         }
 
         return items.ToImmutableAndClear();
     }
 
-    private static void AddTypeDeclarationMembers(TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken)
+    private static void AddTypeDeclarationMembers(
+        TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
     {
         foreach (var member in typeDeclaration.Members)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (TryAddType(member, items, cancellationToken))
+            if (TryAddType(member, items, nameBuilder, cancellationToken))
                 continue;
 
-            AddMemberDeclaration(member, items);
+            AddMemberDeclaration(member, items, nameBuilder);
         }
     }
 
     private static void AddMemberDeclaration(
-        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items)
+        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {
         switch (member)
         {
             case BaseFieldDeclarationSyntax fieldDeclaration:
-                AddFieldDeclaration(fieldDeclaration, items);
+                AddFieldDeclaration(fieldDeclaration, items, nameBuilder);
                 return;
 
             case MethodDeclarationSyntax methodDeclaration:
-                AddMethodDeclaration(methodDeclaration, items);
+                AddMethodDeclaration(methodDeclaration, items, nameBuilder);
                 return;
 
             case OperatorDeclarationSyntax operatorDeclaration:
-                AddOperatorDeclaration(operatorDeclaration, items);
+                AddOperatorDeclaration(operatorDeclaration, items, nameBuilder);
                 return;
 
             case ConversionOperatorDeclarationSyntax conversionOperatorDeclaration:
-                AddConversionOperatorDeclaration(conversionOperatorDeclaration, items);
+                AddConversionOperatorDeclaration(conversionOperatorDeclaration, items, nameBuilder);
                 return;
 
             case ConstructorDeclarationSyntax constructorDeclaration:
-                AddConstructorOrDestructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier, items);
+                AddConstructorOrDestructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier, items, nameBuilder);
                 return;
 
             case DestructorDeclarationSyntax destructorDeclaration:
-                AddConstructorOrDestructorDeclaration(destructorDeclaration, destructorDeclaration.Identifier, items);
+                AddConstructorOrDestructorDeclaration(destructorDeclaration, destructorDeclaration.Identifier, items, nameBuilder);
+                return;
+
+            case PropertyDeclarationSyntax propertyDeclaration:
+                AddPropertyDeclaration(propertyDeclaration, items, nameBuilder);
                 return;
         }
+    }
+
+    private static void AddPropertyDeclaration(
+        PropertyDeclarationSyntax propertyDeclaration, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+    {
+        nameBuilder.Append(propertyDeclaration.Identifier.ValueText);
+        nameBuilder.Append(" : ");
+        AppendType(propertyDeclaration.Type, nameBuilder);
+
+        var accessibility = GetAccessibility(propertyDeclaration, propertyDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToStringAndClear(),
+            glyph,
+            hasItems: false,
+            propertyDeclaration,
+            propertyDeclaration.Identifier));
     }
 
     private static void AddConstructorOrDestructorDeclaration(
         BaseMethodDeclarationSyntax declaration,
         SyntaxToken identifier,
-        ArrayBuilder<SymbolTreeItemData> items)
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         if (declaration.Kind() == SyntaxKind.DestructorDeclaration)
             nameBuilder.Append('~');
 
@@ -171,17 +198,18 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
             declaration,
             identifier));
     }
 
-    private static void AddConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+    private static void AddConversionOperatorDeclaration(
+        ConversionOperatorDeclarationSyntax operatorDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append(operatorDeclaration.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
             ? "implicit operator "
             : "explicit operator ");
@@ -192,7 +220,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
             operatorDeclaration,
@@ -200,10 +228,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
     }
 
     private static void AddOperatorDeclaration(
-        OperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+        OperatorDeclarationSyntax operatorDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append("operator ");
         nameBuilder.Append(operatorDeclaration.OperatorToken.ToString());
         AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
@@ -214,7 +242,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
             operatorDeclaration,
@@ -222,10 +250,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
     }
 
     private static void AddMethodDeclaration(
-        MethodDeclarationSyntax methodDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+        MethodDeclarationSyntax methodDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append(methodDeclaration.Identifier.ValueText);
         AppendTypeParameterList(nameBuilder, methodDeclaration.TypeParameterList);
         AppendParameterList(nameBuilder, methodDeclaration.ParameterList);
@@ -236,7 +264,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accessibility);
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
             methodDeclaration,
@@ -244,14 +272,12 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
     }
 
     private static void AddFieldDeclaration(
-        BaseFieldDeclarationSyntax fieldDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+        BaseFieldDeclarationSyntax fieldDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         foreach (var variable in fieldDeclaration.Declaration.Variables)
         {
-            nameBuilder.Clear();
-
             nameBuilder.Append(variable.Identifier.ValueText);
             nameBuilder.Append(" : ");
             AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
@@ -262,7 +288,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
                 : DeclaredSymbolInfoKind.Field;
 
             items.Add(new(
-                nameBuilder.ToString(),
+                nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(kind, accessibility),
                 hasItems: false,
                 variable,
@@ -270,7 +296,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
     }
 
-    private static void AddEnumDeclarationMembers(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken)
+    private static void AddEnumDeclarationMembers(
+        EnumDeclarationSyntax enumDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        CancellationToken cancellationToken)
     {
         foreach (var member in enumDeclaration.Members)
         {
@@ -299,16 +328,15 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private static void AddExtensionBlock(
         ExtensionBlockDeclarationSyntax extensionBlock,
-        ArrayBuilder<SymbolTreeItemData> items)
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append("extension");
         AppendTypeParameterList(nameBuilder, extensionBlock.TypeParameterList);
         AppendParameterList(nameBuilder, extensionBlock.ParameterList);
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             Glyph.ClassPublic,
             hasItems: extensionBlock.Members.Count > 0,
             extensionBlock,
@@ -317,10 +345,9 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private static void AddDelegateDeclaration(
         DelegateDeclarationSyntax delegateDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items)
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append(delegateDeclaration.Identifier.ValueText);
         AppendTypeParameterList(nameBuilder, delegateDeclaration.TypeParameterList);
         AppendParameterList(nameBuilder, delegateDeclaration.ParameterList);
@@ -332,7 +359,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
 
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
             delegateDeclaration,
@@ -341,10 +368,9 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
 
     private static void AddTypeDeclaration(
         TypeDeclarationSyntax typeDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items)
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
         nameBuilder.Append(typeDeclaration.Identifier.ValueText);
         AppendTypeParameterList(nameBuilder, typeDeclaration.TypeParameterList);
 
@@ -352,7 +378,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             GetDeclaredSymbolInfoKind(typeDeclaration),
             GetAccessibility(typeDeclaration, typeDeclaration.Modifiers));
         items.Add(new(
-            nameBuilder.ToString(),
+            nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: typeDeclaration.Members.Count > 0,
             typeDeclaration,
