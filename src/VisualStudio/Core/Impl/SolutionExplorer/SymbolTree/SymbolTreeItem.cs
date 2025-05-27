@@ -70,7 +70,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         DocumentId = documentId;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
-        _childCollection = new(this);
+        _childCollection = new(this, hasItems: ItemKey.HasItems);
     }
 
     public SymbolTreeItemSyntax ItemSyntax

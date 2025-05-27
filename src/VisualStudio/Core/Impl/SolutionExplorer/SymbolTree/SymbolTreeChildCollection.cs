@@ -13,7 +13,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCollectionSource, INotifyPropertyChanged
+/// <param name="hasItems">If non-null, the known value for <see cref="HasItems"/>.  If null,
+/// then only known once <see cref="_symbolTreeItems"/> is initialized</param>
+internal sealed class SymbolTreeChildCollection(
+    object parentItem,
+    bool? hasItems) : IAttachedCollectionSource, INotifyPropertyChanged
 {
     private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
 
@@ -23,7 +27,23 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
     /// Whether or not we think we have items.  If we aren't fully initialized, then we'll guess that we do have items.
     /// Once fully initialized, we'll return the real result based on what is in our child item list.
     /// </summary>
-    public bool HasItems => !_symbolTreeItems.IsInitialized || _symbolTreeItems.Count > 0;
+    public bool HasItems
+    {
+        get
+        {
+            // Owner initialized us with a known value for this property.  Can just return that value.
+            if (hasItems.HasValue)
+                return hasItems.Value;
+
+            // If we're not initialized yet, we don't know if we have values or not.  Return that we are
+            // so the user can at least try to expand this node.
+            if (!_symbolTreeItems.IsInitialized)
+                return true;
+
+            // We are initialized.  So return the actual state based on what has been computed.
+            return _symbolTreeItems.Count > 0;
+        }
+    }
 
     public IEnumerable Items => _symbolTreeItems;
 
@@ -63,7 +83,6 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
         {
             _symbolTreeItems.Clear();
         }
-
 
         MarkComputed();
     }
@@ -122,14 +141,3 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
         keyToItems.FreeValues();
     }
 }
-
-//internal abstract class AbstractSymbolTreeItemCollectionSource<TItem>(
-//    RootSymbolTreeItemSourceProvider provider,
-//    TItem parentItem) : IAttachedCollectionSource, INotifyPropertyChanged
-//{
-//    protected readonly RootSymbolTreeItemSourceProvider RootProvider = provider;
-//    protected readonly TItem ParentItem = parentItem;
-
-
-
-//}
