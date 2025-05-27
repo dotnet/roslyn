@@ -1146,8 +1146,9 @@ oNull2.P = new object();
 object? oNotNull = new object();
 oNotNull.P = null; // 1
 
-object? oNotNull2 = new object();
-oNotNull2.P = new object();
+oNotNull.P = new object();
+
+oNotNull?.P = null; // 2
 
 static class E
 {
@@ -1161,7 +1162,10 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (10,14): warning CS8625: Cannot convert null literal to non-nullable reference type.
             // oNotNull.P = null; // 1
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 14));
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 14),
+            // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // oNotNull?.P = null; // 2
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 15));
     }
 
     [Fact]
@@ -1211,6 +1215,9 @@ static class E
 
 object? oNull = null;
 _ = oNull.P;
+
+object? oNull2 = null;
+_ = oNull2?.P;
 
 object? oNotNull = new object();
 _ = oNotNull.P;
@@ -1981,6 +1988,29 @@ public static class E
         var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
         var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
         comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_PropertyAccess_24()
+    {
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension<T>(T t)
+    {
+        public int P { get { _ = t.P; return 42; } }
+        public static int P2 { get { _ = T.P2; return 42; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (8,42): error CS0704: Cannot do non-virtual member lookup in 'T' because it is a type parameter
+            //         public static int P2 { get { _ = T.P2; return 42; } }
+            Diagnostic(ErrorCode.ERR_LookupInTypeVariable, "T").WithArguments("T").WithLocation(8, 42));
     }
 
     [Fact]

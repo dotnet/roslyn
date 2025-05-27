@@ -36316,6 +36316,8 @@ oNull.M(); // 1
 object? oNotNull = new object();
 oNotNull.M();
 
+oNotNull?.M(); // 2
+
 object? oNull2 = null;
 oNull2!.M();
 
@@ -36346,6 +36348,8 @@ oNull.M().ToString();
 
 object? oNotNull = new object();
 oNotNull.M().ToString();
+
+oNotNull?.M().ToString();
 
 static class E
 {

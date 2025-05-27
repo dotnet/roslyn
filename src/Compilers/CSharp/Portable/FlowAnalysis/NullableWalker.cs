@@ -7121,9 +7121,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             CheckMethodConstraints(syntaxForConstraintCheck, reinferredMethod);
                         }
                     }
-                    else if (member.GetIsNewExtensionMember() && member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+                    else if (member.GetIsNewExtensionMember())
                     {
-                        CheckExtensionConstraints(syntaxForConstraintCheck, extension);
+                        if (member.ContainingType is { } extension && ConstraintsHelper.RequiresChecking(extension))
+                        {
+                            CheckExtensionConstraints(syntaxForConstraintCheck, extension);
+                        }
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(member);
                     }
                 }
 
