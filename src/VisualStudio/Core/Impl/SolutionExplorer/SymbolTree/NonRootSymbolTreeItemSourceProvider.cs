@@ -63,6 +63,7 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
 
         public void BeforeExpand()
         {
+            // The very first time we are expanded, kick off the work to determine
             if (Interlocked.CompareExchange(ref _expanded, 1, 0) == 0)
             {
                 var token = this.RootProvider.Listener.BeginAsyncOperation(nameof(BeforeExpand));
