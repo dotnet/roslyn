@@ -3,36 +3,27 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.ForEachCast;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using static Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer.RootSymbolTreeItemSourceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -147,90 +138,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         //}
 
         //return null;
-    }
-
-    internal abstract class AbstractSymbolTreeItemCollectionSource<TItem>(
-        RootSymbolTreeItemSourceProvider provider,
-        TItem parentItem) : IAttachedCollectionSource, INotifyPropertyChanged
-    {
-        protected readonly RootSymbolTreeItemSourceProvider RootProvider = provider;
-        protected readonly TItem ParentItem = parentItem;
-
-        protected readonly BulkObservableCollectionWithInit<SymbolTreeItem> SymbolTreeItems = [];
-
-        public object SourceItem { get; } = parentItem!;
-        public bool HasItems => !SymbolTreeItems.IsInitialized || SymbolTreeItems.Count > 0;
-        public IEnumerable Items => SymbolTreeItems;
-
-        public event PropertyChangedEventHandler PropertyChanged = null!;
-
-        protected void UpdateItems(
-            DocumentId documentId,
-            ISolutionExplorerSymbolTreeItemProvider itemProvider,
-            ImmutableArray<SymbolTreeItemData> items)
-        {
-            using (this.SymbolTreeItems.GetBulkOperation())
-            {
-                if (items.Length == 0)
-                {
-                    // If we got no items, clear everything out.
-                    this.SymbolTreeItems.Clear();
-                }
-                else
-                {
-                    // We got some item datas.  Attempt to reuse existing symbol tree items that match up to preserve
-                    // identity in the tree between changes.
-                    IncorporateNewItems(documentId, itemProvider, items);
-                }
-            }
-
-            // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
-            this.SymbolTreeItems.MarkAsInitialized();
-
-            // Notify any listenerrs that we may or may not have items now.
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-        }
-
-        private void IncorporateNewItems(
-            DocumentId documentId,
-            ISolutionExplorerSymbolTreeItemProvider itemProvider,
-            ImmutableArray<SymbolTreeItemData> datas)
-        {
-            using var _ = Microsoft.CodeAnalysis.PooledObjects.PooledDictionary<SymbolTreeItemKey, Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<SymbolTreeItem>>.GetInstance(out var keyToItems);
-            foreach (var item in this.SymbolTreeItems)
-                keyToItems.MultiAdd(item.ItemKey, item);
-
-            this.SymbolTreeItems.Clear();
-
-            foreach (var data in datas)
-            {
-                if (keyToItems.TryGetValue(data.Key, out var matchingItems))
-                {
-                    // Found a matching item we can use.  Remove it from the list of items so we don't reuse it again.
-                    var matchingItem = matchingItems[0];
-                    matchingItems.RemoveAt(0);
-                    if (matchingItems.Count == 0)
-                        keyToItems.Remove(data.Key);
-
-                    // And update it to point to the new data.
-                    Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
-                    Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
-                    Contract.ThrowIfFalse(matchingItem.ItemKey == data.Key);
-
-                    matchingItem.ItemSyntax = new(data.DeclarationNode, data.NavigationToken);
-                    this.SymbolTreeItems.Add(matchingItem);
-                }
-                else
-                {
-                    // If we didn't find an existing item, create a new one.
-                    this.SymbolTreeItems.Add(new(this.RootProvider, documentId, itemProvider)
-                    {
-                        ItemKey = data.Key,
-                        ItemSyntax = new(data.DeclarationNode, data.NavigationToken)
-                    });
-                }
-            }
-        }
     }
 
     private sealed class RootSymbolTreeItemCollectionSource(
