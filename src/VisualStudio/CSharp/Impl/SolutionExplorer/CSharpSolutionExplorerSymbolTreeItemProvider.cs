@@ -165,7 +165,35 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             case EventDeclarationSyntax eventDeclaration:
                 AddEventDeclaration(eventDeclaration, items, nameBuilder);
                 return;
+
+            case IndexerDeclarationSyntax indexerDeclaration:
+                AddIndexerDeclaration(indexerDeclaration, items, nameBuilder);
+                return;
         }
+    }
+
+    private static void AddIndexerDeclaration(
+        IndexerDeclarationSyntax indexerDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
+    {
+        nameBuilder.Append("this");
+        AppendCommaSeparatedList(
+            nameBuilder, "[", "]",
+            indexerDeclaration.ParameterList.Parameters,
+            static (parameter, nameBuilder) => AppendType(parameter.Type, nameBuilder));
+        nameBuilder.Append(" : ");
+        AppendType(indexerDeclaration.Type, nameBuilder);
+
+        var accessibility = GetAccessibility(indexerDeclaration, indexerDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Indexer, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToStringAndClear(),
+            glyph,
+            hasItems: false,
+            indexerDeclaration,
+            indexerDeclaration.ThisKeyword));
     }
 
     private static void AddEventDeclaration(
