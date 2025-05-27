@@ -150,6 +150,24 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
     }
 
+    private static void AddConstructorDeclaration(ConstructorDeclarationSyntax constructorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
+
+        nameBuilder.Append(constructorDeclaration.Identifier.ValueText);
+        AppendParameterList(nameBuilder, constructorDeclaration.ParameterList);
+
+        var accessibility = GetAccessibility(constructorDeclaration, constructorDeclaration.Modifiers);
+        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
+
+        items.Add(new(
+            nameBuilder.ToString(),
+            glyph,
+            hasItems: false,
+            constructorDeclaration,
+            constructorDeclaration.Identifier));
+    }
+
     private static void AddConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
     {
         using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
