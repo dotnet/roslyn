@@ -8,6 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
@@ -37,7 +39,7 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
             return false;
 
         var documentIds = solution.GetDocumentIdsWithFilePath(itemName);
-        documentId = documentIds.FirstOrDefault(d => d.ProjectId == projectId);
+        documentId = documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, projectId);
 
         return documentId != null;
     }
@@ -60,27 +62,30 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
         // the "nested" hierarchy from the IVsHierarchyItem.
         var nestedHierarchy = hierarchyItem.HierarchyIdentity.NestedHierarchy;
 
+        using var candidateProjects = TemporaryArray<ProjectId>.Empty;
+
         // First filter the projects by matching up properties on the input hierarchy against properties on each
         // project's hierarchy.
-        var candidateProjects = solution.Projects
-            .Where(p =>
+        foreach (var currentId in solution.ProjectIds)
+        {
+            var hierarchy = _workspace.GetHierarchy(currentId);
+            if (hierarchy == nestedHierarchy)
             {
+                var project = solution.GetRequiredProject(currentId);
+
                 // We're about to access various properties of the IVsHierarchy associated with the project.
                 // The properties supported and the interpretation of their values varies from one project system
                 // to another. This code is designed with C# and VB in mind, so we need to filter out everything
                 // else.
-                if (p.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
-                    return false;
-
-                var hierarchy = _workspace.GetHierarchy(p.Id);
-                return hierarchy == nestedHierarchy;
-            })
-            .ToImmutableArray();
+                if (project.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
+                    candidateProjects.Add(currentId);
+            }
+        }
 
         // If we only have one candidate then no further checks are required.
-        if (candidateProjects.Length == 1)
+        if (candidateProjects.Count == 1)
         {
-            projectId = candidateProjects[0].Id;
+            projectId = candidateProjects[0];
             return projectId != null;
         }
 
@@ -88,11 +93,13 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
         // from CPS to see if this matches.
         if (targetFrameworkMoniker != null)
         {
-            var matchingProject = candidateProjects.FirstOrDefault(p => _workspace.TryGetDependencyNodeTargetIdentifier(p.Id) == targetFrameworkMoniker);
+            var matchingProjectId = candidateProjects.FirstOrDefault(
+                static (id, tuple) => tuple._workspace.TryGetDependencyNodeTargetIdentifier(id) == tuple.targetFrameworkMoniker,
+                (_workspace, targetFrameworkMoniker));
 
-            if (matchingProject != null)
+            if (matchingProjectId != null)
             {
-                projectId = matchingProject.Id;
+                projectId = matchingProjectId;
                 return projectId != null;
             }
         }
@@ -101,8 +108,9 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
         // there will be one main project plus one project for each open aspx/cshtml/vbhtml file, all with
         // identical properties on their hierarchies. We can find the main project by taking the first project
         // without a ContainedDocument.
-        foreach (var candidateProject in candidateProjects)
+        foreach (var candidateProjectId in candidateProjects)
         {
+            var candidateProject = solution.GetRequiredProject(candidateProjectId);
             if (!candidateProject.DocumentIds.Any(id => ContainedDocument.TryGetContainedDocument(id) != null))
             {
                 projectId = candidateProject.Id;

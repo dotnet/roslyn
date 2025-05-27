@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -11,6 +12,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,6 +28,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using static System.Windows.Forms.LinkLabel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -35,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [AppliesToProject("CSharp | VB")]
 internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
-    private readonly ConcurrentSet<WeakReference<RootSymbolTreeItemCollectionSource>> _weakCollectionSources = [];
+    private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly Workspace _workspace;
@@ -97,18 +100,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
         documentIdSet.AddRange(documentIds);
-
-        foreach (var weakSource in _weakCollectionSources)
-        {
-            // If solution explorer has released this collection source, we can drop it as well.
-            if (!weakSource.TryGetTarget(out var source))
-            {
-                _weakCollectionSources.Remove(weakSource);
-                continue;
-            }
-
-            sources.Add(source);
-        }
+        sources.AddRange(_hierarchyToCollectionSource.Values);
 
         await RoslynParallel.ForEachAsync(
             sources,
@@ -147,8 +139,22 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         }
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
-        _weakCollectionSources.Add(new WeakReference<RootSymbolTreeItemCollectionSource>(source));
+        _hierarchyToCollectionSource[item] = source;
+
+        item.PropertyChanged += OnItemPropertyChanged;
+
         return source;
+
+        void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
+            // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
+            if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed) && item.IsDisposed)
+            {
+                _hierarchyToCollectionSource.TryRemove(item, out _);
+                item.PropertyChanged -= OnItemPropertyChanged;
+            }
+        }
     }
 
     private sealed class RootSymbolTreeItemCollectionSource(
@@ -212,8 +218,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         {
             if (_documentId == null)
             {
-                var idMap = _rootProvider._workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
-                idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
+                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
+                idMap.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
             }
 
             return _documentId;
