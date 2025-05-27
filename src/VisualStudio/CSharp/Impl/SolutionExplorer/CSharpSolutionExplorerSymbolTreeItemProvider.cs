@@ -143,6 +143,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             case ConversionOperatorDeclarationSyntax conversionOperatorDeclaration:
                 AddConversionOperatorDeclaration(conversionOperatorDeclaration, items);
                 return;
+
+            case ConstructorDeclarationSyntax constructorDeclaration:
+                AddConstructorDeclaration(constructorDeclaration, items);
+                return;
         }
     }
 
