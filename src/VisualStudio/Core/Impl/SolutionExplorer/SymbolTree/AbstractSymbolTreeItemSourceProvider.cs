@@ -48,7 +48,7 @@ internal abstract class AbstractSymbolTreeItemSourceProvider<TItem> : AttachedCo
             ThreadingContext,
             Workspace,
             item.DocumentId,
-            item.SyntaxNode.SpanStart,
+            item.Data.NavigationToken.SpanStart,
             virtualSpace: 0,
             // May be calling this on stale data.  Allow the position to be invalid
             allowInvalidPosition: true,

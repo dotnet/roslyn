@@ -64,7 +64,7 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
         private int _expanded = 0;
 
         public object SourceItem => _symbolTreeItem;
-        public bool HasItems => _symbolTreeItem.HasItems;
+        public bool HasItems => _symbolTreeItem.Data.HasItems;
         public IEnumerable Items => _symbolTreeItems;
 
         public void BeforeExpand()

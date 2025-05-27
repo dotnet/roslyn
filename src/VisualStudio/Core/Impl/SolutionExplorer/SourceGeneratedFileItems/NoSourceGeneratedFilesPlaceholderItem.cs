@@ -7,9 +7,10 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal sealed class NoSourceGeneratedFilesPlaceholderItem()
-    : BaseItem(SolutionExplorerShim.This_generator_is_not_generating_files)
+internal sealed class NoSourceGeneratedFilesPlaceholderItem : BaseItem
 {
+    public override string Name => SolutionExplorerShim.This_generator_is_not_generating_files;
+
     public override ImageMoniker IconMoniker
         => KnownMonikers.StatusInformationNoColor;
 }

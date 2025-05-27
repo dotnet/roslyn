@@ -9,25 +9,46 @@ using Roslyn.Utilities;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using System.Linq;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
+internal readonly record struct SymbolTreeItemKey(
+    string Name,
+    Glyph Glyph,
+    bool HasItems);
+
+internal readonly record struct SymbolTreeItemSyntax(
+    SyntaxNode DeclarationNode,
+    SyntaxToken NavigationToken);
+
+internal readonly record struct SymbolTreeItemData(
+    string Name,
+    Glyph Glyph,
+    bool HasItems,
+    SyntaxNode DeclarationNode,
+    SyntaxToken NavigationToken)
+{
+    public SymbolTreeItemKey Key => new(Name, Glyph, HasItems);
+}
+
 internal sealed class SymbolTreeItem(
-    string name,
-    Glyph glyph,
-    SyntaxNode syntaxNode,
-    bool hasItems)
-    : BaseItem(name, canPreview: true),
+    RootSymbolTreeItemSourceProvider sourceProvider,
+    DocumentId documentId,
+    ISolutionExplorerSymbolTreeItemProvider itemProvider)
+    : BaseItem(canPreview: true),
     IInvocationController
 {
-    public RootSymbolTreeItemSourceProvider SourceProvider = null!;
-    public DocumentId DocumentId = null!;
-    public ISolutionExplorerSymbolTreeItemProvider ItemProvider = null!;
+    public readonly RootSymbolTreeItemSourceProvider SourceProvider = sourceProvider;
+    public readonly DocumentId DocumentId = documentId;
+    public readonly ISolutionExplorerSymbolTreeItemProvider ItemProvider = itemProvider;
 
-    public override ImageMoniker IconMoniker { get; } = glyph.GetImageMoniker();
+    public SymbolTreeItemKey ItemKey;
+    public SymbolTreeItemSyntax ItemSyntax;
 
-    public readonly SyntaxNode SyntaxNode = syntaxNode;
-    public readonly bool HasItems = hasItems;
+    public override string Name => this.ItemKey.Name;
+
+    public override ImageMoniker IconMoniker => this.ItemKey.Glyph.GetImageMoniker();
 
     public override IInvocationController? InvocationController => this;
 

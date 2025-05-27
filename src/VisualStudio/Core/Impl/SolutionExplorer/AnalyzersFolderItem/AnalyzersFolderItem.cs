@@ -18,12 +18,15 @@ internal sealed partial class AnalyzersFolderItem(
     Workspace workspace,
     ProjectId projectId,
     IVsHierarchyItem parentItem,
-    IContextMenuController contextMenuController) : BaseItem(SolutionExplorerShim.Analyzers)
+    IContextMenuController contextMenuController) : BaseItem
 {
     public readonly IThreadingContext ThreadingContext = threadingContext;
     public Workspace Workspace { get; } = workspace;
     public ProjectId ProjectId { get; } = projectId;
     public IVsHierarchyItem ParentItem { get; } = parentItem;
+
+    public override string Name => SolutionExplorerShim.Analyzers;
+
     public override IContextMenuController ContextMenuController { get; } = contextMenuController;
 
     public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
