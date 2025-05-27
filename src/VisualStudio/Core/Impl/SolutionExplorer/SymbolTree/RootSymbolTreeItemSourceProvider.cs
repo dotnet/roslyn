@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,9 +16,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
@@ -34,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
+internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
 
@@ -45,8 +44,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
 
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
@@ -66,7 +65,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
-                if (e is { Kind: WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.DocumentAdded, DocumentId: not null })
+                if (e.DocumentId != null)
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
@@ -161,87 +160,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
             }
-        }
-    }
-
-    private sealed class RootSymbolTreeItemCollectionSource(
-        RootSymbolTreeItemSourceProvider rootProvider,
-        IVsHierarchyItem hierarchyItem) : IAttachedCollectionSource, INotifyPropertyChanged
-    {
-        private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
-        private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
-
-        // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
-        private readonly SymbolTreeChildCollection _childCollection = new(rootProvider, hierarchyItem, hasItems: null);
-
-        private DocumentId? _documentId;
-
-        internal async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId> updateSet,
-            CancellationToken cancellationToken)
-        {
-            var documentId = DetermineDocumentId();
-
-            // If we successfully handle this request, we're done.
-            if (documentId != null && await TryUpdateItemsAsync(updateSet, documentId, cancellationToken).ConfigureAwait(false))
-                return;
-
-            // If we didn't have a doc id, or we failed for any reason, clear out all our items and set that as our
-            // current state.
-            await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _childCollection.ClearAndMarkComputed_OnMainThread();
-        }
-
-        private async ValueTask<bool> TryUpdateItemsAsync(
-            HashSet<DocumentId> updateSet, DocumentId documentId, CancellationToken cancellationToken)
-        {
-            if (!updateSet.Contains(documentId))
-            {
-                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
-                // to update a different document than our own.  So we can just ignore this.
-                return true;
-            }
-
-            var solution = _rootProvider._workspace.CurrentSolution;
-            var document = solution.GetDocument(documentId);
-
-            // If we can't find this document anymore, clear everything out.
-            if (document is null)
-                return false;
-
-            var itemProvider = document.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
-            if (itemProvider is null)
-                return false;
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var items = itemProvider.GetItems(root, cancellationToken);
-
-            await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _childCollection.SetItemsAndMarkComputed_OnMainThread(documentId, itemProvider, items);
-            return true;
-        }
-
-        private DocumentId? DetermineDocumentId()
-        {
-            if (_documentId == null)
-            {
-                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-                idMap.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
-            }
-
-            return _documentId;
-        }
-
-        object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
-
-        bool IAttachedCollectionSource.HasItems => _childCollection.HasItems;
-
-        IEnumerable IAttachedCollectionSource.Items => _childCollection.Items;
-
-        event PropertyChangedEventHandler INotifyPropertyChanged.PropertyChanged
-        {
-            add => _childCollection.PropertyChanged += value;
-            remove => _childCollection.PropertyChanged -= value;
         }
     }
 }

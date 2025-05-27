@@ -73,12 +73,15 @@ internal sealed class SymbolTreeItem : BaseItem,
         _childCollection = new(rootProvider, this, hasItems: ItemKey.HasItems);
     }
 
+    private void ThrowIfNotOnMainThread()
+        => Contract.ThrowIfFalse(this.RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
     public SymbolTreeItemSyntax ItemSyntax
     {
         get => _itemSyntax;
         set
         {
-            Contract.ThrowIfFalse(this.RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+            ThrowIfNotOnMainThread();
 
             // When the syntax node for this item is changed, we want to recompute the children for it
             // (if this  node is expanded). Otherwise, we can just throw away what we have and recompute
@@ -105,21 +108,21 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     public void BeforeExpand()
     {
-        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+        ThrowIfNotOnMainThread();
         _expanded = true;
         UpdateChildren();
     }
 
     public void AfterCollapse()
     {
-        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+        ThrowIfNotOnMainThread();
         _expanded = false;
         UpdateChildren();
     }
 
     private void UpdateChildren()
     {
-        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+        ThrowIfNotOnMainThread();
 
         if (_expanded)
         {
