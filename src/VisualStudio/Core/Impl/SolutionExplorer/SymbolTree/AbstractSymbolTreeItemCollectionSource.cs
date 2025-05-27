@@ -23,7 +23,20 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
 
     public event PropertyChangedEventHandler PropertyChanged = null!;
 
+    public void Reset()
+    {
+        _symbolTreeItems.Clear();
+
+        // Move back to the state where the children are not initialized.  That way the next attemp to open
+        // them will compute them.
+        _symbolTreeItems.IsInitialized = false;
+
+        // Notify any listenerrs that we may or may not have items now.
+        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
+    }
+
     public void UpdateItems(
+        RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
         ImmutableArray<SymbolTreeItemData> items)
@@ -32,17 +45,18 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
         {
             // We got some item datas.  Attempt to reuse existing symbol tree items that match up to preserve
             // identity in the tree between changes.
-            IncorporateNewItems(documentId, itemProvider, items);
+            IncorporateNewItems(rootProvider, documentId, itemProvider, items);
         }
 
         // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
-        _symbolTreeItems.MarkAsInitialized();
+        _symbolTreeItems.IsInitialized = true;
 
         // Notify any listenerrs that we may or may not have items now.
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
     }
 
     private void IncorporateNewItems(
+        RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
         ImmutableArray<SymbolTreeItemData> datas)
@@ -55,28 +69,28 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
 
         foreach (var data in datas)
         {
-            if (keyToItems.TryGetValue(data.Key, out var matchingItems))
+            if (keyToItems.TryGetValue(data.ItemKey, out var matchingItems))
             {
                 // Found a matching item we can use.  Remove it from the list of items so we don't reuse it again.
                 var matchingItem = matchingItems[0];
                 matchingItems.RemoveAt(0);
                 if (matchingItems.Count == 0)
-                    keyToItems.Remove(data.Key);
+                    keyToItems.Remove(data.ItemKey);
 
-                // And update it to point to the new data.
+                // And update it to point to the new syntax information.
                 Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
                 Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
-                Contract.ThrowIfFalse(matchingItem.ItemKey == data.Key);
+                Contract.ThrowIfFalse(matchingItem.ItemKey == data.ItemKey);
 
-                matchingItem.ItemSyntax = new(data.DeclarationNode, data.NavigationToken);
+                matchingItem.ItemSyntax = data.ItemSyntax;
                 _symbolTreeItems.Add(matchingItem);
             }
             else
             {
                 // If we didn't find an existing item, create a new one.
-                _symbolTreeItems.Add(new(this.RootProvider, documentId, itemProvider, data.Key)
+                _symbolTreeItems.Add(new(rootProvider, documentId, itemProvider, data.ItemKey)
                 {
-                    ItemSyntax = new(data.DeclarationNode, data.NavigationToken)
+                    ItemSyntax = data.ItemSyntax
                 });
             }
         }
@@ -85,13 +99,13 @@ internal sealed class SymbolTreeChildCollection(object parentItem) : IAttachedCo
     }
 }
 
-internal abstract class AbstractSymbolTreeItemCollectionSource<TItem>(
-    RootSymbolTreeItemSourceProvider provider,
-    TItem parentItem) : IAttachedCollectionSource, INotifyPropertyChanged
-{
-    protected readonly RootSymbolTreeItemSourceProvider RootProvider = provider;
-    protected readonly TItem ParentItem = parentItem;
+//internal abstract class AbstractSymbolTreeItemCollectionSource<TItem>(
+//    RootSymbolTreeItemSourceProvider provider,
+//    TItem parentItem) : IAttachedCollectionSource, INotifyPropertyChanged
+//{
+//    protected readonly RootSymbolTreeItemSourceProvider RootProvider = provider;
+//    protected readonly TItem ParentItem = parentItem;
 
 
 
-}
+//}

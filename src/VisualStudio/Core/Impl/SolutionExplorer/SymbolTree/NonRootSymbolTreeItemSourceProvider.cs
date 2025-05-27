@@ -50,53 +50,23 @@ internal sealed class NonRootSymbolTreeItemSourceProvider : AbstractSymbolTreeIt
         if (relationshipName != KnownRelationships.Contains)
             return null;
 
-        return new NonRootSymbolTreeItemCollectionSource(item);
+        // A SymbolTreeItem is its own collection source.  In other words, it points at its own children
+        // and can be queried directly for them.
+        return item;
     }
 
-    private sealed class NonRootSymbolTreeItemCollectionSource(
-        RootSymbolTreeItemSourceProvider rootProvider,
-        SymbolTreeItem parentItem)
-        : AbstractSymbolTreeItemCollectionSource<SymbolTreeItem>(
-            rootProvider, parentItem), ISupportExpansionEvents
-    {
-        private int _expanded = 0;
+    //private sealed class NonRootSymbolTreeItemCollectionSource(
+    //    RootSymbolTreeItemSourceProvider rootProvider,
+    //    SymbolTreeItem parentItem)
+    //    : AbstractSymbolTreeItemCollectionSource<SymbolTreeItem>(
+    //        rootProvider, parentItem), ISupportExpansionEvents
+    //{
+    //    private int _expanded = 0;
 
-        public void BeforeExpand()
-        {
-            // The very first time we are expanded, kick off the work to determine
-            if (Interlocked.CompareExchange(ref _expanded, 1, 0) == 0)
-            {
-                var token = this.RootProvider.Listener.BeginAsyncOperation(nameof(BeforeExpand));
-                var cancellationToken = this.RootProvider.ThreadingContext.DisposalToken;
-                BeforeExpandAsync(cancellationToken)
-                    .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
-                    .CompletesAsyncOperation(token);
-            }
-        }
 
-        private async Task BeforeExpandAsync(CancellationToken cancellationToken)
-        {
-            var items = await _symbolTreeItem.ItemProvider.GetItemsAsync(
-                _symbolTreeItem, cancellationToken).ConfigureAwait(false);
-            foreach (var item in items)
-            {
-                item.SourceProvider = _symbolTreeItem.SourceProvider;
-                item.ItemProvider = _symbolTreeItem.ItemProvider;
-                item.DocumentId = _symbolTreeItem.DocumentId;
-            }
-
-            using (_symbolTreeItems.GetBulkOperation())
-            {
-                _symbolTreeItems.Clear();
-                _symbolTreeItems.AddRange(items);
-            }
-
-            _symbolTreeItems.MarkAsInitialized();
-        }
-
-        public void AfterCollapse()
-        {
-            // No op
-        }
-    }
+    //    public void AfterCollapse()
+    //    {
+    //        // No op
+    //    }
+    //}
 }

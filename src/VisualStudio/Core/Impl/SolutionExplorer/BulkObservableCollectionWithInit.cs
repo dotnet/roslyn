@@ -16,7 +16,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 /// </summary>
 internal sealed class BulkObservableCollectionWithInit<T> : BulkObservableCollection<T>, ISupportInitializeNotification
 {
-    public bool IsInitialized { get; private set; } = false;
+    private bool _isInitialized;
+
+    public bool IsInitialized
+    {
+        get => _isInitialized;
+        set
+        {
+            if (_isInitialized != value)
+            {
+                _isInitialized = value;
+                Initialized?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
 
     public event EventHandler? Initialized;
 
@@ -26,14 +39,5 @@ internal sealed class BulkObservableCollectionWithInit<T> : BulkObservableCollec
 
     void ISupportInitialize.EndInit()
     {
-    }
-
-    public void MarkAsInitialized()
-    {
-        if (!IsInitialized)
-        {
-            IsInitialized = true;
-            Initialized?.Invoke(this, EventArgs.Empty);
-        }
     }
 }

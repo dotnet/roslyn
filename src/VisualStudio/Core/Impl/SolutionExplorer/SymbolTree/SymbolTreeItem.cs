@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.Internal.VisualStudio.PlatformUI;
-using Roslyn.Utilities;
-using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.CodeAnalysis.Editor.Wpf;
-using System.Linq;
-using System;
-using Microsoft.VisualStudio.Shell;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -75,17 +74,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         set
         {
             _itemSyntax = value;
-
-            // When we update the item syntax we can reset ourselves to the initial state (if collapsed).
-            // Then when we're expanded the next time, we'll recompute the child items properly.  If we 
-            // are already expanded, then recompute our children which will recursively push the change
-            // down further.
-            if (_expanded)
-            {
-                var items = this.ItemProvider.GetItems(
-                    value.DeclarationNode, this.SourceProvider.ThreadingContext.DisposalToken);
-                _childCollection.UpdateItems(this.DocumentId, this.ItemProvider, items);
-            }
+            UpdateChildren();
         }
     }
 
@@ -108,13 +97,33 @@ internal sealed class SymbolTreeItem : BaseItem,
     {
         Contract.ThrowIfFalse(SourceProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
         _expanded = true;
+        UpdateChildren();
     }
 
     public void AfterCollapse()
     {
         Contract.ThrowIfFalse(SourceProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
         _expanded = false;
-        _childCollection.Reset();
+        UpdateChildren();
+    }
+
+    private void UpdateChildren()
+    {
+        if (_expanded)
+        {
+            // When we update the item syntax we can reset ourselves to the initial state (if collapsed).
+            // Then when we're expanded the next time, we'll recompute the child items properly.  If we 
+            // are already expanded, then recompute our children which will recursively push the change
+            // down further.
+            var items = this.ItemProvider.GetItems(
+                _itemSyntax.DeclarationNode, this.SourceProvider.ThreadingContext.DisposalToken);
+            _childCollection.UpdateItems(this.DocumentId, this.ItemProvider, items);
+        }
+        else
+        {
+            // Otherwise, return the child collection to the uninitialized state.
+            _childCollection.Reset();
+        }
     }
 
     object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
