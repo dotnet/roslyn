@@ -70,7 +70,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         DocumentId = documentId;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
-        _childCollection = new(this, hasItems: ItemKey.HasItems);
+        _childCollection = new(rootProvider, this, hasItems: ItemKey.HasItems);
     }
 
     public SymbolTreeItemSyntax ItemSyntax
@@ -78,6 +78,8 @@ internal sealed class SymbolTreeItem : BaseItem,
         get => _itemSyntax;
         set
         {
+            Contract.ThrowIfFalse(this.RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
             // When the syntax node for this item is changed, we want to recompute the children for it
             // (if this  node is expanded). Otherwise, we can just throw away what we have and recompute
             // the next time when asked.
@@ -97,7 +99,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         if (items.FirstOrDefault() is not SymbolTreeItem item)
             return false;
 
-        RootProvider.NavigateTo(item, preview);
+        RootProvider.NavigateTo(item.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
         return true;
     }
 
@@ -117,6 +119,8 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     private void UpdateChildren()
     {
+        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
         if (_expanded)
         {
             // When we update the item syntax we can reset ourselves to the initial state (if collapsed).
@@ -125,7 +129,8 @@ internal sealed class SymbolTreeItem : BaseItem,
             // down further.
             var items = this.ItemProvider.GetItems(
                 _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
-            _childCollection.SetItemsAndMarkComputed(this.RootProvider, this.DocumentId, this.ItemProvider, items);
+            _childCollection.SetItemsAndMarkComputed_OnMainThread(
+                this.DocumentId, this.ItemProvider, items);
         }
         else
         {

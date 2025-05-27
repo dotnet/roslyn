@@ -71,7 +71,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             options: new WorkspaceEventOptions(RequiresMainThread: false));
     }
 
-    public void NavigateTo(SymbolTreeItem item, bool preview)
+    public void NavigateTo(DocumentId documentId, int position, bool preview)
     {
         // Cancel any in flight navigation and kick off a new one.
         var cancellationToken = _navigationCancellationSeries.CreateNext(this.ThreadingContext.DisposalToken);
@@ -81,8 +81,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         navigationService.TryNavigateToPositionAsync(
             ThreadingContext,
             _workspace,
-            item.DocumentId,
-            item.ItemSyntax.NavigationToken.SpanStart,
+            documentId,
+            position,
             virtualSpace: 0,
             // May be calling this on stale data.  Allow the position to be invalid
             allowInvalidPosition: true,
@@ -168,7 +168,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         private DocumentId? _documentId;
 
         internal async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
+            HashSet<DocumentId> updateSet,
+            CancellationToken cancellationToken)
         {
             var documentId = DetermineDocumentId();
 
@@ -178,7 +179,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
 
             // If we didn't have a doc id, or we failed for any reason, clear out all our items and set that as our
             // current state.
-            _childCollection.ClearAndMarkComputed();
+            await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _childCollection.ClearAndMarkComputed_OnMainThread(_rootProvider);
         }
 
         private async ValueTask<bool> TryUpdateItemsAsync(
@@ -204,7 +206,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var items = itemProvider.GetItems(root, cancellationToken);
-            _childCollection.SetItemsAndMarkComputed(_rootProvider, documentId, itemProvider, items);
+            await _childCollection.SetItemsAndMarkComputedAsync(
+                _rootProvider, documentId, itemProvider, items, cancellationToken).ConfigureAwait(false);
             return true;
         }
 

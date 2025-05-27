@@ -16,10 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 /// <param name="hasItems">If non-null, the known value for <see cref="HasItems"/>.  If null,
 /// then only known once <see cref="_symbolTreeItems"/> is initialized</param>
 internal sealed class SymbolTreeChildCollection(
+    RootSymbolTreeItemSourceProvider rootProvider,
     object parentItem,
     bool? hasItems) : IAttachedCollectionSource, INotifyPropertyChanged
 {
     private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
+    private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
 
     public object SourceItem { get; } = parentItem;
 
@@ -61,24 +63,62 @@ internal sealed class SymbolTreeChildCollection(
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
     }
 
-    public void SetItemsAndMarkComputed(
-        RootSymbolTreeItemSourceProvider rootProvider,
+    public void SetItemsAndMarkComputed_OnMainThread(
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
-        ImmutableArray<SymbolTreeItemData> items)
+        ImmutableArray<SymbolTreeItemData> itemDatas)
     {
+        Contract.ThrowIfFalse(_rootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
+        using var _ = PooledDictionary<SymbolTreeItemKey, ArrayBuilder<SymbolTreeItem>>.GetInstance(out var keyToItems);
+        foreach (var item in _symbolTreeItems)
+            keyToItems.MultiAdd(item.ItemKey, item);
+
         using (this._symbolTreeItems.GetBulkOperation())
         {
             // We got some item datas.  Attempt to reuse existing symbol tree items that match up to preserve
             // identity in the tree between changes.
-            IncorporateNewItems(rootProvider, documentId, itemProvider, items);
+            // Clear out the old items we have.  Then go through setting the final list of items.
+            // Attempt to reuse old items if they have the same visible data from before.
+            _symbolTreeItems.Clear();
+
+            foreach (var itemData in itemDatas)
+            {
+                if (keyToItems.TryGetValue(itemData.ItemKey, out var matchingItems))
+                {
+                    // Found a matching item we can use.  Remove it from the list of items so we don't reuse it again.
+                    var matchingItem = matchingItems[0];
+                    matchingItems.RemoveAt(0);
+                    if (matchingItems.Count == 0)
+                        keyToItems.Remove(itemData.ItemKey);
+
+                    Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
+                    Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
+                    Contract.ThrowIfFalse(matchingItem.ItemKey == itemData.ItemKey);
+
+                    // And update it to point to the new syntax information.
+                    matchingItem.ItemSyntax = itemData.ItemSyntax;
+                    _symbolTreeItems.Add(matchingItem);
+                }
+                else
+                {
+                    // If we didn't find an existing item, create a new one.
+                    _symbolTreeItems.Add(new(_rootProvider, documentId, itemProvider, itemData.ItemKey)
+                    {
+                        ItemSyntax = itemData.ItemSyntax
+                    });
+                }
+            }
         }
 
         MarkComputed();
+        keyToItems.FreeValues();
     }
 
-    public void ClearAndMarkComputed()
+    public void ClearAndMarkComputed_OnMainThread()
     {
+        Contract.ThrowIfFalse(_rootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
         using (this._symbolTreeItems.GetBulkOperation())
         {
             _symbolTreeItems.Clear();
@@ -89,55 +129,12 @@ internal sealed class SymbolTreeChildCollection(
 
     private void MarkComputed()
     {
+        Contract.ThrowIfFalse(_rootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+
         // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
         _symbolTreeItems.IsInitialized = true;
 
         // Notify any listenerrs that we may or may not have items now.
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-    }
-
-    private void IncorporateNewItems(
-        RootSymbolTreeItemSourceProvider rootProvider,
-        DocumentId documentId,
-        ISolutionExplorerSymbolTreeItemProvider itemProvider,
-        ImmutableArray<SymbolTreeItemData> datas)
-    {
-        using var _ = PooledDictionary<SymbolTreeItemKey, ArrayBuilder<SymbolTreeItem>>.GetInstance(out var keyToItems);
-        foreach (var item in _symbolTreeItems)
-            keyToItems.MultiAdd(item.ItemKey, item);
-
-        // Clear out the old items we have.  Then go through setting the final list of items.
-        // Attempt to reuse old items if they have the same visible data from before.
-        _symbolTreeItems.Clear();
-
-        foreach (var data in datas)
-        {
-            if (keyToItems.TryGetValue(data.ItemKey, out var matchingItems))
-            {
-                // Found a matching item we can use.  Remove it from the list of items so we don't reuse it again.
-                var matchingItem = matchingItems[0];
-                matchingItems.RemoveAt(0);
-                if (matchingItems.Count == 0)
-                    keyToItems.Remove(data.ItemKey);
-
-                Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
-                Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
-                Contract.ThrowIfFalse(matchingItem.ItemKey == data.ItemKey);
-
-                // And update it to point to the new syntax information.
-                matchingItem.ItemSyntax = data.ItemSyntax;
-                _symbolTreeItems.Add(matchingItem);
-            }
-            else
-            {
-                // If we didn't find an existing item, create a new one.
-                _symbolTreeItems.Add(new(rootProvider, documentId, itemProvider, data.ItemKey)
-                {
-                    ItemSyntax = data.ItemSyntax
-                });
-            }
-        }
-
-        keyToItems.FreeValues();
     }
 }
