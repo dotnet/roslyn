@@ -145,50 +145,37 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
                 return;
 
             case ConstructorDeclarationSyntax constructorDeclaration:
-                AddConstructorDeclaration(constructorDeclaration, items);
+                AddConstructorOrDestructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier, items);
                 return;
 
             case DestructorDeclarationSyntax destructorDeclaration:
-                AddDestructorDeclaration(destructorDeclaration, items);
+                AddConstructorOrDestructorDeclaration(destructorDeclaration, destructorDeclaration.Identifier, items);
                 return;
         }
     }
 
-    private static void AddDestructorDeclaration(DestructorDeclarationSyntax destructorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+    private static void AddConstructorOrDestructorDeclaration(
+        BaseMethodDeclarationSyntax declaration,
+        SyntaxToken identifier,
+        ArrayBuilder<SymbolTreeItemData> items)
     {
         using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
 
-        nameBuilder.Append('~');
-        nameBuilder.Append(destructorDeclaration.Identifier.ValueText);
-        AppendParameterList(nameBuilder, destructorDeclaration.ParameterList);
+        if (declaration.Kind() == SyntaxKind.DestructorDeclaration)
+            nameBuilder.Append('~');
 
-        var accessibility = GetAccessibility(destructorDeclaration, destructorDeclaration.Modifiers);
+        nameBuilder.Append(identifier.ValueText);
+        AppendParameterList(nameBuilder, declaration.ParameterList);
+
+        var accessibility = GetAccessibility(declaration, declaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
 
         items.Add(new(
             nameBuilder.ToString(),
             glyph,
             hasItems: false,
-            destructorDeclaration,
-            destructorDeclaration.Identifier));
-    }
-
-    private static void AddConstructorDeclaration(ConstructorDeclarationSyntax constructorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
-    {
-        using var _ = PooledStringBuilder.GetInstance(out var nameBuilder);
-
-        nameBuilder.Append(constructorDeclaration.Identifier.ValueText);
-        AppendParameterList(nameBuilder, constructorDeclaration.ParameterList);
-
-        var accessibility = GetAccessibility(constructorDeclaration, constructorDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
-
-        items.Add(new(
-            nameBuilder.ToString(),
-            glyph,
-            hasItems: false,
-            constructorDeclaration,
-            constructorDeclaration.Identifier));
+            declaration,
+            identifier));
     }
 
     private static void AddConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax operatorDeclaration, ArrayBuilder<SymbolTreeItemData> items)
