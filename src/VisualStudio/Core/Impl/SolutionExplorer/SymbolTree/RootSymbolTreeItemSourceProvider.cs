@@ -115,13 +115,9 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                try
-                {
-                    await source.UpdateIfAffectedAsync(documentIdSet, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
-                {
-                }
+                await source.UpdateIfAffectedAsync(documentIdSet, cancellationToken)
+                    .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
+                    .ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
 
@@ -163,7 +159,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
 
         // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
-        private readonly SymbolTreeChildCollection _childCollection = new(hierarchyItem, hasItems: null);
+        private readonly SymbolTreeChildCollection _childCollection = new(rootProvider, hierarchyItem, hasItems: null);
 
         private DocumentId? _documentId;
 
@@ -180,7 +176,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             // If we didn't have a doc id, or we failed for any reason, clear out all our items and set that as our
             // current state.
             await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            _childCollection.ClearAndMarkComputed_OnMainThread(_rootProvider);
+            _childCollection.ClearAndMarkComputed_OnMainThread();
         }
 
         private async ValueTask<bool> TryUpdateItemsAsync(
@@ -206,8 +202,9 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var items = itemProvider.GetItems(root, cancellationToken);
-            await _childCollection.SetItemsAndMarkComputedAsync(
-                _rootProvider, documentId, itemProvider, items, cancellationToken).ConfigureAwait(false);
+
+            await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _childCollection.SetItemsAndMarkComputed_OnMainThread(documentId, itemProvider, items);
             return true;
         }
 
