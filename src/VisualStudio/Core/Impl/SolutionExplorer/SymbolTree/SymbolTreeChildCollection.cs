@@ -61,7 +61,7 @@ internal sealed class SymbolTreeChildCollection(
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
     }
 
-    public void SetItems(
+    public void SetItemsAndMarkComputed(
         RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
@@ -77,7 +77,7 @@ internal sealed class SymbolTreeChildCollection(
         MarkComputed();
     }
 
-    public void Clear()
+    public void ClearAndMarkComputed()
     {
         using (this._symbolTreeItems.GetBulkOperation())
         {

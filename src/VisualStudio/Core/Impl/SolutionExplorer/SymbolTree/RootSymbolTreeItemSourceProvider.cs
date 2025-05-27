@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -38,10 +37,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
     private readonly ConcurrentSet<WeakReference<RootSymbolTreeItemCollectionSource>> _weakCollectionSources = [];
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
-
-    // private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-
-    // private IHierarchyItemToProjectIdMap? _projectMap;
 
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     [ImportingConstructor]
@@ -130,14 +125,6 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         _weakCollectionSources.Add(new WeakReference<RootSymbolTreeItemCollectionSource>(source));
         return source;
-        //var hierarchyMapper = TryGetProjectMap();
-        //if (hierarchyMapper == null ||
-        //    !hierarchyMapper.TryGetDocumentId(item, targetFrameworkMoniker: null, out var documentId))
-        //{
-        //    return null;
-        //}
-
-        //return null;
     }
 
     private sealed class RootSymbolTreeItemCollectionSource : IAttachedCollectionSource, INotifyPropertyChanged
@@ -155,7 +142,9 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         {
             _rootProvider = rootProvider;
             _hierarchyItem = hierarchyItem;
-            _childCollection = new(hierarchyItem);
+
+            // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
+            _childCollection = new(hierarchyItem, hasItems: null);
         }
 
         internal async Task UpdateIfAffectedAsync(
@@ -167,8 +156,9 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
             if (documentId != null && await TryUpdateItemsAsync(updateSet, documentId, cancellationToken).ConfigureAwait(false))
                 return;
 
-            // If we didn't have a doc id, or we failed for any reason, clear out all our items.
-            _childCollection.Clear();
+            // If we didn't have a doc id, or we failed for any reason, clear out all our items and set that as our
+            // current state.
+            _childCollection.ClearAndMarkComputed();
         }
 
         private async ValueTask<bool> TryUpdateItemsAsync(
@@ -193,7 +183,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
                 return false;
 
             var items = await itemProvider.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
-            _childCollection.UpdateItems(_rootProvider, documentId, itemProvider, items);
+            _childCollection.SetItemsAndMarkComputed(_rootProvider, documentId, itemProvider, items);
             return true;
         }
 
