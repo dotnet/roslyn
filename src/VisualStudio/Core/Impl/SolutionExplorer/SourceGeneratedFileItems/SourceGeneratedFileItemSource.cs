@@ -135,7 +135,7 @@ internal sealed class SourceGeneratedFileItemSource(
         finally
         {
             _items.EndBulkOperation();
-            _items.MarkAsInitialized();
+            _items.IsInitialized = true;
         }
     }
 

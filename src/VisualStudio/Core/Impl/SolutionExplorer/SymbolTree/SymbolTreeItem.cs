@@ -125,7 +125,7 @@ internal sealed class SymbolTreeItem : BaseItem,
             // down further.
             var items = this.ItemProvider.GetItems(
                 _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
-            _childCollection.SetItems(this.RootProvider, this.DocumentId, this.ItemProvider, items);
+            _childCollection.SetItemsAndMarkComputed(this.RootProvider, this.DocumentId, this.ItemProvider, items);
         }
         else
         {
