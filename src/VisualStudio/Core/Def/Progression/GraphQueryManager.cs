@@ -8,10 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.GraphModel;
 using Roslyn.Utilities;
 
@@ -29,28 +26,10 @@ internal sealed class GraphQueryManager
     private readonly object _gate = new();
     private ImmutableArray<(WeakReference<IGraphContext> context, ImmutableArray<IGraphQuery> queries)> _trackedQueries = [];
 
-    // private readonly AsyncBatchingWorkQueue _updateQueue;
-
     internal GraphQueryManager(
-        Workspace workspace,
-        IThreadingContext threadingContext,
-        IAsynchronousOperationListener asyncListener)
+        Workspace workspace)
     {
         _workspace = workspace;
-
-        //// Update any existing live/tracking queries 1.5 seconds after every workspace changes.
-        //_updateQueue = new AsyncBatchingWorkQueue(
-        //    DelayTimeSpan.Idle,
-        //    UpdateExistingQueriesAsync,
-        //    asyncListener,
-        //    threadingContext.DisposalToken);
-
-        // Note: this ends up always listening for workspace events, even if we have no active 'live' queries that
-        // need updating.  But this should basically be practically no cost.  The queue just holds a single item
-        // indicating a change happened.  And when UpdateExistingQueriesAsync fires, it will just see that there are
-        // no live queries and immediately return.  So it's just simple to do things this way instead of trying to 
-        // have state management where we try to decide if we should listen or not.
-        //_ = _workspace.RegisterWorkspaceChangedHandler((_) => _updateQueue.AddWork());
     }
 
     public async Task AddQueriesAsync(IGraphContext context, ImmutableArray<IGraphQuery> graphQueries, CancellationToken disposalToken)
@@ -78,32 +57,6 @@ internal sealed class GraphQueryManager
             context.OnCompleted();
         }
     }
-
-    //private async ValueTask UpdateExistingQueriesAsync(CancellationToken disposalToken)
-    //{
-    //    ImmutableArray<(IGraphContext context, ImmutableArray<IGraphQuery> queries)> liveQueries;
-    //    lock (_gate)
-    //    {
-    //        // First, grab the set of contexts that are still live.  We'll update them below.
-    //        liveQueries = _trackedQueries
-    //            .SelectAsArray(t => (context: t.context.GetTarget(), t.queries))
-    //            .WhereAsArray(t => t.context != null)!;
-
-    //        // Next, clear out any context that are now no longer alive (or have been canceled).  We no longer care
-    //        // about these.
-    //        _trackedQueries = _trackedQueries.RemoveAll(t =>
-    //        {
-    //            var target = t.context.GetTarget();
-    //            return target is null || target.CancelToken.IsCancellationRequested;
-    //        });
-    //    }
-
-    //    var solution = _workspace.CurrentSolution;
-
-    //    // Update all the live queries in parallel.
-    //    var tasks = liveQueries.Select(t => PopulateContextGraphAsync(solution, t.context, t.queries, disposalToken)).ToArray();
-    //    await Task.WhenAll(tasks).ConfigureAwait(false);
-    //}
 
     /// <summary>
     /// Populate the graph of the context with the values for the given Solution.

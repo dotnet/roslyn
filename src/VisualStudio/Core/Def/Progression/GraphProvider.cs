@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -21,7 +19,6 @@ using Microsoft.VisualStudio.GraphModel.Schemas;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Progression;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
@@ -316,46 +313,6 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         //        trackChanges: true);
         //}
     }
-
-    //private static bool IsOverridable(GraphNode node)
-    //{
-    //    var modifiers = GetModifiers(node);
-    //    return (modifiers.IsVirtual || modifiers.IsAbstract || modifiers.IsOverride) &&
-    //        !modifiers.IsSealed;
-    //}
-
-    //private static DeclarationModifiers GetModifiers(GraphNode node)
-    //    => (DeclarationModifiers)node[RoslynGraphProperties.SymbolModifiers];
-
-    //private static bool CheckAccessibility(GraphNode node, Accessibility accessibility)
-    //    => node[RoslynGraphProperties.DeclaredAccessibility].Equals(accessibility);
-
-    //private static bool HasExplicitInterfaces(GraphNode node)
-    //    => ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
-
-    //private static bool IsRoslynNode(GraphNode node)
-    //{
-    //    return node[RoslynGraphProperties.SymbolKind] != null
-    //        && node[RoslynGraphProperties.TypeKind] != null;
-    //}
-
-    //private static bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
-    //    => symbolKinds.Any(k => k.Equals(node[RoslynGraphProperties.SymbolKind]));
-
-    //private static bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
-    //    => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
-
-    //private static readonly GraphCommandDefinition s_overridesCommandDefinition =
-    //    new("Overrides", EditorFeaturesResources.Overrides_, GraphContextDirection.Target, 700);
-
-    //private static readonly GraphCommandDefinition s_overriddenByCommandDefinition =
-    //    new("OverriddenBy", EditorFeaturesResources.Overridden_By, GraphContextDirection.Source, 700);
-
-    //private static readonly GraphCommandDefinition s_implementsCommandDefinition =
-    //    new("Implements", EditorFeaturesResources.Implements_, GraphContextDirection.Target, 600);
-
-    //private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
-    //    new("ImplementedBy", EditorFeaturesResources.Implemented_By, GraphContextDirection.Source, 600);
 
     public T? GetExtension<T>(GraphObject graphObject, T previous) where T : class
     {

@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
@@ -21,12 +19,10 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 internal sealed class GraphNavigatorExtension(
     IThreadingContext threadingContext,
-    Workspace workspace,
-    Lazy<IStreamingFindUsagesPresenter> streamingPresenter) : IGraphNavigateToItem
+    Workspace workspace) : IGraphNavigateToItem
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly Workspace _workspace = workspace;
-    // private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
 
     public void NavigateTo(GraphObject graphObject)
     {
