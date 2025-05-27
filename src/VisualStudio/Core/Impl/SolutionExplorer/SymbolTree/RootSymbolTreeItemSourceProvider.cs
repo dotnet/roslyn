@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,9 +9,9 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,11 +23,10 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
-using static System.Windows.Forms.LinkLabel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -138,6 +136,15 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             return null;
         }
 
+        if (!hierarchy.TryGetCanonicalName(itemId, out var itemName))
+            return null;
+
+        // We only support C# and VB files for now.  This ensures we don't create source providers for
+        // other types of files we'll never have results for.
+        var extension = Path.GetExtension(itemName);
+        if (extension is not ".cs" and not ".vb")
+            return null;
+
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         _hierarchyToCollectionSource[item] = source;
 
@@ -202,7 +209,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             if (document is null)
                 return false;
 
-            var itemProvider = document.Project.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
+            var itemProvider = document.GetLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
             if (itemProvider is null)
                 return false;
 
