@@ -39,13 +39,18 @@ internal readonly record struct SymbolTreeItemData(
     }
 }
 
+/// <summary>
+/// Actual in-memory object that will be presented in the solution explorer tree.  Note:
+/// we attempt to reuse instances of these to maintain visual persistence (like selection state)
+/// when items are recomputed.
+/// </summary>
 internal sealed class SymbolTreeItem : BaseItem,
     IInvocationController,
     IAttachedCollectionSource,
     ISupportExpansionEvents,
     INotifyPropertyChanged
 {
-    public readonly RootSymbolTreeItemSourceProvider SourceProvider;
+    public readonly RootSymbolTreeItemSourceProvider RootProvider;
     public readonly DocumentId DocumentId;
     public readonly ISolutionExplorerSymbolTreeItemProvider ItemProvider;
     public readonly SymbolTreeItemKey ItemKey;
@@ -56,12 +61,12 @@ internal sealed class SymbolTreeItem : BaseItem,
     private SymbolTreeItemSyntax _itemSyntax;
 
     public SymbolTreeItem(
-        RootSymbolTreeItemSourceProvider sourceProvider,
+        RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
         SymbolTreeItemKey itemKey) : base(canPreview: true)
     {
-        SourceProvider = sourceProvider;
+        RootProvider = rootProvider;
         DocumentId = documentId;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
@@ -73,6 +78,9 @@ internal sealed class SymbolTreeItem : BaseItem,
         get => _itemSyntax;
         set
         {
+            // When the syntax node for this item is changed, we want to recompute the children for it
+            // (if this  node is expanded). Otherwise, we can just throw away what we have and recompute
+            // the next time when asked.
             _itemSyntax = value;
             UpdateChildren();
         }
@@ -89,20 +97,20 @@ internal sealed class SymbolTreeItem : BaseItem,
         if (items.FirstOrDefault() is not SymbolTreeItem item)
             return false;
 
-        SourceProvider.NavigateTo(item, preview);
+        RootProvider.NavigateTo(item, preview);
         return true;
     }
 
     public void BeforeExpand()
     {
-        Contract.ThrowIfFalse(SourceProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
         _expanded = true;
         UpdateChildren();
     }
 
     public void AfterCollapse()
     {
-        Contract.ThrowIfFalse(SourceProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+        Contract.ThrowIfFalse(RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
         _expanded = false;
         UpdateChildren();
     }
@@ -116,13 +124,13 @@ internal sealed class SymbolTreeItem : BaseItem,
             // are already expanded, then recompute our children which will recursively push the change
             // down further.
             var items = this.ItemProvider.GetItems(
-                _itemSyntax.DeclarationNode, this.SourceProvider.ThreadingContext.DisposalToken);
-            _childCollection.UpdateItems(this.DocumentId, this.ItemProvider, items);
+                _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
+            _childCollection.SetItems(this.RootProvider, this.DocumentId, this.ItemProvider, items);
         }
         else
         {
             // Otherwise, return the child collection to the uninitialized state.
-            _childCollection.Reset();
+            _childCollection.ResetToUncomputedState();
         }
     }
 
