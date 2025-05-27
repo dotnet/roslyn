@@ -202,7 +202,8 @@ internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourc
             if (itemProvider is null)
                 return false;
 
-            var items = await itemProvider.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var items = itemProvider.GetItems(root, cancellationToken);
             _childCollection.SetItemsAndMarkComputed(_rootProvider, documentId, itemProvider, items);
             return true;
         }

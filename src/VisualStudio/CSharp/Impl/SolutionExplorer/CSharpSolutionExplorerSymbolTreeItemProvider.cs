@@ -9,7 +9,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,17 +24,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.SolutionExplorer;
 [ExportLanguageService(typeof(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolutionExplorerSymbolTreeItemProvider
+internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : AbstractSolutionExplorerSymbolTreeItemProvider
 {
-    public async Task<ImmutableArray<SymbolTreeItemData>> GetItemsAsync(
-        Document document, CancellationToken cancellationToken)
+    public override ImmutableArray<SymbolTreeItemData> GetItems(SyntaxNode node, CancellationToken cancellationToken)
     {
-        var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
         using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
         using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
 
-        AddTopLevelTypes(root, items, nameBuilder, cancellationToken);
+        switch (node)
+        {
+            case CompilationUnitSyntax compilationUnit:
+                AddTopLevelTypes(compilationUnit, items, nameBuilder, cancellationToken);
+                break;
+
+            case EnumDeclarationSyntax enumDeclaration:
+                AddEnumDeclarationMembers(enumDeclaration, items, cancellationToken);
+                break;
+
+            case TypeDeclarationSyntax typeDeclaration:
+                AddTypeDeclarationMembers(typeDeclaration, items, nameBuilder, cancellationToken);
+                break;
+        }
 
         return items.ToImmutableAndClear();
     }
@@ -92,26 +101,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
 
         return false;
-    }
-
-    public ImmutableArray<SymbolTreeItemData> GetItems(SyntaxNode node, CancellationToken cancellationToken)
-    {
-        using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
-        using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
-
-        var memberDeclaration = (MemberDeclarationSyntax)node;
-        switch (memberDeclaration)
-        {
-            case EnumDeclarationSyntax enumDeclaration:
-                AddEnumDeclarationMembers(enumDeclaration, items, cancellationToken);
-                break;
-
-            case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclarationMembers(typeDeclaration, items, nameBuilder, cancellationToken);
-                break;
-        }
-
-        return items.ToImmutableAndClear();
     }
 
     private static void AddTypeDeclarationMembers(
@@ -436,37 +425,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
             typeDeclaration.Identifier));
     }
 
-    private static void AppendCommaSeparatedList<TArgumentList, TArgument>(
-        StringBuilder builder,
-        string openBrace,
-        string closeBrace,
-        TArgumentList? argumentList,
-        Func<TArgumentList, IEnumerable<TArgument>> getArguments,
-        Action<TArgument, StringBuilder> append,
-        string separator = ", ")
-        where TArgumentList : SyntaxNode
-        where TArgument : SyntaxNode
-    {
-        if (argumentList is null)
-            return;
-
-        AppendCommaSeparatedList(builder, openBrace, closeBrace, getArguments(argumentList), append, separator);
-    }
-
-    private static void AppendCommaSeparatedList<TArgument>(
-        StringBuilder builder,
-        string openBrace,
-        string closeBrace,
-        IEnumerable<TArgument> arguments,
-        Action<TArgument, StringBuilder> append,
-        string separator = ", ")
-        where TArgument : SyntaxNode
-    {
-        builder.Append(openBrace);
-        builder.AppendJoinedValues(separator, arguments, append);
-        builder.Append(closeBrace);
-    }
-
     private static void AppendTypeParameterList(
         StringBuilder builder,
         TypeParameterListSyntax? typeParameterList)
@@ -512,7 +470,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         else if (type is TupleTypeSyntax tupleType)
         {
             AppendCommaSeparatedList(
-                builder, "(", ")", tupleType.Elements, BuildDisplayText);
+                builder, "(", ")", tupleType.Elements, AppendTupleElement);
         }
         else if (type is RefTypeSyntax refType)
         {
@@ -563,7 +521,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : ISolution
         }
     }
 
-    private static void BuildDisplayText(TupleElementSyntax tupleElement, StringBuilder builder)
+    private static void AppendTupleElement(TupleElementSyntax tupleElement, StringBuilder builder)
     {
         AppendType(tupleElement.Type, builder);
         if (tupleElement.Identifier != default)
