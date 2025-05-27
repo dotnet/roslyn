@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -17,6 +16,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -33,11 +33,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
-internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemSourceProvider<IVsHierarchyItem>
+internal sealed class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
     private readonly ConcurrentSet<WeakReference<RootSymbolTreeItemCollectionSource>> _weakCollectionSources = [];
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
+    private readonly Workspace _workspace;
+    private readonly CancellationSeries _navigationCancellationSeries = new();
+
+    public readonly IThreadingContext ThreadingContext;
+    public readonly IAsynchronousOperationListener Listener;
 
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
     [ImportingConstructor]
@@ -45,8 +50,11 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(threadingContext, workspace, listenerProvider)
     {
+        ThreadingContext = threadingContext;
+        _workspace = workspace;
+        Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
+
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
             DelayTimeSpan.Medium,
             UpdateCollectionSourcesAsync,
@@ -54,13 +62,32 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
             this.Listener,
             this.ThreadingContext.DisposalToken);
 
-        this.Workspace.RegisterWorkspaceChangedHandler(
+        this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
                 if (e is { Kind: WorkspaceChangeKind.DocumentChanged or WorkspaceChangeKind.DocumentAdded, DocumentId: not null })
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+    }
+
+    public void NavigateTo(SymbolTreeItem item, bool preview)
+    {
+        // Cancel any in flight navigation and kick off a new one.
+        var cancellationToken = _navigationCancellationSeries.CreateNext(this.ThreadingContext.DisposalToken);
+        var navigationService = _workspace.Services.GetRequiredService<IDocumentNavigationService>();
+
+        var token = Listener.BeginAsyncOperation(nameof(NavigateTo));
+        navigationService.TryNavigateToPositionAsync(
+            ThreadingContext,
+            _workspace,
+            item.DocumentId,
+            item.ItemSyntax.NavigationToken.SpanStart,
+            virtualSpace: 0,
+            // May be calling this on stale data.  Allow the position to be invalid
+            allowInvalidPosition: true,
+            new NavigationOptions(PreferProvisionalTab: preview),
+            cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).CompletesAsyncOperation(token);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
@@ -128,25 +155,17 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         return source;
     }
 
-    private sealed class RootSymbolTreeItemCollectionSource : IAttachedCollectionSource, INotifyPropertyChanged
+    private sealed class RootSymbolTreeItemCollectionSource(
+        RootSymbolTreeItemSourceProvider rootProvider,
+        IVsHierarchyItem hierarchyItem) : IAttachedCollectionSource, INotifyPropertyChanged
     {
-        private readonly RootSymbolTreeItemSourceProvider _rootProvider;
-        private readonly IVsHierarchyItem _hierarchyItem;
+        private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
+        private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
 
-        private readonly SymbolTreeChildCollection _childCollection;
+        // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
+        private readonly SymbolTreeChildCollection _childCollection = new(hierarchyItem, hasItems: null);
 
         private DocumentId? _documentId;
-
-        public RootSymbolTreeItemCollectionSource(
-            RootSymbolTreeItemSourceProvider rootProvider,
-            IVsHierarchyItem hierarchyItem)
-        {
-            _rootProvider = rootProvider;
-            _hierarchyItem = hierarchyItem;
-
-            // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
-            _childCollection = new(hierarchyItem, hasItems: null);
-        }
 
         internal async Task UpdateIfAffectedAsync(
             HashSet<DocumentId> updateSet, CancellationToken cancellationToken)
@@ -172,7 +191,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
                 return true;
             }
 
-            var solution = _rootProvider.Workspace.CurrentSolution;
+            var solution = _rootProvider._workspace.CurrentSolution;
             var document = solution.GetDocument(documentId);
 
             // If we can't find this document anymore, clear everything out.
@@ -192,7 +211,7 @@ internal sealed class RootSymbolTreeItemSourceProvider : AbstractSymbolTreeItemS
         {
             if (_documentId == null)
             {
-                var idMap = _rootProvider.Workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
+                var idMap = _rootProvider._workspace.Services.GetService<IHierarchyItemToProjectIdMap>();
                 idMap?.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
             }
 
