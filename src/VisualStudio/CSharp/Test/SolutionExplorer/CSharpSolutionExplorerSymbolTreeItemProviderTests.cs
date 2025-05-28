@@ -2,53 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
-using Roslyn.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.SolutionExplorer;
 
 [UseExportProvider, Trait(Traits.Feature, Traits.Features.SolutionExplorer)]
 public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
+    : AbstractSolutionExplorerSymbolTreeItemProviderTests
 {
     private static readonly TestComposition s_testComposition = VisualStudioTestCompositions.LanguageServices;
 
-    private static Task TestCompilationUnit(
+    protected override TestWorkspace CreateWorkspace(string code)
+    {
+        return TestWorkspace.CreateCSharp(
+            code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), composition: s_testComposition);
+    }
+
+    private Task TestCompilationUnit(
         string code, string expected)
     {
         return TestNode<CompilationUnitSyntax>(code, expected);
-    }
-
-    private static async Task TestNode<TNode>(
-        string code, string expected) where TNode : SyntaxNode
-    {
-        using var workspace = TestWorkspace.CreateCSharp
-            (code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), composition: s_testComposition);
-
-        var testDocument = workspace.Documents.Single();
-        var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-        var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-
-        var service = document.GetRequiredLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
-
-        var node = root.DescendantNodesAndSelf().OfType<TNode>().First();
-        var items = service.GetItems(node, CancellationToken.None);
-
-        var actual = string.Join("\r\n", items);
-        AssertEx.Equal(expected, actual);
-
-        AssertEx.SequenceEqual(
-            testDocument.SelectedSpans,
-            items.Select(i => i.ItemSyntax.NavigationToken.Span));
     }
 
     [Fact]
