@@ -24,60 +24,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.SolutionExplorer;
 [ExportLanguageService(typeof(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : AbstractSolutionExplorerSymbolTreeItemProvider
+internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
+    : AbstractSolutionExplorerSymbolTreeItemProvider<
+        CompilationUnitSyntax,
+        MemberDeclarationSyntax,
+        BaseNamespaceDeclarationSyntax,
+        EnumDeclarationSyntax,
+        TypeDeclarationSyntax>
 {
-    public override ImmutableArray<SymbolTreeItemData> GetItems(SyntaxNode node, CancellationToken cancellationToken)
-    {
-        using var _1 = ArrayBuilder<SymbolTreeItemData>.GetInstance(out var items);
-        using var _2 = PooledStringBuilder.GetInstance(out var nameBuilder);
+    protected override SyntaxList<MemberDeclarationSyntax> GetMembers(CompilationUnitSyntax root)
+        => root.Members;
 
-        switch (node)
-        {
-            case CompilationUnitSyntax compilationUnit:
-                AddTopLevelTypes(compilationUnit, items, nameBuilder, cancellationToken);
-                break;
+    protected override SyntaxList<MemberDeclarationSyntax> GetMembers(BaseNamespaceDeclarationSyntax baseNamespace)
+        => baseNamespace.Members;
 
-            case EnumDeclarationSyntax enumDeclaration:
-                AddEnumDeclarationMembers(enumDeclaration, items, cancellationToken);
-                break;
+    protected override SyntaxList<MemberDeclarationSyntax> GetMembers(TypeDeclarationSyntax typeDeclaration)
+        => typeDeclaration.Members;
 
-            case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclarationMembers(typeDeclaration, items, nameBuilder, cancellationToken);
-                break;
-        }
-
-        return items.ToImmutableAndClear();
-    }
-
-    private static void AddTopLevelTypes(
-        CompilationUnitSyntax root, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
-    {
-        foreach (var member in root.Members)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (member is BaseNamespaceDeclarationSyntax baseNamespace)
-                AddTopLevelTypes(baseNamespace, items, nameBuilder, cancellationToken);
-            else
-                TryAddType(member, items, nameBuilder, cancellationToken);
-        }
-    }
-
-    private static void AddTopLevelTypes(
-        BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
-    {
-        foreach (var member in baseNamespace.Members)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (member is BaseNamespaceDeclarationSyntax childNamespace)
-                AddTopLevelTypes(childNamespace, items, nameBuilder, cancellationToken);
-            else
-                TryAddType(member, items, nameBuilder, cancellationToken);
-        }
-    }
-
-    private static bool TryAddType(
+    protected override bool TryAddType(
         MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -103,21 +67,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : AbstractS
         return false;
     }
 
-    private static void AddTypeDeclarationMembers(
-        TypeDeclarationSyntax typeDeclaration, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
-    {
-        foreach (var member in typeDeclaration.Members)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (TryAddType(member, items, nameBuilder, cancellationToken))
-                continue;
-
-            AddMemberDeclaration(member, items, nameBuilder);
-        }
-    }
-
-    private static void AddMemberDeclaration(
+    protected override void AddMemberDeclaration(
         MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {
         switch (member)
@@ -336,7 +286,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider() : AbstractS
         }
     }
 
-    private static void AddEnumDeclarationMembers(
+    protected override void AddEnumDeclarationMembers(
         EnumDeclarationSyntax enumDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         CancellationToken cancellationToken)
