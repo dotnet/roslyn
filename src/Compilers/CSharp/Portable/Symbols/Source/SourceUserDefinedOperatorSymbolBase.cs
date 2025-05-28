@@ -905,17 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true; // An error scenario
                 }
 
-                if (checkStrippedType && type.IsNullableType())
-                {
-                    if (type.Equals(extendedType, ComparisonForUserDefinedOperators))
-                    {
-                        return true;
-                    }
-
-                    type = type.GetNullableUnderlyingType();
-                }
-
-                return type.Equals(extendedType, ComparisonForUserDefinedOperators);
+                return ExtensionParameterTypeMatchesExtendedType(type, checkStrippedType, extendedType);
             }
 
             if (checkStrippedType)
@@ -925,6 +915,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return IsContainingType(type) ||
                    (IsInInterfaceAndAbstractOrVirtual() && IsSelfConstrainedTypeParameter(type));
+        }
+
+        internal static bool ExtensionParameterTypeMatchesExtendedType(TypeSymbol type, bool checkStrippedType, TypeSymbol extendedType)
+        {
+            if (checkStrippedType && type.IsNullableType())
+            {
+                if (type.Equals(extendedType, ComparisonForUserDefinedOperators))
+                {
+                    return true;
+                }
+
+                type = type.GetNullableUnderlyingType();
+            }
+
+            return type.Equals(extendedType, ComparisonForUserDefinedOperators);
         }
 
         private bool IsContainingType(TypeSymbol type)

@@ -4709,6 +4709,182 @@ class Program
                 //         Extensions1.op_Addition(s3, s3);
                 Diagnostic(ErrorCode.ERR_BadArgType, "s3").WithArguments("2", "S1?", "S2").WithLocation(30, 37)
                 );
+
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S2 x, S1 y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+    public static implicit operator S1(S2 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 + s1;
+        _ = s1 + s2;
+        _ = s2 + s1;
+        _ = s2 + s2;
+        Extensions1.op_Addition(s1, s1);
+        Extensions1.op_Addition(s1, s2);
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1, options: TestOptions.DebugExe);
+            comp1.VerifyEmitDiagnostics(
+                // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
+                // (25,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S2'
+                //         _ = s1 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s2").WithArguments("+", "S1", "S2").WithLocation(25, 13)
+                );
+
+            var src2 = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator +(S1 x, S2 y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+    public static implicit operator S1(S2 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 + s1;
+        _ = s1 + s2;
+        _ = s2 + s1;
+        _ = s2 + s2;
+        Extensions1.op_Addition(s1, s1);
+        Extensions1.op_Addition(s2, s1);
+    }
+}
+""";
+
+            var comp2 = CreateCompilation(src2, options: TestOptions.DebugExe);
+            comp2.VerifyEmitDiagnostics(
+                // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
+                // (26,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S1'
+                //         _ = s2 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s1").WithArguments("+", "S2", "S1").WithLocation(26, 13)
+                );
+
+            var src3 = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2? operator +(S2? x, S1? y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+    public static implicit operator S1(S2 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 + s1;
+        _ = s1 + s2;
+        _ = s2 + s1;
+        _ = s2 + s2;
+        Extensions1.op_Addition(s1, s1);
+        Extensions1.op_Addition(s1, s2);
+    }
+}
+""";
+
+            var comp3 = CreateCompilation(src3, options: TestOptions.DebugExe);
+            comp3.VerifyEmitDiagnostics(
+                // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
+                // (25,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S2'
+                //         _ = s1 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s2").WithArguments("+", "S1", "S2").WithLocation(25, 13)
+                );
+
+            var src4 = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2? operator +(S1? x, S2? y) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+    public static implicit operator S1(S2 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        S2 s2 = new S2();
+        _ = s1 + s1;
+        _ = s1 + s2;
+        _ = s2 + s1;
+        _ = s2 + s2;
+        Extensions1.op_Addition(s1, s1);
+        Extensions1.op_Addition(s2, s1);
+    }
+}
+""";
+
+            var comp4 = CreateCompilation(src4, options: TestOptions.DebugExe);
+            comp4.VerifyEmitDiagnostics(
+                // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s1 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
+                // (26,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S1'
+                //         _ = s2 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s1").WithArguments("+", "S2", "S1").WithLocation(26, 13)
+                );
         }
 
         [Fact]
