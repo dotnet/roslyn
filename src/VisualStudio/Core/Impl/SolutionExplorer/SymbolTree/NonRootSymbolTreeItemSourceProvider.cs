@@ -11,6 +11,11 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
+/// <summary>
+/// Provides a collection source for getting the children of a given SymbolTreeItem on demand.  This can be done 
+/// trivially as hold onto to the syntax node that they were created for.  Note: if the root item is not expanded
+/// then no actual calls into the syntax model are done to avoid creating parse trees unnecessarily.
+/// </summary>
 [Export(typeof(IAttachedCollectionSourceProvider))]
 [Name(nameof(NonRootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]

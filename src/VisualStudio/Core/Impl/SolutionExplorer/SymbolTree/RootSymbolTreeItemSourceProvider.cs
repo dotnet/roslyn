@@ -27,6 +27,11 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
+/// <summary>
+/// Source provider responsible for hearing about C#/VB files and attaching the root 'symbol tree' node.
+/// Users can then expand that node to get access to the symbols within the file.  Note: this tree is 
+/// built lazily (one level at a time), and only uses syntax so it can be done extremely quickly.
+/// </summary>
 [Export(typeof(IAttachedCollectionSourceProvider))]
 [Name(nameof(RootSymbolTreeItemSourceProvider))]
 [Order(Before = HierarchyItemsProviderNames.Contains)]
@@ -35,10 +40,15 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 {
     private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
 
+    /// <summary>
+    /// Queue of notifications we've heard about for changed documents.  We'll then go update the symbol tree item
+    /// for each of these documents so that it is up to date.  Note: if the symbol tree has never been expanded, 
+    /// this will bail immediately to avoid doing unnecessary work.
+    /// </summary>
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly Workspace _workspace;
-    public readonly SolutionExplorerNavigationSupport NavigationSupport;
 
+    public readonly SolutionExplorerNavigationSupport NavigationSupport;
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
 
@@ -79,6 +89,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         documentIdSet.AddRange(documentIds);
         sources.AddRange(_hierarchyToCollectionSource.Values);
 
+        // Update all the affected documents in parallel.
         await RoslynParallel.ForEachAsync(
             sources,
             cancellationToken,
@@ -127,6 +138,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         _hierarchyToCollectionSource[item] = source;
 
+        // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
         item.PropertyChanged += OnItemPropertyChanged;
 
         return source;
