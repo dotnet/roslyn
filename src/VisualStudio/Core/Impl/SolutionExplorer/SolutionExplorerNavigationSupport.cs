@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal sealed class SymbolTreeNavigationSupport(
+internal sealed class SolutionExplorerNavigationSupport(
     Workspace workspace,
     IThreadingContext threadingContext,
     IAsynchronousOperationListener listener)
