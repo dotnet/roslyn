@@ -38,7 +38,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly Workspace _workspace;
-    private readonly CancellationSeries _navigationCancellationSeries = new();
+    public readonly SymbolTreeNavigationSupport NavigationSupport;
 
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
@@ -53,6 +53,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         ThreadingContext = threadingContext;
         _workspace = workspace;
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
+        NavigationSupport = new(workspace, threadingContext, Listener);
 
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
             DelayTimeSpan.Medium,
@@ -68,25 +69,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
-    }
-
-    public void NavigateTo(DocumentId documentId, int position, bool preview)
-    {
-        // Cancel any in flight navigation and kick off a new one.
-        var cancellationToken = _navigationCancellationSeries.CreateNext(this.ThreadingContext.DisposalToken);
-        var navigationService = _workspace.Services.GetRequiredService<IDocumentNavigationService>();
-
-        var token = Listener.BeginAsyncOperation(nameof(NavigateTo));
-        navigationService.TryNavigateToPositionAsync(
-            ThreadingContext,
-            _workspace,
-            documentId,
-            position,
-            virtualSpace: 0,
-            // May be calling this on stale data.  Allow the position to be invalid
-            allowInvalidPosition: true,
-            new NavigationOptions(PreferProvisionalTab: preview),
-            cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).CompletesAsyncOperation(token);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(

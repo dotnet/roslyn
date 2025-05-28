@@ -102,7 +102,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         if (items.FirstOrDefault() is not SymbolTreeItem item)
             return false;
 
-        RootProvider.NavigateTo(item.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
+        RootProvider.NavigationSupport.NavigateTo(item.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
         return true;
     }
 
