@@ -35627,6 +35627,55 @@ static class E
     }
 
     [Fact]
+    public void Validation_EntryPoint_06()
+    {
+        string source = """
+static class E
+{
+    extension(string[] args)
+    {
+        public void Main() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_07()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS1558: 'E' does not have a suitable static 'Main' method
+            // static class E
+            Diagnostic(ErrorCode.ERR_NoMainInClass, "E").WithArguments("E").WithLocation(1, 14),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
+    }
+
+    [Fact]
     public void ReservedTypeName_01()
     {
         string source = """
