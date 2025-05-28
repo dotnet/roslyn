@@ -30,7 +30,6 @@ internal sealed class RoslynGraphProvider : IGraphProvider
     private readonly IServiceProvider _serviceProvider;
     private readonly IAsynchronousOperationListener _asyncListener;
     private readonly Workspace _workspace;
-    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
     private readonly GraphQueryManager _graphQueryManager;
 
     private bool _initialized = false;
@@ -42,7 +41,6 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         IGlyphService glyphService,
         SVsServiceProvider serviceProvider,
         VisualStudioWorkspace workspace,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
@@ -50,7 +48,6 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         _serviceProvider = serviceProvider;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
         _workspace = workspace;
-        _streamingPresenter = streamingPresenter;
         _graphQueryManager = new GraphQueryManager(workspace);
     }
 

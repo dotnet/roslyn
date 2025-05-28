@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         Public Function GetGraphWithDocumentNode(filePath As String) As Graph
-            Dim graphBuilder As New GraphBuilder(Workspace.CurrentSolution)
+            Dim graphBuilder As New GraphBuilder()
             Dim documentId = Workspace.Documents.Single(Function(d) d.FilePath = filePath).Id
             Assert.NotNull(graphBuilder.TryAddNodeForDocument(Workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None))
             Return graphBuilder.Graph
