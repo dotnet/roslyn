@@ -51,7 +51,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
         _workspace = workspace;
         _streamingPresenter = streamingPresenter;
-        _graphQueryManager = new GraphQueryManager(workspace, threadingContext, _asyncListener);
+        _graphQueryManager = new GraphQueryManager(workspace);
     }
 
     private void EnsureInitialized()
@@ -147,8 +147,8 @@ internal sealed class RoslynGraphProvider : IGraphProvider
                 // Create two queries.  One to find results in normal docs, and one to find results in generated
                 // docs.  That way if the generated docs take a long time we can still report the regular doc
                 // results immediately.
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments));
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments));
+                //graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments));
+                //graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments));
             }
         }
 
@@ -330,7 +330,7 @@ internal sealed class RoslynGraphProvider : IGraphProvider
             }
 
             if (typeof(T) == typeof(IGraphNavigateToItem))
-                return new GraphNavigatorExtension(_threadingContext, _workspace, _streamingPresenter) as T;
+                return new GraphNavigatorExtension(_threadingContext, _workspace) as T;
 
             //if (typeof(T) == typeof(IGraphFormattedLabel))
             //    return new GraphFormattedLabelExtension() as T;

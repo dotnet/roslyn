@@ -21,7 +21,7 @@ internal sealed partial class SearchGraphQuery(
     {
         using var _ = Logger.LogBlock(FunctionId.GraphQuery_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
 
-        var graphBuilder = new GraphBuilder(solution); // await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
+        var graphBuilder = new GraphBuilder(); // await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
         var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
 
         // We have a specialized host for progression vs normal nav-to.  Progression itself will tell the client if

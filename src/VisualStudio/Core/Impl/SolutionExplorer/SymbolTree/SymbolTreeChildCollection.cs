@@ -103,7 +103,6 @@ internal sealed class SymbolTreeChildCollection(
                 }
                 else
                 {
-                    ISearchProvider
                     // If we didn't find an existing item, create a new one.
                     _symbolTreeItems.Add(new(_rootProvider, documentId, itemProvider, itemData.ItemKey)
                     {
