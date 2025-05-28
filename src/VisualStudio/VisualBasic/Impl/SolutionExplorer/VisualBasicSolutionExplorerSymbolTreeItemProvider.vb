@@ -117,7 +117,41 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
         End Sub
 
         Protected Overrides Sub AddMemberDeclaration(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
-            Throw New NotImplementedException()
+            Dim methodStatement = If(TryCast(member, MethodStatementSyntax), TryCast(member, MethodBlockSyntax)?.SubOrFunctionStatement)
+            If methodStatement IsNot Nothing Then
+                AddMethodStatement(methodStatement, items, nameBuilder)
+                Return
+            End If
+
+            Dim constructorStatement = If(TryCast(member, SubNewStatementSyntax), TryCast(member, ConstructorBlockSyntax)?.SubNewStatement)
+            If constructorStatement IsNot Nothing Then
+                AddConstructorStatement(constructorStatement, items, nameBuilder)
+                Return
+            End If
+
+            Dim operatorStatement = If(TryCast(member, OperatorStatementSyntax), TryCast(member, OperatorBlockSyntax)?.OperatorStatement)
+            If operatorStatement IsNot Nothing Then
+                AddOperatorStatement(operatorStatement, items, nameBuilder)
+                Return
+            End If
+
+            Dim propertystatement = If(TryCast(member, PropertyStatementSyntax), TryCast(member, PropertyBlockSyntax)?.PropertyStatement)
+            If propertystatement IsNot Nothing Then
+                AddPropertyStatement(propertystatement, items, nameBuilder)
+                Return
+            End If
+
+            Dim eventStatement = If(TryCast(member, EventStatementSyntax), TryCast(member, EventBlockSyntax)?.EventStatement)
+            If eventStatement IsNot Nothing Then
+                AddEventStatement(eventStatement, items, nameBuilder)
+                Return
+            End If
+
+            Dim fieldDeclaration = TryCast(member, FieldDeclarationSyntax)
+            If fieldDeclaration IsNot Nothing Then
+                AddFieldDeclaration(fieldDeclaration, items, nameBuilder)
+                Return
+            End If
         End Sub
 
         Private Shared Sub AppendTypeParameterList(
