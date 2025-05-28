@@ -63,6 +63,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             Return False
         End Function
 
+        Private Shared Sub AddEnumBlock(enumBlock As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken)
+            nameBuilder.Append(enumBlock.EnumStatement.Identifier.ValueText)
+
+            Dim accessibility = GetAccessibility(enumBlock.Parent, enumBlock.EnumStatement, enumBlock.EnumStatement.Modifiers)
+            items.Add(New SymbolTreeItemData(
+                nameBuilder.ToStringAndClear(),
+                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Enum, accessibility),
+                hasItems:=False,
+                enumBlock,
+                enumBlock.EnumStatement.Identifier))
+        End Sub
+
         Private Shared Sub AddDelegateStatement(delegateStatement As DelegateStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken)
             nameBuilder.Append(delegateStatement.Identifier.ValueText)
             AppendTypeParameterList(nameBuilder, delegateStatement.TypeParameterList)
