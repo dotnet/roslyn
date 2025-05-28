@@ -5,6 +5,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -19,8 +21,15 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
 {
     private static readonly TestComposition s_testComposition = VisualStudioTestCompositions.LanguageServices;
 
-    private static async Task TestCompilationUnit(
+
+    private static Task TestCompilationUnit(
         string code, string expected)
+    {
+        return TestNode<CompilationUnitSyntax>(code, expected);
+    }
+
+    private static async Task TestNode<TNode>(
+        string code, string expected) where TNode : SyntaxNode
     {
         using var workspace = TestWorkspace.CreateCSharp(code, composition: s_testComposition);
 
@@ -29,7 +38,9 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
         var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
         var service = document.GetRequiredLanguageService<ISolutionExplorerSymbolTreeItemProvider>();
-        var items = service.GetItems(root, CancellationToken.None);
+
+        var node = root.DescendantNodesAndSelf().OfType<TNode>().First();
+        var items = service.GetItems(node, CancellationToken.None);
 
         var actual = string.Join("\r\n", items);
         AssertEx.Equal(expected, actual);
@@ -213,6 +224,82 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             delegate void [|D|]({{parameterType}} x);
             """, $$"""
             Name=D({{resultType}}) : void Glyph=DelegateInternal HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestGenericClass()
+    {
+        await TestCompilationUnit("""
+            class [|C|]<T>
+            {
+            }
+            """, """
+            Name=C<T> Glyph=ClassInternal HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestGenericDelegate()
+    {
+        await TestCompilationUnit("""
+            delegate void [|D|]<T>()
+            """, """
+            Name=D<T>() : void Glyph=DelegateInternal HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestEnumMembers()
+    {
+        await TestNode<EnumDeclarationSyntax>("""
+            enum E
+            {
+                [|A|], [|B|], [|C|]
+            }
+            """, """
+            Name=A Glyph=EnumMemberPublic HasItems=False
+            Name=B Glyph=EnumMemberPublic HasItems=False
+            Name=C Glyph=EnumMemberPublic HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestClassMembers()
+    {
+        await TestNode<ClassDeclarationSyntax>("""
+            class C
+            {
+                private int [|a|], [|b|];
+                public P [|Prop|] => default;
+                internal [|C|]() { }
+                ~[|C|]() { }
+
+                protected R [|this|][string s] => default;
+                private event Action [|A|] { }
+                public event Action [|B|], [|C|];
+
+                void [|M|]<T>(int a) { }
+                public void IInterface.[|O|]() { }
+
+                public static operator [|+|](C c1, int a) => default;
+
+                internal static implicit operator [|int|](C c1) => default;
+            }
+            """, """
+            Name=a : int Glyph=FieldPrivate HasItems=False
+            Name=b : int Glyph=FieldPrivate HasItems=False
+            Name=Prop : P Glyph=PropertyPublic HasItems=False
+            Name=C() Glyph=MethodInternal HasItems=False
+            Name=~C() Glyph=MethodPrivate HasItems=False
+            Name=this[string] : R Glyph=PropertyProtected HasItems=False
+            Name=A : Action Glyph=EventPrivate HasItems=False
+            Name=B : Action Glyph=EventPublic HasItems=False
+            Name=C : Action Glyph=EventPublic HasItems=False
+            Name=M<T>(int) : void Glyph=MethodPrivate HasItems=False
+            Name=O() : void Glyph=MethodPublic HasItems=False
+            Name=operator +(C, int) :  Glyph=OperatorPublic HasItems=False
+            Name=implicit operator int(C) Glyph=OperatorInternal HasItems=False
             """);
     }
 }
