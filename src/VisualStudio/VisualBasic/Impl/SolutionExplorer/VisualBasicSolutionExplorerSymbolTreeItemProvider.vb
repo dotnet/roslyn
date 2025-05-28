@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -14,58 +15,47 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSolutionExplorerSymbolTreeItemProvider
-        Inherits AbstractSolutionExplorerSymbolTreeItemProvider
+        Inherits AbstractSolutionExplorerSymbolTreeItemProvider(Of
+            CompilationUnitSyntax,
+            StatementSyntax,
+            NamespaceBlockSyntax,
+            EnumBlockSyntax,
+            TypeBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetItems(declarationNode As SyntaxNode, cancellationToken As CancellationToken) As ImmutableArray(Of SymbolTreeItemData)
-            Dim items = ArrayBuilder(Of SymbolTreeItemData).GetInstance()
-            Dim nameBuilder = PooledStringBuilder.GetInstance()
-
-            Dim compilationUnit = TryCast(declarationNode, CompilationUnitSyntax)
-            If compilationUnit IsNot Nothing Then
-                AddTopLevelTypes(compilationUnit, items, nameBuilder, cancellationToken)
-            End If
-
-            Dim typeBlock = TryCast(declarationNode, TypeBlockSyntax)
-            If typeBlock IsNot Nothing Then
-                AddTypeBlockMembers(typeBlock, items, nameBuilder, cancellationToken)
-            End If
-
-            nameBuilder.Free()
-            Return items.ToImmutableAndFree()
+        Protected Overrides Function GetMembers(root As CompilationUnitSyntax) As SyntaxList(Of StatementSyntax)
+            Return root.Members
         End Function
 
-        Private Sub AddTopLevelTypes(compilationUnit As CompilationUnitSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As PooledStringBuilder, cancellationToken As CancellationToken)
-            For Each member In compilationUnit.Members
-                cancellationToken.ThrowIfCancellationRequested()
+        Protected Overrides Function GetMembers(baseNamespace As NamespaceBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return baseNamespace.Members
+        End Function
 
-                Dim namespaceBlock = TryCast(member, NamespaceBlockSyntax)
-                If namespaceBlock IsNot Nothing Then
-                    AddTopLevelTypes(namespaceBlock, items, nameBuilder, cancellationToken)
-                Else
-                    TryAddType(member, items, nameBuilder, cancellationToken)
-                End If
+        Protected Overrides Function GetMembers(typeDeclaration As TypeBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return typeDeclaration.Members
+        End Function
+
+        Protected Overrides Function TryAddType(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken) As Boolean
+            Throw New NotImplementedException()
+        End Function
+
+        Protected Overrides Sub AddEnumDeclarationMembers(enumDeclaration As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), cancellationToken As CancellationToken)
+            For Each member In enumDeclaration.Members
+                Dim enumMember = TryCast(member, EnumMemberDeclarationSyntax)
+                items.Add(New SymbolTreeItemData(
+                    enumMember.Identifier.ValueText,
+                    Glyph.EnumMemberPublic,
+                    hasItems:=False,
+                    enumMember,
+                    enumMember.Identifier))
             Next
         End Sub
 
-        Private Sub AddTopLevelTypes(namespaceBlock As NamespaceBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As PooledStringBuilder, cancellationToken As CancellationToken)
-            For Each member In namespaceBlock.Members
-                cancellationToken.ThrowIfCancellationRequested()
-
-                Dim childNamespaceBlock = TryCast(member, NamespaceBlockSyntax)
-                If childNamespaceBlock IsNot Nothing Then
-                    AddTopLevelTypes(childNamespaceBlock, items, nameBuilder, cancellationToken)
-                Else
-                    TryAddType(member, items, nameBuilder, cancellationToken)
-                End If
-            Next
-        End Sub
-
-        Private Sub TryAddType(member As DeclarationStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As PooledStringBuilder, cancellationToken As CancellationToken)
+        Protected Overrides Sub AddMemberDeclaration(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             Throw New NotImplementedException()
         End Sub
     End Class
