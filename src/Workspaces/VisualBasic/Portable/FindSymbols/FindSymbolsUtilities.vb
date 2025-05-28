@@ -6,6 +6,19 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Module FindSymbolsUtilities
+        Public Function GetDeclaredSymbolInfoKind(typeBlock As TypeBlockSyntax) As DeclaredSymbolInfoKind
+            Select Case typeBlock.Kind()
+                Case SyntaxKind.CaseBlock
+                    Return DeclaredSymbolInfoKind.Class
+                Case SyntaxKind.InterfaceBlock
+                    Return DeclaredSymbolInfoKind.Interface
+                Case SyntaxKind.ModuleBlock
+                    Return DeclaredSymbolInfoKind.Module
+                Case Else
+                    Return DeclaredSymbolInfoKind.Struct
+            End Select
+        End Function
+
         Public Function GetAccessibility(container As SyntaxNode, node As StatementSyntax, modifiers As SyntaxTokenList) As Accessibility
             Dim sawFriend = False
 

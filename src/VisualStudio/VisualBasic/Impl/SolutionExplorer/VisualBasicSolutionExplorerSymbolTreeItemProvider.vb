@@ -2,18 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.FindSymbols
-Imports Microsoft.Build.Framework
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
@@ -42,41 +40,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             Return typeDeclaration.Members
         End Function
 
-        Protected Overrides Function TryAddType(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function TryAddType(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder) As Boolean
             Dim typeBlock = TryCast(member, TypeBlockSyntax)
             If typeBlock IsNot Nothing Then
-                AddTypeBlock(typeBlock, items, nameBuilder, cancellationToken)
+                AddTypeBlock(typeBlock, items, nameBuilder)
                 Return True
             End If
 
             Dim enumBlock = TryCast(member, EnumBlockSyntax)
             If enumBlock IsNot Nothing Then
-                AddEnumBlock(enumBlock, items, nameBuilder, cancellationToken)
+                AddEnumBlock(enumBlock, items)
                 Return True
             End If
 
             Dim delegateStatement = TryCast(member, DelegateStatementSyntax)
             If delegateStatement IsNot Nothing Then
-                AddDelegateStatement(delegateStatement, items, nameBuilder, cancellationToken)
+                AddDelegateStatement(delegateStatement, items, nameBuilder)
                 Return True
             End If
 
             Return False
         End Function
 
-        Private Shared Sub AddEnumBlock(enumBlock As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken)
-            nameBuilder.Append(enumBlock.EnumStatement.Identifier.ValueText)
+        Private Shared Sub AddTypeBlock(typeBlock As TypeBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+            Dim blockStatement As TypeStatementSyntax = typeBlock.BlockStatement
 
-            Dim accessibility = GetAccessibility(enumBlock.Parent, enumBlock.EnumStatement, enumBlock.EnumStatement.Modifiers)
+            nameBuilder.Append(blockStatement.Identifier.ValueText)
+            AppendTypeParameterList(nameBuilder, blockStatement.TypeParameterList)
+
+            Dim kind = GetDeclaredSymbolInfoKind(typeBlock)
+            Dim accessibility = GetAccessibility(typeBlock.Parent, blockStatement, blockStatement.Modifiers)
+
             items.Add(New SymbolTreeItemData(
                 nameBuilder.ToStringAndClear(),
+                GlyphExtensions.GetGlyph(kind, accessibility),
+                hasItems:=False,
+                typeBlock,
+                blockStatement.Identifier))
+        End Sub
+
+        Private Shared Sub AddEnumBlock(enumBlock As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData))
+            Dim accessibility = GetAccessibility(enumBlock.Parent, enumBlock.EnumStatement, enumBlock.EnumStatement.Modifiers)
+            items.Add(New SymbolTreeItemData(
+                enumBlock.EnumStatement.Identifier.ValueText,
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Enum, accessibility),
                 hasItems:=False,
                 enumBlock,
                 enumBlock.EnumStatement.Identifier))
         End Sub
 
-        Private Shared Sub AddDelegateStatement(delegateStatement As DelegateStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder, cancellationToken As CancellationToken)
+        Private Shared Sub AddDelegateStatement(delegateStatement As DelegateStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(delegateStatement.Identifier.ValueText)
             AppendTypeParameterList(nameBuilder, delegateStatement.TypeParameterList)
             AppendParameterList(nameBuilder, delegateStatement.ParameterList)
@@ -157,7 +170,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             Dim nullableType = TryCast(typeSyntax, NullableTypeSyntax)
             If nullableType IsNot Nothing Then
                 AppendType(nullableType.ElementType, builder)
-                builder.Append('?')
+                builder.Append("?"c)
                 Return
             End If
 

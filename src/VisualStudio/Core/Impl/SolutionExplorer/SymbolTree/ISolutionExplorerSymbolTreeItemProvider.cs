@@ -66,7 +66,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TNamespaceDeclarationSyntax baseNamespace);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
 
-    protected abstract bool TryAddType(TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken);
+    protected abstract bool TryAddType(TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddMemberDeclaration(TMemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder);
     protected abstract void AddEnumDeclarationMembers(TEnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items, CancellationToken cancellationToken);
 
@@ -103,7 +103,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
             if (member is TNamespaceDeclarationSyntax baseNamespace)
                 AddTopLevelTypes(baseNamespace, items, nameBuilder, cancellationToken);
             else
-                TryAddType(member, items, nameBuilder, cancellationToken);
+                TryAddType(member, items, nameBuilder);
         }
     }
 
@@ -117,7 +117,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
             if (member is TNamespaceDeclarationSyntax childNamespace)
                 AddTopLevelTypes(childNamespace, items, nameBuilder, cancellationToken);
             else
-                TryAddType(member, items, nameBuilder, cancellationToken);
+                TryAddType(member, items, nameBuilder);
         }
     }
 
@@ -128,7 +128,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (TryAddType(member, items, nameBuilder, cancellationToken))
+            if (TryAddType(member, items, nameBuilder))
                 continue;
 
             AddMemberDeclaration(member, items, nameBuilder);

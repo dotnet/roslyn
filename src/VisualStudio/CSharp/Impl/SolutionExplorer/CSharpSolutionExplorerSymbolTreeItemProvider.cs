@@ -42,9 +42,8 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         => typeDeclaration.Members;
 
     protected override bool TryAddType(
-        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder, CancellationToken cancellationToken)
+        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {
-        cancellationToken.ThrowIfCancellationRequested();
         switch (member)
         {
             case ExtensionBlockDeclarationSyntax extensionBlock:
