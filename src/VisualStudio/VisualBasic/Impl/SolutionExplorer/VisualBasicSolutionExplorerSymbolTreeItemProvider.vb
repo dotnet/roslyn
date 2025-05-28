@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSolutionExplorerSymbolTreeItemProvider
+    Friend NotInheritable Class VisualBasicSolutionExplorerSymbolTreeItemProvider
         Inherits AbstractSolutionExplorerSymbolTreeItemProvider(Of
             CompilationUnitSyntax,
             StatementSyntax,
