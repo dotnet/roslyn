@@ -96,19 +96,19 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
             ")
         End Function
 
-        '<Theory, CombinatorialData>
-        'public async function TestTypePermutations(
-        '    [CombinatorialValues("Public", "Private", "Protected", "Internal")> string accessibility,
-        '    [CombinatorialValues("Record", "Class", "Interface", "Struct")> string type)
-        '{
-        '    await TestCompilationUnit($$"
-        '        {{accessibility.ToLowerInvariant()}} {{type.ToLowerInvariant()}} [|C|]
-        '        {
-        '        }
-        '        ", $$"
-        '        Name=""C"" Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}{{accessibility}} HasItems=False
-        '        ");
-        '}
+        <Theory, CombinatorialData>
+        Public Async Function TestTypePermutations(
+            <CombinatorialValues("Public", "Private", "Protected", "Friend")>
+            accessibility As String,
+            <CombinatorialValues("Class", "Interface", "Structure")>
+            type As String) As Task
+            Await TestCompilationUnit($"
+                {accessibility.ToLowerInvariant()} {type.ToLowerInvariant()} [|C|]
+                end {type.ToLowerInvariant()}
+                ", $"
+                Name=""C"" Glyph={type}{If(accessibility = "Friend", "Internal", accessibility)} HasItems=False
+                ")
+        End function
 
         '[Theory, CombinatorialData]
         'public async function TestTypeHasItems(
