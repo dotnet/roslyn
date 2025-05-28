@@ -37,6 +37,9 @@ internal readonly record struct SymbolTreeItemData(
         : this(new(name, glyph, hasItems), new(declarationNode, navigationToken))
     {
     }
+
+    public override string ToString()
+        => $"Name={ItemKey.Name} Glyph={ItemKey.Glyph} HasItems={ItemKey.HasItems}";
 }
 
 /// <summary>
