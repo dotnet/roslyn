@@ -17,12 +17,11 @@ internal sealed class SolutionExplorerSearchDisplayItem(
     INavigateToSearchResult result,
     string name,
     ImageMoniker imageMoniker)
-    : BaseItem(canPreview: true),
+    : BaseItem(name, canPreview: true),
     IInvocationController
 {
     public readonly INavigateToSearchResult Result = result;
 
-    public override string Name { get; } = name;
     public override ImageMoniker IconMoniker { get; } = imageMoniker;
 
     public override IInvocationController? InvocationController => this;

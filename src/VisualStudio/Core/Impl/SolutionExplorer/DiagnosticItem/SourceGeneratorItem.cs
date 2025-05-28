@@ -13,13 +13,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 internal sealed partial class SourceGeneratorItem(
     ProjectId projectId,
     SourceGeneratorIdentity identity,
-    string? path) : BaseItem, IEquatable<SourceGeneratorItem>
+    string? path) : BaseItem(identity.TypeName), IEquatable<SourceGeneratorItem>
 {
     public ProjectId ProjectId { get; } = projectId;
     public SourceGeneratorIdentity Identity { get; } = identity;
     private readonly string? _path = path;
-
-    public override string Name { get; } = identity.TypeName;
 
     // TODO: do we need an icon for our use?
     public override ImageMoniker IconMoniker

@@ -13,10 +13,8 @@ internal sealed partial class AnalyzerItem(
     AnalyzersFolderItem analyzersFolder,
     AnalyzerReference analyzerReference,
     IContextMenuController contextMenuController)
-    : BaseItem
+    : BaseItem(GetNameText(analyzerReference))
 {
-    public override string Name { get; } = GetNameText(analyzerReference);
-
     public AnalyzersFolderItem AnalyzersFolder { get; } = analyzersFolder;
     public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
     public override IContextMenuController ContextMenuController { get; } = contextMenuController;

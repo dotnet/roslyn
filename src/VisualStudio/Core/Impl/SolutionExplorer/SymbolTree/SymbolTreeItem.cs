@@ -67,7 +67,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         RootSymbolTreeItemSourceProvider rootProvider,
         DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
-        SymbolTreeItemKey itemKey) : base(canPreview: true)
+        SymbolTreeItemKey itemKey) : base(itemKey.Name, canPreview: true)
     {
         RootProvider = rootProvider;
         DocumentId = documentId;
@@ -93,8 +93,6 @@ internal sealed class SymbolTreeItem : BaseItem,
             UpdateChildren();
         }
     }
-
-    public override string Name => this.ItemKey.Name;
 
     public override ImageMoniker IconMoniker => this.ItemKey.Glyph.GetImageMoniker();
 

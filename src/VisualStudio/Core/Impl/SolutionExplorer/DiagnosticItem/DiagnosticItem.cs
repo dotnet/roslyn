@@ -22,12 +22,10 @@ internal sealed partial class DiagnosticItem(
     DiagnosticDescriptor descriptor,
     ReportDiagnostic effectiveSeverity,
     IAnalyzersCommandHandler commandHandler)
-    : BaseItem, IEquatable<DiagnosticItem>
+    : BaseItem(descriptor.Id + ": " + descriptor.Title), IEquatable<DiagnosticItem>
 {
     private readonly AnalyzerReference _analyzerReference = analyzerReference;
     private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-
-    public override string Name { get; } = descriptor.Id + ": " + descriptor.Title;
 
     public ProjectId ProjectId { get; } = projectId;
     public DiagnosticDescriptor Descriptor { get; } = descriptor;

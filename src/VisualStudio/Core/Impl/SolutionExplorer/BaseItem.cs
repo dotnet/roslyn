@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 /// Microsoft.VisualStudio.Shell.TreeNavigation.HierarchyProvider.dll and
 /// Microsoft.VisualStudio.Shell.TreeNavigation.GraphProvider.dll.
 /// </summary>
-internal abstract class BaseItem(bool canPreview = false) :
+internal abstract class BaseItem(string name, bool canPreview = false) :
     LocalizableProperties,
     ITreeDisplayItem,
     IInteractionPatternProvider,
@@ -31,10 +31,9 @@ internal abstract class BaseItem(bool canPreview = false) :
     ISupportDisposalNotification,
     IPrioritizedComparable
 {
-
     public bool CanPreview { get; } = canPreview;
 
-    public abstract string Name { get; }
+    public string Name { get; } = name;
 
     public virtual event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
