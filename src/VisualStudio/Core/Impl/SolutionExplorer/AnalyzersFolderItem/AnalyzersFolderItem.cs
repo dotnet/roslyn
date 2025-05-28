@@ -24,7 +24,6 @@ internal sealed partial class AnalyzersFolderItem(
     public Workspace Workspace { get; } = workspace;
     public ProjectId ProjectId { get; } = projectId;
     public IVsHierarchyItem ParentItem { get; } = parentItem;
-
     public override IContextMenuController ContextMenuController { get; } = contextMenuController;
 
     public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
