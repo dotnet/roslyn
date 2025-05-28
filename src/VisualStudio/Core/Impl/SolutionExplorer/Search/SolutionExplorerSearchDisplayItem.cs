@@ -16,7 +16,7 @@ internal sealed class SolutionExplorerSearchDisplayItem(
     RoslynSolutionExplorerSearchProvider provider,
     string name,
     INavigateToSearchResult result)
-    : BaseItem,
+    : BaseItem(canPreview: true),
     IInvocationController
 {
     public readonly INavigateToSearchResult Result = result;

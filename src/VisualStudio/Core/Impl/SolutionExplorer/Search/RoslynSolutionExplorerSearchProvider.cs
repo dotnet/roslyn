@@ -35,6 +35,7 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
     IThreadingContext threadingContext) : ISearchProvider
 {
     private readonly VisualStudioWorkspace _workspace = workspace;
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
     public readonly SolutionExplorerNavigationSupport NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
@@ -43,21 +44,31 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
         if (!parameters.Options.SearchFileContents)
             return;
 
-        var cancellationToken = parameters.CancellationToken;
+        _threadingContext.JoinableTaskFactory.Run(SearchAsync);
 
-        var solution = _workspace.CurrentSolution;
-        var searcher = NavigateToSearcher.Create(
-            solution,
-            new SolutionExplorerNavigateToSearchCallback(this, resultAccumulator),
-            parameters.SearchQuery.SearchString.Trim(),
-            NavigateToUtilities.GetKindsProvided(solution),
-            new SolutionExplorerNavigateToSearcherHost(_workspace));
+        async Task SearchAsync()
+        {
+            try
+            {
+                var cancellationToken = parameters.CancellationToken;
 
-        var token = _listener.BeginAsyncOperation(nameof(Search));
-        searcher
-            .SearchAsync(NavigateToSearchScope.Solution, cancellationToken)
-            .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
-            .CompletesAsyncOperation(token);
+                var solution = _workspace.CurrentSolution;
+                var searcher = NavigateToSearcher.Create(
+                    solution,
+                    new SolutionExplorerNavigateToSearchCallback(this, resultAccumulator),
+                    parameters.SearchQuery.SearchString.Trim(),
+                    NavigateToUtilities.GetKindsProvided(solution),
+                    new SolutionExplorerNavigateToSearcherHost(_workspace));
+
+                await searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+            }
+        }
     }
 
     private sealed class SolutionExplorerNavigateToSearchCallback(
@@ -76,18 +87,6 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
                 resultAccumulator(new SolutionExplorerSearchResult(provider, result));
 
             return Task.CompletedTask;
-        }
-    }
-
-    private sealed class SolutionExplorerSearchResult(
-        RoslynSolutionExplorerSearchProvider provider,
-        INavigateToSearchResult result) : ISearchResult
-    {
-        public object GetDisplayItem()
-        {
-            var name = result.NavigableItem.DisplayTaggedParts.JoinText();
-            return new SolutionExplorerSearchDisplayItem(
-                provider, name, result);
         }
     }
 

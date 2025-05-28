@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -13,6 +14,25 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
+internal static class Relationships
+{
+    public static IAttachedRelationship Contains { get; } = new ContainsAttachedRelationship();
+
+    public static IAttachedRelationship ContainedBy { get; } = new ContainedByAttachedRelationship();
+
+    private sealed class ContainsAttachedRelationship : IAttachedRelationship
+    {
+        public string Name => KnownRelationships.Contains;
+        public string DisplayName => KnownRelationships.Contains;
+    }
+
+    private sealed class ContainedByAttachedRelationship : IAttachedRelationship
+    {
+        public string Name => KnownRelationships.ContainedBy;
+        public string DisplayName => KnownRelationships.ContainedBy;
+    }
+}
+
 /// <summary>
 /// Responsible for taking search result items and parenting them with their corresponding real document
 /// (i.e. an IVhHierarchy + itemid) in the solution explorer window.  In other words, this source provider
@@ -20,8 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 /// <see cref="IVsHierarchyItem"/>.
 /// </summary>
 [Export(typeof(IAttachedCollectionSourceProvider))]
-[Name(nameof(RootSymbolTreeItemSourceProvider))]
-[Order(Before = HierarchyItemsProviderNames.ContainedBy)]
+[Name(nameof(SolutionExplorerSearchDisplayItemSourceProvider))]
+[Order(Before = HierarchyItemsProviderNames.Contains)]
 [AppliesToProject("CSharp | VB")]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -30,6 +50,12 @@ internal sealed partial class SolutionExplorerSearchDisplayItemSourceProvider(
     IVsHierarchyItemManager hierarchyItemManager)
     : AttachedCollectionSourceProvider<SolutionExplorerSearchDisplayItem>
 {
+    protected override IEnumerable<IAttachedRelationship> GetRelationships(SolutionExplorerSearchDisplayItem item)
+    {
+        yield return Relationships.Contains;
+        yield return Relationships.ContainedBy;
+    }
+
     protected override IAttachedCollectionSource? CreateCollectionSource(
         SolutionExplorerSearchDisplayItem item, string relationshipName)
     {
