@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 DiagnosticFormatter,
                 createContext,
                 compile,
-                (assemblyIdentity, out size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
+                (AssemblyIdentity assemblyIdentity, out uint size) => appDomain.GetMetaDataBytesPtr(assemblyIdentity.GetDisplayName(), out size),
                 out result,
                 out errorMessage);
         }

@@ -445,7 +445,7 @@ class C
         public void ShouldTryAgain_CORDBG_E_MISSING_METADATA()
         {
             ShouldTryAgain_False(
-                (assemblyIdentity, out uSize) =>
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.CORDBG_E_MISSING_METADATA);
                     throw ExceptionUtilities.Unreachable();
@@ -456,7 +456,7 @@ class C
         public void ShouldTryAgain_COR_E_BADIMAGEFORMAT()
         {
             ShouldTryAgain_False(
-                (assemblyIdentity, out uSize) =>
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     Marshal.ThrowExceptionForHR(DkmExceptionUtilities.COR_E_BADIMAGEFORMAT);
                     throw ExceptionUtilities.Unreachable();
@@ -467,7 +467,7 @@ class C
         public void ShouldTryAgain_ObjectDisposedException()
         {
             ShouldTryAgain_False(
-                (assemblyIdentity, out uSize) =>
+                (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {
                     throw new ObjectDisposedException("obj");
                 });
@@ -658,7 +658,7 @@ class C
                         diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, "MissingType", missingIdentity), Location.None));
                         return null;
                     },
-                    (assemblyIdentity, out uSize) =>
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                     {
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
@@ -707,7 +707,7 @@ class C
                             return null;
                         }
                     },
-                    (assemblyIdentity, out uSize) =>
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                     {
                         uSize = (uint)missingModule.MetadataLength;
                         return missingModule.MetadataAddress;
@@ -753,7 +753,7 @@ class UseLinq
                     "args.Where(a => a.Length > 0)",
                     ImmutableArray<Alias>.Empty,
                     (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
-                    (assemblyIdentity, out uSize) =>
+                    (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                     {
                         retryCount++;
                         MetadataBlock block;
@@ -924,7 +924,7 @@ LanguageVersion.CSharp7_1);
                             methodVersion: 1,
                             ilOffset: 0,
                             localSignatureToken: localSignatureToken),
-                        (assemblyIdentity, out uSize) =>
+                        (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                         {
                             retryCount++;
                             Assert.Equal("System.Runtime", assemblyIdentity.Name);
