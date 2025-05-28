@@ -155,6 +155,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             End If
         End Sub
 
+        Private Shared Sub AddPropertyStatement(container As SyntaxNode, propertystatement As PropertyStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+            nameBuilder.Append(propertystatement.Identifier.ValueText)
+            AppendParameterList(nameBuilder, propertystatement.ParameterList)
+            AppendAsClause(nameBuilder, propertystatement.AsClause, fallbackToObject:=True)
+
+            Dim accesibility = GetAccessibility(container, propertystatement, propertystatement.Modifiers)
+            items.Add(New SymbolTreeItemData(
+                nameBuilder.ToStringAndClear(),
+                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accesibility),
+                hasItems:=False,
+                propertystatement,
+                propertystatement.Identifier))
+        End Sub
+
         Private Shared Sub AddEventStatement(container As SyntaxNode, eventStatement As EventStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(eventStatement.Identifier.ValueText)
             AppendAsClause(nameBuilder, eventStatement.AsClause)
