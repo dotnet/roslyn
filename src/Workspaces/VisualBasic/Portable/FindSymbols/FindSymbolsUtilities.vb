@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Module FindSymbolsUtilities
         Public Function GetDeclaredSymbolInfoKind(typeBlock As TypeBlockSyntax) As DeclaredSymbolInfoKind
             Select Case typeBlock.Kind()
-                Case SyntaxKind.CaseBlock
+                Case SyntaxKind.ClassBlock
                     Return DeclaredSymbolInfoKind.Class
                 Case SyntaxKind.InterfaceBlock
                     Return DeclaredSymbolInfoKind.Interface

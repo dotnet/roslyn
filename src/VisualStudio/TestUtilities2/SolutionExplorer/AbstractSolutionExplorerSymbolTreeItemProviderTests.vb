@@ -29,7 +29,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim items = service.GetItems(node, CancellationToken.None)
 
                 Dim actual = String.Join(vbCrLf, items)
-                AssertEx.Equal(expected, actual)
+                AssertEx.SequenceEqual(
+                    expected.Trim().Split({vbCrLf}, StringSplitOptions.RemoveEmptyEntries).Select(Function(s) s.Trim()),
+                    items.Select(Function(i) i.ToString()))
 
                 AssertEx.SequenceEqual(
                     testDocument.SelectedSpans,
