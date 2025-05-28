@@ -56,7 +56,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper, ILogge
 
         if (string.IsNullOrWhiteSpace(responseJson))
         {
-            _logger.LogError($"dotnet run-api exited with exit code, but did not return any response.");
+            _logger.LogError($"dotnet run-api exited with exit code 0, but did not return any response.");
             return null;
         }
 
