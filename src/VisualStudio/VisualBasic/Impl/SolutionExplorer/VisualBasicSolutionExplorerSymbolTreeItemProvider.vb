@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.FindSymbols
+Imports Microsoft.Build.Framework
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
@@ -134,7 +135,77 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
         End Sub
 
         Private Shared Sub AppendType(typeSyntax As TypeSyntax, builder As StringBuilder)
-            Throw New NotImplementedException()
+            If typeSyntax Is Nothing Then
+                Return
+            End If
+
+            Dim tupleType = TryCast(typeSyntax, TupleTypeSyntax)
+            If tupleType IsNot Nothing Then
+                AppendCommaSeparatedList(
+                    builder, "(", ")", tupleType.Elements,
+                    Sub(element, innerBuilder) AppendTupleElement(element, innerBuilder))
+                Return
+            End If
+
+            Dim arrayType = TryCast(typeSyntax, ArrayTypeSyntax)
+            If arrayType IsNot Nothing Then
+                AppendType(arrayType.ElementType, builder)
+                builder.Append("()")
+                Return
+            End If
+
+            Dim nullableType = TryCast(typeSyntax, NullableTypeSyntax)
+            If nullableType IsNot Nothing Then
+                AppendType(nullableType.ElementType, builder)
+                builder.Append('?')
+                Return
+            End If
+
+            Dim predefinedType = TryCast(typeSyntax, PredefinedTypeSyntax)
+            If predefinedType IsNot Nothing Then
+                builder.Append(predefinedType.ToString())
+                Return
+            End If
+
+            Dim identifierName = TryCast(typeSyntax, IdentifierNameSyntax)
+            If identifierName IsNot Nothing Then
+                builder.Append(identifierName.Identifier.ValueText)
+                Return
+            End If
+
+            Dim genericName = TryCast(typeSyntax, GenericNameSyntax)
+            If genericName IsNot Nothing Then
+                builder.Append(genericName.Identifier.ValueText)
+                AppendCommaSeparatedList(
+                    builder, "(Of ", ")", genericName.TypeArgumentList.Arguments,
+                    Sub(typeArgument, innerBuilder) AppendType(typeArgument, innerBuilder))
+                Return
+            End If
+
+            Dim qualifiedName = TryCast(typeSyntax, QualifiedNameSyntax)
+            If qualifiedName IsNot Nothing Then
+                AppendType(qualifiedName.Right, builder)
+                Return
+            End If
+
+            Debug.Fail("Unhandled type: " + typeSyntax.GetType().FullName)
+        End Sub
+
+        Private Shared Sub AppendTupleElement(element As TupleElementSyntax, builder As StringBuilder)
+            Dim typedTupleElement = TryCast(element, TypedTupleElementSyntax)
+            If typedTupleElement IsNot Nothing Then
+                AppendType(typedTupleElement.Type, builder)
+                Return
+            End If
+
+            Dim namedTupleElement = TryCast(element, NamedTupleElementSyntax)
+            If namedTupleElement IsNot Nothing Then
+                AppendType(namedTupleElement.AsClause?.Type, builder)
+                Return
+            End If
+
+            Debug.Fail("Unhandled type: " + element.GetType().FullName)
+
         End Sub
     End Class
 End Namespace
