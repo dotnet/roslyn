@@ -108,21 +108,20 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
                 ", $"
                 Name=""C"" Glyph={type}{If(accessibility = "Friend", "Internal", accessibility)} HasItems=False
                 ")
-        End function
+        End Function
 
-        '[Theory, CombinatorialData]
-        'public async function TestTypeHasItems(
-        '    [CombinatorialValues("Record", "Class", "Interface", "Struct")> string type)
-        '{
-        '    await TestCompilationUnit($$"
-        '        {{type.ToLowerInvariant()}} [|C|]
-        '        {
-        '            Integer i;
-        '        }
-        '        ", $$"
-        '        Name=""C"" Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}Internal HasItems=True
-        '        ");
-        '}
+        <Theory, CombinatorialData>
+        Public Async Function TestTypeHasItems(
+            <CombinatorialValues("Class", "Interface", "Structure")>
+            type As String) As Task
+            Await TestCompilationUnit($"
+                {type.ToLowerInvariant()} [|C|]
+                    readonly property P as string
+                end {type.ToLowerInvariant()}
+                ", $"
+                Name=""C"" Glyph={type}Internal HasItems=True
+                ")
+        End Function
 
         <Fact>
         Public Async Function TestEnumHasItems() As Task
