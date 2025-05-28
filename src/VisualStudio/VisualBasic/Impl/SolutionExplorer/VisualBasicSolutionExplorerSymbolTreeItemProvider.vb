@@ -381,7 +381,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
 
             Dim namedTupleElement = TryCast(element, NamedTupleElementSyntax)
             If namedTupleElement IsNot Nothing Then
-                AppendType(namedTupleElement.AsClause?.Type, builder)
+                builder.Append(namedTupleElement.Identifier.ValueText)
+                AppendAsClause(builder, namedTupleElement.AsClause)
                 Return
             End If
 

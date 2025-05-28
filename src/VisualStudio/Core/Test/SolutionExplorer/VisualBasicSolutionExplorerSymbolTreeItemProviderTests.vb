@@ -137,29 +137,24 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
             ")
         End Function
 
-        '<Theory]
-        '<InlineData("Integer", "Integer")>
-        '<InlineData("Integer[]", "Integer[]")>
-        '<InlineData("Integer[][]", "Integer[][]")>
-        '<InlineData("Integer[,][,,]", "Integer[,][,,]")>
-        '<InlineData("Integer*", "Integer*")>
-        '<InlineData("Integer?", "Integer?")>
-        '<InlineData("(Integer, string)", "(Integer, string)")>
-        '<InlineData("(Integer a, string b)", "(Integer a, string b)")>
-        '<InlineData("A.B", "B")>
-        '<InlineData("A::B", "B")>
-        '<InlineData("A::B.C", "C")>
-        '<InlineData("A", "A")>
-        '<InlineData("A.B<C::D, E::F.G<Integer>>", "B<D, G<Integer>>")>
-        'public async function TestTypes(
-        '    string parameterType, string resultType)
-        '{
-        '    await TestCompilationUnit($$"
-        '        delegate void [|D|]({{parameterType}} x);
-        '        ", $$"
-        '        Name=""D({{resultType}}) As void"" Glyph=DelegateInternal HasItems=False
-        '        ");
-        'end function
+        <Theory>
+        <InlineData("Integer", "Integer")>
+        <InlineData("Integer()", "Integer()")>
+        <InlineData("Integer()()", "Integer()()")>
+        <InlineData("Integer(,)(,,)", "Integer(,)(,,)")>
+        <InlineData("Integer?", "Integer?")>
+        <InlineData("(Integer, string)", "(Integer, string)")>
+        <InlineData("(a As Integer, b as string)", "(a As Integer, b As string)")>
+        <InlineData("A.B", "B")>
+        <InlineData("A", "A")>
+        <InlineData("A.B(Of C.D, global.F.G(Of Integer))", "B(Of D, G(Of Integer))")>
+        Public Async Function TestTypes(parameterType As String, resultType As String) As Task
+            Await TestCompilationUnit($"
+                delegate sub [|D|](x as {parameterType})
+                ", $"
+                Name=""D({resultType})"" Glyph=DelegateInternal HasItems=False
+                ")
+        End Function
 
         <Fact>
         Public Async Function TestGenericClass() As Task
