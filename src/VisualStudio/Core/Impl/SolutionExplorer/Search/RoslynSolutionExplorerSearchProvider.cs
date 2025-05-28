@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -84,7 +85,12 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
             CancellationToken cancellationToken)
         {
             foreach (var result in results)
-                resultAccumulator(new SolutionExplorerSearchResult(provider, result));
+            {
+                // Compute the name on the BG to avoid UI work.
+                var name = result.NavigableItem.DisplayTaggedParts.JoinText();
+                var imageMoniker = result.NavigableItem.Glyph.GetImageMoniker();
+                resultAccumulator(new SolutionExplorerSearchResult(provider, result, name, imageMoniker));
+            }
 
             return Task.CompletedTask;
         }

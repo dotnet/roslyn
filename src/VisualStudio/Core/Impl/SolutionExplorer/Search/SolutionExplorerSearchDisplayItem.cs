@@ -14,15 +14,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
 internal sealed class SolutionExplorerSearchDisplayItem(
     RoslynSolutionExplorerSearchProvider provider,
+    INavigateToSearchResult result,
     string name,
-    INavigateToSearchResult result)
+    ImageMoniker imageMoniker)
     : BaseItem(canPreview: true),
     IInvocationController
 {
     public readonly INavigateToSearchResult Result = result;
 
     public override string Name { get; } = name;
-    public override ImageMoniker IconMoniker => Result.NavigableItem.Glyph.GetImageMoniker();
+    public override ImageMoniker IconMoniker { get; } = imageMoniker;
 
     public override IInvocationController? InvocationController => this;
 
