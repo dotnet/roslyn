@@ -26,6 +26,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim service = document.GetRequiredLanguageService(Of ISolutionExplorerSymbolTreeItemProvider)()
 
                 Dim node = root.DescendantNodesAndSelf().OfType(Of TNode)().First()
+                Dim diagnostics = node.GetDiagnostics()
+                Assert.Empty(diagnostics)
+
                 Dim items = service.GetItems(node, CancellationToken.None)
 
                 Dim actual = String.Join(vbCrLf, items)

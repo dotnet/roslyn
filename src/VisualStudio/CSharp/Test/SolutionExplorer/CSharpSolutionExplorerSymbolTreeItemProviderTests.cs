@@ -223,7 +223,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
     public async Task TestGenericDelegate()
     {
         await TestCompilationUnit("""
-            delegate void [|D|]<T>()
+            delegate void [|D|]<T>();
             """, """
             Name="D<T>() : void" Glyph=DelegateInternal HasItems=False
             """);
@@ -262,7 +262,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 void [|M|]<T>(int a) { }
                 public void IInterface.[|O|]() { }
 
-                public static operator [|+|](C c1, int a) => default;
+                public static C operator [|+|](C c1, int a) => default;
 
                 internal static implicit operator [|int|](C c1) => default;
             }

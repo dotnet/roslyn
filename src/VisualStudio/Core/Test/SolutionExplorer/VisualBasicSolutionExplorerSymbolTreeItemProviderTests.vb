@@ -54,7 +54,7 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
         <Fact>
         Public Async Function TestDelegatesAndEnums() As Task
             Await TestCompilationUnit("
-                delegate function [|D|](x as Integer) as string;
+                delegate function [|D|](x as Integer) as string
 
                 enum [|E|]
                 end enum
@@ -176,7 +176,7 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
             Await TestCompilationUnit("
             delegate sub [|D|](Of T)()
             ", "
-            Name=""D(Of T)() As void"" Glyph=DelegateInternal HasItems=False
+            Name=""D(Of T)()"" Glyph=DelegateInternal HasItems=False
             ")
         End Function
 
@@ -199,23 +199,27 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
         Public Async Function TestClassMembers() As Task
             Await TestNode(Of ClassBlockSyntax)("
             class C
-            {
-                private Integer [|a|], [|b|];
-                public P [|Prop|] => default;
-                internal [|C|]() { }
-                ~[|C|]() { }
+                private [|a|], [|b|] as Integer
+                public readonly property [|Prop|] as P
+                sub [|New|]() { }
 
-                protected R [|this|][string s] => default;
-                private event Action [|A|] { }
-                public event Action [|B|], [|C|];
+                protected readonly property R [|Item|](s as string)
+                    get
+                    end get
+                end property
 
-                void [|M|]<T>(Integer a) { }
-                public void IInterface.[|O|]() { }
+                private event [|A|] as Action
+                end event
 
-                public static operator [|+|](C c1, Integer a) => default;
+                sub [|M|](Of T)(a as Integer)
+                end sub
 
-                internal static implicit operator [|Integer|](C c1) => default;
-            }
+                public shared operator [|+|](c1 as C, a as Integer)
+                end operator
+
+                internal shared widening operator [|CType|](c1 as C) as Integer
+                end operator
+            end class
             ", "
             Name=""a As Integer"" Glyph=FieldPrivate HasItems=False
             Name=""b As Integer"" Glyph=FieldPrivate HasItems=False
@@ -238,11 +242,22 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
             Await TestNode(Of ModuleBlockSyntax)("
             module C
                 <Extension>
-                public sub [|M|](this Integer i)
+                public sub [|M|](i as Integer)
                 end sub
             end module
             ", "
             Name=""M(Integer) As void"" Glyph=ExtensionMethodPublic HasItems=False
+            ")
+        End Function
+
+        <Fact>
+        Public Async Function TestAsClauses() As Task
+            Await TestNode(Of ModuleBlockSyntax)("
+            class C
+                dim x as new Y()
+            end class
+            ", "
+            Name=""M(Integer) As Y"" Glyph=ExtensionMethodPublic HasItems=False
             ")
         End Function
     End Class
