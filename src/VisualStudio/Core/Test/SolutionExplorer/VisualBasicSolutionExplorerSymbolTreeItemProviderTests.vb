@@ -201,14 +201,15 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
             class C
                 private [|a|], [|b|] as Integer
                 public readonly property [|Prop|] as P
-                sub [|New|]() { }
+                sub [|New|]()
+                end sub
 
-                protected readonly property R [|Item|](s as string)
+                protected readonly property [|Item|](s as string) as R
                     get
                     end get
                 end property
 
-                private event [|A|] as Action
+                private custom event [|A|] as Action
                 end event
 
                 sub [|M|](Of T)(a as Integer)
@@ -217,23 +218,19 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
                 public shared operator [|+|](c1 as C, a as Integer)
                 end operator
 
-                internal shared widening operator [|CType|](c1 as C) as Integer
+                friend shared widening operator [|CType|](c1 as C) as Integer
                 end operator
             end class
             ", "
-            Name=""a As Integer"" Glyph=FieldPrivate HasItems=False
-            Name=""b As Integer"" Glyph=FieldPrivate HasItems=False
-            Name=""Prop As P"" Glyph=PropertyPublic HasItems=False
-            Name=""C()"" Glyph=MethodInternal HasItems=False
-            Name=""~C()"" Glyph=MethodPrivate HasItems=False
-            Name=""this[string] As R"" Glyph=PropertyProtected HasItems=False
-            Name=""A As Action"" Glyph=EventPrivate HasItems=False
-            Name=""B As Action"" Glyph=EventPublic HasItems=False
-            Name=""C As Action"" Glyph=EventPublic HasItems=False
-            Name=""M<T>(Integer) As void"" Glyph=MethodPrivate HasItems=False
-            Name=""O() As void"" Glyph=MethodPublic HasItems=False
-            Name=""operator +(C, Integer) As "" Glyph=OperatorPublic HasItems=False
-            Name=""implicit operator Integer(C)"" Glyph=OperatorInternal HasItems=False
+               Name=""a As Integer"" Glyph=FieldPrivate HasItems=False,
+               Name=""b As Integer"" Glyph=FieldPrivate HasItems=False,
+               Name=""Prop As P"" Glyph=PropertyPublic HasItems=False,
+               Name=""New()"" Glyph=MethodPublic HasItems=False,
+               Name=""Item(string) As R"" Glyph=PropertyProtected HasItems=False,
+               Name=""A As Action"" Glyph=EventPrivate HasItems=False,
+               Name=""M(Of T)(Integer)"" Glyph=MethodPublic HasItems=False,
+               Name=""Operator +(C, Integer) As Object"" Glyph=OperatorPublic HasItems=False,
+               Name=""Operator CType(C) As Integer"" Glyph=OperatorInternal HasItems=False
             ")
         End Function
 
@@ -246,18 +243,18 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
                 end sub
             end module
             ", "
-            Name=""M(Integer) As void"" Glyph=ExtensionMethodPublic HasItems=False
+            Name=""M(Integer)"" Glyph=ExtensionMethodPublic HasItems=False
             ")
         End Function
 
         <Fact>
         Public Async Function TestAsClauses() As Task
-            Await TestNode(Of ModuleBlockSyntax)("
+            Await TestNode(Of ClassBlockSyntax)("
             class C
-                dim x as new Y()
+                dim [|x|] as new Y()
             end class
             ", "
-            Name=""M(Integer) As Y"" Glyph=ExtensionMethodPublic HasItems=False
+            Name=""x As Y"" Glyph=FieldPrivate HasItems=False
             ")
         End Function
     End Class

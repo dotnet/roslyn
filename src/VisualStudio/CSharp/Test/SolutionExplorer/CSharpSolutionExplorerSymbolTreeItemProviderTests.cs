@@ -278,7 +278,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             Name="C : Action" Glyph=EventPublic HasItems=False
             Name="M<T>(int) : void" Glyph=MethodPrivate HasItems=False
             Name="O() : void" Glyph=MethodPublic HasItems=False
-            Name="operator +(C, int) : " Glyph=OperatorPublic HasItems=False
+            Name="operator +(C, int) : C" Glyph=OperatorPublic HasItems=False
             Name="implicit operator int(C)" Glyph=OperatorInternal HasItems=False
             """);
     }

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Linq
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -10,6 +11,8 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
@@ -161,10 +164,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             AppendParameterList(nameBuilder, methodStatement.ParameterList)
             AppendAsClause(nameBuilder, methodStatement.AsClause)
 
+            Dim isExtension = container.IsKind(SyntaxKind.ModuleBlock) AndAlso methodStatement.AttributeLists.Any(
+                Function(list) list.Attributes.Any(
+                    Function(attribute)
+                        Dim name = attribute.Name.GetRightmostName().Identifier.ValueText
+                        Return name = "Extension" OrElse name = "ExtensionAttribute"
+                    End Function))
+
             Dim accesibility = GetAccessibility(container, methodStatement, methodStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
                 nameBuilder.ToStringAndClear(),
-                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accesibility),
+                GlyphExtensions.GetGlyph(If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method), accesibility),
                 hasItems:=False,
                 methodStatement,
                 methodStatement.Identifier))
