@@ -7,8 +7,10 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using ICSharpCode.Decompiler.TypeSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -248,7 +250,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         AppendType(methodDeclaration.ReturnType, nameBuilder);
 
         var accessibility = GetAccessibility(methodDeclaration.GetRequiredParent(), methodDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accessibility);
+        var isExtension = methodDeclaration.IsParentKind(SyntaxKind.ExtensionBlockDeclaration) ||
+            (methodDeclaration.ParameterList is { Parameters: [var parameter, ..] } && parameter.Modifiers.Any(SyntaxKind.ThisKeyword));
+        var glyph = GlyphExtensions.GetGlyph(
+            isExtension ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method, accessibility);
 
         items.Add(new(
             nameBuilder.ToStringAndClear(),

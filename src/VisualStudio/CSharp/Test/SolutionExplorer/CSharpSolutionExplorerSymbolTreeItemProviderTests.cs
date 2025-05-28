@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,7 +22,6 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
 {
     private static readonly TestComposition s_testComposition = VisualStudioTestCompositions.LanguageServices;
 
-
     private static Task TestCompilationUnit(
         string code, string expected)
     {
@@ -31,7 +31,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
     private static async Task TestNode<TNode>(
         string code, string expected) where TNode : SyntaxNode
     {
-        using var workspace = TestWorkspace.CreateCSharp(code, composition: s_testComposition);
+        using var workspace = TestWorkspace.CreateCSharp
+            (code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), composition: s_testComposition);
 
         var testDocument = workspace.Documents.Single();
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -300,6 +301,40 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             Name=O() : void Glyph=MethodPublic HasItems=False
             Name=operator +(C, int) :  Glyph=OperatorPublic HasItems=False
             Name=implicit operator int(C) Glyph=OperatorInternal HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestExtension1()
+    {
+        await TestNode<ClassDeclarationSyntax>("""
+            static class C
+            {
+                [|extension|]<T>(int i)
+                {
+                }
+
+                public static void [|M|](this int i) {}
+            }
+            """, """
+            Name=extension<T>(int) Glyph=ClassPublic HasItems=False
+            Name=M(int) : void Glyph=ExtensionMethodPublic HasItems=False
+            """);
+    }
+
+    [Fact]
+    public async Task TestExtension2()
+    {
+        await TestNode<ExtensionBlockDeclarationSyntax>("""
+            static class C
+            {
+                extension<T>(int i)
+                {
+                    public void [|M|]() { }
+                }
+            }
+            """, """
+            Name=M() : void Glyph=ExtensionMethodPublic HasItems=False
             """);
     }
 }
