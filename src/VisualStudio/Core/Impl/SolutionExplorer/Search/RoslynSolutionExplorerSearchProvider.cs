@@ -27,23 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [Export(typeof(ISearchProvider))]
 [Name(nameof(RoslynSolutionExplorerSearchProvider))]
 [Order(Before = "GraphSearchProvider")]
-internal sealed class RoslynSolutionExplorerSearchProvider : ISearchProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RoslynSolutionExplorerSearchProvider(
+    VisualStudioWorkspace workspace,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    IThreadingContext threadingContext) : ISearchProvider
 {
-    private readonly VisualStudioWorkspace _workspace;
-    private readonly IAsynchronousOperationListener _listener;
-    public readonly SolutionExplorerNavigationSupport NavigationSupport;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RoslynSolutionExplorerSearchProvider(
-        VisualStudioWorkspace workspace,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        IThreadingContext threadingContext)
-    {
-        _workspace = workspace;
-        _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
-        NavigationSupport = new(workspace, threadingContext, _listener);
-    }
+    private readonly VisualStudioWorkspace _workspace = workspace;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
+    public readonly SolutionExplorerNavigationSupport NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
     public void Search(IRelationshipSearchParameters parameters, Action<ISearchResult> resultAccumulator)
     {

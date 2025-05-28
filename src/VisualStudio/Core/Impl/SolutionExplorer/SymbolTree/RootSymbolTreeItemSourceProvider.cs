@@ -53,7 +53,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         ThreadingContext = threadingContext;
         _workspace = workspace;
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
-        NavigationSupport = new(workspace, threadingContext, Listener);
+        NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
         _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
             DelayTimeSpan.Medium,

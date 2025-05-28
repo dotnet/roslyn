@@ -14,18 +14,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 internal sealed class SolutionExplorerNavigationSupport(
     Workspace workspace,
     IThreadingContext threadingContext,
-    IAsynchronousOperationListener listener)
+    IAsynchronousOperationListenerProvider listenerProvider)
 {
     private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
 
-    public void NavigateTo(
-        DocumentId documentId, int position, bool preview)
+    public void NavigateTo(DocumentId documentId, int position, bool preview)
     {
         // Cancel any in flight navigation and kick off a new one.
         var cancellationToken = _cancellationSeries.CreateNext();
         var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
-        var token = listener.BeginAsyncOperation(nameof(NavigateTo));
+        var token = _listener.BeginAsyncOperation(nameof(NavigateTo));
         navigationService.TryNavigateToPositionAsync(
             threadingContext,
             workspace,
