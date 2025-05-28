@@ -155,6 +155,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             End If
         End Sub
 
+        Private Shared Sub AddConstructorStatement(container As SyntaxNode, constructorStatement As SubNewStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+            nameBuilder.Append("New")
+            AppendParameterList(nameBuilder, constructorStatement.ParameterList)
+
+            Dim accesibility = GetAccessibility(container, constructorStatement, constructorStatement.Modifiers)
+            items.Add(New SymbolTreeItemData(
+                nameBuilder.ToStringAndClear(),
+                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accesibility),
+                hasItems:=False,
+                constructorStatement,
+                constructorStatement.NewKeyword))
+        End Sub
+
         Private Shared Sub AddOperatorStatement(container As SyntaxNode, operatorStatement As OperatorStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append("Operator ")
             nameBuilder.Append(operatorStatement.OperatorToken.ToString())
