@@ -91,7 +91,7 @@ internal sealed class EditSessionTelemetry
             var hasError = false;
             foreach (var diagnostic in diagnostics)
             {
-                if (!diagnostic.IsEncDiagnostic() && diagnostic.Severity == DiagnosticSeverity.Error)
+                if (diagnostic.Severity == DiagnosticSeverity.Error && !diagnostic.IsRudeEdit())
                 {
                     _emitErrorIds.Add(diagnostic.Id);
                     hasError = true;

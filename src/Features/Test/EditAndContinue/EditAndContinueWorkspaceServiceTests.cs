@@ -518,20 +518,20 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document2 = solution.GetDocument(document1.Id);
 
         // error not reported here since it might be intermittent and will be reported if the issue persist when applying the update:
-        var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        Assert.Empty(diagnostics);
+        var docDiagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
+        Assert.Empty(docDiagnostics);
 
-        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        var (updates, diagnostics1) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal([$"{document1.Project.FilePath}: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"], InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document1.Project.FilePath}: (0,0)-(0,0): Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, moduleFile.Path, expectedErrorMessage)}"], InspectDiagnostics(diagnostics1));
 
         // correct the error:
         EmitLibrary(projectId, source2);
 
-        var (updates2, emitDiagnostics2) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        var (updates2, diagnostics2) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Ready, updates2.Status);
-        Assert.Empty(emitDiagnostics2);
+        Assert.Empty(diagnostics2);
 
         CommitSolutionUpdate(debuggingSession);
 

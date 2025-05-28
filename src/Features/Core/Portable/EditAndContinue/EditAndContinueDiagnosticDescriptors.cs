@@ -257,6 +257,9 @@ internal static class EditAndContinueDiagnosticDescriptors
     public static bool IsEncDiagnostic(this Diagnostic diagnostic)
         => IsEncDiagnostic(diagnostic.Id);
 
+    public static bool IsRudeEdit(this Diagnostic diagnostic)
+        => IsRudeEdit(diagnostic.Id);
+
     public static DiagnosticSeverity GetSeverity(this RudeEditKind kind)
         => GetDescriptor(kind).DefaultSeverity;
 

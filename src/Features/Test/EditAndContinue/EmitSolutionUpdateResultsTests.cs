@@ -148,7 +148,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var actual = data.GetAllDiagnostics();
 
-        AssertEx.Equal(
+        AssertEx.SetEqual(
         [
             $@"Warning CS0001: {razorPath1} (10,10)-(10,15): warning",
             $@"Error CS0012: {razorPath2} (10,10)-(10,15): error",
