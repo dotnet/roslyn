@@ -442,7 +442,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         {
             builder.Append("delegate*");
             AppendCommaSeparatedList(
-                builder, "(", ")", functionPointerType.ParameterList.Parameters,
+                builder, "<", ">", functionPointerType.ParameterList.Parameters,
                 static (parameter, builder) => AppendType(parameter.Type, builder));
         }
         else if (type is OmittedTypeArgumentSyntax)

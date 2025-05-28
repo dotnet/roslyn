@@ -190,4 +190,29 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             Name=E Glyph=EnumInternal HasItems=True
             """);
     }
+
+    [Theory]
+    [InlineData("int", "int")]
+    [InlineData("int[]", "int[]")]
+    [InlineData("int[][]", "int[][]")]
+    [InlineData("int[,][,,]", "int[,][,,]")]
+    [InlineData("int*", "int*")]
+    [InlineData("int?", "int?")]
+    [InlineData("(int, string)", "(int, string)")]
+    [InlineData("(int a, string b)", "(int a, string b)")]
+    [InlineData("delegate*unmanaged[a]<int, string>", "delegate*<int, string>")]
+    [InlineData("A.B", "B")]
+    [InlineData("A::B", "B")]
+    [InlineData("A::B.C", "C")]
+    [InlineData("A", "A")]
+    [InlineData("A.B<C::D, E::F.G<int>>", "B<D, G<int>>")]
+    public async Task TestTypes(
+        string parameterType, string resultType)
+    {
+        await TestCompilationUnit($$"""
+            delegate void [|D|]({{parameterType}} x);
+            """, $$"""
+            Name=D({{resultType}}) : void Glyph=DelegateInternal HasItems=False
+            """);
+    }
 }
