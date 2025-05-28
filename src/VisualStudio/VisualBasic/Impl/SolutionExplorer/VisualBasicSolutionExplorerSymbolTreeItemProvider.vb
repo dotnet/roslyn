@@ -155,6 +155,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             End If
         End Sub
 
+        Private Shared Sub AddMethodStatement(container As SyntaxNode, methodStatement As MethodStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+            nameBuilder.Append(methodStatement.Identifier.ValueText)
+            AppendTypeParameterList(nameBuilder, methodStatement.TypeParameterList)
+            AppendParameterList(nameBuilder, methodStatement.ParameterList)
+            AppendAsClause(nameBuilder, methodStatement.AsClause)
+
+            Dim accesibility = GetAccessibility(container, methodStatement, methodStatement.Modifiers)
+            items.Add(New SymbolTreeItemData(
+                nameBuilder.ToStringAndClear(),
+                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accesibility),
+                hasItems:=False,
+                methodStatement,
+                methodStatement.Identifier))
+        End Sub
+
         Private Shared Sub AddConstructorStatement(container As SyntaxNode, constructorStatement As SubNewStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append("New")
             AppendParameterList(nameBuilder, constructorStatement.ParameterList)
@@ -162,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             Dim accesibility = GetAccessibility(container, constructorStatement, constructorStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
                 nameBuilder.ToStringAndClear(),
-                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accesibility),
+                GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accesibility),
                 hasItems:=False,
                 constructorStatement,
                 constructorStatement.NewKeyword))
