@@ -2167,6 +2167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member.GetIsNewExtensionMember())
                 {
+                    // When candidates are collected by GetSymbolsWithName, skeleton members are found but not implementation methods.
+                    // We want to include the implementation for skeleton methods.
                     if (member is MethodSymbol method && method.TryGetCorrespondingExtensionImplementationMethod() is { } implementationMethod)
                     {
                         addIfCandidate(entryPointCandidates, implementationMethod);
