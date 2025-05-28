@@ -41,7 +41,7 @@ internal static partial class ProtocolConversions
 
     private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
-    private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
+    private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!<>])", RegexOptions.Compiled);
 
     // NOTE: While the spec allows it, don't use Function and Method, as both VS and VS Code display them the same
     // way which can confuse users
@@ -492,7 +492,7 @@ internal static partial class ProtocolConversions
 
         if (uri == null)
         {
-            context?.TraceInformation($"Could not convert '{mappedSpan.FilePath}' to uri");
+            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
             return null;
         }
 
@@ -629,7 +629,7 @@ internal static partial class ProtocolConversions
             case LSP.SymbolKind.Event:
                 return Glyph.EventPublic;
             case LSP.SymbolKind.Operator:
-                return Glyph.Operator;
+                return Glyph.OperatorPublic;
             case LSP.SymbolKind.TypeParameter:
                 return Glyph.TypeParameter;
             default:
@@ -732,7 +732,7 @@ internal static partial class ProtocolConversions
             case LSP.CompletionItemKind.Event:
                 return Glyph.EventPublic;
             case LSP.CompletionItemKind.Operator:
-                return Glyph.Operator;
+                return Glyph.OperatorPublic;
             case LSP.CompletionItemKind.TypeParameter:
                 return Glyph.TypeParameter;
             default:
@@ -832,7 +832,9 @@ internal static partial class ProtocolConversions
         {
             Id = ProjectIdToProjectContextId(project.Id),
             Label = project.Name,
-            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
+            // IsMiscellaneous controls whether a toast appears which warns that editor features are not available.
+            // In case HasAllInformation is true, though, we do actually have all information needed to light up any features user is trying to use related to the project.
+            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles && !project.State.HasAllInformation,
         };
 
         if (project.Language == LanguageNames.CSharp)
@@ -908,6 +910,7 @@ internal static partial class ProtocolConversions
                         codeFence = InlineCodeFence;
                         markdownBuilder.Append(codeFence + taggedText.Text);
                     }
+
                     break;
                 case TextTags.CodeBlockEnd:
                     if (codeFence == BlockCodeFence)

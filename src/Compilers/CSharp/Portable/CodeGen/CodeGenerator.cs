@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitTypeReferenceToken(Cci.ITypeReference symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(symbol, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(symbol, syntaxNode);
         }
 
         private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
@@ -362,18 +362,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
         {
             var methodRef = _module.Translate(method, syntaxNode, _diagnostics.DiagnosticBag, optArgList, needDeclaration: encodeAsRawDefinitionToken);
-            _builder.EmitToken(methodRef, syntaxNode, _diagnostics.DiagnosticBag, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
+            _builder.EmitToken(methodRef, syntaxNode, encodeAsRawDefinitionToken ? Cci.MetadataWriter.RawTokenEncoding.RowId : 0);
         }
 
         private void EmitSymbolToken(FieldSymbol symbol, SyntaxNode syntaxNode)
         {
             var fieldRef = _module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag);
-            _builder.EmitToken(fieldRef, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(fieldRef, syntaxNode);
         }
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)
@@ -457,15 +457,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_savedSequencePoints is null || !_savedSequencePoints.TryGetValue(node.Identifier, out var span))
                 return;
 
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, span);
+            EmitStepThroughSequencePoint(node.Syntax, span);
         }
 
         private void EmitStepThroughSequencePoint(BoundStepThroughSequencePoint node)
         {
-            EmitStepThroughSequencePoint(node.Syntax.SyntaxTree, node.Span);
+            EmitStepThroughSequencePoint(node.Syntax, node.Span);
         }
 
-        private void EmitStepThroughSequencePoint(SyntaxTree syntaxTree, TextSpan span)
+        private void EmitStepThroughSequencePoint(SyntaxNode syntaxNode, TextSpan span)
         {
             if (!_emitPdbSequencePoints)
                 return;
@@ -473,9 +473,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var label = new object();
             // The IL builder is eager to discard unreachable code, so
             // we fool it by branching on a condition that is always true at runtime.
-            _builder.EmitConstantValue(ConstantValue.Create(true));
+            _builder.EmitConstantValue(ConstantValue.Create(true), syntaxNode);
             _builder.EmitBranch(ILOpCode.Brtrue, label);
-            EmitSequencePoint(syntaxTree, span);
+            EmitSequencePoint(syntaxNode.SyntaxTree, span);
             _builder.EmitOpCode(ILOpCode.Nop);
             _builder.MarkLabel(label);
             EmitHiddenSequencePoint();

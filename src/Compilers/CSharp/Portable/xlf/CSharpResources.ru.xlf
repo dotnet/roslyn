@@ -2397,6 +2397,11 @@
         <target state="translated">Литерал необработанной строки не начинается с достаточного количества символов кавычек, чтобы разрешить использовать такое же количество последовательных символов кавычек в качестве содержимого.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Инструкции верхнего уровня должны предшествовать объявлениям пространств имен и типов.</target>
@@ -6005,8 +6010,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Несогласованность по доступности: доступность типа параметра "{1}" ниже доступности индексатора "{0}"</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Несогласованность по доступности: доступность типа параметра "{1}" ниже доступности индексатора "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

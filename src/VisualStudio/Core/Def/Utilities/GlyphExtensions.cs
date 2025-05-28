@@ -121,7 +121,10 @@ internal static class GlyphExtensions
             case Glyph.OpenFolder:
                 return StandardGlyphGroup.GlyphOpenFolder;
 
-            case Glyph.Operator:
+            case Glyph.OperatorPublic:
+            case Glyph.OperatorProtected:
+            case Glyph.OperatorPrivate:
+            case Glyph.OperatorInternal:
                 return StandardGlyphGroup.GlyphGroupOperator;
 
             case Glyph.Parameter:

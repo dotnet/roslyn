@@ -113,7 +113,13 @@ internal static class Extensions
                 NoCompilationConstants.LanguageName => null,
                 _ => throw ExceptionUtilities.UnexpectedValue(language)
             },
-            compilationOptions: TestOptions.DebugDll,
+            compilationOptions: language switch
+            {
+                LanguageNames.CSharp => TestOptions.DebugDll,
+                LanguageNames.VisualBasic => VisualBasic.UnitTests.TestOptions.DebugDll,
+                NoCompilationConstants.LanguageName => null,
+                _ => throw ExceptionUtilities.UnexpectedValue(language)
+            },
             filePath: Path.Combine(TempRoot.Root, projectName, projectName + language switch
             {
                 LanguageNames.CSharp => ".csproj",

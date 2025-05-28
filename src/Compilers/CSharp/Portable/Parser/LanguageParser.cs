@@ -1979,7 +1979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.ExtensionKeyword:
                         Debug.Assert(name is null);
                         Debug.Assert(baseList is null);
-                        return syntaxFactory.ExtensionDeclaration(
+                        return syntaxFactory.ExtensionBlockDeclaration(
                             attributes,
                             modifiers.ToList(),
                             keyword,

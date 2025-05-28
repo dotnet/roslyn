@@ -4,15 +4,85 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
 internal static class CopilotChangeAnalysisUtilities
 {
+    /// <summary>
+    /// Analyzes and collects interesting data about an edit made by some copilot feature, and reports that back as
+    /// telemetry to help inform what automatic fixing features we should invest in.
+    /// </summary>
+    /// <param name="document">The document being edited.  The document should represent the contents of hte file
+    /// prior to the <paramref name="textChanges"/> being applied.</param>
+    /// <param name="accepted">Whether or not the user accepted the copilot suggestion, or rejected it.  Used to
+    /// determine if there are interesting issues occurring that might be leading to the user rejecting the change
+    /// (for example, excessive syntax errors).</param>
+    /// <param name="featureId">The name of the feature making the text change.  For example 'Completion'.  Used
+    /// to bucket information by feature area in case certain feature produce different sets of diagnostics or 
+    /// fixes commonly.</param>
+    /// <param name="proposalId">Copilot proposal id (generally a stringified <see cref="Guid"/>).  Used to be able
+    /// to map from one of these proposed edits to any additional telemetry stored in other tables about this copilot
+    /// interaction.</param>
+    /// <param name="textChanges">The actual text changes to make.  The text changes do not have to be normalized.
+    /// Though they should not overlap.  If they overlap, this request will be ignored.  These would be the changes
+    /// passed to <see cref="SourceText.WithChanges(IEnumerable{TextChange})"/> for the text snapshot corresponding to
+    /// <paramref name="document"/>.</param>
+    public static async Task AnalyzeCopilotChangeAsync(
+        Document document,
+        bool accepted,
+        string featureId,
+        string proposalId,
+        IEnumerable<TextChange> textChanges,
+        CancellationToken cancellationToken)
+    {
+        // Currently we do not support analyzing languges other than C# and VB.  This is because we only want to do
+        // this analsis in our OOP process to avoid perf impact on the VS process.  And we don't have OOP for other
+        // languages yet.
+        if (!document.SupportsSemanticModel)
+            return;
+
+        var normalizedEdits = Normalize(textChanges);
+        if (normalizedEdits.IsDefaultOrEmpty)
+            return;
+
+        var changeAnalysisService = document.Project.Solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
+        var analysisResult = await changeAnalysisService.AnalyzeChangeAsync(
+            document, normalizedEdits, cancellationToken).ConfigureAwait(false);
+
+        CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis(
+            featureId, accepted, proposalId, analysisResult, cancellationToken).Dispose();
+    }
+
+    private static ImmutableArray<TextChange> Normalize(IEnumerable<TextChange> textChanges)
+    {
+        using var _ = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var builder);
+        foreach (var textChange in textChanges)
+            builder.Add(textChange);
+
+        // Ensure everything is sorted.
+        builder.Sort(static (c1, c2) => c1.Span.Start - c2.Span.Start);
+
+        // Now, go through and make sure no edit overlaps another.
+        for (int i = 1, n = builder.Count; i < n; i++)
+        {
+            var lastEdit = builder[i - 1];
+            var currentEdit = builder[i];
+
+            if (lastEdit.Span.OverlapsWith(currentEdit.Span))
+                return default;
+        }
+
+        // Things look good.  Can process these sorted edits.
+        return builder.ToImmutableAndClear();
+    }
+
     public static IDisposable LogCopilotChangeAnalysis(
         string featureId, bool accepted, string proposalId, CopilotChangeAnalysis analysisResult, CancellationToken cancellationToken)
     {
@@ -49,6 +119,7 @@ internal static class CopilotChangeAnalysisUtilities
             d["CodeFixAnalysis_DiagnosticIdToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToApplicationTime);
             d["CodeFixAnalysis_DiagnosticIdToProviderName"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
             d["CodeFixAnalysis_ProviderNameToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
+            d["CodeFixAnalysis_ProviderNameToHasConflict"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToHasConflict);
         }, args: (featureId, accepted, proposalId, analysisResult)),
         cancellationToken);
     }

@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Shared.Collections;
 internal interface IIntervalTreeWitness<T, TIntervalTree, TNode>
     where TIntervalTree : IIntervalTree<T>
 {
-    public bool TryGetRoot(TIntervalTree tree, [NotNullWhen(true)] out TNode? root);
-    public bool TryGetLeftNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? leftNode);
-    public bool TryGetRightNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? rightNode);
+    bool TryGetRoot(TIntervalTree tree, [NotNullWhen(true)] out TNode? root);
+    bool TryGetLeftNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? leftNode);
+    bool TryGetRightNode(TIntervalTree tree, TNode node, [NotNullWhen(true)] out TNode? rightNode);
 
-    public T GetValue(TIntervalTree tree, TNode node);
-    public TNode GetMaxEndNode(TIntervalTree tree, TNode node);
+    T GetValue(TIntervalTree tree, TNode node);
+    TNode GetMaxEndNode(TIntervalTree tree, TNode node);
 }
 
 /// <summary>
