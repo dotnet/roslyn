@@ -65,7 +65,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassInternal HasItems=False
+            Name="C" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -81,8 +81,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassInternal HasItems=False
-            Name=D Glyph=ClassInternal HasItems=False
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="D" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -96,8 +96,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=D(int) : string Glyph=DelegateInternal HasItems=False
-            Name=E Glyph=EnumInternal HasItems=False
+            Name="D(int) : string" Glyph=DelegateInternal HasItems=False
+            Name="E" Glyph=EnumInternal HasItems=False
             """);
     }
 
@@ -116,8 +116,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 }
             }
             """, """
-            Name=C Glyph=ClassInternal HasItems=False
-            Name=D Glyph=ClassInternal HasItems=False
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="D" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -135,8 +135,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassInternal HasItems=False
-            Name=D Glyph=ClassInternal HasItems=False
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="D" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -155,8 +155,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 }
             }
             """, """
-            Name=C Glyph=ClassInternal HasItems=False
-            Name=D Glyph=ClassInternal HasItems=False
+            Name="C" Glyph=ClassInternal HasItems=False
+            Name="D" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -170,7 +170,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, $$"""
-            Name=C Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}{{accessibility}} HasItems=False
+            Name="C" Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}{{accessibility}} HasItems=False
             """);
     }
 
@@ -184,7 +184,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 int i;
             }
             """, $$"""
-            Name=C Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}Internal HasItems=True
+            Name="C" Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}Internal HasItems=True
             """);
     }
 
@@ -199,7 +199,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 C
             }
             """, """
-            Name=E Glyph=EnumInternal HasItems=True
+            Name="E" Glyph=EnumInternal HasItems=True
             """);
     }
 
@@ -224,7 +224,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
         await TestCompilationUnit($$"""
             delegate void [|D|]({{parameterType}} x);
             """, $$"""
-            Name=D({{resultType}}) : void Glyph=DelegateInternal HasItems=False
+            Name="D({{resultType}}) : void" Glyph=DelegateInternal HasItems=False
             """);
     }
 
@@ -236,7 +236,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C<T> Glyph=ClassInternal HasItems=False
+            Name="C<T>" Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -246,7 +246,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
         await TestCompilationUnit("""
             delegate void [|D|]<T>()
             """, """
-            Name=D<T>() : void Glyph=DelegateInternal HasItems=False
+            Name="D<T>() : void" Glyph=DelegateInternal HasItems=False
             """);
     }
 
@@ -259,9 +259,9 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 [|A|], [|B|], [|C|]
             }
             """, """
-            Name=A Glyph=EnumMemberPublic HasItems=False
-            Name=B Glyph=EnumMemberPublic HasItems=False
-            Name=C Glyph=EnumMemberPublic HasItems=False
+            Name="A" Glyph=EnumMemberPublic HasItems=False
+            Name="B" Glyph=EnumMemberPublic HasItems=False
+            Name="C" Glyph=EnumMemberPublic HasItems=False
             """);
     }
 
@@ -288,19 +288,19 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 internal static implicit operator [|int|](C c1) => default;
             }
             """, """
-            Name=a : int Glyph=FieldPrivate HasItems=False
-            Name=b : int Glyph=FieldPrivate HasItems=False
-            Name=Prop : P Glyph=PropertyPublic HasItems=False
-            Name=C() Glyph=MethodInternal HasItems=False
-            Name=~C() Glyph=MethodPrivate HasItems=False
-            Name=this[string] : R Glyph=PropertyProtected HasItems=False
-            Name=A : Action Glyph=EventPrivate HasItems=False
-            Name=B : Action Glyph=EventPublic HasItems=False
-            Name=C : Action Glyph=EventPublic HasItems=False
-            Name=M<T>(int) : void Glyph=MethodPrivate HasItems=False
-            Name=O() : void Glyph=MethodPublic HasItems=False
-            Name=operator +(C, int) :  Glyph=OperatorPublic HasItems=False
-            Name=implicit operator int(C) Glyph=OperatorInternal HasItems=False
+            Name="a : int" Glyph=FieldPrivate HasItems=False
+            Name="b : int" Glyph=FieldPrivate HasItems=False
+            Name="Prop : P" Glyph=PropertyPublic HasItems=False
+            Name="C()" Glyph=MethodInternal HasItems=False
+            Name="~C()" Glyph=MethodPrivate HasItems=False
+            Name="this[string] : R" Glyph=PropertyProtected HasItems=False
+            Name="A : Action" Glyph=EventPrivate HasItems=False
+            Name="B : Action" Glyph=EventPublic HasItems=False
+            Name="C : Action" Glyph=EventPublic HasItems=False
+            Name="M<T>(int) : void" Glyph=MethodPrivate HasItems=False
+            Name="O() : void" Glyph=MethodPublic HasItems=False
+            Name="operator +(C, int) : " Glyph=OperatorPublic HasItems=False
+            Name="implicit operator int(C)" Glyph=OperatorInternal HasItems=False
             """);
     }
 
@@ -317,8 +317,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 public static void [|M|](this int i) {}
             }
             """, """
-            Name=extension<T>(int) Glyph=ClassPublic HasItems=False
-            Name=M(int) : void Glyph=ExtensionMethodPublic HasItems=False
+            Name="extension<T>(int)" Glyph=ClassPublic HasItems=False
+            Name="M(int) : void" Glyph=ExtensionMethodPublic HasItems=False
             """);
     }
 
@@ -334,7 +334,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 }
             }
             """, """
-            Name=M() : void Glyph=ExtensionMethodPublic HasItems=False
+            Name="M() : void" Glyph=ExtensionMethodPublic HasItems=False
             """);
     }
 }

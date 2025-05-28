@@ -39,7 +39,7 @@ internal readonly record struct SymbolTreeItemData(
     }
 
     public override string ToString()
-        => $"Name={ItemKey.Name} Glyph={ItemKey.Glyph} HasItems={ItemKey.HasItems}";
+        => $"""Name="{ItemKey.Name}" Glyph={ItemKey.Glyph} HasItems={ItemKey.HasItems}""";
 }
 
 /// <summary>
