@@ -222,14 +222,14 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
                 end operator
             end class
             ", "
-               Name=""a As Integer"" Glyph=FieldPrivate HasItems=False,
-               Name=""b As Integer"" Glyph=FieldPrivate HasItems=False,
-               Name=""Prop As P"" Glyph=PropertyPublic HasItems=False,
-               Name=""New()"" Glyph=MethodPublic HasItems=False,
-               Name=""Item(string) As R"" Glyph=PropertyProtected HasItems=False,
-               Name=""A As Action"" Glyph=EventPrivate HasItems=False,
-               Name=""M(Of T)(Integer)"" Glyph=MethodPublic HasItems=False,
-               Name=""Operator +(C, Integer) As Object"" Glyph=OperatorPublic HasItems=False,
+               Name=""a As Integer"" Glyph=FieldPrivate HasItems=False
+               Name=""b As Integer"" Glyph=FieldPrivate HasItems=False
+               Name=""Prop As P"" Glyph=PropertyPublic HasItems=False
+               Name=""New()"" Glyph=MethodPublic HasItems=False
+               Name=""Item(string) As R"" Glyph=PropertyProtected HasItems=False
+               Name=""A As Action"" Glyph=EventPrivate HasItems=False
+               Name=""M(Of T)(Integer)"" Glyph=MethodPublic HasItems=False
+               Name=""Operator +(C, Integer) As Object"" Glyph=OperatorPublic HasItems=False
                Name=""Operator CType(C) As Integer"" Glyph=OperatorInternal HasItems=False
             ")
         End Function
