@@ -120,7 +120,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(" : ");
         AppendType(indexerDeclaration.Type, nameBuilder);
 
-        var accessibility = GetAccessibility(indexerDeclaration, indexerDeclaration.Modifiers);
+        var accessibility = GetAccessibility(indexerDeclaration.GetRequiredParent(), indexerDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Indexer, accessibility);
 
         items.Add(new(
@@ -140,7 +140,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(" : ");
         AppendType(eventDeclaration.Type, nameBuilder);
 
-        var accessibility = GetAccessibility(eventDeclaration, eventDeclaration.Modifiers);
+        var accessibility = GetAccessibility(eventDeclaration.GetRequiredParent(), eventDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accessibility);
 
         items.Add(new(
@@ -158,7 +158,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(" : ");
         AppendType(propertyDeclaration.Type, nameBuilder);
 
-        var accessibility = GetAccessibility(propertyDeclaration, propertyDeclaration.Modifiers);
+        var accessibility = GetAccessibility(propertyDeclaration.GetRequiredParent(), propertyDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accessibility);
 
         items.Add(new(
@@ -181,7 +181,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(identifier.ValueText);
         AppendParameterList(nameBuilder, declaration.ParameterList);
 
-        var accessibility = GetAccessibility(declaration, declaration.Modifiers);
+        var accessibility = GetAccessibility(declaration.GetRequiredParent(), declaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
 
         items.Add(new(
@@ -203,7 +203,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         AppendType(operatorDeclaration.Type, nameBuilder);
         AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
 
-        var accessibility = GetAccessibility(operatorDeclaration, operatorDeclaration.Modifiers);
+        var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
@@ -225,7 +225,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(" : ");
         AppendType(operatorDeclaration.ReturnType, nameBuilder);
 
-        var accessibility = GetAccessibility(operatorDeclaration, operatorDeclaration.Modifiers);
+        var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
@@ -247,7 +247,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         nameBuilder.Append(" : ");
         AppendType(methodDeclaration.ReturnType, nameBuilder);
 
-        var accessibility = GetAccessibility(methodDeclaration, methodDeclaration.Modifiers);
+        var accessibility = GetAccessibility(methodDeclaration.GetRequiredParent(), methodDeclaration.Modifiers);
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Method, accessibility);
 
         items.Add(new(
@@ -269,7 +269,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
             nameBuilder.Append(" : ");
             AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
 
-            var accessibility = GetAccessibility(fieldDeclaration, fieldDeclaration.Modifiers);
+            var accessibility = GetAccessibility(fieldDeclaration.GetRequiredParent(), fieldDeclaration.Modifiers);
             var kind = fieldDeclaration is EventFieldDeclarationSyntax
                 ? DeclaredSymbolInfoKind.Event
                 : DeclaredSymbolInfoKind.Field;
@@ -303,7 +303,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     private static void AddEnumDeclaration(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items)
     {
         var glyph = GlyphExtensions.GetGlyph(
-            DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration, enumDeclaration.Modifiers));
+            DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration.GetRequiredParent(), enumDeclaration.Modifiers));
 
         items.Add(new(
             enumDeclaration.Identifier.ValueText,
@@ -343,7 +343,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         AppendType(delegateDeclaration.ReturnType, nameBuilder);
 
         var glyph = GlyphExtensions.GetGlyph(
-            DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration, delegateDeclaration.Modifiers));
+            DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration.GetRequiredParent(), delegateDeclaration.Modifiers));
 
         items.Add(new(
             nameBuilder.ToStringAndClear(),
@@ -363,7 +363,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
 
         var glyph = GlyphExtensions.GetGlyph(
             GetDeclaredSymbolInfoKind(typeDeclaration),
-            GetAccessibility(typeDeclaration, typeDeclaration.Modifiers));
+            GetAccessibility(typeDeclaration.GetRequiredParent(), typeDeclaration.Modifiers));
         items.Add(new(
             nameBuilder.ToStringAndClear(),
             glyph,

@@ -53,7 +53,7 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassPrivate HasItems=False
+            Name=C Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -69,8 +69,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassPrivate HasItems=False
-            Name=D Glyph=ClassPrivate HasItems=False
+            Name=C Glyph=ClassInternal HasItems=False
+            Name=D Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -104,8 +104,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 }
             }
             """, """
-            Name=C Glyph=ClassPrivate HasItems=False
-            Name=D Glyph=ClassPrivate HasItems=False
+            Name=C Glyph=ClassInternal HasItems=False
+            Name=D Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -123,8 +123,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             {
             }
             """, """
-            Name=C Glyph=ClassPrivate HasItems=False
-            Name=D Glyph=ClassPrivate HasItems=False
+            Name=C Glyph=ClassInternal HasItems=False
+            Name=D Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -143,8 +143,8 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
                 }
             }
             """, """
-            Name=C Glyph=ClassPrivate HasItems=False
-            Name=D Glyph=ClassPrivate HasItems=False
+            Name=C Glyph=ClassInternal HasItems=False
+            Name=D Glyph=ClassInternal HasItems=False
             """);
     }
 
@@ -159,6 +159,35 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             }
             """, $$"""
             Name=C Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}{{accessibility}} HasItems=False
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestTypeHasItems(
+        [CombinatorialValues("Record", "Class", "Interface", "Struct")] string type)
+    {
+        await TestCompilationUnit($$"""
+            {{type.ToLowerInvariant()}} [|C|]
+            {
+                int i;
+            }
+            """, $$"""
+            Name=C Glyph={{type switch { "Record" => "Class", "Struct" => "Structure", _ => type }}}Internal HasItems=True
+            """);
+    }
+
+    [Fact]
+    public async Task TestEnumHasItems()
+    {
+        await TestCompilationUnit("""
+            enum [|E|]
+            {
+                A,
+                B,
+                C
+            }
+            """, """
+            Name=E Glyph=EnumInternal HasItems=True
             """);
     }
 }
