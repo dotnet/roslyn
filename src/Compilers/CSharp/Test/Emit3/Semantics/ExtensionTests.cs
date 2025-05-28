@@ -29015,7 +29015,7 @@ static class E
     }
 
     [Fact]
-    public void PropertyAccess_ReceiverConversion()
+    public void PropertyAccess_ReceiverConversion_01()
     {
         var src = """
 _  = 42.P;
@@ -29036,6 +29036,26 @@ static class E
         var literal = GetSyntax<LiteralExpressionSyntax>(tree, "42");
         Assert.Equal("System.Int32", model.GetTypeInfo(literal).Type.ToTestDisplayString());
         Assert.Equal("System.Object", model.GetTypeInfo(literal).ConvertedType.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void PropertyAccess_ReceiverConversion_02()
+    {
+        // tuple names mismatch
+        var src = """
+(int a, int b) t = (1, 2);
+_ = t.P;
+
+static class E
+{
+    extension((int c, int d) t)
+    {
+        public int P { get => throw null!; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -36366,6 +36386,8 @@ oNull.M(); // 1
 object? oNotNull = new object();
 oNotNull.M();
 
+oNotNull?.M(); // 2
+
 object? oNull2 = null;
 oNull2!.M();
 
@@ -36396,6 +36418,8 @@ oNull.M().ToString();
 
 object? oNotNull = new object();
 oNotNull.M().ToString();
+
+oNotNull?.M().ToString();
 
 static class E
 {
@@ -36431,8 +36455,11 @@ oNull.M().ToString();
 
 object? oNotNull = new object();
 oNotNull.M().ToString();
+""";
+        var libSrc = """
+#nullable enable
 
-static class E
+public static class E
 {
     extension<T>(T t) where T : notnull
     {
@@ -36440,14 +36467,21 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
+        DiagnosticDescription[] expected = [
             // (4,1): warning CS8714: The type 'object?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'object?' doesn't match 'notnull' constraint.
             // oNull.M().ToString();
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "oNull.M").WithArguments("E.extension<T>(T)", "T", "object?").WithLocation(4, 1),
             // (4,1): warning CS8602: Dereference of a possibly null reference.
             // oNull.M().ToString();
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M()").WithLocation(4, 1));
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M()").WithLocation(4, 1)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
@@ -36633,6 +36667,99 @@ static class E
             // (6,1): warning CS8602: Dereference of a possibly null reference.
             // oNull.M().M().ToString();
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull.M().M()").WithLocation(6, 1));
+    }
+
+    [Fact]
+    public void Nullability_Invocation_10()
+    {
+        // nullability check on the return value
+        var src = """
+#nullable enable
+
+object.M().ToString(); // 1
+E.M().ToString(); // 2
+
+object.M2().ToString();
+E.M2().ToString();
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(object)
+    {
+        public static object? M() => throw null!;
+        public static object M2() => throw null!;
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (3,1): warning CS8602: Dereference of a possibly null reference.
+            // object.M().ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "object.M()").WithLocation(3, 1),
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // E.M().ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E.M()").WithLocation(4, 1)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void Nullability_Invocation_11()
+    {
+        // nullability annotation in constraints
+        var src = """
+#nullable enable
+
+I? iNull = null;
+iNull.M(); // 1
+
+I? iNull2 = null;
+iNull2.M2();
+
+I iNotNull = getI();
+iNotNull.M();
+iNotNull.M2();
+
+I getI() => throw null!;
+""";
+        var libSrc = """
+#nullable enable
+
+public interface I { }
+
+public static class E
+{
+    extension<T>(T t) where T : I
+    {
+        public T M() => t;
+    }
+
+    extension<T>(T t) where T : I?
+    {
+        public T M2() => t;
+    }
+}
+""";
+        DiagnosticDescription[] expected = [
+            // (4,1): warning CS8631: The type 'I?' cannot be used as type parameter 'T' in the generic type or method 'E.extension<T>(T)'. Nullability of type argument 'I?' doesn't match constraint type 'I'.
+            // iNull.M(); // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "iNull.M").WithArguments("E.extension<T>(T)", "I", "T", "I?").WithLocation(4, 1)
+            ];
+
+        var comp = CreateCompilation([src, libSrc]);
+        comp.VerifyEmitDiagnostics(expected);
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics(expected);
     }
 
     [Fact]
@@ -37586,11 +37713,32 @@ static class E
         var src = """
 #nullable enable
 
-static class E
+object? o = null;
+o.M();
+
+object? o2 = null;
+E.M(o2);
+
+object o3 = new object();
+o3.M2(); // 1
+
+object o4 = new object();
+E.M2(o4); // 2
+
+object o5 = new object();
+o5.M();
+E.M(o5);
+o5.M2();
+E.M(o5);
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
 {
     extension(object? o)
     {
-        public void M() { o.ToString(); }
+        public void M() { o.ToString(); } // 3
     }
     extension(object o)
     {
@@ -37598,11 +37746,15 @@ static class E
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation([src, libSrc]);
         comp.VerifyEmitDiagnostics(
             // (7,27): warning CS8602: Dereference of a possibly null reference.
             //         public void M() { o.ToString(); }
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(7, 27));
+
+        var libComp = CreateCompilation(libSrc);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()]);
+        comp2.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -37651,7 +37803,16 @@ if (o2.Try2())
     o2.ToString();
 }
 
-static class E
+object? o3 = null;
+if (E.Try(o3))
+{
+    o3.ToString();
+}
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
 {
     extension([System.Diagnostics.CodeAnalysis.NotNullWhen(true)] object? o)
     {
@@ -37678,8 +37839,12 @@ static class E
 }
 """;
         // Note: the enforcement within body only kicks in for ref/out parameters
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -38294,7 +38459,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : there should be no error on nameof
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.
@@ -38326,7 +38490,16 @@ static class E
         public object? P => null;
     }
 }
+
+class C
+{
+    [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(C.P))]
+    public bool M() => throw null!;
+
+    public object? P => null;
+}
 """;
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we shouldn't care about static/instance mismatch in nameof
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.
@@ -38370,6 +38543,64 @@ static class E
             // (13,73): error CS8082: Sub-expression cannot be used in an argument to nameof.
             //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(new object().P))]
             Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new object()").WithLocation(13, 73));
+
+        src = """
+class E
+{
+    [My(nameof(E.P))]
+    public bool M() => throw null!;
+
+    public object P => null;
+}
+
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Attribute_15_Static()
+    {
+        var src = """
+#nullable enable
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
+        public static bool M() => throw null!;
+
+        public static object? P => null;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (7,73): error CS0103: The name 'P' does not exist in the current context
+            //         [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(P))]
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(7, 73));
+
+        src = """
+#nullable enable
+
+static class E
+{
+    extension(object o)
+    {
+        [System.Diagnostics.CodeAnalysis.MemberNotNullWhen(true, nameof(object.P))]
+        public static bool M() => throw null!;
+
+        public static object? P => null;
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -38599,6 +38830,125 @@ static class E
     }
 
     [Fact]
+    public void Nullability_Attribute_23()
+    {
+        var src = """
+#nullable enable
+
+bool b = true;
+if (b)
+{
+    object? o = null;
+    int.Throws();
+    o.ToString();
+}
+else
+{
+    object? o2 = null;
+    E.Throws();
+    o2.ToString();
+}
+""";
+        var libSrc = """
+#nullable enable
+
+public static class E
+{
+    extension(int)
+    {
+        [System.Diagnostics.CodeAnalysis.DoesNotReturn]
+        public static void Throws() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
+
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net90);
+        var comp2 = CreateCompilation(src, references: [libComp.EmitToImageReference()], targetFramework: TargetFramework.Net90);
+        comp2.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Nullability_Attributes_24()
+    {
+        // NotNullIfNotNull should be enforced in getter body
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension(object? o)
+    {
+        [property: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+        public object? P 
+        { 
+            get
+            {
+                if (o is null)
+                    return null;
+                else
+                    return null; // 1
+            }
+            set { }
+        }
+
+        [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+        public object? M()
+        {
+            if (o is null)
+                return null;
+            else
+                return null; // 2
+        }
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+    public static object? M2(object? o)
+    {
+        if (o is null)
+            return null;
+        else
+            return null; // 3
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/37238 : need to track and enforce NotNullIfNotNull on properties/indexers
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (26,17): warning CS8825: Return value must be non-null because parameter 'o' is non-null.
+            //                 return null; // 2
+            Diagnostic(ErrorCode.WRN_ReturnNotNullIfNotNull, "return null;").WithArguments("o").WithLocation(26, 17),
+            // (36,13): warning CS8825: Return value must be non-null because parameter 'o' is non-null.
+            //             return null; // 3
+            Diagnostic(ErrorCode.WRN_ReturnNotNullIfNotNull, "return null;").WithArguments("o").WithLocation(36, 13));
+
+        src = """
+#nullable enable
+
+class C
+{
+    [property: System.Diagnostics.CodeAnalysis.NotNullIfNotNull(nameof(o))]
+    public object? this[object? o]
+    {
+        get
+        {
+            if (o is null)
+                return null;
+            else
+                return null; // 1
+        }
+        set { }
+    }
+}
+""";
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        // Tracked by https://github.com/dotnet/roslyn/issues/37238 : indexers lack support for NotNullIfNotNull
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
     public void Nullability_ForEach_01()
     {
         var src = """
@@ -38816,6 +39166,41 @@ static class E
     }
 
     [Fact]
+    public void Nullability_ObjectInitializer_03()
+    {
+        var src = """
+#nullable enable
+
+object? oNull = null;
+_ = new object() { Property = oNull };
+
+object oNotNull = new object();
+_ = new object() { Property = oNotNull };
+
+static class E
+{
+    extension<T>(T t)
+    {
+        public T Property { set { } }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for object initializer scenario with extension property
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNull");
+        Assert.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+
+        assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNotNull");
+        Assert.Equal("System.Object E.extension<System.Object>(System.Object).Property { set; }",
+            model.GetSymbolInfo(assignment.Left).Symbol.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
     public void Nullability_With_01()
     {
         var src = """
@@ -38898,7 +39283,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for with-expression with extension property (unexpected warning)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -39348,7 +39733,7 @@ _ = 42.P2;
     }
 
     [Fact]
-    public void SkipLocalsInit_01()
+    public void WellKnownAttribute_SkipLocalsInit_01()
     {
         string source = """
 static unsafe class E
@@ -39377,7 +39762,7 @@ static unsafe class E
     }
 
     [Fact]
-    public void SkipLocalsInit_02()
+    public void WellKnownAttribute_SkipLocalsInit_02()
     {
         string source = """
 static unsafe class E
