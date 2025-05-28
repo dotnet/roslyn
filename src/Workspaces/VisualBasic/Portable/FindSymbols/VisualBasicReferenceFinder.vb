@@ -7,7 +7,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindSymbols.Finders
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.FindSymbols
