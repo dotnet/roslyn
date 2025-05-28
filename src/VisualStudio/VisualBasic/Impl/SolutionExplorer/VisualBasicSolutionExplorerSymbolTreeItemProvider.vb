@@ -10,8 +10,10 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+Imports Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
@@ -154,6 +156,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             End If
         End Sub
 
+        Private Shared Sub AddFieldDeclaration(fieldDeclaration As FieldDeclarationSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+            For Each declarator In fieldDeclaration.Declarators
+                For Each name In declarator.Names
+                    nameBuilder.Append(name.Identifier.ValueText)
+                    AppendAsClause(nameBuilder, declarator.AsClause, fallbackToObject:=True)
+
+                    Dim accesibility = GetAccessibility(fieldDeclaration.Parent, fieldDeclaration, fieldDeclaration.Modifiers)
+                    items.Add(New SymbolTreeItemData(
+                        nameBuilder.ToStringAndClear(),
+                        GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Field, accesibility),
+                        hasItems:=False,
+                        fieldDeclaration,
+                        name.Identifier))
+                Next
+            Next
+        End Sub
+
         Private Shared Sub AppendTypeParameterList(
             builder As StringBuilder,
             typeParameterList As TypeParameterListSyntax)
@@ -174,10 +193,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
                 Sub(parameter, innerBuilder) AppendType(parameter?.AsClause?.Type, builder))
         End Sub
 
-        Private Shared Sub AppendAsClause(nameBuilder As StringBuilder, asClause As SimpleAsClauseSyntax)
+        Private Shared Sub AppendAsClause(
+                nameBuilder As StringBuilder,
+                asClause As AsClauseSyntax,
+                Optional fallbackToObject As Boolean = False)
             If asClause IsNot Nothing Then
-                nameBuilder.Append(" As ")
-                AppendType(asClause.Type, nameBuilder)
+
+                Dim simpleAsClause = TryCast(asClause, SimpleAsClauseSyntax)
+                If simpleAsClause IsNot Nothing Then
+                    nameBuilder.Append(" As ")
+                    AppendType(simpleAsClause.Type, nameBuilder)
+                    Return
+                End If
+
+                Dim asNewClause = TryCast(asClause, AsNewClauseSyntax)
+                If asNewClause IsNot Nothing Then
+                    Dim newObjectCreation = TryCast(asNewClause.NewExpression, ObjectCreationExpressionSyntax)
+                    If newObjectCreation IsNot Nothing Then
+                        nameBuilder.Append(" As ")
+                        AppendType(newObjectCreation.Type, nameBuilder)
+                        Return
+                    End If
+
+                    Dim newArrayCreation = TryCast(asNewClause.NewExpression, ArrayCreationExpressionSyntax)
+                    If newArrayCreation IsNot Nothing Then
+                        nameBuilder.Append(" As ")
+                        AppendType(newArrayCreation.Type, nameBuilder)
+                        nameBuilder.Append("()")
+                        Return
+                    End If
+                End If
+            ElseIf fallbackToObject Then
+                nameBuilder.Append(" As Object")
             End If
         End Sub
 
