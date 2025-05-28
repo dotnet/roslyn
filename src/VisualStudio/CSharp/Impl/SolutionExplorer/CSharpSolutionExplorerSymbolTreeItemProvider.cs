@@ -402,9 +402,14 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         if (type is ArrayTypeSyntax arrayType)
         {
             AppendType(arrayType.ElementType, builder);
-            AppendCommaSeparatedList(
-                builder, "[", "]", arrayType.RankSpecifiers,
-                static (_, _) => { }, ",");
+            foreach (var rankSpecifier in arrayType.RankSpecifiers)
+            {
+                builder.Append('[');
+                AppendCommaSeparatedList(
+                    builder, "", "", rankSpecifier.Sizes,
+                    static (_, _) => { }, ",");
+                builder.Append(']');
+            }
         }
         else if (type is PointerTypeSyntax pointerType)
         {

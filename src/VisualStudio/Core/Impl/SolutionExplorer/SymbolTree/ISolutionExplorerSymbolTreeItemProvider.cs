@@ -36,7 +36,7 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         string openBrace,
         string closeBrace,
         TArgumentList? argumentList,
-        Func<TArgumentList, IEnumerable<TArgument>> getArguments,
+        Func<TArgumentList, SeparatedSyntaxList<TArgument>> getArguments,
         Action<TArgument, StringBuilder> append,
         string separator = ", ")
         where TArgumentList : SyntaxNode
@@ -48,14 +48,14 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         AppendCommaSeparatedList(builder, openBrace, closeBrace, getArguments(argumentList), append, separator);
     }
 
-    protected static void AppendCommaSeparatedList<TArgument>(
+    protected static void AppendCommaSeparatedList<TNode>(
         StringBuilder builder,
         string openBrace,
         string closeBrace,
-        IEnumerable<TArgument> arguments,
-        Action<TArgument, StringBuilder> append,
+        SeparatedSyntaxList<TNode> arguments,
+        Action<TNode, StringBuilder> append,
         string separator = ", ")
-        where TArgument : SyntaxNode
+        where TNode : SyntaxNode
     {
         builder.Append(openBrace);
         builder.AppendJoinedValues(separator, arguments, append);
