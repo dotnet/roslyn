@@ -38,7 +38,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly Workspace _workspace;
-    public readonly SymbolTreeNavigationSupport NavigationSupport;
+    public readonly SolutionExplorerNavigationSupport NavigationSupport;
 
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;

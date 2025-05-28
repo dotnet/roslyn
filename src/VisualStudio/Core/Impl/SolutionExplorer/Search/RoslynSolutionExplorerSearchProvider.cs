@@ -31,7 +31,7 @@ internal sealed class RoslynSolutionExplorerSearchProvider : ISearchProvider
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IAsynchronousOperationListener _listener;
-    public readonly SymbolTreeNavigationSupport NavigationSupport;
+    public readonly SolutionExplorerNavigationSupport NavigationSupport;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
