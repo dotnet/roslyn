@@ -317,7 +317,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
             Dim arrayType = TryCast(typeSyntax, ArrayTypeSyntax)
             If arrayType IsNot Nothing Then
                 AppendType(arrayType.ElementType, builder)
-                builder.Append("()")
+                For Each rankSpecifier In arrayType.RankSpecifiers
+                    builder.Append("("c)
+                    builder.Append(","c, rankSpecifier.CommaTokens.Count)
+                    builder.Append(")"c)
+                Next
                 Return
             End If
 
