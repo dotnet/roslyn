@@ -150,11 +150,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static OnFunctionResolvedDelegate<DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest> OnFunctionResolved(DkmWorkList workList)
         {
-            return (DkmClrModuleInstance module,
-                        DkmRuntimeFunctionResolutionRequest request,
-                        int token,
-                        int version,
-                        int ilOffset) =>
+            return (module,
+                        request,
+                        token,
+                        version,
+                        ilOffset) =>
             {
                 var address = DkmClrInstructionAddress.Create(
                     module.RuntimeInstance,

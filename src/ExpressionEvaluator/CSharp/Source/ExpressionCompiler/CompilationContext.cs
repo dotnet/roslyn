@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                (method, diags, out declaredLocals, out properties) =>
                 {
                     var hasDisplayClassThis = GetThisProxy(_displayClassVariables) != null;
                     var binder = ExtendBinderChain(
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 typeName,
                 methodName,
                 this,
-                (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                (method, diags, out declaredLocals, out properties) =>
                 {
                     var hasDisplayClassThis = GetThisProxy(_displayClassVariables) != null;
                     var binder = ExtendBinderChain(
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     container,
                                     methodName,
                                     syntax,
-                                    (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+                                    (method, diags, out declaredLocals, out properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                                         var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetLocalMethod(EENamedTypeSymbol container, string methodName, string localName, int localIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(localName);
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (method, diagnostics, out declaredLocals, out properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
 
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetParameterMethod(EENamedTypeSymbol container, string methodName, string parameterName, int parameterIndex)
         {
             var syntax = SyntaxFactory.IdentifierName(parameterName);
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (method, diagnostics, out declaredLocals, out properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var parameter = method.Parameters[parameterIndex];
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetThisMethod(EENamedTypeSymbol container, string methodName)
         {
             var syntax = SyntaxFactory.ThisExpression();
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (method, diagnostics, out declaredLocals, out properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private EEMethodSymbol GetTypeVariablesMethod(EENamedTypeSymbol container, string methodName, NamedTypeSymbol typeVariablesType)
         {
             var syntax = SyntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
-            return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
+            return CreateMethod(container, methodName, syntax, (method, diagnostics, out declaredLocals, out properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);

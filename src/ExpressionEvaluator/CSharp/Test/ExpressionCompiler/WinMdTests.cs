@@ -351,7 +351,7 @@ class C
                     {
                         return CreateMethodContext(runtime, "C.M");
                     },
-                    (AssemblyIdentity assembly, out uint size) =>
+                    (assembly, out size) =>
                     {
                         // Compilation should succeed without retry if we redirect assembly refs correctly.
                         // Throwing so that we don't loop forever (as we did before fix)...
