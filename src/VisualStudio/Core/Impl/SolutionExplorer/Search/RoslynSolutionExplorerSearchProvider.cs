@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -37,7 +38,6 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
 {
     private readonly VisualStudioWorkspace _workspace = workspace;
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
     public readonly SolutionExplorerNavigationSupport NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
     public void Search(IRelationshipSearchParameters parameters, Action<ISearchResult> resultAccumulator)
@@ -45,6 +45,8 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
         if (!parameters.Options.SearchFileContents)
             return;
 
+        // Have to synchronously block on the search finishing as otherwise the caller will think we are
+        // done prior to us reporting any results.
         _threadingContext.JoinableTaskFactory.Run(SearchAsync);
 
         async Task SearchAsync()
@@ -94,6 +96,16 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
 
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class SolutionExplorerSearchResult(
+        RoslynSolutionExplorerSearchProvider provider,
+        INavigateToSearchResult result,
+        string name,
+        ImageMoniker imageMoniker) : ISearchResult
+    {
+        public object GetDisplayItem()
+            => new SolutionExplorerSearchDisplayItem(provider, result, name, imageMoniker);
     }
 
     private sealed class SolutionExplorerNavigateToSearcherHost(Workspace workspace) : INavigateToSearcherHost
