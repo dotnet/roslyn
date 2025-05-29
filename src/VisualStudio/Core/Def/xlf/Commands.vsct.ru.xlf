@@ -587,6 +587,16 @@
         <target state="translated">Перейти к реализации</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|ButtonText">
+        <source>Solution Explorer Symbol Tree</source>
+        <target state="new">Solution Explorer Symbol Tree</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSolutionExplorerSymbolItemContextMenu|MenuText">
+        <source>Solution Explorer Symbol Tree</source>
+        <target state="new">Solution Explorer Symbol Tree</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidSolutionExplorerSymbolItemFindAllReferences|ButtonText">
         <source>Find All References</source>
         <target state="new">Find All References</target>
