@@ -295,11 +295,23 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         {
             var condition = ifStatement.Condition.UnwrapImplicitConversion();
 
-            if (condition is IBinaryOperation binaryOperator &&
-                IsBinaryNumericCheck(binaryOperator.LeftOperand, binaryOperator.RightOperand, binaryOperator.OperatorKind, parameter))
+            // parameter < num
+            // parameter <= num
+            // parameter > num
+            // parameter >= num
+            // num < parameter
+            // num <= parameter
+            // num > parameter
+            // num >= parameter
+            if (condition is IBinaryOperation { OperatorKind: BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual or BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual } binaryOperator &&
+                IsNumericCheckOperands(binaryOperator.LeftOperand, binaryOperator.RightOperand, parameter))
             {
                 return true;
             }
+            // parameter is < num
+            // parameter is <= num
+            // parameter is > num
+            // parameter is >= num
             else if (condition is IIsPatternOperation
             {
                 Pattern: IRelationalPatternOperation
@@ -315,18 +327,10 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
         return false;
 
-        static bool IsBinaryNumericCheck(IOperation operand1, IOperation operand2, BinaryOperatorKind operatorKind, IParameterSymbol parameter)
+        static bool IsNumericCheckOperands(IOperation operand1, IOperation operand2, IParameterSymbol parameter)
         {
-            return operatorKind switch
-            {
-                // parameter < some_number
-                // parameter <= some_number
-                BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual => IsParameterReference(operand1, parameter) && operand2.IsNumericLiteral(),
-                // some_number > parameter
-                // some_number >= parameter
-                BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual => operand1.IsNumericLiteral() && IsParameterReference(operand2, parameter),
-                _ => false,
-            };
+            return (IsParameterReference(operand1, parameter) && operand2.IsNumericLiteral()) ||
+                   (operand1.IsNumericLiteral() && IsParameterReference(operand2, parameter));
         }
     }
 
