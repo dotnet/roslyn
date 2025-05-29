@@ -21,16 +21,12 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.GoToBase;
 
-[Export(typeof(VSCommanding.ICommandHandler))]
-[ContentType(ContentTypeNames.RoslynContentType)]
-[Name(PredefinedCommandHandlerNames.GoToBase)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class GoToBaseCommandHandler(
+internal sealed class GoToBaseNavigationService(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
+    IGlobalOptionService globalOptions)
+    : AbstractGoOrFindNavigationService<IGoToBaseService>(
         threadingContext,
         streamingPresenter,
         listenerProvider.GetListener(FeatureAttribute.GoToBase),
@@ -49,3 +45,15 @@ internal sealed class GoToBaseCommandHandler(
     protected override Task FindActionAsync(IFindUsagesContext context, Document document, IGoToBaseService service, int caretPosition, CancellationToken cancellationToken)
         => service.FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }
+
+[Export(typeof(VSCommanding.ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.GoToBase)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class GoToBaseCommandHandler(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
+        new GoToBaseNavigationService(threadingContext, streamingPresenter, listenerProvider, globalOptions);
