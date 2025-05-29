@@ -103,25 +103,46 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         // Unshipped release with existing new rules table.
         [InlineData("", DefaultUnshippedHeader + "Id1 | Category1 | Warning |")]
+        // Unshipped release with existing new rules table with borders.
+        [InlineData("", DefaultUnshippedHeaderWithBorders + "| Id1 | Category1 | Warning | |")]
         // Shipped release with existing new rules table.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |", "")]
+        // Shipped release with existing new rules table with borders.
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id1 | Category1 | Warning | |", "")]
         // Releases with separate new rules and changed rules table.
         [InlineData(DefaultShippedHeader + "Id1 | Category0 | Warning |" + BlankLine +
                     DefaultChangedShippedHeader2 + "Id1 | Category1 | Warning | Category0 | Warning |", "")]
+        // Releases with separate new rules and changed rules table with borders.
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id1 | Category0 | Warning | |" + BlankLine +
+                    DefaultChangedShippedHeader2WithBorders + "| Id1 | Category1 | Warning | Category0 | Warning | |", "")]
         // Releases with separate new rules and removed rules table.
         [InlineData(DefaultShippedHeader + "Id1 | Category1 | Warning |" + BlankLine + "Id2 | Category1 | Warning |" + BlankLine +
                     DefaultRemovedShippedHeader2 + "Id2 | Category1 | Warning ", "")]
+        // Releases with separate new rules and removed rules table with borders.
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + "| Id2 | Category1 | Warning | |" + BlankLine +
+                    DefaultRemovedShippedHeader2WithBorders + "| Id2 | Category1 | Warning | |", "")]
         // Release with new rules and changed rules table.
         [InlineData(DefaultShippedHeader + "Id2 | Category0 | Warning |" + BlankLine +
                     DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "Id2 | Category1 | Warning | Category0 | Warning |",
                     DefaultRemovedUnshippedHeader + "Id2 | Category1 | Warning |")]
+        // Release with new rules and changed rules table with borders.
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id2 | Category0 | Warning | |" + BlankLine +
+                    DefaultShippedHeader2WithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + DefaultChangedUnshippedHeaderWithBorders + "| Id2 | Category1 | Warning | Category0 | Warning | |",
+                    DefaultRemovedUnshippedHeaderWithBorders + "| Id2 | Category1 | Warning | |")]
         // Release with new rules and removed rules table.
         [InlineData(DefaultShippedHeader + "Id2 | Category0 | Warning |" + BlankLine +
                     DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "Id2 | Category0 | Warning |", "")]
+        // Release with new rules and removed rules table with borders.
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id2 | Category0 | Warning | |" + BlankLine +
+                    DefaultShippedHeader2WithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + DefaultRemovedUnshippedHeaderWithBorders + "| Id2 | Category0 | Warning | |", "")]
         // Release with all 3 tables
         [InlineData(DefaultShippedHeader + "Id3 | Category1 | Warning |" + BlankLine + "Id2 | Category0 | Warning |" + BlankLine +
                     DefaultShippedHeader2 + "Id1 | Category1 | Warning |" + BlankLine + DefaultChangedUnshippedHeader + "Id3 | Category2 | Warning | Category1 | Warning |" + BlankLine + DefaultRemovedUnshippedHeader + "Id2 | Category1 | Warning |",
                     DefaultRemovedUnshippedHeader + "Id3 | Category2 | Warning |")]
+        // Release with all 3 tables with borders
+        [InlineData(DefaultShippedHeaderWithBorders + "| Id3 | Category1 | Warning | |" + BlankLine + "| Id2 | Category0 | Warning | |" + BlankLine +
+                    DefaultShippedHeader2WithBorders + "| Id1 | Category1 | Warning | |" + BlankLine + DefaultChangedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | Category1 | Warning | |" + BlankLine + DefaultRemovedUnshippedHeaderWithBorders + "| Id2 | Category1 | Warning | |",
+                    DefaultRemovedUnshippedHeaderWithBorders + "| Id3 | Category2 | Warning | |")]
         [Theory]
         public async Task TestReleasesFileAlreadyHasEntryAsync(string shippedText, string unshippedText)
         {
@@ -977,6 +998,24 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         private const string DefaultShippedHeader3 = ReleaseTrackingHelper.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultUnshippedHeader;
         private const string DefaultChangedShippedHeader3 = ReleaseTrackingHelper.ReleasePrefix + " 3.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeader;
+
+        private const string DefaultUnshippedHeaderWithBorders = ReleaseTrackingHelper.TableTitleNewRules + BlankLine + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + "|" + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + "|" + BlankLine;
+
+        private const string DefaultRemovedUnshippedHeaderWithBorders = ReleaseTrackingHelper.TableTitleRemovedRules + BlankLine + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1 + "|" + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2 + "|" + BlankLine;
+
+        private const string DefaultChangedUnshippedHeaderWithBorders = ReleaseTrackingHelper.TableTitleChangedRules + BlankLine + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderChangedRulesLine1 + "|" + BlankLine +
+            "|" + ReleaseTrackingHelper.TableHeaderChangedRulesLine2 + "|" + BlankLine;
+
+        private const string DefaultShippedHeaderWithBorders = ReleaseTrackingHelper.ReleasePrefix + " 1.0" + BlankLine + BlankLine + DefaultUnshippedHeaderWithBorders;
+
+        private const string DefaultShippedHeader2WithBorders = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultUnshippedHeaderWithBorders;
+        private const string DefaultRemovedShippedHeader2WithBorders = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultRemovedUnshippedHeaderWithBorders;
+        private const string DefaultChangedShippedHeader2WithBorders = ReleaseTrackingHelper.ReleasePrefix + " 2.0" + BlankLine + BlankLine + DefaultChangedUnshippedHeaderWithBorders;
 
         private static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string path, DiagnosticDescriptor descriptor, params object[] arguments)
         {
