@@ -5363,7 +5363,7 @@ class C<T, U> where U : struct
             Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/78759")]
         public void IsManagedType_AnonymousType()
         {
             var text = @"
@@ -6762,7 +6762,7 @@ enum Color
 
         #region AddressOf diagnostics
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/78759")]
         public void AddressOfManaged()
         {
             var text = @"
