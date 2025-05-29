@@ -241,7 +241,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         var runningProjectsImpl = runningProjects.ToImmutableDictionary(keySelector: p => p, elementSelector: _ => new EditAndContinue.RunningProjectInfo()
         {
             RestartWhenChangesHaveNoEffect = false,
-            AllowPartialUpdate = false
+            AllowPartialUpdate = true
         });
 
         var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjectsImpl, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);

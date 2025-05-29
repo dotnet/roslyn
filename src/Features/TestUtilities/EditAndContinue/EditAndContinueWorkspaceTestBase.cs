@@ -240,6 +240,9 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
     internal static IEnumerable<string> InspectDiagnosticIds(ImmutableArray<DiagnosticData> actual)
         => actual.Select(d => d.Id);
 
+    internal static IEnumerable<string> InspectDiagnosticIds(IEnumerable<Diagnostic> actual)
+        => actual.Select(d => d.Id);
+
     internal static Guid ReadModuleVersionId(Stream stream)
     {
         using var peReader = new PEReader(stream);

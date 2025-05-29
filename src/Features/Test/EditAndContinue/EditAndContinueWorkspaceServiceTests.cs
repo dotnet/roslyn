@@ -1415,7 +1415,7 @@ class C { int Y => 2; }
 
     [Theory]
     [CombinatorialData]
-    public async Task RudeEdits_UpdateBaseline(bool validChangeBeforeRudeEdit)
+    public async Task RudeEdits_UpdateBaseline(bool validChangeBeforeRudeEdit, bool allowPartialUpdates)
     {
         var source1 = "abstract class C { }";
         var source2 = "abstract class C { void F() {} }";
@@ -1436,7 +1436,7 @@ class C { int Y => 2; }
 
         EmitSolutionUpdateResults result;
         var readers = ImmutableArray<IDisposable>.Empty;
-        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty.Add(projectId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = true });
+        var runningProjects = ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty.Add(projectId, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = false, AllowPartialUpdate = allowPartialUpdates });
 
         // change the source (valid edit):
         if (validChangeBeforeRudeEdit)
@@ -1466,22 +1466,34 @@ class C { int Y => 2; }
         solution = solution.WithDocumentText(documentId, CreateText(source3));
 
         // Rude Edits reported:
-        var diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
+        var docDiagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetRequiredDocument(documentId), s_noActiveSpans, CancellationToken.None);
         AssertEx.Equal(
             ["ENC0023: Error: " + string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)],
-            InspectDiagnostics(diagnostics));
+            InspectDiagnostics(docDiagnostics));
 
         // validate solution update status and emit:
         result = await debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, s_noActiveSpans, CancellationToken.None);
+        AssertEx.SequenceEqual(["ENC0023"], InspectDiagnosticIds(result.GetAllDiagnostics()));
         Assert.Equal(ModuleUpdateStatus.RestartRequired, result.ModuleUpdates.Status);
+        Assert.Empty(result.ModuleUpdates.Updates);
         AssertEx.Equal([projectId], result.ProjectsToRebuild);
         AssertEx.Equal([projectId], result.ProjectsToRestart.Keys);
 
-        // restart and rebuild:
+        if (allowPartialUpdates)
+        {
+            // assuming user approved restart and rebuild:
+            CommitSolutionUpdate(debuggingSession);
+        }
+
+        // rebuild and restart:
         _debuggerService.LoadedModules.Remove(moduleId);
         File.WriteAllText(sourceFilePath, source3, Encoding.UTF8);
         moduleId = EmitAndLoadLibraryToDebuggee(solution.GetRequiredDocument(documentId));
-        debuggingSession.UpdateBaselines(solution, result.ProjectsToRebuild);
+
+        if (!allowPartialUpdates)
+        {
+            debuggingSession.UpdateBaselines(solution, result.ProjectsToRebuild);
+        }
 
         if (validChangeBeforeRudeEdit)
         {
@@ -3034,7 +3046,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         AssertEx.SetEqual([], result.ProjectsToRestart.Select(p => p.Key.DebugName));
 
         var updates = result.ModuleUpdates;
-        AssertEx.SequenceEqual(["ENC0118"], InspectDiagnosticIds(result.Diagnostics.ToDiagnosticData(solution)));
+        AssertEx.SequenceEqual(["ENC0118"], InspectDiagnosticIds(result.GetAllDiagnostics()));
         Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
 
         // check emitted delta:
