@@ -143,6 +143,14 @@ class Test
 }";
             var expected = @"";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Diagnostics;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Diagnostics;").WithLocation(3, 1)
+            );
         }
 
         [WorkItem(14878, "https://github.com/dotnet/roslyn/issues/14878")]
@@ -570,6 +578,16 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_0332:  ret
 }
 ");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [G]: Unexpected type on the stack. { Offset = 0x104, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(855080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/855080")]
@@ -577,9 +595,6 @@ VerifyIL("Test.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
         {
             var source = @"
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 namespace ConsoleApplication1
 {
@@ -612,6 +627,16 @@ namespace ConsoleApplication1
 }
 ";
             CompileAndVerify(source, expectedOutput: "3");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput("3", isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    [Goo]: Unexpected type on the stack. { Offset = 0x15, Found = value 'T', Expected = ref 'System.Threading.Tasks.Task`1<T0>' }
+                    """
+            });
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -651,6 +676,22 @@ class Test
 -1
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [G]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
         }
 
         [Fact]
@@ -689,6 +730,19 @@ class Test
 exception
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [H]: Unexpected type on the stack. { Offset = 0xa, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
         }
 
         [Fact]
@@ -839,6 +893,56 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_00d1:  ret
 }
 ");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x2b, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
+
+            verifier.VerifyIL("Test.G()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (object V_0,
+                                object V_1)
+                  IL_0000:  ldnull
+                  IL_0001:  stloc.0
+                  .try
+                  {
+                    IL_0002:  leave.s    IL_0007
+                  }
+                  catch object
+                  {
+                    IL_0004:  stloc.0
+                    IL_0005:  leave.s    IL_0007
+                  }
+                  IL_0007:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_000c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0011:  ldloc.0
+                  IL_0012:  stloc.1
+                  IL_0013:  ldloc.1
+                  IL_0014:  brfalse.s  IL_002b
+                  IL_0016:  ldloc.1
+                  IL_0017:  isinst     "System.Exception"
+                  IL_001c:  dup
+                  IL_001d:  brtrue.s   IL_0021
+                  IL_001f:  ldloc.1
+                  IL_0020:  throw
+                  IL_0021:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0026:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
@@ -896,6 +1000,10 @@ class Test
             var expected = @"FOne or more errors occurred.
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -1193,6 +1301,12 @@ class Test
   IL_01cb:  nop
   IL_01cc:  ret
 }", sequencePoints: "Test+<G>d__1.MoveNext");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.G()", "");
         }
 
         [Fact]
@@ -1241,6 +1355,21 @@ class Test
 2
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x3e, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
         }
 
         [Fact]
@@ -1302,6 +1431,24 @@ class Test
 }";
             var expected = @"15";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xcf, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (23,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(23, 17),
+                // (42,9): warning CS0162: Unreachable code detected
+                //         System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(42, 9)
+            );
         }
 
         [Fact]
@@ -1372,6 +1519,27 @@ class Test
             var expected = @"hello
 15";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xd5, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (25,21): warning CS0162: Unreachable code detected
+                //                     System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(25, 21),
+                // (32,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(32, 17),
+                // (46,13): warning CS0162: Unreachable code detected
+                //             System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(46, 13)
+            );
         }
 
         [Fact]
@@ -1443,6 +1611,27 @@ class Test
             var expected = @"bye
 15";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x9c, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (25,21): warning CS0162: Unreachable code detected
+                //                     System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(25, 21),
+                // (32,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(32, 17),
+                // (47,13): warning CS0162: Unreachable code detected
+                //             System.Console.WriteLine("FAIL");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(47, 13)
+            );
         }
 
         [Fact]
@@ -1585,6 +1774,59 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
   IL_00a9:  ret
 }
 ");
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x1, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x1f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
+
+            verifier.VerifyIL("Test.G()", """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  2
+                  .locals init (int V_0, //x
+                                int V_1)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  .try
+                  {
+                    IL_0004:  ldloc.0
+                    IL_0005:  ldloc.0
+                    IL_0006:  div
+                    IL_0007:  stloc.0
+                    IL_0008:  leave.s    IL_000f
+                  }
+                  catch object
+                  {
+                    IL_000a:  pop
+                    IL_000b:  ldc.i4.1
+                    IL_000c:  stloc.1
+                    IL_000d:  leave.s    IL_000f
+                  }
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  bne.un.s   IL_001e
+                  IL_0013:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0018:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001d:  stloc.0
+                  IL_001e:  ldloc.0
+                  IL_001f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1649,6 +1891,17 @@ Attempted to divide by zero.
 2
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x5f, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
@@ -1718,6 +1971,17 @@ Attempted to divide by zero.
 2
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x58, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics();
         }
 
         [WorkItem(74, "https://github.com/dotnet/roslyn/issues/1334")]
@@ -1792,6 +2056,17 @@ Attempted to divide by zero.
 4
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x9d, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1846,6 +2121,10 @@ hello
 2
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1902,6 +2181,10 @@ class Test
 2
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1983,6 +2266,10 @@ hello
 42
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2067,6 +2354,10 @@ hello
 42
 ";
             CompileAndVerify(source, expectedOutput: expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2103,6 +2394,18 @@ class Driver
 1
 ";
             CompileAndVerify(source, expected);
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Return value missing on the stack. { Offset = 0x3d }
+                        """
+                });
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
@@ -2169,6 +2472,10 @@ class Driver
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(67091, "https://github.com/dotnet/roslyn/issues/67091")]
@@ -2266,6 +2573,10 @@ class Driver
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70483")]
@@ -2334,6 +2645,10 @@ class Driver
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
@@ -2414,6 +2729,34 @@ class Driver
                 targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput,
                 targetFramework: TargetFramework.Mscorlib46).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var ilVerifyMessage = (await1, await2) switch
+            {
+                (true, true) => """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x3b }
+                    [<<Main>$>g__Test1|0_0]: Return value missing on the stack. { Offset = 0x67 }
+                    [<<Main>$>g__Test2|0_1]: Return value missing on the stack. { Offset = 0x59 }
+                    """,
+                (false, true) => """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x3b }
+                    [<<Main>$>g__Test1|0_0]: Return value missing on the stack. { Offset = 0x26 }
+                    [<<Main>$>g__Test2|0_1]: Return value missing on the stack. { Offset = 0x59 }
+                    """,
+                (true, false) => """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x3b }
+                    [<<Main>$>g__Test1|0_0]: Return value missing on the stack. { Offset = 0x67 }
+                    [<<Main>$>g__Test2|0_1]: Return value missing on the stack. { Offset = 0x24 }
+                    """,
+                (false, false) => """
+                    [<Main>$]: Return value missing on the stack. { Offset = 0x3b }
+                    [<<Main>$>g__Test1|0_0]: Return value missing on the stack. { Offset = 0x26 }
+                    [<<Main>$>g__Test2|0_1]: Return value missing on the stack. { Offset = 0x24 }
+                    """
+            };
+
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
+            verifier.VerifyDiagnostics();
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
@@ -2471,9 +2814,14 @@ class Driver
 
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails);
+            // PROTOTYPE: ILVerify is crashing with IndexOutOfRangeException when attempting to get messages.
+            verifier.VerifyDiagnostics();
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+        [Theory(Skip = "PROTOTYPE"), WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
         [InlineData("await Task.Yield();")]
         [InlineData("await using var c = new C();")]
         [InlineData("await foreach (var x in new C()) { }")]
@@ -2542,6 +2890,10 @@ class Driver
 
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.DebugExe), expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
         }
     }
 }
