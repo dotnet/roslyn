@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>$(NetVS)</TargetFramework>
-    <UseAppHost>false</UseAppHost>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
