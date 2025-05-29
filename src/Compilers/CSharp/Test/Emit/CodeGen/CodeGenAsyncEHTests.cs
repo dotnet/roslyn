@@ -2123,8 +2123,128 @@ hello
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xa4, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Test.G", """
+                {
+                  // Code size      165 (0xa5)
+                  .maxstack  2
+                  .locals init (int V_0, //x
+                                int V_1,
+                                System.Exception V_2, //ex
+                                object V_3,
+                                int V_4,
+                                object V_5,
+                                System.Exception V_6)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  .try
+                  {
+                    IL_0004:  ldc.i4.0
+                    IL_0005:  stloc.s    V_4
+                    .try
+                    {
+                      IL_0007:  ldloc.0
+                      IL_0008:  ldloc.0
+                      IL_0009:  div
+                      IL_000a:  stloc.0
+                      IL_000b:  leave.s    IL_002d
+                    }
+                    filter
+                    {
+                      IL_000d:  isinst     "object"
+                      IL_0012:  dup
+                      IL_0013:  brtrue.s   IL_0019
+                      IL_0015:  pop
+                      IL_0016:  ldc.i4.0
+                      IL_0017:  br.s       IL_0025
+                      IL_0019:  stloc.s    V_5
+                      IL_001b:  ldloc.s    V_5
+                      IL_001d:  stloc.3
+                      IL_001e:  ldloc.0
+                      IL_001f:  ldc.i4.0
+                      IL_0020:  cgt.un
+                      IL_0022:  ldc.i4.0
+                      IL_0023:  cgt.un
+                      IL_0025:  endfilter
+                    }  // end filter
+                    {  // handler
+                      IL_0027:  pop
+                      IL_0028:  ldc.i4.1
+                      IL_0029:  stloc.s    V_4
+                      IL_002b:  leave.s    IL_002d
+                    }
+                    IL_002d:  ldloc.s    V_4
+                    IL_002f:  ldc.i4.1
+                    IL_0030:  bne.un.s   IL_0052
+                    IL_0032:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                    IL_0037:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                    IL_003c:  stloc.0
+                    IL_003d:  ldloc.3
+                    IL_003e:  isinst     "System.Exception"
+                    IL_0043:  dup
+                    IL_0044:  brtrue.s   IL_0048
+                    IL_0046:  ldloc.3
+                    IL_0047:  throw
+                    IL_0048:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                    IL_004d:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                    IL_0052:  leave.s    IL_0089
+                  }
+                  filter
+                  {
+                    IL_0054:  isinst     "System.Exception"
+                    IL_0059:  dup
+                    IL_005a:  brtrue.s   IL_0060
+                    IL_005c:  pop
+                    IL_005d:  ldc.i4.0
+                    IL_005e:  br.s       IL_0082
+                    IL_0060:  stloc.s    V_6
+                    IL_0062:  ldloc.s    V_6
+                    IL_0064:  castclass  "System.Exception"
+                    IL_0069:  stloc.2
+                    IL_006a:  ldloc.0
+                    IL_006b:  brtrue.s   IL_007e
+                    IL_006d:  ldstr      "hello"
+                    IL_0072:  newobj     "System.Exception..ctor(string)"
+                    IL_0077:  dup
+                    IL_0078:  stloc.2
+                    IL_0079:  ldnull
+                    IL_007a:  cgt.un
+                    IL_007c:  br.s       IL_007f
+                    IL_007e:  ldc.i4.0
+                    IL_007f:  ldc.i4.0
+                    IL_0080:  cgt.un
+                    IL_0082:  endfilter
+                  }  // end filter
+                  {  // handler
+                    IL_0084:  pop
+                    IL_0085:  ldc.i4.1
+                    IL_0086:  stloc.1
+                    IL_0087:  leave.s    IL_0089
+                  }
+                  IL_0089:  ldloc.1
+                  IL_008a:  ldc.i4.1
+                  IL_008b:  bne.un.s   IL_00a3
+                  IL_008d:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0092:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0097:  stloc.0
+                  IL_0098:  ldloc.2
+                  IL_0099:  callvirt   "string System.Exception.Message.get"
+                  IL_009e:  call       "void System.Console.WriteLine(string)"
+                  IL_00a3:  ldloc.0
+                  IL_00a4:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2183,7 +2303,14 @@ class Test
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0xcf, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
             verifier.VerifyDiagnostics();
         }
 
@@ -2268,7 +2395,14 @@ hello
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [G]: Unexpected type on the stack. { Offset = 0x178, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
             verifier.VerifyDiagnostics();
         }
 
@@ -2356,7 +2490,14 @@ hello
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [F]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        [<G>b__0]: Unexpected type on the stack. { Offset = 0x1b3, Found = Int32, Expected = ref 'System.Threading.Tasks.Task`1<int32>' }
+                        """
+                });
             verifier.VerifyDiagnostics();
         }
 
@@ -2474,7 +2615,17 @@ class Driver
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x2a }
+                        [M1]: Return value missing on the stack. { Offset = 0x6d }
+                        [M1]: Return value missing on the stack. { Offset = 0xaa }
+                        [M1]: Return value missing on the stack. { Offset = 0x7f }
+                        [M2]: Return value missing on the stack. { Offset = 0x3f }
+                        """
+                });
             verifier.VerifyDiagnostics();
         }
 
@@ -2575,7 +2726,19 @@ class Driver
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = """
+                        [Main]: Return value missing on the stack. { Offset = 0x7a }
+                        [M1]: Return value missing on the stack. { Offset = 0x6d }
+                        [M1]: Return value missing on the stack. { Offset = 0xf8 }
+                        [M1]: Return value missing on the stack. { Offset = 0x159 }
+                        [M1]: Return value missing on the stack. { Offset = 0x11c }
+                        [M1]: Return value missing on the stack. { Offset = 0x7f }
+                        [M2]: Return value missing on the stack. { Offset = 0x3f }
+                        """
+                });
             verifier.VerifyDiagnostics();
         }
 
@@ -2646,8 +2809,22 @@ class Driver
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
+            var ilVerifyMessage = awaitInTry2
+                ? """
+                    [Main]: Return value missing on the stack. { Offset = 0x2a }
+                    [M1]: Return value missing on the stack. { Offset = 0x6b }
+                    [M1]: Return value missing on the stack. { Offset = 0xc1 }
+                    [M1]: Return value missing on the stack. { Offset = 0x7d }
+                    [M2]: Return value missing on the stack. { Offset = 0x3f }
+                    """
+                : """
+                    [Main]: Return value missing on the stack. { Offset = 0x2a }
+                    [M1]: Return value missing on the stack. { Offset = 0x88 }
+                    [M2]: Return value missing on the stack. { Offset = 0x3f }
+                    """;
+
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Fails with { ILVerifyMessage = ilVerifyMessage });
             verifier.VerifyDiagnostics();
         }
 
