@@ -52,7 +52,9 @@ internal sealed class SolutionExplorerSymbolTreeItemCommandHandler
                 }, 
                 (sender, args) =>
                 {
-
+                    var command = (OleMenuCommand)sender;
+                    command.Visible = true;
+                    command.Enabled = true;
                 });
         }
     }
