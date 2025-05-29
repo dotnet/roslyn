@@ -323,7 +323,7 @@ function BuildSolution {
     $mono_tool \
     $generate_documentation_file \
     $roslyn_use_hard_links \
-    "${properties[@]}"
+    ${properties[@]+"${properties[@]}"}
 }
 
 function GetCompilerTestAssembliesIncludePaths {
