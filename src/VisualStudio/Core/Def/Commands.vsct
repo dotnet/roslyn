@@ -386,6 +386,8 @@
 
       <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemGoToBase" priority="100" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Go To Base</ButtonText>
           <CanonicalName>GoToBase</CanonicalName>
@@ -394,6 +396,8 @@
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemGoToImplementation" priority="200" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Go To Implementation</ButtonText>
           <CanonicalName>GoToImplementation</CanonicalName>
@@ -402,6 +406,8 @@
       </Button>
       <Button guid="guidRoslynGrpId" id="cmdidSolutionExplorerSymbolItemFindAllReferences" priority="300" type="Button">
         <Parent guid="guidRoslynGrpId" id="grpSolutionExplorerSymbolItemContextMenu" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Find All References</ButtonText>
           <CanonicalName>FindAllReferences</CanonicalName>

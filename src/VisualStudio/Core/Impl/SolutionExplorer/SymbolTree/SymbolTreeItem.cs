@@ -111,8 +111,8 @@ internal sealed class SymbolTreeItem : BaseItem,
             var result = shell.ShowContextMenu(
                 dwCompRole: 0,
                 ref guidContextMenu,
-                //0x400,
-                ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
+                0x400,
+                //ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
                 [new() { x = (short)location.X, y = (short)location.Y }],
                 pCmdTrgtActive: this);
             return ErrorHandler.Succeeded(result);
