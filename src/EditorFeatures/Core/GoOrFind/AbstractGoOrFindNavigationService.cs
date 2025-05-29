@@ -35,7 +35,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     : IGoOrFindNavigationService
     where TLanguageService : class, ILanguageService
 {
-    public readonly IThreadingContext ThreadingContext = threadingContext;
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
     private readonly IAsynchronousOperationListener _listener = listener;
 
@@ -86,7 +86,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
 
     public bool ExecuteCommand(Document document, int position)
     {
-        ThreadingContext.ThrowIfNotOnUIThread();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (document is null)
             return false;
 
@@ -113,7 +113,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         // and failure ourselves.
         try
         {
-            ThreadingContext.ThrowIfNotOnUIThread();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Make an tracking token so that integration tests can wait until we're complete.
             using var token = _listener.BeginAsyncOperation($"{GetType().Name}.{nameof(ExecuteCommandAsync)}");
@@ -176,7 +176,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
                 await _streamingPresenter.TryPresentLocationOrNavigateIfOneAsync(
-                    ThreadingContext,
+                    _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? DisplayName,
                     definitions,
@@ -214,7 +214,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Task findTask,
         CancellationToken cancellationToken)
     {
-        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, GetStreamingPresenterOptions(document));
 
         try
