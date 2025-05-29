@@ -19335,11 +19335,37 @@ static class E
             """;
 
         var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "12" : null;
-        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+        CompileAndVerify([exeSource, src], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
 
         var comp1 = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
         var verifier = CompileAndVerify(exeSource, references: [useMetadataRef ? comp1.ToMetadataReference() : comp1.EmitToImageReference()], targetFramework: TargetFramework.Net90, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       41 (0x29)
+              .maxstack  4
+              .locals init (string V_0)
+              IL_0000:  ldstr      "1"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  ldc.i4.0
+              IL_0008:  ldc.i4.0
+              IL_0009:  ldloc.0
+              IL_000a:  newobj     "InterpolationHandler..ctor(int, int, string)"
+              IL_000f:  call       "void E.M(string, InterpolationHandler)"
+              IL_0014:  ldstr      "2"
+              IL_0019:  stloc.0
+              IL_001a:  ldloc.0
+              IL_001b:  ldc.i4.0
+              IL_001c:  ldc.i4.0
+              IL_001d:  ldloc.0
+              IL_001e:  newobj     "InterpolationHandler..ctor(int, int, string)"
+              IL_0023:  call       "void E.M(string, InterpolationHandler)"
+              IL_0028:  ret
+            }
+            """);
 
         var comp = (CSharpCompilation)verifier.Compilation;
         var tree = comp.SyntaxTrees[0];
