@@ -945,7 +945,7 @@ VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNe
                 """);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestExecutionNeedsWindowsTypes)]
+        [Fact]
         public void AsyncInFinally002()
         {
             var source = @"
@@ -997,16 +997,67 @@ class Test
         }
     }
 }";
-            var expected = @"FOne or more errors occurred.
-";
+            var expected = ExecutionConditionUtil.IsWindowsDesktop
+                ? @"FOne or more errors occurred."
+                : @"FOne or more errors occurred. (hello)";
+
             CompileAndVerify(source, expectedOutput: expected);
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
-            verifier.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
+
+            verifier.VerifyIL("Test.G()", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  2
+                  .locals init (int V_0, //x
+                                object V_1,
+                                int V_2,
+                                object V_3)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldnull
+                  IL_0003:  stloc.1
+                  .try
+                  {
+                    IL_0004:  ldstr      "hello"
+                    IL_0009:  newobj     "System.Exception..ctor(string)"
+                    IL_000e:  throw
+                  }
+                  catch object
+                  {
+                    IL_000f:  stloc.1
+                    IL_0010:  leave.s    IL_0012
+                  }
+                  IL_0012:  ldloc.0
+                  IL_0013:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0018:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_001d:  stloc.2
+                  IL_001e:  ldloc.2
+                  IL_001f:  add
+                  IL_0020:  stloc.0
+                  IL_0021:  ldloc.1
+                  IL_0022:  stloc.3
+                  IL_0023:  ldloc.3
+                  IL_0024:  brfalse.s  IL_003b
+                  IL_0026:  ldloc.3
+                  IL_0027:  isinst     "System.Exception"
+                  IL_002c:  dup
+                  IL_002d:  brtrue.s   IL_0031
+                  IL_002f:  ldloc.3
+                  IL_0030:  throw
+                  IL_0031:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0036:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                }
+                """);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AsyncInFinally003()
         {
             var source = @"
@@ -1062,7 +1113,10 @@ class Test
                 }, module.GetFieldNames("Test.<G>d__1"));
             });
 
-            v.VerifyPdb("Test.G", @"
+            // Native PDBs require desktop
+            if (ExecutionConditionUtil.IsWindowsDesktop)
+            {
+                v.VerifyPdb("Test.G", @"
 <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -1090,6 +1144,7 @@ class Test
   </methods>
 </symbols>
 ");
+            }
 
             v.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"{
@@ -1303,10 +1358,71 @@ class Test
 }", sequencePoints: "Test+<G>d__1.MoveNext");
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
-            verifier.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expected, isRuntimeAsync: true), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics(
+                // (7,28): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<int> F()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "F").WithLocation(7, 28)
+            );
 
-            verifier.VerifyIL("Test.G()", "");
+            verifier.VerifyIL("Test.G()", """
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  2
+                  .locals init (int V_0, //x
+                                object V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4,
+                                object V_5)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldnull
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.0
+                  IL_0005:  stloc.2
+                  .try
+                  {
+                    IL_0006:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                    IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                    IL_0010:  stloc.0
+                    IL_0011:  ldloc.0
+                    IL_0012:  stloc.3
+                    IL_0013:  ldc.i4.1
+                    IL_0014:  stloc.2
+                    IL_0015:  leave.s    IL_001a
+                  }
+                  catch object
+                  {
+                    IL_0017:  stloc.1
+                    IL_0018:  leave.s    IL_001a
+                  }
+                  IL_001a:  ldloc.0
+                  IL_001b:  call       "System.Threading.Tasks.Task<int> Test.F()"
+                  IL_0020:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0025:  stloc.s    V_4
+                  IL_0027:  ldloc.s    V_4
+                  IL_0029:  add
+                  IL_002a:  stloc.0
+                  IL_002b:  ldloc.1
+                  IL_002c:  stloc.s    V_5
+                  IL_002e:  ldloc.s    V_5
+                  IL_0030:  brfalse.s  IL_0049
+                  IL_0032:  ldloc.s    V_5
+                  IL_0034:  isinst     "System.Exception"
+                  IL_0039:  dup
+                  IL_003a:  brtrue.s   IL_003f
+                  IL_003c:  ldloc.s    V_5
+                  IL_003e:  throw
+                  IL_003f:  call       "System.Runtime.ExceptionServices.ExceptionDispatchInfo System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(System.Exception)"
+                  IL_0044:  callvirt   "void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()"
+                  IL_0049:  ldloc.2
+                  IL_004a:  ldc.i4.1
+                  IL_004b:  bne.un.s   IL_004f
+                  IL_004d:  ldloc.3
+                  IL_004e:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2998,7 +3114,7 @@ class Driver
             verifier.VerifyDiagnostics();
         }
 
-        [Theory(Skip = "PROTOTYPE"), WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71569")]
         [InlineData("await Task.Yield();")]
         [InlineData("await using var c = new C();")]
         [InlineData("await foreach (var x in new C()) { }")]
@@ -3069,8 +3185,10 @@ class Driver
             CompileAndVerify(CreateCompilationWithTasksExtensions(sources, options: TestOptions.ReleaseExe), expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var comp = CodeGenAsyncTests.CreateRuntimeAsyncCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.FailsPEVerify);
+            var verifier = CompileAndVerify(comp, expectedOutput: CodeGenAsyncTests.ExpectedOutput(expectedOutput, isRuntimeAsync: true), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Run()", "");
         }
     }
 }
