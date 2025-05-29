@@ -9,13 +9,16 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.GoOrFind;
+using Microsoft.CodeAnalysis.GoToBase;
+using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -49,21 +52,31 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
     private readonly Workspace _workspace;
 
+    private readonly IGoOrFindNavigationService _goToBaseNavigationService;
+    private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
+    private readonly IGoOrFindNavigationService _findReferencesNavigationService;
+
     public readonly SolutionExplorerNavigationSupport NavigationSupport;
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
 
-    public readonly ContextMenuController ContextMenuController;
+    public readonly IContextMenuController ContextMenuController;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
+        GoToBaseNavigationService goToBaseNavigationService,
+        GoToImplementationNavigationService goToImplementationNavigationService,
+        FindReferencesNavigationService findReferencesNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         ThreadingContext = threadingContext;
         _workspace = workspace;
+        _goToBaseNavigationService = goToBaseNavigationService;
+        _goToImplementationNavigationService = goToImplementationNavigationService;
+        _findReferencesNavigationService = findReferencesNavigationService;
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
         NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
@@ -82,13 +95,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
 
-        this.ContextMenuController = new ContextMenuController(
-            ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
-            shouldShowMenu: objects => objects.FirstOrDefault() is SymbolTreeItem,
-            updateMenu: () =>
-            {
-
-            });
+        this.ContextMenuController = new SymbolItemContextMenuController(this);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(

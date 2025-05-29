@@ -84,7 +84,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     public bool IsAvailable([NotNullWhen(true)] Document? document)
         => document?.GetLanguageService<TLanguageService>() != null;
 
-    public bool ExecuteCommand(Document document, int position)
+    public bool ExecuteCommand(Document document, int position, bool allowInvalidPosition)
     {
         _threadingContext.ThrowIfNotOnUIThread();
         if (document is null)
@@ -99,7 +99,8 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document, service, position, cancellationToken);
+        _inProgressCommand = ExecuteCommandAsync(
+            document, service, position, allowInvalidPosition, cancellationToken);
         return true;
     }
 
@@ -107,6 +108,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Document document,
         TLanguageService service,
         int position,
+        bool allowInvalidPosition,
         CancellationToken cancellationToken)
     {
         // This is a fire-and-forget method (nothing guarantees observing it).  As such, we have to handle cancellation
@@ -126,7 +128,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             // any failures from it.  Technically this should not be possible as it should be inside this same
             // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
             await _inProgressCommand.NoThrowAwaitable(captureContext: false);
-            await ExecuteCommandWorkerAsync(document, service, position, cancellationToken).ConfigureAwait(false);
+            await ExecuteCommandWorkerAsync(document, service, position, allowInvalidPosition, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -140,6 +142,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Document document,
         TLanguageService service,
         int position,
+        bool allowInvalidPosition,
         CancellationToken cancellationToken)
     {
         // Switch to the BG immediately so we can keep as much work off the UI thread.
@@ -159,7 +162,8 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         var findContext = new BufferedFindUsagesContext();
 
         var delayBeforeShowingResultsWindowTask = DelayAsync(cancellationToken);
-        var findTask = FindResultsAsync(findContext, document, service, position, cancellationToken);
+        var findTask = FindResultsAsync(
+            findContext, document, service, position, allowInvalidPosition, cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayBeforeShowingResultsWindowTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -244,7 +248,12 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     }
 
     private async Task FindResultsAsync(
-        IFindUsagesContext findContext, Document document, TLanguageService service, int position, CancellationToken cancellationToken)
+        IFindUsagesContext findContext,
+        Document document,
+        TLanguageService service,
+        int position,
+        bool allowInvalidPosition,
+        CancellationToken cancellationToken)
     {
         // Ensure that we relinquish the thread so that the caller can proceed with their work.
         await TaskScheduler.Default.SwitchTo(alwaysYield: true);
@@ -261,6 +270,12 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             {
                 await findContext.ReportMessageAsync(
                     EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (allowInvalidPosition)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                position = Math.Min(text.Length, position);
             }
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).

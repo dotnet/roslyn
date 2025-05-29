@@ -36,6 +36,6 @@ internal abstract class AbstractGoOrFindCommandHandler<TCommandArgs>(
         if (!_navigationService.IsAvailable(document))
             return false;
 
-        return _navigationService.ExecuteCommand(document, caret.Value.Position);
+        return _navigationService.ExecuteCommand(document, caret.Value.Position, allowInvalidPosition: false);
     }
 }

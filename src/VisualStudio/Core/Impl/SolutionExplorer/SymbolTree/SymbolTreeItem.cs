@@ -87,47 +87,8 @@ internal sealed class SymbolTreeItem : BaseItem,
         return true;
     }
 
-    // We act as our own context menu controller.
-    public override IContextMenuController? ContextMenuController => new SymbolItemContextMenuController(this);
-
-    private sealed class SymbolItemContextMenuController : IContextMenuController, IOleCommandTarget
-    {
-        private readonly SymbolTreeItem _symbolTreeItem;
-
-        public SymbolItemContextMenuController(SymbolTreeItem symbolTreeItem)
-        {
-            _symbolTreeItem = symbolTreeItem;
-        }
-
-        public bool ShowContextMenu(IEnumerable<object> items, Point location)
-        {
-            if (items.FirstOrDefault() is not SymbolTreeItem item)
-                return false;
-
-            var guidContextMenu = Guids.RoslynGroupId;
-            if (Shell.Package.GetGlobalService(typeof(SVsUIShell)) is not IVsUIShell shell)
-                return false;
-
-            var result = shell.ShowContextMenu(
-                dwCompRole: 0,
-                ref guidContextMenu,
-                //0x400,
-                ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
-                [new() { x = (short)location.X, y = (short)location.Y }],
-                pCmdTrgtActive: this);
-            return ErrorHandler.Succeeded(result);
-        }
-
-        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
-        {
-            return HResult.OK;
-        }
-
-        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
-        {
-            return HResult.OK;
-        }
-    }
+    public override IContextMenuController? ContextMenuController
+        => RootProvider.ContextMenuController;
 
     public void BeforeExpand()
     {
