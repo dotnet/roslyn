@@ -9,7 +9,8 @@ using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
-internal class CopilotAnalysisUtilities
+
+internal static class CopilotAnalysisUtilities
 {
     public static Task AnalyzeCopilotChangeAsync(
         Document document,
