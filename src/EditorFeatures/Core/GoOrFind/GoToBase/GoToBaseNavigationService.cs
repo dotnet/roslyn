@@ -6,39 +6,34 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.GoOrFind;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.GoToImplementation;
+namespace Microsoft.CodeAnalysis.GoToBase;
 
-[Export(typeof(ICommandHandler))]
-[ContentType(ContentTypeNames.RoslynContentType)]
-[Name(PredefinedCommandHandlerNames.GoToImplementation)]
+[Export(typeof(GoToBaseNavigationService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class GoToImplementationCommandHandler(
+internal sealed class GoToBaseNavigationService(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(
+    IGlobalOptionService globalOptions)
+    : AbstractGoOrFindNavigationService<IGoToBaseService>(
         threadingContext,
         streamingPresenter,
-        listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
+        listenerProvider.GetListener(FeatureAttribute.GoToBase),
         globalOptions)
 {
-    public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
+    public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-    protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
+    protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
     /// <summary>
     /// If we find a single results quickly enough, we do want to take the user directly to it,
@@ -46,6 +41,6 @@ internal sealed class GoToImplementationCommandHandler(
     /// </summary>
     protected override bool NavigateToSingleResultIfQuick => true;
 
-    protected override Task FindActionAsync(IFindUsagesContext context, Document document, IFindUsagesService service, int caretPosition, CancellationToken cancellationToken)
-        => service.FindImplementationsAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
+    protected override Task FindActionAsync(IFindUsagesContext context, Document document, IGoToBaseService service, int caretPosition, CancellationToken cancellationToken)
+        => service.FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }

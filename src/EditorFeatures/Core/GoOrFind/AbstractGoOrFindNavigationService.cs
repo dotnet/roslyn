@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -17,22 +18,22 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
-using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.GoToDefinition;
+namespace Microsoft.CodeAnalysis.GoOrFind;
 
-internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs>(
+/// <summary>
+/// Core service responsible for handling an operation (like 'go to base, go to impl, find references')
+/// and trying to navigate quickly to them if possible, or show their results in the find-usages window.
+/// </summary>
+internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListener listener,
-    IGlobalOptionService globalOptions) : ICommandHandler<TCommandArgs>
+    IGlobalOptionService globalOptions)
+    : IGoOrFindNavigationService
     where TLanguageService : class, ILanguageService
-    where TCommandArgs : EditorCommandArgs
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
@@ -59,7 +60,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
     /// the presenter.  In that case, the presenter will notify us that it has be re-purposed and we will also cancel
     /// this source.
     /// </remarks>
-    private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
+    private CancellationTokenSource _cancellationTokenSource = new();
 
     /// <summary>
     /// This hook allows for stabilizing the asynchronous nature of this command handler for integration testing.
@@ -80,41 +81,26 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
 
     protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, TLanguageService service, int caretPosition, CancellationToken cancellationToken);
 
-    private static (Document?, TLanguageService?) GetDocumentAndService(ITextSnapshot snapshot)
-    {
-        var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-        return (document, document?.GetLanguageService<TLanguageService>());
-    }
+    public bool IsAvailable([NotNullWhen(true)] Document? document)
+        => document?.GetLanguageService<TLanguageService>() != null;
 
-    public CommandState GetCommandState(TCommandArgs args)
-    {
-        var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
-        return service != null
-            ? CommandState.Available
-            : CommandState.Unspecified;
-    }
-
-    public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
+    public bool ExecuteCommand(Document document, int position)
     {
         _threadingContext.ThrowIfNotOnUIThread();
-
-        var subjectBuffer = args.SubjectBuffer;
-        var caret = args.TextView.GetCaretPoint(subjectBuffer);
-        if (!caret.HasValue)
+        if (document is null)
             return false;
 
-        var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+        var service = document.GetLanguageService<TLanguageService>();
         if (service == null)
             return false;
 
-        Contract.ThrowIfNull(document);
-
         // cancel any prior find-refs that might be in progress.
-        var cancellationToken = _cancellationSeries.CreateNext();
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = new();
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document, service, caret.Value.Position, cancellationToken);
+        _inProgressCommand = ExecuteCommandAsync(document, service, position, _cancellationTokenSource);
         return true;
     }
 
@@ -122,7 +108,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         Document document,
         TLanguageService service,
         int position,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
         // This is a fire-and-forget method (nothing guarantees observing it).  As such, we have to handle cancellation
         // and failure ourselves.
@@ -141,7 +127,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
             // any failures from it.  Technically this should not be possible as it should be inside this same
             // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
             await _inProgressCommand.NoThrowAwaitable(captureContext: false);
-            await ExecuteCommandWorkerAsync(document, service, position, cancellationToken).ConfigureAwait(false);
+            await ExecuteCommandWorkerAsync(document, service, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -155,7 +141,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         Document document,
         TLanguageService service,
         int position,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
         // Switch to the BG immediately so we can keep as much work off the UI thread.
         await TaskScheduler.Default;
@@ -173,6 +159,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         // IStreamingFindUsagesPresenter.
         var findContext = new BufferedFindUsagesContext();
 
+        var cancellationToken = cancellationTokenSource.Token;
         var delayBeforeShowingResultsWindowTask = DelayAsync(cancellationToken);
         var findTask = FindResultsAsync(findContext, document, service, position, cancellationToken);
 
@@ -203,7 +190,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         // We either got no results, or 1.5 has passed and we didn't figure out the symbols to navigate to or
         // present.  So pop up the presenter to show the user that we're involved in a longer search, without
         // blocking them.
-        await PresentResultsInStreamingPresenterAsync(document, findContext, findTask, cancellationToken).ConfigureAwait(false);
+        await PresentResultsInStreamingPresenterAsync(document, findContext, findTask, cancellationTokenSource).ConfigureAwait(false);
     }
 
     private Task DelayAsync(CancellationToken cancellationToken)
@@ -213,7 +200,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
             return delayHook(cancellationToken);
         }
 
-        // If we want to navigate to a single result if it is found quickly, then delay showing the find-refs winfor
+        // If we want to navigate to a single result if it is found quickly, then delay showing the find-refs window
         // for 1.5 seconds to see if a result comes in by then.  If we're not navigating and are always showing the
         // far window, then don't have any delay showing the window.
         var delay = this.NavigateToSingleResultIfQuick
@@ -227,8 +214,9 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         Document document,
         BufferedFindUsagesContext findContext,
         Task findTask,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
+        var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, GetStreamingPresenterOptions(document));
 
@@ -244,7 +232,7 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
             // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other
             // words, if something else decides to present in the presenter (like a find-refs call) we'll hear about
             // that and can cancel all our work.
-            presenterCancellationToken.Register(() => _cancellationSeries.CreateNext());
+            presenterCancellationToken.Register(() => cancellationTokenSource.Cancel());
 
             // now actually wait for the find work to be done.
             await findTask.ConfigureAwait(false);
@@ -291,9 +279,9 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
 
     internal readonly struct TestAccessor
     {
-        private readonly AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs> _instance;
+        private readonly AbstractGoOrFindNavigationService<TLanguageService> _instance;
 
-        internal TestAccessor(AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs> instance)
+        internal TestAccessor(AbstractGoOrFindNavigationService<TLanguageService> instance)
             => _instance = instance;
 
         internal ref Func<CancellationToken, Task>? DelayHook
