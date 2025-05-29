@@ -710,8 +710,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = node.Locals;
 
             var exceptionFilterPrologueOpt = node.ExceptionFilterPrologueOpt;
-            Debug.Assert(exceptionFilterPrologueOpt is null); // it is introduced by this pass
             BoundSpillSequenceBuilder builder = null;
+            if (exceptionFilterPrologueOpt != null)
+            {
+                exceptionFilterPrologueOpt = (BoundStatementList)VisitStatementList(exceptionFilterPrologueOpt);
+                builder = new BoundSpillSequenceBuilder(exceptionFilterPrologueOpt.Syntax);
+                builder.AddStatements(exceptionFilterPrologueOpt.Statements);
+                exceptionFilterPrologueOpt = null;
+            }
+
             var exceptionFilterOpt = VisitExpression(ref builder, node.ExceptionFilterOpt);
             if (builder is { })
             {

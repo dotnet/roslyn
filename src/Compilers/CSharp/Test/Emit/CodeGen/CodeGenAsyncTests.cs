@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     Event = 0x200,
                 }
                 public struct Boolean {}
+                public struct Byte {}
                 public class FlagsAttribute : Attribute {}
                 public static class Console
                 {
@@ -141,10 +142,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public virtual string ToString() => null!;
                     public static bool ReferenceEquals(object objA, object objB) => false;
                 }
+                public class ParamArrayAttribute {}
                 public struct RuntimeTypeHandle {}
+                public struct SByte {}
                 public class String
                 {
                     public static string Concat(string str0, string str1) => null!;
+                    public static string Concat(string str0, string str1, string str2) => null!;
+                    public static string Concat(string str0, string str1, string str2, string str3) => null!;
+                    public static string Concat(params string[] arr) => null!;
+                    public static string Format(string format, params object[] args) => null!;
                 }
                 public class Type
                 {
@@ -167,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 {
                     public static void FailFast(string message) {}
                 }
-
                 namespace Collections
                 {
                     namespace Generic
@@ -176,8 +182,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public interface IEnumerator<T> {}
                         public class List<T> {}
                     }
-                }
 
+                    public interface IEnumerable
+                    {
+                        System.Collections.IEnumerator GetEnumerator();
+                    }
+
+                    public interface IEnumerator
+                    {
+                        object Current { get; }
+                        bool MoveNext();
+                        void Reset();
+                    }
+                }
                 namespace Diagnostics
                 {
                     public class Debug
@@ -186,7 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public static void Fail(string message) {}
                     }
                 }
-
                 namespace Globalization
                 {
                     public class CultureInfo
@@ -194,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public static CultureInfo InvariantCulture => null!;
                     }
                 }
-
                 namespace Linq
                 {
                     public static class Enumerable
@@ -202,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public static T First<T>(Collections.Generic.IEnumerable<T> source) => default!;
                     }
                 }
-
                 namespace Text
                 {
                     public class StringBuilder
@@ -211,7 +225,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public override string ToString() => "";
                     }
                 }
-
                 namespace Threading
                 {
                     public class AutoResetEvent : EventWaitHandle
@@ -340,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             Faulted = 2,
                             Canceled = 3
                         }
-                        
                         [Flags]
                         public enum ValueTaskSourceOnCompletedFlags
                         {
@@ -348,7 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             UseSchedulingContext = 1,
                             FlowExecutionContext = 2
                         }
-                        
                         namespace Sources
                         {
                             public interface IValueTaskSource
@@ -357,7 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                                 void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
                                 void GetResult(short token);
                             }
-                        
                             public interface IValueTaskSource<out TResult>
                             {
                                 ValueTaskSourceStatus GetStatus(short token);
@@ -368,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     }
                 }
                 namespace Runtime
-                {                    
+                {
                     namespace InteropServices
                     {
                         public sealed class StructLayoutAttribute : Attribute
@@ -384,7 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             Auto = 3
                         }
                     }
-
                     namespace ExceptionServices
                     {
                         public sealed class ExceptionDispatchInfo
@@ -394,7 +403,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public void Throw() {}
                         }
                     }
-
                     namespace CompilerServices
                     {
                         public class AsyncMethodBuilderAttribute : Attribute
