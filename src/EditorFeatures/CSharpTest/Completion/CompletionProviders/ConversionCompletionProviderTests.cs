@@ -105,7 +105,7 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
                     c.$$
                 }
             }
-            """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -126,7 +126,7 @@ public sealed class ConversionCompletionProviderTests : AbstractCSharpCompletion
                     c.fl$$
                 }
             }
-            """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "float", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -359,7 +359,7 @@ namespace N1
                     s.$$
                 }
             }
-            """, "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -384,7 +384,7 @@ namespace N1
             }
             """;
         await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
             """
@@ -415,7 +415,7 @@ namespace N1
             }
             """;
         await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
             """
@@ -468,7 +468,7 @@ public class Program
             }
             """;
         await VerifyItemExistsAsync(Markup, "byte", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
 $@"int.explicit operator byte(int value)
@@ -489,7 +489,7 @@ $@"int.explicit operator byte(int value)
             }
             """;
         await VerifyItemExistsAsync(Markup, "byte?", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
 $@"int.explicit operator byte?(int? value)
@@ -531,7 +531,7 @@ $@"int.explicit operator byte?(int? value)
             }
             """;
         await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
@@ -553,7 +553,7 @@ $@"E.explicit operator int(E value)
             }
             """;
         await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
 $@"E.explicit operator int?(E? value)
@@ -581,7 +581,7 @@ $@"E.explicit operator int?(E? value)
             }
             """;
         await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: ")",
-            glyph: Glyph.Operator,
+            glyph: Glyph.OperatorPublic,
             matchingFilters: [FilterSet.OperatorFilter],
             expectedDescriptionOrNull:
 @$"B.E.explicit operator int(B.E value)
@@ -631,7 +631,7 @@ public class Program
                     var i = d.$$
                 }
             }
-            """, "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+            """, "int", displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
@@ -649,7 +649,7 @@ public class Program
         var i = test.$$
     }}
 }}
-", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.Operator, matchingFilters: [FilterSet.OperatorFilter]);
+", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: Glyph.OperatorPublic, matchingFilters: [FilterSet.OperatorFilter]);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]

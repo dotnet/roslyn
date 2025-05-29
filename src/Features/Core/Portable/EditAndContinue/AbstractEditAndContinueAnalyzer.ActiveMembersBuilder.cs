@@ -18,7 +18,7 @@ internal partial class AbstractEditAndContinueAnalyzer
     /// Constructor to which field/property initializers are emitted is active if its body or any of the field/property initializers has an active statement outside of a lambda.
     /// Fields and properties with initializers are considered active if any of the constructors that these initializers are emitted to are active.
     /// </summary>
-    private readonly struct ActiveMembersBuilder(AbstractEditAndContinueAnalyzer analyzer, SemanticModel? oldModel, SemanticModel newModel, CancellationToken cancellationToken) : IDisposable
+    private readonly struct ActiveMembersBuilder(AbstractEditAndContinueAnalyzer analyzer, DocumentSemanticModel oldModel, DocumentSemanticModel newModel, CancellationToken cancellationToken) : IDisposable
     {
         private readonly PooledHashSet<IMethodSymbol> _methods = PooledHashSet<IMethodSymbol>.GetInstance();
         private readonly PooledDictionary<SyntaxNode, SyntaxNode> _declarations = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();

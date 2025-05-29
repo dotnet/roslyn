@@ -109,7 +109,7 @@ end class")
 Imports System
 
 class C
-    public sub new([||]i as integer)
+    public sub new([||]i as DateTime)
     end sub
 end class")
         End Function

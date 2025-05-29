@@ -40,10 +40,25 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Una sustracción debe ser el último elemento de una clase de caracteres</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
+      <trans-unit id="Add_0_check">
+        <source>Add '{0}' check</source>
+        <target state="new">Add '{0}' check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">Agregar atributo de "DebuggerDisplay"</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
       </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
@@ -3165,6 +3180,16 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Bases de “{0}”</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">'{0}' no puede ser nulo ni estar vacío.</target>
@@ -4833,16 +4858,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Add_null_check">
         <source>Add null check</source>
         <target state="translated">Agregar comprobación de valores null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrEmpty_check">
-        <source>Add 'string.IsNullOrEmpty' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrEmpty"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_string_IsNullOrWhiteSpace_check">
-        <source>Add 'string.IsNullOrWhiteSpace' check</source>
-        <target state="translated">Agregar comprobación de "string.IsNullOrWhiteSpace"</target>
         <note />
       </trans-unit>
       <trans-unit id="Initialize_field_0">

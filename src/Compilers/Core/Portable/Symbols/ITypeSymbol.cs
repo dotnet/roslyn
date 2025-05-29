@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
+        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
         /// </summary>
         IParameterSymbol? ExtensionParameter { get; }
 

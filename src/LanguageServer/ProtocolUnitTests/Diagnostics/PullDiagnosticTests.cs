@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
@@ -1263,18 +1265,20 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var documentResults1 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, openDocument.GetURI(), useVSDiagnostics, category: PullDiagnosticCategories.EditAndContinue);
 
+        var rootUri = ProtocolConversions.GetAbsoluteUriString(TestWorkspace.RootDirectory);
+
         // both diagnostics located in the open document are reported:
         AssertEx.Equal(
         [
-            "file:///C:/test1.cs -> [ENC_OPEN_DOC1,ENC_OPEN_DOC2]",
+            $"{rootUri}/test1.cs -> [ENC_OPEN_DOC1,ENC_OPEN_DOC2]",
         ], documentResults1.Select(Inspect));
 
         var workspaceResults1 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
 
         AssertEx.Equal(
         [
-            "file:///C:/test2.cs -> [ENC_CLOSED_DOC]",
-            "file:///C:/Test.csproj -> [ENC_PROJECT]",
+            $"{rootUri}/test2.cs -> [ENC_CLOSED_DOC]",
+            $"{rootUri}/Test.csproj -> [ENC_PROJECT]",
         ], workspaceResults1.Select(Inspect));
 
         // clear workspace diagnostics:
@@ -1287,15 +1291,15 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         AssertEx.Equal(
         [
-           "file:///C:/test1.cs -> [ENC_OPEN_DOC2]",
+           $"{rootUri}/test1.cs -> [ENC_OPEN_DOC2]",
         ], documentResults2.Select(Inspect));
 
         var workspaceResults2 = await RunGetWorkspacePullDiagnosticsAsync(
             testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(workspaceResults1), includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
         AssertEx.Equal(
         [
-            "file:///C:/test2.cs -> []",
-            "file:///C:/Test.csproj -> []",
+            $"{rootUri}/test2.cs -> []",
+            $"{rootUri}/Test.csproj -> []",
         ], workspaceResults2.Select(Inspect));
 
         // deactivate EnC session:
@@ -1307,7 +1311,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, openDocument.GetURI(), previousResultId: documentResults2.Single().ResultId, useVSDiagnostics: useVSDiagnostics, category: PullDiagnosticCategories.EditAndContinue);
         AssertEx.Equal(
         [
-           "file:///C:/test1.cs -> []",
+           $"{rootUri}/test1.cs -> []",
         ], documentResults3.Select(Inspect));
 
         var workspaceResults3 = await RunGetWorkspacePullDiagnosticsAsync(
@@ -1318,27 +1322,23 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             => CreateDiagnostic(id, document.Project, document);
 
         static DiagnosticData CreateDiagnostic(string id, Project project, Document? document = null)
-        {
-            return new(
-                        id,
-                        category: "EditAndContinue",
-                        message: "test message",
-                        severity: DiagnosticSeverity.Error,
-                        defaultSeverity: DiagnosticSeverity.Error,
-                        isEnabledByDefault: true,
-                        warningLevel: 0,
-                        projectId: project.Id,
-                        customTags: [],
-                        properties: ImmutableDictionary<string, string?>.Empty,
-                        location: new DiagnosticDataLocation(new FileLinePositionSpan("file", span: default), document?.Id),
-                        additionalLocations: [],
-                        language: project.Language);
-        }
+            => new(
+                id,
+                category: "EditAndContinue",
+                message: "test message",
+                severity: DiagnosticSeverity.Error,
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                projectId: project.Id,
+                customTags: [],
+                properties: ImmutableDictionary<string, string?>.Empty,
+                location: new DiagnosticDataLocation(new FileLinePositionSpan("file", span: default), document?.Id),
+                additionalLocations: [],
+                language: project.Language);
 
         static string Inspect(TestDiagnosticResult result)
-        {
-            return $"{result.TextDocument.DocumentUri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
-        }
+            => $"{result.TextDocument.DocumentUri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
     }
 
     [Theory, CombinatorialData]
@@ -1584,7 +1584,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test1.cs"), results[0].TextDocument!.DocumentUri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "test1.cs")), results[0].TextDocument!.DocumentUri);
         Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, results[0].Diagnostics!.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
@@ -2000,11 +2000,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var workspaceXml =
             $"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="C:\CSProj1.csproj">
-                    <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1" FilePath="CSProj1.csproj">
+                    <Document FilePath="C.cs">{csharpMarkup}</Document>
                 </Project>
-                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="">
-                    <Document FilePath="C:\C2.cs"></Document>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2" FilePath="{TestWorkspace.NullFilePath}">
+                    <Document FilePath="C2.cs"></Document>
                 </Project>
             </Workspace>
             """;
@@ -2013,10 +2013,14 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-        Assert.Equal(3, results.Length);
-        Assert.Equal(@"C:/C.cs", results[0].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/CSProj1.csproj", results[1].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
-        Assert.Equal(@"C:/C2.cs", results[2].TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath);
+        var dir = TestWorkspace.RootDirectory.Replace("\\", "/");
+
+        AssertEx.SequenceEqual(
+        [
+            $"{dir}/C.cs",
+            $"{dir}/CSProj1.csproj",
+            $"{dir}/C2.cs"
+        ], results.Select(r => r.TextDocument.DocumentUri.GetRequiredParsedUri().AbsolutePath));
     }
 
     [Theory, CombinatorialData]

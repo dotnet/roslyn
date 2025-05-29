@@ -40,12 +40,12 @@ using LanguageKind = String;
 internal sealed partial class CodeFixService : ICodeFixService
 {
     private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
-    private readonly ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
+    private readonly Lazy<ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>>> _fixersPerLanguageMap;
 
     private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
     // Shared by project fixers and workspace fixers.
-    private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
+    private readonly Lazy<ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>>> _configurationProvidersMap;
     private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
     private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
@@ -65,9 +65,9 @@ internal sealed partial class CodeFixService : ICodeFixService
         _errorLoggers = [.. loggers];
 
         _fixers = [.. fixers];
-        _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
+        _fixersPerLanguageMap = new(() => _fixers.ToPerLanguageMapWithMultipleLanguages());
 
-        _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
+        _configurationProvidersMap = new(() => GetConfigurationProvidersPerLanguageMap(configurationProviders));
     }
 
     private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
@@ -455,7 +455,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         var hasAnySharedFixer = TryGetWorkspaceFixersMap(document, out var fixerMap);
 
         var projectFixersMap = GetProjectFixers(document);
-        var hasAnyProjectFixer = projectFixersMap.Any();
+        var hasAnyProjectFixer = !projectFixersMap.IsEmpty;
 
         if (!hasAnySharedFixer && !hasAnyProjectFixer)
             yield break;
@@ -715,7 +715,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_configurationProvidersMap.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) ||
+        if (!_configurationProvidersMap.Value.TryGetValue(document.Project.Language, out var lazyConfigurationProviders) ||
             lazyConfigurationProviders.Value == null)
         {
             yield break;
@@ -812,7 +812,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     /// <summary> Looks explicitly for an <see cref="AbstractSuppressionCodeFixProvider"/>.</summary>
     public CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
     {
-        if (!_configurationProvidersMap.TryGetValue(language, out var lazyConfigurationProviders) ||
+        if (!_configurationProvidersMap.Value.TryGetValue(language, out var lazyConfigurationProviders) ||
             lazyConfigurationProviders.Value.IsDefault)
         {
             return null;
@@ -881,7 +881,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
         var extensionManager = services.GetService<IExtensionManager>();
-        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
+        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap.Value)
         {
             var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
             {
@@ -942,7 +942,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(SolutionServices services)
     {
         var languageMap = ImmutableDictionary.CreateBuilder<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>();
-        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
+        foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap.Value)
         {
             var lazyMap = new Lazy<ImmutableDictionary<CodeFixProvider, int>>(() =>
             {

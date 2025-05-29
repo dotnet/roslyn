@@ -102,7 +102,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
 
             if (textChanges is null)
             {
-                context.TraceInformation($"mapCode sub-request for {textDocument.DocumentUri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
+                context.TraceDebug($"mapCode sub-request for {textDocument.DocumentUri} failed: 'IMapCodeService.MapCodeAsync' returns null.");
                 return null;
             }
 
@@ -127,7 +127,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
                     // Ignore anything not in target document, which current code mapper doesn't handle anyway
                     if (!location.DocumentUri.Equals(textDocumentIdentifier.DocumentUri))
                     {
-                        context.TraceInformation($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
+                        context.TraceDebug($"A focus location in '{textDocumentIdentifier.DocumentUri}' is skipped, only locations in corresponding MapCodeMapping.TextDocument is currently considered.");
                         continue;
                     }
 

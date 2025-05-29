@@ -62,8 +62,7 @@ internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeR
         if (comparableType == null)
             return;
 
-        var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
-        if (containingType == null)
+        if (semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol containingType)
             return;
 
         using var _1 = ArrayBuilder<INamedTypeSymbol>.GetInstance(out var missingComparableTypes);

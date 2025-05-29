@@ -16,7 +16,7 @@
 
 	  <NoWarn>$(NoWarn);NU5100</NoWarn>
 
-    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion Condition="'$(MicrosoftCodeAnalysisVersion)' == ''">$(MicrosoftCodeAnalysisVersionForExecution)</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
   <ItemGroup>

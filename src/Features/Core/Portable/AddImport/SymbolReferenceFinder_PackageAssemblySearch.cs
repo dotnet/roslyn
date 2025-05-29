@@ -19,8 +19,15 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     private sealed partial class SymbolReferenceFinder
     {
         internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
-            ConcurrentQueue<Reference> allReferences, CancellationToken cancellationToken)
+            ConcurrentQueue<Reference> allReferences, bool exact, CancellationToken cancellationToken)
         {
+            var options = this.Options.SearchOptions;
+            Contract.ThrowIfFalse(options.SearchNuGetPackages || options.SearchReferenceAssemblies);
+
+            // We only support searching NuGet in an exact manner currently. 
+            if (!exact)
+                return;
+
             // Only do this if none of the project or metadata searches produced any results. We always consider source
             // and local metadata to be better than any NuGet/assembly-reference results.
             if (!allReferences.IsEmpty)
@@ -48,12 +55,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 NamespaceQuery namespaceQuery,
                 bool isAttributeSearch)
             {
-                if (_options.SearchOptions.SearchReferenceAssemblies)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await FindReferenceAssemblyReferencesAsync(
-                        allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                await FindReferenceAssemblyReferencesAsync(
+                    allReferences, nameNode, typeQuery, namespaceQuery, isAttributeSearch, cancellationToken).ConfigureAwait(false);
 
                 var packageSources = PackageSourceHelper.GetPackageSources(_packageSources);
                 foreach (var (sourceName, sourceUrl) in packageSources)
@@ -125,6 +129,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
+            if (!this.Options.SearchOptions.SearchReferenceAssemblies)
+                return;
+
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindReferenceAssembliesAsync(
                 typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);
@@ -151,6 +158,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             bool isAttributeSearch,
             CancellationToken cancellationToken)
         {
+            if (!this.Options.SearchOptions.SearchNuGetPackages)
+                return;
+
             cancellationToken.ThrowIfCancellationRequested();
             var results = await _symbolSearchService.FindPackagesAsync(
                 sourceName, typeQuery, namespaceQuery, cancellationToken).ConfigureAwait(false);

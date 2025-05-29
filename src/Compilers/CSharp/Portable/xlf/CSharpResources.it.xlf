@@ -2397,6 +2397,11 @@
         <target state="translated">Il valore letterale stringa non elaborato non inizia con un numero sufficiente di virgolette per consentire questo numero di virgolette consecutive come contenuto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Le istruzioni di primo livello devono precedere le dichiarazioni di tipo e di spazio dei nomi.</target>
@@ -6004,8 +6009,8 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Accessibilità incoerente: il tipo parametro '{1}' è meno accessibile dell'indicizzatore '{0}'</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Accessibilità incoerente: il tipo parametro '{1}' è meno accessibile dell'indicizzatore '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">
