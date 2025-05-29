@@ -1725,12 +1725,12 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
     public async Task TestMalformedIfBlock1()
     {
-        await TestMissingAsync<IfStatementSyntax>(
+        await TestAsync<IfStatementSyntax>(
             """
             {
-                [|if (devsBad)
+                {|result:[||]if (devsBad)
                     [crash]
-                else return;|]
+                else return;|}
             }
             """);
     }
@@ -1738,12 +1738,12 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
     public async Task TestMalformedIfBlock2()
     {
-        await TestMissingAsync<IfStatementSyntax>(
+        await TestAsync<IfStatementSyntax>(
             """
             {
                 if (devsBad)
-                    [|[crash]
-                else return;|]
+                    {|result:[|[crash]
+                else return;|]|}
             }
             """);
     }
