@@ -42,22 +42,22 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
     where TBinaryExpressionSyntax : TExpressionSyntax
     where TSimplifierOptions : SimplifierOptions
 {
-    private const string s_isPrefix = "Is";
-    private const string s_throwIfPrefix = "ThrowIf";
+    private const string IsPrefix = "Is";
+    private const string ThrowIfPrefix = "ThrowIf";
 
-    private const string s_nullSuffix = "Null";
-    private const string s_nullOrEmptySuffix = "NullOrEmpty";
-    private const string s_nullOrWhiteSpaceSuffix = "NullOrWhiteSpace";
+    private const string NullSuffix = "Null";
+    private const string NullOrEmptySuffix = "NullOrEmpty";
+    private const string NullOrWhiteSpaceSuffix = "NullOrWhiteSpace";
 
-    private const string s_negativeSuffix = "Negative";
-    private const string s_negativeOrZeroSuffix = "NegativeOrZero";
+    private const string NegativeSuffix = "Negative";
+    private const string NegativeOrZeroSuffix = "NegativeOrZero";
 
-    private const string s_throwIfNullName = s_throwIfPrefix + s_nullSuffix;
-    private const string s_throwIfNullOrEmptyName = s_throwIfPrefix + s_nullOrEmptySuffix;
-    private const string s_throwIfNullOrWhiteSpaceName = s_throwIfPrefix + s_nullOrWhiteSpaceSuffix;
+    private const string ThrowIfNullName = ThrowIfPrefix + NullSuffix;
+    private const string ThrowIfNullOrEmptyName = ThrowIfPrefix + NullOrEmptySuffix;
+    private const string ThrowIfNullOrWhiteSpaceName = ThrowIfPrefix + NullOrWhiteSpaceSuffix;
 
-    private const string s_throwIfNegativeName = s_throwIfPrefix + s_negativeSuffix;
-    private const string s_throwIfNegativeOrZeroName = s_throwIfPrefix + s_negativeOrZeroSuffix;
+    private const string ThrowIfNegativeName = ThrowIfPrefix + NegativeSuffix;
+    private const string ThrowIfNegativeOrZeroName = ThrowIfPrefix + NegativeOrZeroSuffix;
 
     protected abstract bool CanOffer(SyntaxNode body);
     protected abstract bool PrefersThrowExpression(TSimplifierOptions options);
@@ -124,12 +124,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             {
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrEmpty"),
-                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrEmptySuffix, simplifierOptions, cancellationToken),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, NullOrEmptySuffix, simplifierOptions, cancellationToken),
                     "Add_string_IsNullOrEmpty_check"));
 
                 result.Add(CodeAction.Create(
                     string.Format(FeaturesResources.Add_0_check, "string.IsNullOrWhiteSpace"),
-                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, s_nullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
+                    cancellationToken => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatement, NullOrWhiteSpaceSuffix, simplifierOptions, cancellationToken),
                     "Add_string_IsNullOrWhiteSpace_check"));
             }
 
@@ -207,7 +207,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             // commonly used in this regard according to telemetry and UX testing.
             if (parameter.Type.SpecialType == SpecialType.System_String)
             {
-                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, s_nullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
+                document = await AddStringCheckAsync(document, parameter, functionDeclaration, (IMethodSymbol)parameter.ContainingSymbol, blockStatement, NullOrEmptySuffix, lazySimplifierOptions, cancellationToken).ConfigureAwait(false);
                 continue;
             }
 
@@ -509,12 +509,12 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
     private static bool IsAnyThrowIfNullInvocation(IOperation statement, IParameterSymbol? parameter)
     {
-        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentNullException), nameof(ArgumentException)], m => m is s_throwIfNullName or s_throwIfNullOrEmptyName or s_throwIfNullOrWhiteSpaceName);
+        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentNullException), nameof(ArgumentException)], m => m is ThrowIfNullName or ThrowIfNullOrEmptyName or ThrowIfNullOrWhiteSpaceName);
     }
 
     private static bool IsAnyThrowIfNumericCheckInvocation(IOperation statement, IParameterSymbol? parameter)
     {
-        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentOutOfRangeException)], m => m.StartsWith(s_throwIfPrefix));
+        return IsAnyThrowInvocation(statement, parameter, [nameof(ArgumentOutOfRangeException)], m => m.StartsWith(ThrowIfPrefix));
     }
 
     private static bool IsStringCheck(IOperation condition, IParameterSymbol parameter)
@@ -689,14 +689,14 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         if (parameter.Type.IsReferenceType && argumentNullExceptionType != null)
         {
             var throwIfNullMethod = argumentNullExceptionType
-                .GetMembers(s_throwIfNullName)
+                .GetMembers(ThrowIfNullName)
                 .FirstOrDefault(s => s is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_Object }, ..] });
             if (throwIfNullMethod != null)
             {
                 return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
                     generator.MemberAccessExpression(
                         generator.TypeExpression(argumentNullExceptionType),
-                        s_throwIfNullName),
+                        ThrowIfNullName),
                     generator.IdentifierName(parameter.Name)));
             }
         }
@@ -712,7 +712,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         var argumentOutOfRangeExceptionType = compilation.ArgumentOutOfRangeExceptionType();
         if (argumentOutOfRangeExceptionType is not null)
         {
-            var throwMethodName = includeZero ? s_throwIfNegativeOrZeroName : s_throwIfNegativeName;
+            var throwMethodName = includeZero ? ThrowIfNegativeOrZeroName : ThrowIfNegativeName;
             var throwMethod = argumentOutOfRangeExceptionType
                 .GetMembers(throwMethodName)
                 .FirstOrDefault(s => s is IMethodSymbol { IsStatic: true, Arity: 1, Parameters.Length: 2 });
@@ -751,7 +751,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         var argumentExceptionType = compilation.ArgumentExceptionType();
         if (argumentExceptionType != null)
         {
-            var throwMethodName = s_throwIfPrefix + methodNameSuffix;
+            var throwMethodName = ThrowIfPrefix + methodNameSuffix;
             var throwIfNullMethod = argumentExceptionType
                 .GetMembers(throwMethodName)
                 .FirstOrDefault(s => s is IMethodSymbol { Parameters: [{ Type.SpecialType: SpecialType.System_String }, ..] });
@@ -768,7 +768,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         var stringType = compilation.GetSpecialType(SpecialType.System_String);
 
         // generates: if (string.IsXXX(s)) throw new ArgumentException("message", nameof(s))
-        var isMethodName = s_isPrefix + methodNameSuffix;
+        var isMethodName = IsPrefix + methodNameSuffix;
         var condition = (TExpressionSyntax)generator.InvocationExpression(
             generator.MemberAccessExpression(
                 generator.TypeExpression(stringType),
