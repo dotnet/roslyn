@@ -6,6 +6,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -15,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
 /// <summary>
 /// Service to create <see cref="LspMiscellaneousFilesWorkspaceProvider"/> instances.
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IMetadataAsSourceFileService metadataAsSourceFileService,
+    VirtualProjectXmlProvider projectXmlProvider,
     LanguageServerWorkspaceFactory workspaceFactory,
     IFileChangeWatcher fileChangeWatcher,
     IGlobalOptionService globalOptionService,
@@ -38,6 +40,17 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
 {
     public ILspMiscellaneousFilesWorkspaceProvider CreateLspMiscellaneousFilesWorkspaceProvider(ILspServices lspServices, HostServices hostServices)
     {
-        return new FileBasedProgramsProjectSystem(lspServices, metadataAsSourceFileService, workspaceFactory, fileChangeWatcher, globalOptionService, loggerFactory, listenerProvider, projectLoadTelemetry, serverConfigurationFactory, binLogPathProvider);
+        return new FileBasedProgramsProjectSystem(
+            lspServices,
+            metadataAsSourceFileService,
+            projectXmlProvider,
+            workspaceFactory,
+            fileChangeWatcher,
+            globalOptionService,
+            loggerFactory,
+            listenerProvider,
+            projectLoadTelemetry,
+            serverConfigurationFactory,
+            binLogPathProvider);
     }
 }

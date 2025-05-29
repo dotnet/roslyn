@@ -220,7 +220,7 @@ public sealed class AddParameterCheckTests
 
             class C
             {
-                public C([||]int i)
+                public C([||]DateTime d)
                 {
                 }
             }
@@ -3580,6 +3580,354 @@ public sealed class AddParameterCheckTests
                 }
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_ModernOverloads(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(num);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("int")]
+    [InlineData("long")]
+    public async Task TestSimpleNumericChecks_OldStyleCheckStatement(string validNumericType)
+    {
+        var code = $$"""
+            using System;
+
+            class C
+            {
+                void M({{validNumericType}} [|num|])
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 0,
+        }.RunAsync();
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M({{validNumericType}} [|num|])
+                    {
+                        if (num <= 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num), num, $"{{string.Format(FeaturesResources._0_cannot_be_negative_or_zero, "{nameof(num)}").Replace("\"", "\\\"")}}");
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+            CodeActionIndex = 1,
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("byte")]
+    [InlineData("ushort")]
+    [InlineData("uint")]
+    [InlineData("ulong")]
+    [InlineData("float")]
+    [InlineData("double")]
+    public async Task TestNoNumericChecksForUnsignedAndFloatingPointNumericTypes(string invalidNumericType)
+    {
+        await VerifyCS.VerifyRefactoringAsync($$"""
+            using System;
+            
+            class C
+            {
+                void M({{invalidNumericType}} [|num|])
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNoNumericChecksForOutParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            
+            class C
+            {
+                void M(out int [|num|])
+                {
+                    num = 0;
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("ThrowIfNegative(num)")]
+    [InlineData("ThrowIfNegativeOrZero(num)")]
+    [InlineData("ThrowIfEqual(num, 5)")]
+    [InlineData("ThrowIfGreaterThan(num, 6)")]
+    [InlineData("ThrowIfGreaterThanOrEqual(num, 1)")]
+    [InlineData("ThrowIfLessThan(num, 2)")]
+    [InlineData("ThrowIfLessThanOrEqual(num, 3)")]
+    [InlineData("ThrowIfEqual(num, 15)")]
+    [InlineData("ThrowIfNotEqual(num, 10)")]
+    [InlineData("ThrowIfZero(num)")]
+    public async Task TestNoNumericChecksIfAlreadyExist_ModernOverloads(string methodInvocation)
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        ArgumentOutOfRangeException.{{methodInvocation}};
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    [InlineData("num < 0")]
+    [InlineData("num <= 0")]
+    [InlineData("num > 11")]
+    [InlineData("num >= 12")]
+    [InlineData("0 > num")]
+    [InlineData("0 >= num")]
+    [InlineData("14 < num")]
+    [InlineData("22 <= num")]
+    [InlineData("num is < 0")]
+    [InlineData("num is <= 0")]
+    [InlineData("num < 1")]
+    [InlineData("num <= 39")]
+    [InlineData("25 > num")]
+    [InlineData("29 >= num")]
+    [InlineData("num is < 8")]
+    [InlineData("num is <= 18")]
+    [InlineData("num is > 5")]
+    [InlineData("num is >= 3")]
+    public async Task TestNoNumericChecksIfAlreadyExist_OldStyleCheckStatements(string numericCheck)
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(int [|num|])
+                    {
+                        if ({{numericCheck}})
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(num));
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Latest,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksAfterAnotherNumericCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(sbyte a, short [|b|])
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegative(a);
+                        ArgumentOutOfRangeException.ThrowIfNegative(b);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksBeforeAnotherNumericCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(long [|a|], int b)
+                    {
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(long a, int b)
+                    {
+                        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(a);
+                        if (b < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(b));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+            CodeActionIndex = 1
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37653")]
+    public async Task TestNumericChecksInBetweenDifferentChecks()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek day, int [|i|], string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M(DayOfWeek day, int i, string s)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), day))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(day), (int)day, typeof(DayOfWeek));
+                        }
+
+                        if (i < 0)
+                        {
+                            throw new ArgumentOutOfRangeException(nameof(i), i, $"{{string.Format(FeaturesResources._0_cannot_be_negative, "{nameof(i)}").Replace("\"", "\\\"")}}");
+                        }
+
+                        if (string.IsNullOrEmpty(s))
+                        {
+                            throw new ArgumentNullException(nameof(s));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
         }.RunAsync();
     }
 }
