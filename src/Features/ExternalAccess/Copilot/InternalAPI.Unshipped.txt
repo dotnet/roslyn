@@ -31,7 +31,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.TraitItem(str
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.get -> string!
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.Completion.TraitItem.Value.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities
-Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotAnalysisUtilities.CopilotAnalysisUtilities() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper.Equals(Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotChecksumWrapper? other) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Copilot.CopilotDocumentationCommentProposalWrapper
