@@ -1722,6 +1722,32 @@ public sealed partial class RefactoringHelpersTests : RefactoringHelpersTestBase
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
+    public async Task TestMalformedIfBlock1()
+    {
+        await TestMissingAsync<IfStatementSyntax>(
+            """
+            {
+                [|if (devsBad)
+                    [crash]
+                else return;|]
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78749")]
+    public async Task TestMalformedIfBlock2()
+    {
+        await TestMissingAsync<IfStatementSyntax>(
+            """
+            {
+                if (devsBad)
+                    [|[crash]
+                else return;|]
+            }
+            """);
+    }
+
     #endregion
 
     #region Test Deep in expression
