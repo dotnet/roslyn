@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
-        private const string RuntimeAsyncCoreLib = """
+        internal const string RuntimeAsyncCoreLib = """
             namespace System
             {
                 public delegate void Action();
@@ -83,6 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     Event = 0x200,
                 }
                 public struct Boolean {}
+                public class FlagsAttribute : Attribute {}
                 public static class Console
                 {
                     public static void Write(object i) {}
@@ -91,15 +92,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     public static void WriteLine(int i) {}
                 }
                 public class Delegate {}
+                public class DivideByZeroException : Exception
+                {
+                    public DivideByZeroException() {}
+                    public DivideByZeroException(string message) : base(message) {}
+                }
                 public class Enum {}
                 public class Exception
                 {
                     public Exception() {}
                     public Exception(string message) {}
                     public virtual string Message { get; }
+                    public virtual Type GetType() => null!;
+                }
+                public class AggregateException : Exception
+                {
+                    public AggregateException() {}
+                    public AggregateException(string message) : base(message) {}
+                }
+                public class NotImplementedException : Exception
+                {
+                    public NotImplementedException() {}
+                    public NotImplementedException(string message) : base(message) {}
+                }
+                public class InvalidOperationException : Exception
+                {
+                    public InvalidOperationException() {}
+                    public InvalidOperationException(string message) : base(message) {}
+                }
+                public class OperationCanceledException : Exception
+                {
+                    public OperationCanceledException() {}
+                    public OperationCanceledException(string message) : base(message) {}
                 }
                 public delegate TResult Func<TResult>();
                 public delegate TResult Func<T, TResult>(T arg);
+                public struct Int16 {}
                 public struct Int32 {}
                 public struct IntPtr {}
                 public class MulticastDelegate {}
@@ -111,11 +139,78 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                 public class Object
                 {
                     public virtual string ToString() => null!;
+                    public static bool ReferenceEquals(object objA, object objB) => false;
                 }
-                public class String {}
-                public class Type {}
+                public struct RuntimeTypeHandle {}
+                public class String
+                {
+                    public static string Concat(string str0, string str1) => null!;
+                }
+                public class Type
+                {
+                    public string Name => null!;
+                    public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null!;
+                }
+                public class Tuple
+                {
+                    public static Tuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2) => null!;
+                }
+                public class Tuple<T1, T2>
+                {
+                    public Tuple(T1 item1, T2 item2) {}
+                    public T1 Item1 { get; }
+                    public T2 Item2 { get; }
+                }
                 public class ValueType {}
                 public class Void {}
+                public static class Environment
+                {
+                    public static void FailFast(string message) {}
+                }
+
+                namespace Collections
+                {
+                    namespace Generic
+                    {
+                        public interface IEnumerable<T> {}
+                        public interface IEnumerator<T> {}
+                        public class List<T> {}
+                    }
+                }
+
+                namespace Diagnostics
+                {
+                    public class Debug
+                    {
+                        public static void Assert(bool condition) {}
+                        public static void Fail(string message) {}
+                    }
+                }
+
+                namespace Globalization
+                {
+                    public class CultureInfo
+                    {
+                        public static CultureInfo InvariantCulture => null!;
+                    }
+                }
+
+                namespace Linq
+                {
+                    public static class Enumerable
+                    {
+                        public static T First<T>(Collections.Generic.IEnumerable<T> source) => default!;
+                    }
+                }
+
+                namespace Text
+                {
+                    public class StringBuilder
+                    {
+                        public StringBuilder Append(string value) => this;
+                        public override string ToString() => "";
+                    }
+                }
 
                 namespace Threading
                 {
@@ -123,19 +218,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                     {
                         public AutoResetEvent(bool initialState) {}
                     }
+                    public struct CancellationToken
+                    {
+                        public static CancellationToken None => default;
+                    }
                     public class EventWaitHandle
                     {
                         public bool Set() => default;
                         public bool WaitOne() => default;
                         public bool WaitOne(int millisecondsTimeout) => default;
                     }
+                    public class ExecutionContext
+                    {
+                        public static ExecutionContext Capture() => null!;
+                        public static void Run(ExecutionContext executionContext, ContextCallback callback, object state) {}
+                    }
+                    public delegate void ContextCallback(object state);
                     public static class Interlocked
                     {
                         public static int Increment(ref int location) => default;
+                        public static T CompareExchange<T>(ref T location1, T value, T comparand) where T : class => default!;
                     }
-                    public static class Thread
+                    public class SynchronizationContext
+                    {
+                        public static SynchronizationContext Current => null!;
+                        public virtual Type GetType() => null!;
+                        public virtual void Post(SendOrPostCallback d, object state) {}
+                    }
+                    public delegate void SendOrPostCallback(object state);
+                    public class Thread
                     {
                         public static void Sleep(int millisecondsTimeout) {}
+                        public static Thread CurrentThread => new Thread();
+                        public System.Globalization.CultureInfo CurrentUICulture { get; set; } = null!;
                     }
                     namespace Tasks
                     {
@@ -153,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public static YieldAwaitable Yield() => default;
                             public static Task<TResult> FromResult<TResult>(TResult result) => default;
                             public Task ContinueWith(Action<Task> continuationAction) => default;
+                            public static Task FromException(Exception exception) => null!;
                         }
                         public class Task<TResult>
                         {
@@ -167,6 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
                         public struct ValueTask
                         {
+                            public ValueTask(Task task) {}
+                            public ValueTask(Sources.IValueTaskSource source, short token) {}
                             public ValueTaskAwaiter GetAwaiter() => default;
                             public static ValueTask<TResult> FromResult<TResult>(TResult result) => default;
                         }
@@ -174,6 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                         public struct ValueTask<TResult>
                         {
                             public ValueTask(TResult result) {}
+                            public ValueTask(Task<TResult> task) {}
+                            public ValueTask(Sources.IValueTaskSource<TResult> source, short token) {}
                             public ValueTaskAwaiter<TResult> GetAwaiter() => default;
                             public TResult Result => default;
                         }
@@ -185,6 +305,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public Task<TResult> StartNew<TResult>(Func<TResult> function) => default;
                             public ValueTask StartNew(Func<ValueTask> function) => default;
                             public ValueTask<TResult> StartNew<TResult>(Func<ValueTask<TResult>> function) => default;
+                            public Task StartNew(Action<object> action, object state, CancellationToken cancellationToken, TaskCreationOptions creationOptions, TaskScheduler scheduler) => default;
+                        }
+                        public class TaskScheduler
+                        {
+                            public static TaskScheduler Current => null!;
+                            public static TaskScheduler Default => null!;
+                        }
+                        public enum TaskCreationOptions
+                        {
+                            None = 0,
+                            DenyChildAttach = 8
                         }
                         public class TaskCompletionSource
                         {
@@ -202,155 +333,231 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
                             public void SetCanceled() {}
                             public void SetException(Exception exception) {}
                         }
+                        public enum ValueTaskSourceStatus
+                        {
+                            Pending = 0,
+                            Succeeded = 1,
+                            Faulted = 2,
+                            Canceled = 3
+                        }
+                        
+                        [Flags]
+                        public enum ValueTaskSourceOnCompletedFlags
+                        {
+                            None = 0,
+                            UseSchedulingContext = 1,
+                            FlowExecutionContext = 2
+                        }
+                        
+                        namespace Sources
+                        {
+                            public interface IValueTaskSource
+                            {
+                                ValueTaskSourceStatus GetStatus(short token);
+                                void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
+                                void GetResult(short token);
+                            }
+                        
+                            public interface IValueTaskSource<out TResult>
+                            {
+                                ValueTaskSourceStatus GetStatus(short token);
+                                void OnCompleted(Action<object> continuation, object state, short token, ValueTaskSourceOnCompletedFlags flags);
+                                TResult GetResult(short token);
+                            }
+                        }
                     }
                 }
-
-                namespace Runtime.CompilerServices
-                {
-                    public class AsyncMethodBuilderAttribute : Attribute
+                namespace Runtime
+                {                    
+                    namespace InteropServices
                     {
-                        public AsyncMethodBuilderAttribute(Type builderType) {}
-                    }
-                    public struct AsyncTaskMethodBuilder
-                    {
-                        public static AsyncTaskMethodBuilder Create() => default;
-                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
-                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
-                        public void SetException(Exception exception) {}
-                        public void SetResult() {}
-                        public Threading.Tasks.Task Task => default;
-                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : INotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : ICriticalNotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                    }
-                    public struct AsyncTaskMethodBuilder<T>
-                    {
-                        public static AsyncTaskMethodBuilder<T> Create() => default;
-                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
-                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
-                        public void SetException(Exception exception) {}
-                        public void SetResult(T result) {}
-                        public Threading.Tasks.Task<T> Task => default;
-                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : INotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : ICriticalNotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                    }
-                    public struct AsyncValueTaskMethodBuilder
-                    {
-                        public static AsyncValueTaskMethodBuilder Create() => default;
-                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
-                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
-                        public void SetException(Exception exception) {}
-                        public void SetResult() {}
-                        public Threading.Tasks.ValueTask Task => default;
-                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : INotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : ICriticalNotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                    }
-                    public struct AsyncValueTaskMethodBuilder<T>
-                    {
-                        public static AsyncValueTaskMethodBuilder<T> Create() => default;
-                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
-                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
-                        public void SetException(Exception exception) {}
-                        public void SetResult(T result) {}
-                        public Threading.Tasks.ValueTask<T> Task => default;
-                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : INotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : ICriticalNotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                    }
-                    public struct AsyncVoidMethodBuilder
-                    {
-                        public static AsyncVoidMethodBuilder Create() => default;
-                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
-                        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
-                        public void SetException(Exception exception) {}
-                        public void SetResult() {}
-                        public Threading.Tasks.Task Task => default;
-                        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : INotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
-                            where TAwaiter : ICriticalNotifyCompletion 
-                            where TStateMachine : IAsyncStateMachine {}
-                    }
-                    public class ExtensionAttribute : Attribute {}
-                    public interface IAsyncStateMachine
-                    {
-                        void MoveNext();
-                        void SetStateMachine(IAsyncStateMachine stateMachine);
-                    }
-                    public interface INotifyCompletion
-                    {
-                        void OnCompleted(Action continuation);
-                    }
-                    public interface ICriticalNotifyCompletion : INotifyCompletion
-                    {
-                        void UnsafeOnCompleted(Action continuation);
-                    }
-                    public static class RuntimeFeature
-                    {
-                        public const string NumericIntPtr = nameof(NumericIntPtr);
-                    }
-                    public struct TaskAwaiter : ICriticalNotifyCompletion
-                    {
-                        public void OnCompleted(Action continuation) {}
-                        public void UnsafeOnCompleted(Action continuation) {}
-                        public bool IsCompleted => false;
-                        public void GetResult() {}
-                    }
-                    public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
-                    {
-                        public void OnCompleted(Action continuation) {}
-                        public void UnsafeOnCompleted(Action continuation) {}
-                        public bool IsCompleted => false;
-                        public TResult GetResult() => default;
-                    }
-                    public struct ValueTaskAwaiter : ICriticalNotifyCompletion
-                    {
-                        public void OnCompleted(Action continuation) {}
-                        public void UnsafeOnCompleted(Action continuation) {}
-                        public bool IsCompleted => false;
-                        public void GetResult() {}
-                    }
-                    public struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion
-                    {
-                        public void OnCompleted(Action continuation) {}
-                        public void UnsafeOnCompleted(Action continuation) {}
-                        public bool IsCompleted => false;
-                        public TResult GetResult() => default;
-                    }
-                    public struct YieldAwaitable
-                    {
-                        public YieldAwaiter GetAwaiter() => default;
-                        public struct YieldAwaiter : ICriticalNotifyCompletion
+                        public sealed class StructLayoutAttribute : Attribute
                         {
-                            public void UnsafeOnCompleted(Action continuation) {}
+                            public StructLayoutAttribute(LayoutKind layoutKind) {}
+                            public LayoutKind Value { get; }
+                        }
+                        
+                        public enum LayoutKind
+                        {
+                            Sequential = 0,
+                            Explicit = 2,
+                            Auto = 3
+                        }
+                    }
+
+                    namespace ExceptionServices
+                    {
+                        public sealed class ExceptionDispatchInfo
+                        {
+                            public static ExceptionDispatchInfo Capture(Exception source) => null!;
+                            public Exception SourceException => null!;
+                            public void Throw() {}
+                        }
+                    }
+
+                    namespace CompilerServices
+                    {
+                        public class AsyncMethodBuilderAttribute : Attribute
+                        {
+                            public AsyncMethodBuilderAttribute(Type builderType) {}
+                        }
+                        public class StateMachineAttribute : Attribute
+                        {
+                            public StateMachineAttribute(Type stateMachineType) {}
+                            public Type StateMachineType { get; }
+                        }
+                        public class MethodImplAttribute : Attribute
+                        {
+                            public MethodImplAttribute(MethodImplOptions methodImplOptions) {}
+                            public MethodImplOptions Value { get; }
+                        }
+                        public enum MethodImplOptions
+                        {
+                            Unmanaged = 4,
+                            NoInlining = 8,
+                            AggressiveInlining = 256
+                        }
+                        public struct AsyncTaskMethodBuilder
+                        {
+                            public static AsyncTaskMethodBuilder Create() => default;
+                            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                            public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                            public void SetException(Exception exception) {}
+                            public void SetResult() {}
+                            public Threading.Tasks.Task Task => default;
+                            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : INotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : ICriticalNotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                        }
+                        public struct AsyncTaskMethodBuilder<T>
+                        {
+                            public static AsyncTaskMethodBuilder<T> Create() => default;
+                            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                            public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                            public void SetException(Exception exception) {}
+                            public void SetResult(T result) {}
+                            public Threading.Tasks.Task<T> Task => default;
+                            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : INotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : ICriticalNotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                        }
+                        public struct AsyncValueTaskMethodBuilder
+                        {
+                            public static AsyncValueTaskMethodBuilder Create() => default;
+                            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                            public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                            public void SetException(Exception exception) {}
+                            public void SetResult() {}
+                            public Threading.Tasks.ValueTask Task => default;
+                            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : INotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : ICriticalNotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                        }
+                        public struct AsyncValueTaskMethodBuilder<T>
+                        {
+                            public static AsyncValueTaskMethodBuilder<T> Create() => default;
+                            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                            public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                            public void SetException(Exception exception) {}
+                            public void SetResult(T result) {}
+                            public Threading.Tasks.ValueTask<T> Task => default;
+                            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : INotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : ICriticalNotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                        }
+                        public struct AsyncVoidMethodBuilder
+                        {
+                            public static AsyncVoidMethodBuilder Create() => default;
+                            public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+                            public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+                            public void SetException(Exception exception) {}
+                            public void SetResult() {}
+                            public Threading.Tasks.Task Task => default;
+                            public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : INotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                            public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) 
+                                where TAwaiter : ICriticalNotifyCompletion 
+                                where TStateMachine : IAsyncStateMachine {}
+                        }
+                        public class ExtensionAttribute : Attribute {}
+                        public interface IAsyncStateMachine
+                        {
+                            void MoveNext();
+                            void SetStateMachine(IAsyncStateMachine stateMachine);
+                        }
+                        public interface INotifyCompletion
+                        {
+                            void OnCompleted(Action continuation);
+                        }
+                        public interface ICriticalNotifyCompletion : INotifyCompletion
+                        {
+                            void UnsafeOnCompleted(Action continuation);
+                        }
+                        public static class RuntimeFeature
+                        {
+                            public const string NumericIntPtr = nameof(NumericIntPtr);
+                        }
+                        public struct TaskAwaiter : ICriticalNotifyCompletion
+                        {
                             public void OnCompleted(Action continuation) {}
+                            public void UnsafeOnCompleted(Action continuation) {}
                             public bool IsCompleted => false;
                             public void GetResult() {}
+                        }
+                        public struct TaskAwaiter<TResult> : ICriticalNotifyCompletion
+                        {
+                            public void OnCompleted(Action continuation) {}
+                            public void UnsafeOnCompleted(Action continuation) {}
+                            public bool IsCompleted => false;
+                            public TResult GetResult() => default;
+                        }
+                        public struct ValueTaskAwaiter : ICriticalNotifyCompletion
+                        {
+                            public void OnCompleted(Action continuation) {}
+                            public void UnsafeOnCompleted(Action continuation) {}
+                            public bool IsCompleted => false;
+                            public void GetResult() {}
+                        }
+                        public struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion
+                        {
+                            public void OnCompleted(Action continuation) {}
+                            public void UnsafeOnCompleted(Action continuation) {}
+                            public bool IsCompleted => false;
+                            public TResult GetResult() => default;
+                        }
+                        public struct YieldAwaitable
+                        {
+                            public YieldAwaiter GetAwaiter() => default;
+                            public struct YieldAwaiter : ICriticalNotifyCompletion
+                            {
+                                public void UnsafeOnCompleted(Action continuation) {}
+                                public void OnCompleted(Action continuation) {}
+                                public bool IsCompleted => false;
+                                public void GetResult() {}
+                            }
                         }
                     }
                 }
             }
             """;
 
-        private static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
         {
             // PROTOTYPE: Remove this helper and just use .NET 10 when we can
-            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers]);
+            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers, AsyncStreamsTypes]);
 
             var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
             return compilation;
