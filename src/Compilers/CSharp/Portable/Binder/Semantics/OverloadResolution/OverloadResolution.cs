@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DynamicConvertsToAnything = 1 << 7,
             DisallowExpandedNonArrayParams = 1 << 8,
             InferringUniqueMethodGroupSignature = 1 << 9,
+            DisallowExpandedForm = 1 << 10,
         }
 
         // Perform overload resolution on the given method group, with the given arguments and
@@ -1191,7 +1192,7 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
+                if ((options & (Options.IsMethodGroupConversion | Options.DisallowExpandedForm)) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
                         member,
@@ -3830,7 +3831,7 @@ outerDefault:
         }
 
         internal static void GetEffectiveParameterTypes(
-            MethodSymbol method,
+            Symbol member,
             int argumentCount,
             ImmutableArray<int> argToParamMap,
             ArrayBuilder<RefKind> argumentRefKinds,
@@ -3846,8 +3847,8 @@ outerDefault:
                               (allowRefOmittedArguments ? Options.AllowRefOmittedArguments : Options.None);
 
             EffectiveParameters effectiveParameters = expanded ?
-                GetEffectiveParametersInExpandedForm(method, argumentCount, argToParamMap, argumentRefKinds, options, binder, out hasAnyRefOmittedArgument) :
-                GetEffectiveParametersInNormalForm(method, argumentCount, argToParamMap, argumentRefKinds, options, binder, out hasAnyRefOmittedArgument);
+                GetEffectiveParametersInExpandedForm(member, argumentCount, argToParamMap, argumentRefKinds, options, binder, out hasAnyRefOmittedArgument) :
+                GetEffectiveParametersInNormalForm(member, argumentCount, argToParamMap, argumentRefKinds, options, binder, out hasAnyRefOmittedArgument);
             parameterTypes = effectiveParameters.ParameterTypes;
             parameterRefKinds = effectiveParameters.ParameterRefKinds;
         }

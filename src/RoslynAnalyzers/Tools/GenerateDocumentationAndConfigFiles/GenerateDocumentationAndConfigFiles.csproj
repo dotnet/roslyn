@@ -27,5 +27,18 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true' and '$(OfficialBuild)' == 'false'">
+    <!--
+      Don't use the CPM version of these packages. Always use the version that is the transitive dependency of Microsoft.CodeAnalysis.
+      This is because the CPM version can lead to package downgrades, specifically in non-official source-only builds where the
+      dev/ci suffix in the version of these packages coming from the live build is treated as a lower version than the version
+      from the previously source-built artifacts.
+    -->
+    <PackageVersion Remove="System.Collections.Immutable" />
+    <PackageVersion Remove="System.Composition" />
+    <PackageVersion Remove="System.IO.Pipelines" />
+    <PackageVersion Remove="System.Reflection.Metadata" />
   </ItemGroup>
 </Project>

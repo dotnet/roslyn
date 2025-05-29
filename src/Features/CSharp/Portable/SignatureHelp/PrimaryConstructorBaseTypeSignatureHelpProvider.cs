@@ -74,8 +74,7 @@ internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : 
             return null;
 
         var baseList = baseTypeSyntax.Parent as BaseListSyntax;
-        var namedTypeSyntax = baseList?.Parent as BaseTypeDeclarationSyntax;
-        if (namedTypeSyntax is null)
+        if (baseList?.Parent is not BaseTypeDeclarationSyntax namedTypeSyntax)
             return null;
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

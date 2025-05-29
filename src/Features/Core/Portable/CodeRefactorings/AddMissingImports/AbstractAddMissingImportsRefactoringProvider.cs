@@ -44,8 +44,8 @@ internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefac
 
         var addImportsCodeAction = CodeAction.Create(
             CodeActionTitle,
-            async (progressTracker, cancellationToken) =>
-                (await addMissingImportsService.AddMissingImportsAsync(document, fixData, progressTracker, cancellationToken).ConfigureAwait(false)).Project.Solution,
+            (progressTracker, cancellationToken) =>
+                addMissingImportsService.AddMissingImportsAsync(document, fixData, progressTracker, cancellationToken),
             CodeActionTitle);
 
         context.RegisterRefactoring(addImportsCodeAction, textSpan);

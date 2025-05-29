@@ -547,7 +547,7 @@
     <value>Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'</value>
   </data>
   <data name="ERR_BadVisIndexerParam" xml:space="preserve">
-    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</value>
+    <value>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</value>
   </data>
   <data name="ERR_BadVisOpReturn" xml:space="preserve">
     <value>Inconsistent accessibility: return type '{1}' is less accessible than operator '{0}'</value>
@@ -1709,7 +1709,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DuplicateConversionInClass" xml:space="preserve">
     <value>Duplicate user-defined conversion in type '{0}'</value>
   </data>
-  <data name="ERR_OperatorsMustBeStatic" xml:space="preserve">
+  <data name="ERR_OperatorsMustBeStaticAndPublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared static and public</value>
   </data>
   <data name="ERR_BadIncDecSignature" xml:space="preserve">
@@ -5314,6 +5314,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals or try the EXPERIMENTAL feature flag 'experimental-data-section-string-literals'.</value>
   </data>
+  <data name="ERR_TooManyUserStrings_RestartRequired" xml:space="preserve">
+    <value>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</value>
+  </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}?' in a pattern; use the underlying type '{0}' instead.</value>
   </data>
@@ -8160,5 +8163,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ExtensionTypeNameDisallowed" xml:space="preserve">
     <value>Types and aliases cannot be named 'extension'.</value>
+  </data>
+  <data name="IDS_FeatureUserDefinedCompoundAssignmentOperators" xml:space="preserve">
+    <value>user-defined compound assignment operators</value>
+  </data>
+  <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
+    <value>User-defined operator '{0}' must be declared public</value>
+  </data>
+  <data name="ERR_OperatorMustReturnVoid" xml:space="preserve">
+    <value>The return type for this operator must be void</value>
+  </data>
+  <data name="ERR_CloseUnimplementedInterfaceMemberOperatorMismatch" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implement '{1}' because one of them is not an operator.</value>
+  </data>
+  <data name="ERR_OperatorMismatchOnOverride" xml:space="preserve">
+    <value>'{0}': cannot override inherited member '{1}' because one of them is not an operator.</value>
+  </data>
+  <data name="ERR_BadCompoundAssignmentOpArgs" xml:space="preserve">
+    <value>Overloaded compound assignment operator '{0}' takes one parameter</value>
+  </data>
+  <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
+    <value>'#!' directives can be only used in scripts or file-based programs</value>
   </data>
 </root>

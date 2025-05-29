@@ -35,6 +35,7 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken ExtensionKeyword = Token(SyntaxKind.ExtensionKeyword);
     public static readonly SyntaxToken ExternKeyword = Token(SyntaxKind.ExternKeyword);
     public static readonly SyntaxToken FileKeyword = Token(SyntaxKind.FileKeyword);
+    public static readonly SyntaxToken FixedKeyword = Token(SyntaxKind.FixedKeyword);
     public static readonly SyntaxToken FloatKeyword = Token(SyntaxKind.FloatKeyword);
     public static readonly SyntaxToken ForEachKeyword = Token(SyntaxKind.ForEachKeyword);
     public static readonly SyntaxToken FromKeyword = Token(SyntaxKind.FromKeyword);

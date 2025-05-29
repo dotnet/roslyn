@@ -204,15 +204,15 @@ public class D
     }
 }
                                                           ]]></Document>
-                                                          <Document FilePath="Test.razor.g.cs"><![CDATA[
+                                                          <Document FilePath="Test.razor.g.cs">
 public class Component
 {
-#line 4 "Test.razor"
+#line 4 "<%= Path.Combine(TestWorkspace.RootDirectory, "Test.razor") %>"
     public void M()
     {
     }
 }
-                                                          ]]></Document>
+                                                          </Document>
                                                       </Project>
                                                   </Workspace>)
                 Dim result = GetPeekResultCollection(workspace)
@@ -308,11 +308,12 @@ public partial class D
             Dim textBuffer = document.GetTextBuffer()
             Dim textView = document.GetTextView()
 
-            Dim peekableItemSource As New PeekableItemSource(textBuffer,
-                                                             workspace.GetService(Of IPeekableItemFactory),
-                                                             New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
-                                                             workspace.GetService(Of IThreadingContext),
-                                                             workspace.GetService(Of IUIThreadOperationExecutor))
+            Dim peekableItemSource As New PeekableItemSource(
+                textBuffer,
+                workspace.GetService(Of PeekableItemFactory),
+                New MockPeekResultFactory(workspace.GetService(Of IPersistentSpanFactory)),
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IUIThreadOperationExecutor))
 
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)

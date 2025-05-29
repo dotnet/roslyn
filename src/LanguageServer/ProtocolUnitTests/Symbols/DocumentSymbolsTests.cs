@@ -90,7 +90,7 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
             CreateSymbolInformation(LSP.SymbolKind.Class, "Test.A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),
             CreateSymbolInformation(LSP.SymbolKind.Method, "A()", testLspServer.GetLocations("constructor").Single(), Glyph.MethodPublic, "Test.A"),
             CreateSymbolInformation(LSP.SymbolKind.Method, "M()", testLspServer.GetLocations("method").Single(), Glyph.MethodPrivate, "Test.A"),
-            CreateSymbolInformation(LSP.SymbolKind.Operator, "operator +(A a1, A a2)", testLspServer.GetLocations("operator").Single(), Glyph.Operator, "Test.A"),
+            CreateSymbolInformation(LSP.SymbolKind.Operator, "operator +(A a1, A a2)", testLspServer.GetLocations("operator").Single(), Glyph.OperatorPrivate, "Test.A"),
         ];
 
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
@@ -173,6 +173,49 @@ public sealed class DocumentSymbolsTests : AbstractLanguageServerProtocolTests
         var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer);
         Assert.NotNull(results);
         Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetDocumentSymbolsAsync_LocalFunction(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            namespace Test;
+            {|class:class {|classSelection:A|}
+            {
+                {|method:void {|methodSelection:M|}()
+                {
+                    {|localFunction:void {|localFunctionSelection:LocalFunction|}()
+                    {
+                    }|}
+                }|}
+            }|}
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities()
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities()
+            {
+                DocumentSymbol = new LSP.DocumentSymbolSetting()
+                {
+                    HierarchicalDocumentSymbolSupport = true
+                }
+            }
+        };
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+        var classSymbol = CreateDocumentSymbol(LSP.SymbolKind.Class, "A", "Test.A", testLspServer.GetLocations("class").Single(), testLspServer.GetLocations("classSelection").Single());
+        var methodSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), classSymbol);
+        var localFunctionSymbol = CreateDocumentSymbol(LSP.SymbolKind.Method, "LocalFunction", "LocalFunction()", testLspServer.GetLocations("localFunction").Single(), testLspServer.GetLocations("localFunctionSelection").Single(), methodSymbol);
+
+        LSP.DocumentSymbol[] expected = [classSymbol];
+
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        Assert.NotNull(results);
+        Assert.Equal(expected.Length, results.Length);
+        for (var i = 0; i < results.Length; i++)
+        {
+            AssertDocumentSymbolEquals(expected[i], results[i]);
+        }
     }
 
     private static async Task<TReturn?> RunGetDocumentSymbolsAsync<TReturn>(TestLspServer testLspServer)

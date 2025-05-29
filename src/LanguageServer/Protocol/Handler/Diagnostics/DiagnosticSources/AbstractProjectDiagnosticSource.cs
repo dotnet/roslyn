@@ -30,7 +30,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
     public Project GetProject() => Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Project.FilePath)
-            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), Uri = ProtocolConversions.CreateAbsoluteUri(Project.FilePath) }
+            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Project), DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Project.FilePath) }
             : null;
     public string ToDisplayString() => Project.Name;
 

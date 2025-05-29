@@ -97,21 +97,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_ParamArrayAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.DateTimeConstantAttribute, out signatureIndex))
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.DecimalConstantAttribute, out signatureIndex))
                     {
                         if ((signatureIndex == 0 || signatureIndex == 1) && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(
                                 signatureIndex == 0 ? WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor :
                                     WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctorByteByteInt32Int32Int32,
                                 constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DefaultParameterValueAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                 }
