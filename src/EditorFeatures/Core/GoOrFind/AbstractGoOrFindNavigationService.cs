@@ -198,7 +198,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             return delayHook(cancellationToken);
         }
 
-        // If we want to navigate to a single result if it is found quickly, then delay showing the find-refs winfor
+        // If we want to navigate to a single result if it is found quickly, then delay showing the find-refs window
         // for 1.5 seconds to see if a result comes in by then.  If we're not navigating and are always showing the
         // far window, then don't have any delay showing the window.
         var delay = this.NavigateToSingleResultIfQuick
