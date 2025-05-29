@@ -25,6 +25,7 @@
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
+    <InternalsVisibleTo Include="SemanticSearch.Tool"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />

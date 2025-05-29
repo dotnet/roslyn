@@ -729,6 +729,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Extensions.Package", "src\Workspaces\SharedUtilitiesAndExtensions\Compiler\Extensions\Microsoft.CodeAnalysis.Extensions.Package.csproj", "{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticSearch.Tool", "src\Tools\SemanticSearch\CommandLineTool\SemanticSearch.Tool.csproj", "{CB46DD76-E57D-CAAB-A325-48CF588FAFB7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1795,6 +1797,10 @@ Global
 		{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB46DD76-E57D-CAAB-A325-48CF588FAFB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB46DD76-E57D-CAAB-A325-48CF588FAFB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB46DD76-E57D-CAAB-A325-48CF588FAFB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB46DD76-E57D-CAAB-A325-48CF588FAFB7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2136,6 +2142,7 @@ Global
 		{6C816C16-D563-884A-D65B-5E68C6FB6659} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{02BCC112-0A29-43AA-84FA-C71C18A9486C} = {7A69EA65-4411-4CD0-B439-035E720C1BD3}
 		{EEFAB994-3778-9C0D-1E88-C0ABB1D3DE43} = {7A69EA65-4411-4CD0-B439-035E720C1BD3}
+		{CB46DD76-E57D-CAAB-A325-48CF588FAFB7} = {52ABB0E4-C3A1-4897-B51B-18EDA83F5D20}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

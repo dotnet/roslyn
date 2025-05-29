@@ -28,6 +28,7 @@ internal sealed class CSharpSemanticSearchUtilities
             global using System.Threading;
             global using System.Threading.Tasks;
             global using Microsoft.CodeAnalysis;
+            global using Microsoft.CodeAnalysis.Operations;
             global using Microsoft.CodeAnalysis.Text;
             global using static {{SemanticSearchUtilities.ToolsTypeName}};
             

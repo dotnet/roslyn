@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <UseAppHost>false</UseAppHost>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Not using ProjectReference since it does not execute the specified targets when building in VS.
+      See https://github.com/microsoft/msbuild/issues/5434.
+    -->
+
+    <CopyPublishedOutputProjectReference Include="..\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
+      <OutputItemType>SemanticSearch_RefAssemblies</OutputItemType>
+      <SetTargetFramework>TargetFramework=$(NetVS)</SetTargetFramework>
+    </CopyPublishedOutputProjectReference>
+  </ItemGroup>
+
+  <Target Name="_DeploySemanticSearchRefAssemblies" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishVsixItems" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="%(CopyPublishedOutputProjectReference.OutputItemType)" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(SemanticSearch_RefAssemblies)" Link="ReferenceAssemblies\%(FileName)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+</Project>

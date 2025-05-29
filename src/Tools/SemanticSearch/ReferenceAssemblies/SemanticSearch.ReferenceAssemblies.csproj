@@ -52,7 +52,9 @@
       <_InputFile Include="@(ApiSet)" />
       <_InputFile Include="@(_InputReference)" />
 
-      <_OutputFile Include="@(ApiSet->'$(_OutputDir)%(FileName).dll')" />
+      <_OutputRefAssembly Include="@(ApiSet->'$(_OutputDir)%(FileName).dll')" />
+
+      <_OutputFile Include="@(_OutputRefAssembly)" />
       <_OutputFile Include="@(Apis)" />
     </ItemGroup>
   </Target>
@@ -77,5 +79,5 @@
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)" />
 
   <!-- Generates ref assemblies -->
-  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputRefAssembly)" />
 </Project>
