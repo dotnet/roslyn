@@ -49,7 +49,7 @@ internal sealed class SolutionExplorerSymbolTreeItemCommandHandler
                     var command = (OleMenuCommand)sender;
                     command.Visible = true;
                     command.Enabled = true;
-                }, 
+                },
                 (sender, args) =>
                 {
                     var command = (OleMenuCommand)sender;
