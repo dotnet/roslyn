@@ -34,6 +34,7 @@ public class InterceptorsTests : CSharpTestBase
         """, "attributes.cs");
 
     private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global");
+    private static readonly CSharpParseOptions RegularNextWithInterceptors = TestOptions.RegularNext.WithFeature("InterceptorsNamespaces", "global");
 
     private static readonly SyntaxTree s_attributesTree = CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors);
 
@@ -8481,4 +8482,976 @@ public static class S1Ext
         var method = model.GetInterceptorMethod(node);
         AssertEx.Equal("System.Span<System.Int32> D.M(this ref S s)", method.ToTestDisplayString());
     }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_01()
+    {
+        // original calls use extensions, interceptors are classic
+        var source = """
+object.M();
+" ran".M2();
+
+static class E
+{
+    extension(object o)
+    {
+        public static void M() => throw null;
+        public void M2() => throw null;
+    }
 }
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method() { System.Console.Write(42); }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+    public static void Method2(this object o) { System.Console.Write(o); }
+}
+""";
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "42 ran").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_02()
+    {
+        // top-level difference in receiver parameter nullability
+        var source = """
+#nullable enable
+
+new object().M();
+
+static class E
+{
+    extension(object o)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(this object? o) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_03()
+    {
+        // nested difference in receiver parameter nullability
+        var source = """
+#nullable enable
+
+new C<object>().M();
+
+static class E
+{
+    extension(C<object> o)
+    {
+        public void M() => throw null!;
+    }
+}
+
+class C<T> { }
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(this C<object?> o) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'C<object> o' on 'E.extension(C<object>).M()'.
+            //     [System.Runtime.CompilerServices.InterceptsLocation(1, "T81R8uSCzQRaZ7VAf0D7uCQAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("C<object> o", "E.extension(C<object>).M()").WithLocation(5, 6));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_04()
+    {
+        // refness difference in receiver parameter
+        var source = """
+42.M();
+
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(ref this int i) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'int i' on 'E.extension(int).M()'.
+            //     [System.Runtime.CompilerServices.InterceptsLocation(1, "JjM6W8JDDhaVDDV4fi7OigMAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("int i", "E.extension(int).M()").WithLocation(3, 6));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_05()
+    {
+        var source = """
+42.M();
+
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method() { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9148: Interceptor must have a 'this' parameter matching parameter 'int i' on 'E.extension(int).M()'.
+            //     [System.Runtime.CompilerServices.InterceptsLocation(1, "JjM6W8JDDhaVDDV4fi7OigMAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("int i", "E.extension(int).M()").WithLocation(3, 6));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_06()
+    {
+        var source = """
+42.M();
+
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(int i) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9144: Cannot intercept method 'E.extension(int).M()' with interceptor 'Interceptors.Method(int)' because the signatures do not match.
+            //     [System.Runtime.CompilerServices.InterceptsLocation(1, "JjM6W8JDDhaVDDV4fi7OigMAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.extension(int).M()", "Interceptors.Method(int)").WithLocation(3, 6));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_07()
+    {
+        // original calls use static extension, interceptors with and without `this`
+        var source = """
+int.M(42);
+int.M(43);
+
+static class E
+{
+    extension(int)
+    {
+        public static void M(int i) => throw null!;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(int i) { }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+    public static void Method2(this int i) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_09()
+    {
+        // original calls use non-extension invocations, interceptor is an extension method
+        var source = """
+C.M();
+new C().M2();
+
+class C
+{
+    public static void M() => throw null!;
+    public void M2() => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(C c)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public static void Method() { System.Console.Write("ran "); }
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        public void Method2() { System.Console.Write(c); }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "ran C").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_10()
+    {
+        // original call uses non-extension instance invocations, interceptor is a static extension method
+        var source = """
+new C().M2();
+
+class C
+{
+    public void M2() => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(C)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public static void Method(C c) { }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,10): error CS9144: Cannot intercept method 'C.M2()' with interceptor 'Interceptors.extension(C).Method(C)' because the signatures do not match.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "6ii77DXfMpjahn56tJIXdAgAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("C.M2()", "Interceptors.extension(C).Method(C)").WithLocation(5, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_11()
+    {
+        // original call uses classic extension invocations, interceptor is a new extension method
+        var source = """
+new object().M();
+
+public static class Extensions
+{
+    public static void M(this object o) => throw null;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "ran").VerifyDiagnostics();
+
+        interceptors = $$"""
+static class Interceptors
+{
+    extension(object)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public static void Method(object o) { }
+    }
+}
+""";
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,10): error CS9148: Interceptor must have a 'this' parameter matching parameter 'object o' on 'Extensions.M(object)'.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "rthnOf6S6aLCQ1g5K5pDgA0AAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorMustHaveMatchingThisParameter, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("object o", "Extensions.M(object)").WithLocation(5, 10));
+
+        interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method(this object o) { System.Console.Write("ran"); }
+}
+""";
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_12()
+    {
+        // original call uses new extension invocations, interceptors are new extension methods
+        var source = """
+object.M();
+new object().M2();
+
+public static class Extensions
+{
+    extension(object o)
+    {
+        public static void M() => throw null;
+        public void M2() => throw null;
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public static void Method() { System.Console.Write("ran1 "); }
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        public void Method2() { System.Console.Write("ran2"); }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "ran1 ran2").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_13()
+    {
+        // interception within extension body
+        var source = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            i.ToString();
+        }
+
+        public string P => i.ToString();
+
+        public static void M2()
+        {
+            42.ToString();
+        }
+
+        public static string P2 => 43.ToString();
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+10.M();
+_ = 11.P;
+int.M2();
+_ = int.P2;
+
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static string Method1(this ref int o) { System.Console.Write("ran1 "); return ""; }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+    public static string Method2(this ref int i) { System.Console.Write("ran2 "); return ""; }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+    public static string Method3(this ref int i) { System.Console.Write("ran3 "); return ""; }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+    public static string Method4(this ref int i) { System.Console.Write("ran4 "); return ""; }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors, expectedOutput: "ran1 ran2 ran3 ran4").VerifyDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_14()
+    {
+        // mismatch in return types
+        var source = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M()
+        {
+            i.ToString();
+        }
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+    public static void Method1(this ref int o) { }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        // Consider printing the return types as part of the compared signatures with FormattedSymbol
+        comp.VerifyEmitDiagnostics(
+            // (3,6): error CS9144: Cannot intercept method 'int.ToString()' with interceptor 'Interceptors.Method1(ref int)' because the signatures do not match.
+            //     [System.Runtime.CompilerServices.InterceptsLocation(1, "24Q46HTnfKKGDA49FINUx2kAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorSignatureMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("int.ToString()", "Interceptors.Method1(ref int)").WithLocation(3, 6));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_15()
+    {
+        var source = """
+object.M(new object());
+
+public static class E
+{
+    extension(object)
+    {
+        public static void M(object o) { }
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method(object o2) { }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (5,10): error CS9149: Interceptor must not have a 'this' parameter because 'E.extension(object).M(object)' does not have a 'this' parameter.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "CtYO/tuDG+qIspclOkHaEwcAAAA=")]
+            Diagnostic(ErrorCode.ERR_InterceptorMustNotHaveThisParameter, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.extension(object).M(object)").WithLocation(5, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_16()
+    {
+        // receiver initially isn't converted (would be handled as constrained call) but gets converted for interceptor
+        var source = """
+new S().ToString();
+
+struct S { }
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(System.ValueType v)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public string Method() { System.Console.Write("ran"); return ""; }
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_17()
+    {
+        // Implicitly capture receiver to temp in 's.M()' because target method needs a writable reference.
+        var source = """
+S.M0(new S());
+
+public struct S
+{
+    void M() => System.Console.WriteLine(0);
+
+    public static void M0(in S s)
+    {
+        s.M();
+    }
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(ref S s)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public void Method() => System.Console.WriteLine("ran");
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        var verifier = CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "void Interceptors.Method(ref S)"
+  IL_000e:  ret
+}
+""");
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_18()
+    {
+        // Nullability difference in return
+        var source = """
+#nullable enable
+
+new object().M();
+new object().M();
+new object().M();
+
+new object().M2();
+new object().M2();
+new object().M2();
+
+new object().M3();
+new object().M3();
+new object().M3();
+
+static class E
+{
+    public static string M(this object o) => throw null!;
+    public static string? M2(this object o) => throw null!;
+#nullable disable
+    public static string M3(this object o) => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public string Method0() => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})] // 1
+        public string? Method1() => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public string Method2() => throw null!;
+
+#nullable enable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+        public string Method3() => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[4]!)}})]
+        public string? Method4() => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[5]!)}})]
+        public string Method5() => throw null!;
+
+#nullable enable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[6]!)}})]
+        public string Method6() => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[7]!)}})]
+        public string? Method7() => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[8]!)}})]
+        public string Method9() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (10,10): warning CS9158: Nullability of reference types in return type doesn't match interceptable method 'E.M(object)'.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "kyzJ78tfBnC7NCAmEETPGDQAAAA=")] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.M(object)").WithLocation(10, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_19()
+    {
+        // Nullability difference in parameter
+        var source = """
+#nullable enable
+
+new object().M("");
+new object().M("");
+new object().M("");
+
+new object().M2("");
+new object().M2("");
+new object().M2("");
+
+new object().M3("");
+new object().M3("");
+new object().M3("");
+
+static class E
+{
+    public static void M(this object o, string s) => throw null!;
+    public static void M2(this object o, string? s) => throw null!;
+#nullable disable
+    public static void M3(this object o, string s) => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method0(string s) => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        public void Method1(string? s) => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public void Method2(string s) => throw null!;
+
+#nullable enable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})] // 1
+        public void Method3(string s) => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[4]!)}})]
+        public void Method4(string? s) => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[5]!)}})]
+        public void Method5(string s) => throw null!;
+
+#nullable enable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[6]!)}})]
+        public void Method6(string s) => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[7]!)}})]
+        public void Method7(string? s) => throw null!;
+
+#nullable disable
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[8]!)}})]
+        public void Method9(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (18,10): warning CS9159: Nullability of reference types in type of parameter 's' doesn't match interceptable method 'E.M2(object, string?)'.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "+VOLrIHFLh9ndZzTPFZ19mIAAAA=")] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("s", "E.M2(object, string?)").WithLocation(18, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_20()
+    {
+        // Nullability of receiver, original is extension method
+        var source = """
+#nullable enable
+
+object? oNull = null;
+oNull.M(); // 1
+
+object? oNull2 = null;
+oNull2.M();
+
+object? oNotNull = new object();
+oNotNull.M();
+oNotNull.M();
+
+static class E
+{
+    public static void M(this object? o) => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})] // 1
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})] // 2
+        public void Method0() => throw null!;
+    }
+
+    extension(object? o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+        public void Method1() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (7,10): warning CS9159: Nullability of reference types in type of parameter 'o' doesn't match interceptable method 'E.M(object?)'.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "UOx514BZZQx0rQJnlTZlGTEAAAA=")] // 1
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("o", "E.M(object?)").WithLocation(7, 10),
+            // (8,10): warning CS9159: Nullability of reference types in type of parameter 'o' doesn't match interceptable method 'E.M(object?)'.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "UOx514BZZQx0rQJnlTZlGZAAAAA=")] // 2
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("o", "E.M(object?)").WithLocation(8, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_21()
+    {
+        // Nullability of receiver, original is instance method
+        var source = """
+#nullable enable
+
+object? oNull = null;
+oNull.ToString(); // 1
+
+object? oNull2 = null;
+oNull2.ToString(); // 2
+
+object? oNotNull = new object();
+oNotNull.ToString();
+oNotNull.ToString();
+
+object? oNull3 = null;
+oNull3.ToString(); // 3
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+#nullable enable
+
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public string Method0() { System.Console.Write("ran0 "); return ""; }
+    }
+
+    extension(object? o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+        public string Method1() { System.Console.Write("ran1 "); return ""; }
+    }
+
+    [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[4]!)}})]
+    public static string Method2(this object o) { System.Console.Write("ran2 "); return ""; }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (4,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull.ToString(); // 1
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull").WithLocation(4, 1),
+            // (7,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull2.ToString(); // 2
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull2").WithLocation(7, 1),
+            // (14,1): warning CS8602: Dereference of a possibly null reference.
+            // oNull3.ToString(); // 3
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "oNull3").WithLocation(14, 1));
+
+        CompileAndVerify(comp, expectedOutput: "ran0 ran1 ran0 ran1 ran2");
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_22()
+    {
+        // Tuple names difference in return
+        var source = """
+new object().M();
+new object().M();
+
+static class E
+{
+    public static (object a, object b) M(this object o) => throw null!;
+    public static (object a, object b) M2(this object o) => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public (object a, object b) Method0() => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})] // 1
+        public (object other1, object other2) Method1() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (8,10): warning CS9154: Intercepting a call to 'E.M(object)' with interceptor 'Interceptors.extension(object).Method1()', but the signatures do not match.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "ZhBCDQ5cTiMfojQyN7NYNyAAAAA=")] // 1
+            Diagnostic(ErrorCode.WRN_InterceptorSignatureMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.M(object)", "Interceptors.extension(object).Method1()").WithLocation(8, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_23()
+    {
+        // scoped difference in parameter, original is extension method
+        var source = """
+RS s = new RS();
+new object().M(ref s);
+new object().M(ref s);
+
+new object().M2(ref s);
+new object().M2(ref s);
+
+static class E
+{
+    public static void M(this object o, scoped ref RS s) => throw null!;
+    public static void M2(this object o, ref RS s) => throw null!;
+}
+
+public ref struct RS { }
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(object o)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public void Method0(scoped ref RS s) => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})] // 1
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+        public void Method1(ref RS s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (9,10): error CS9156: Cannot intercept call to 'E.M(object, scoped ref RS)' with 'Interceptors.Method1(object, ref RS)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "FcYsmv49zJYGD+zKGdRnfDcAAAA=")] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("E.M(object, scoped ref RS)", "Interceptors.Method1(object, ref RS)").WithLocation(9, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_24()
+    {
+        // scoped difference in parameter, original is instance method
+        var source = """
+RS s = new RS();
+new C().M(ref s);
+new C().M(ref s);
+
+new C().M2(ref s);
+new C().M2(ref s);
+
+public class C
+{
+    public void M(scoped ref RS s) => throw null!;
+    public void M2(ref RS s) => throw null!;
+}
+
+public ref struct RS { }
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(C c)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[2]!)}})]
+        public void Method0(scoped ref RS s) => throw null!;
+
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})] // 1
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[3]!)}})]
+        public void Method1(ref RS s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics(
+            // (9,10): error CS9156: Cannot intercept call to 'C.M(scoped ref RS)' with 'Interceptors.extension(C).Method1(ref RS)' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.
+            //         [System.Runtime.CompilerServices.InterceptsLocation(1, "WYzfSbWruDNNkIt11JOTKC0AAAA=")] // 1
+            Diagnostic(ErrorCode.ERR_InterceptorScopedMismatch, "System.Runtime.CompilerServices.InterceptsLocation").WithArguments("C.M(scoped ref RS)", "Interceptors.extension(C).Method1(ref RS)").WithLocation(9, 10));
+    }
+
+    [Fact, CompilerTrait(CompilerFeature.Extensions)]
+    public void Extensions_25()
+    {
+        // scoped difference in receiver
+        var source = """
+RS s = new RS();
+s.M();
+s.M();
+
+public ref struct RS
+{
+    public void M() => throw null!;
+}
+""";
+        var locations = GetInterceptableLocations(source);
+        var interceptors = $$"""
+static class Interceptors
+{
+    extension(ref RS s)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[0]!)}})]
+        public void Method0() => throw null!;
+    }
+
+    extension(scoped ref RS s)
+    {
+        [System.Runtime.CompilerServices.InterceptsLocation({{GetAttributeArgs(locations[1]!)}})]
+        public void Method1() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: RegularNextWithInterceptors);
+        comp.VerifyEmitDiagnostics();
+    }
+}
+
