@@ -402,13 +402,7 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
             // (3,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -436,12 +430,6 @@ class C<T> { }
             // (3,18): error CS0692: Duplicate type parameter 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
-            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(C<T>) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(C<T>) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
             // (3,23): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 23));
@@ -2770,11 +2758,12 @@ public static class Extensions
         Assert.True(parameter.Type.IsErrorType());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78472")]
     public void ReceiverParameter_TypeParameter_Unreferenced_01()
     {
         var src = """
 int.M();
+int.M<string>();
 
 public static class Extensions
 {
@@ -2788,10 +2777,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,18): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T>(int)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
     [Fact]
@@ -2799,6 +2785,7 @@ public static class Extensions
     {
         var src = """
 int.M();
+int.M<int, string>();
 
 public static class Extensions
 {
@@ -2812,10 +2799,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
-            //     extension<T1, T2>(T1)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
     [Fact]
@@ -2836,10 +2820,178 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
-            //     extension<T1, T2>(T1) where T1 : class
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_04()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_05()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public static int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_06()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int P => 0;
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_07()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_08()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int)
+    {
+        public static int operator +(int i, T t) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (3,18): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(3, 18),
+            // (5,36): error CS0563: One of the parameters of a binary operator must be the containing type
+            //         public static int operator +(int i, int j) => 0;
+            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 36),
+            // (5,36): error CS9282: Extension declarations can include only methods or properties
+            //         public static int operator +(int i, int j) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 36));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_09()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public void operator +=(T t) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22),
+            // (5,30): error CS9282: Extension declarations can include only methods or properties
+            //         public void operator +=(T t) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+=").WithLocation(5, 30),
+            // (5,41): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+            //         public void operator +=(T t) => 0;
+            Diagnostic(ErrorCode.ERR_IllegalStatement, "0").WithLocation(5, 41));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_10()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public static implicit operator string() => "";
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22),
+            // (5,41): error CS9282: Extension declarations can include only methods or properties
+            //         public static implicit operator string() => "";
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "string").WithLocation(5, 41),
+            // (5,47): error CS1019: Overloadable unary operator expected
+            //         public static implicit operator string() => "";
+            Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "()").WithLocation(5, 47));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_11()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int this[int j] => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
+            //     extension<T>(int i)
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(3, 22),
+            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20));
     }
 
     [Fact]
@@ -24202,13 +24354,7 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(55, 18),
             // (55,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21),
-            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25),
-            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21)
             );
     }
 
@@ -27003,15 +27149,26 @@ public static class Extensions2
         static void M1(T2 x) {}
     }
 }
+
+
+public static class Extensions3
+{
+    extension<T3, U3>(T3)
+    {
+        static void M1(T3 x) {}
+    }
+
+    extension<T3>(T3)
+    {
+        static void M1<U3>(T3 x) {}
+    }
+}
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is not referenced.
-            //     extension<T1, U1>(T1)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "U1").WithLocation(8, 23),
-            // (16,23): error CS9295: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is not referenced.
-            //     extension<T2, U2>(T2)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T2").WithArguments("T2", "U2").WithLocation(16, 23));
+            // (37,21): error CS0111: Type 'Extensions3' already defines a member called 'M1' with the same parameter types
+            //         static void M1<U3>(T3 x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions3").WithLocation(37, 21));
     }
 
     [Fact]
@@ -32429,10 +32586,10 @@ static class E
             // (1,11): error CS0117: 'C' does not contain a definition for 'P'
             // int i = C.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
-            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
+            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'T' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "T").WithLocation(7, 21),
-            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is not referenced.
+            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter 'U' is not referenced.
             //     extension<T, U>(C)
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "U").WithLocation(7, 21));
     }

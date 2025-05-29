@@ -1986,6 +1986,45 @@ next:;
                     var syntax = (ExtensionBlockDeclarationSyntax)this.GetNonNullSyntaxNode();
                     diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
                 }
+
+                if (TryGetOrCreateExtensionMarker() is { Parameters: [var extensionParameter] })
+                {
+                    checkUnderspecifiedGenericExtension(extensionParameter, TypeParameters, diagnostics);
+                }
+            }
+
+            return;
+
+            void checkUnderspecifiedGenericExtension(ParameterSymbol parameter, ImmutableArray<TypeParameterSymbol> typeParameters, BindingDiagnosticBag diagnostics)
+            {
+                if (GetMembers().All((m, a) => m is MethodSymbol { MethodKind: MethodKind.Ordinary }, arg: (object?)null))
+                {
+                    return;
+                }
+
+                var underlyingType = parameter.Type;
+                var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                foreach (var typeParameter in typeParameters)
+                {
+                    if (!usedTypeParameters.Contains(typeParameter))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, parameter.GetFirstLocation(), underlyingType, typeParameter);
+                    }
+                }
+
+                usedTypeParameters.Free();
+            }
+
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+            {
+                if (type is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
             }
         }
     }
