@@ -21,13 +21,14 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.GoToDefinition;
+namespace Microsoft.CodeAnalysis.GoOrFind;
 
 internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListener listener,
     IGlobalOptionService globalOptions)
+    : IGoOrFindNavigationService
     where TLanguageService : class, ILanguageService
 {
     public readonly IThreadingContext ThreadingContext = threadingContext;
@@ -76,10 +77,8 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
 
     protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, TLanguageService service, int caretPosition, CancellationToken cancellationToken);
 
-#pragma warning disable CA1822 // Mark members as static
     public bool IsAvailable([NotNullWhen(true)] Document? document)
         => document?.GetLanguageService<TLanguageService>() != null;
-#pragma warning restore CA1822 // Mark members as static
 
     public bool ExecuteCommand(Document document, int position)
     {

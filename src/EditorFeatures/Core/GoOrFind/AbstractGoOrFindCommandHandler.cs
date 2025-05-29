@@ -2,23 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 
-namespace Microsoft.CodeAnalysis.GoToDefinition;
+namespace Microsoft.CodeAnalysis.GoOrFind;
 
-internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs>(
-    AbstractGoOrFindNavigationService<TLanguageService> navigationService) : ICommandHandler<TCommandArgs>
-    where TLanguageService : class, ILanguageService
+internal abstract class AbstractGoOrFindCommandHandler<TCommandArgs>(
+    IGoOrFindNavigationService navigationService) : ICommandHandler<TCommandArgs>
     where TCommandArgs : EditorCommandArgs
 {
-    private readonly AbstractGoOrFindNavigationService<TLanguageService> _navigationService = navigationService;
+    private readonly IGoOrFindNavigationService _navigationService = navigationService;
 
     public string DisplayName => _navigationService.DisplayName;
 
@@ -32,8 +27,6 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
     {
-        _navigationService.ThreadingContext.ThrowIfNotOnUIThread();
-
         var subjectBuffer = args.SubjectBuffer;
         var caret = args.TextView.GetCaretPoint(subjectBuffer);
         if (!caret.HasValue)
@@ -43,16 +36,6 @@ internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TComman
         if (!_navigationService.IsAvailable(document))
             return false;
 
-        _navigationService.ExecuteCommand(document, caret.Value.Position);
-        return true;
-    }
-
-    public TestAccessor GetTestAccessor()
-        => new(this);
-
-    public readonly struct TestAccessor(AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs> instance)
-    {
-        public void SetDelayHook(Func<CancellationToken, Task> hook)
-            => instance._navigationService.GetTestAccessor().DelayHook = hook;
+        return _navigationService.ExecuteCommand(document, caret.Value.Position);
     }
 }

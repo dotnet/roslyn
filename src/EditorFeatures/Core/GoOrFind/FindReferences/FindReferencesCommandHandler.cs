@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GoToDefinition;
+using Microsoft.CodeAnalysis.GoOrFind;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,16 +20,14 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindReferences;
 
-[Export(typeof(ICommandHandler))]
-[ContentType(ContentTypeNames.RoslynContentType)]
-[Name(PredefinedCommandHandlerNames.FindReferences)]
+[Export(typeof(FindReferencesNavigationService))]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class FindReferencesCommandHandler(
+internal sealed class FindReferencesNavigationService(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IFindUsagesService, FindReferencesCommandArgs>(
+    IGlobalOptionService globalOptions) : AbstractGoOrFindNavigationService<IFindUsagesService>(
         threadingContext,
         streamingPresenter,
         listenerProvider.GetListener(FeatureAttribute.FindReferences),
@@ -57,3 +55,11 @@ internal sealed class FindReferencesCommandHandler(
     protected override Task FindActionAsync(IFindUsagesContext context, Document document, IFindUsagesService service, int caretPosition, CancellationToken cancellationToken)
         => service.FindReferencesAsync(context, document, caretPosition, this.ClassificationOptionsProvider, cancellationToken);
 }
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.FindReferences)]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class FindReferencesCommandHandler(FindReferencesNavigationService navigationService)
+    : AbstractGoOrFindCommandHandler<FindReferencesCommandArgs>(navigationService);
