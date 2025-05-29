@@ -60,7 +60,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     /// the presenter.  In that case, the presenter will notify us that it has be re-purposed and we will also cancel
     /// this source.
     /// </remarks>
-    private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
+    private CancellationTokenSource _cancellationTokenSource = new();
 
     /// <summary>
     /// This hook allows for stabilizing the asynchronous nature of this command handler for integration testing.
@@ -95,11 +95,12 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             return false;
 
         // cancel any prior find-refs that might be in progress.
-        var cancellationToken = _cancellationSeries.CreateNext();
+        _cancellationTokenSource.Cancel();
+        _cancellationTokenSource = new();
 
         // we're going to return immediately from ExecuteCommand and kick off our own async work to invoke the
         // operation. Once this returns, the editor will close the threaded wait dialog it created.
-        _inProgressCommand = ExecuteCommandAsync(document, service, position, cancellationToken);
+        _inProgressCommand = ExecuteCommandAsync(document, service, position, _cancellationTokenSource);
         return true;
     }
 
@@ -107,7 +108,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Document document,
         TLanguageService service,
         int position,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
         // This is a fire-and-forget method (nothing guarantees observing it).  As such, we have to handle cancellation
         // and failure ourselves.
@@ -126,7 +127,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             // any failures from it.  Technically this should not be possible as it should be inside this same
             // try/catch. however this code wants to be very resilient to any prior mistakes infecting later operations.
             await _inProgressCommand.NoThrowAwaitable(captureContext: false);
-            await ExecuteCommandWorkerAsync(document, service, position, cancellationToken).ConfigureAwait(false);
+            await ExecuteCommandWorkerAsync(document, service, position, cancellationTokenSource).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -140,7 +141,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Document document,
         TLanguageService service,
         int position,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
         // Switch to the BG immediately so we can keep as much work off the UI thread.
         await TaskScheduler.Default;
@@ -158,6 +159,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         // IStreamingFindUsagesPresenter.
         var findContext = new BufferedFindUsagesContext();
 
+        var cancellationToken = cancellationTokenSource.Token;
         var delayBeforeShowingResultsWindowTask = DelayAsync(cancellationToken);
         var findTask = FindResultsAsync(findContext, document, service, position, cancellationToken);
 
@@ -188,7 +190,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         // We either got no results, or 1.5 has passed and we didn't figure out the symbols to navigate to or
         // present.  So pop up the presenter to show the user that we're involved in a longer search, without
         // blocking them.
-        await PresentResultsInStreamingPresenterAsync(document, findContext, findTask, cancellationToken).ConfigureAwait(false);
+        await PresentResultsInStreamingPresenterAsync(document, findContext, findTask, cancellationTokenSource).ConfigureAwait(false);
     }
 
     private Task DelayAsync(CancellationToken cancellationToken)
@@ -212,8 +214,9 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
         Document document,
         BufferedFindUsagesContext findContext,
         Task findTask,
-        CancellationToken cancellationToken)
+        CancellationTokenSource cancellationTokenSource)
     {
+        var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, GetStreamingPresenterOptions(document));
 
@@ -229,7 +232,7 @@ internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
             // Hook up the presenter's cancellation token to our overall governing cancellation token.  In other
             // words, if something else decides to present in the presenter (like a find-refs call) we'll hear about
             // that and can cancel all our work.
-            presenterCancellationToken.Register(() => _cancellationSeries.CreateNext());
+            presenterCancellationToken.Register(() => cancellationTokenSource.Cancel());
 
             // now actually wait for the find work to be done.
             await findTask.ConfigureAwait(false);
