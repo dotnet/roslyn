@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AbstractBuiltInCodeStyleDiagnosticAnalyzer\AbstractBuiltInCodeStyleDiagnosticAnalyzerTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersFixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddOrRemoveAccessibilityModifiersFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddAnonymousTypeMemberName\AddAnonymousTypeMemberNameTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddExplicitCast\AddExplicitCastTests_FixAllTests.cs" />
@@ -72,7 +72,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveUnnecessaryDiscardDesignation\RemoveUnnecessaryDiscardDesignationTests.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddAccessibilityModifiersTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AddOrRemoveAccessibilityModifiersTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesFixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddBraces\AddBracesTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddRequiredParentheses\AddRequiredPatternParenthesesTests.cs" />

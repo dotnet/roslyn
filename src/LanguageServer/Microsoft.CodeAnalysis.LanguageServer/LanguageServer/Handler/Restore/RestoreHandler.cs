@@ -106,7 +106,7 @@ internal sealed class RestoreHandler(DotnetCliHelper dotnetCliHelper) : ILspServ
             .Distinct()
             .ToImmutableArray();
 
-        context.TraceInformation($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
+        context.TraceDebug($"Found {projects.Length} restorable projects from {solution.Projects.Count()} projects in solution");
         return projects;
     }
 }

@@ -923,12 +923,6 @@ This version used in: {2}</value>
   <data name="Add_null_check" xml:space="preserve">
     <value>Add null check</value>
   </data>
-  <data name="Add_string_IsNullOrEmpty_check" xml:space="preserve">
-    <value>Add 'string.IsNullOrEmpty' check</value>
-  </data>
-  <data name="Add_string_IsNullOrWhiteSpace_check" xml:space="preserve">
-    <value>Add 'string.IsNullOrWhiteSpace' check</value>
-  </data>
   <data name="Create_and_assign_field_0" xml:space="preserve">
     <value>Create and assign field '{0}'</value>
   </data>
@@ -3228,5 +3222,8 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Multiple_handlers_found_for_message_0" xml:space="preserve">
     <value>Multiple handlers found for message {0}.</value>
+  </data>
+  <data name="Add_0_check" xml:space="preserve">
+    <value>Add '{0}' check</value>
   </data>
 </root>

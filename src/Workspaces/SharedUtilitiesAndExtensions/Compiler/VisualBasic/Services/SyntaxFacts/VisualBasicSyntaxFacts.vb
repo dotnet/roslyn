@@ -15,8 +15,10 @@ Imports System.Diagnostics.CodeAnalysis
 
 #If CODE_STYLE Then
 Imports Microsoft.CodeAnalysis.Internal.Editing
+Imports Microsoft.CodeAnalysis.Collections
 #Else
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Collections
 #End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService

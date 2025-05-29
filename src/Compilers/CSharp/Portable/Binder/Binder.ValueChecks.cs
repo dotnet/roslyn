@@ -579,13 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnconvertedObjectCreationExpression:
-                    if (valueKind == BindValueKind.RValue)
-                    {
-                        return expr;
-                    }
-                    break;
-
                 case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.TupleLiteral:
                     if (valueKind == BindValueKind.RValue)
                     {
                         return expr;
@@ -1389,7 +1384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (RequiresRefAssignableVariable(valueKind))
             {
-                Debug.Assert(!fieldSymbol.IsStatic);
                 Debug.Assert(valueKind == BindValueKind.RefAssignable);
 
                 switch (fieldSymbol.RefKind)
@@ -1399,7 +1393,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     case RefKind.Ref:
                     case RefKind.RefReadOnly:
-                        return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, BindValueKind.Assignable, diagnostics);
+                        if (fieldSymbol.IsStatic)
+                        {
+                            Debug.Assert(fieldAccess.ReceiverOpt is null or BoundTypeExpression);
+                            break;
+                        }
+                        else
+                        {
+                            Debug.Assert(fieldAccess.ReceiverOpt is not null);
+                            return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, BindValueKind.Assignable, diagnostics);
+                        }
                     default:
                         throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
                 }

@@ -1710,6 +1710,7 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
         AddIf(modifiers.IsVolatile, VolatileKeyword);
         AddIf(modifiers.IsExtern, ExternKeyword);
         AddIf(modifiers.IsRequired, RequiredKeyword);
+        AddIf(modifiers.IsFixed, FixedKeyword);
 
         // partial and ref must be last
         AddIf(modifiers.IsRef, RefKeyword);
@@ -3572,6 +3573,9 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     internal override SyntaxNode ParseExpression(string stringToParse)
         => SyntaxFactory.ParseExpression(stringToParse);
+
+    internal override SyntaxNode ParseTypeName(string stringToParse)
+        => SyntaxFactory.ParseTypeName(stringToParse);
 
     #endregion
 }

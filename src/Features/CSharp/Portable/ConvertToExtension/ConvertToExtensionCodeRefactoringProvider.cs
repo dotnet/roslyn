@@ -251,7 +251,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
                 classDeclarationEditor.RemoveNode(siblingExtension.ExtensionMethod);
         }
 
-        ExtensionDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
+        ExtensionBlockDeclarationSyntax CreateExtension(ImmutableArray<ExtensionMethodInfo> group)
         {
             Contract.ThrowIfTrue(group.IsEmpty);
 
@@ -269,7 +269,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider() : Code
             // the extension declaration).
             var firstParameter = CodeGenerationSymbolFactory.CreateParameterSymbol(firstExtensionInfo.FirstParameter);
 
-            var extensionDeclaration = ExtensionDeclaration(
+            var extensionDeclaration = ExtensionBlockDeclaration(
                 attributeLists: default,
                 modifiers: default,
                 ExtensionKeyword,

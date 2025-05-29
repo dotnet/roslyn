@@ -13,6 +13,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -2948,74 +2949,42 @@ public class Child : Parent, IParent
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 22),
-                // (1,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("a");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""a""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (2,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "1"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            comp.VerifyEmitDiagnostics(
-                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(2, 22),
-                // (2,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("bb");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""bb""").WithArguments("System.Text.Encoding", "GetString").WithLocation(2, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(3, 22),
-                // (3,22): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
-                // System.Console.Write("ccc");
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""ccc""").WithArguments("System.Text.Encoding", "GetString").WithLocation(3, 22));
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "3"));
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
             comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
-            CompileAndVerify(comp, expectedOutput: "abbccc").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
         }
 
         [Fact]
@@ -3142,6 +3111,127 @@ public class Child : Parent, IParent
                 }
                 """);
             Assert.Equal(0, verifier.Compilation.DataSectionStringLiteralThreshold);
+        }
+
+        [Fact]
+        public void DataSectionStringLiterals_Switch()
+        {
+            var source = """
+                System.Console.Write(args[0] switch 
+                {
+                    "a" => 1,
+                    "bb" => 2,
+                    "ccc" => 3,
+                    _ => 4
+                });
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"),
+                verify: Verification.Skipped);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       66 (0x42)
+                  .maxstack  2
+                  .locals init (int V_0,
+                                string V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  ldelem.ref
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  ldsfld     "string <PrivateImplementationDetails>.<S>A96FAF705AF16834E6C632B61E964E1F.s"
+                  IL_000a:  call       "bool string.op_Equality(string, string)"
+                  IL_000f:  brtrue.s   IL_002d
+                  IL_0011:  ldloc.1
+                  IL_0012:  ldsfld     "string <PrivateImplementationDetails>.<S>DB1DE4B3DA6C7871B776D5CB968AA5A4.s"
+                  IL_0017:  call       "bool string.op_Equality(string, string)"
+                  IL_001c:  brtrue.s   IL_0031
+                  IL_001e:  ldloc.1
+                  IL_001f:  ldsfld     "string <PrivateImplementationDetails>.<S>BE20CA004CC2993A396345E0D52DF013.s"
+                  IL_0024:  call       "bool string.op_Equality(string, string)"
+                  IL_0029:  brtrue.s   IL_0035
+                  IL_002b:  br.s       IL_0039
+                  IL_002d:  ldc.i4.1
+                  IL_002e:  stloc.0
+                  IL_002f:  br.s       IL_003b
+                  IL_0031:  ldc.i4.2
+                  IL_0032:  stloc.0
+                  IL_0033:  br.s       IL_003b
+                  IL_0035:  ldc.i4.3
+                  IL_0036:  stloc.0
+                  IL_0037:  br.s       IL_003b
+                  IL_0039:  ldc.i4.4
+                  IL_003a:  stloc.0
+                  IL_003b:  ldloc.0
+                  IL_003c:  call       "void System.Console.Write(int)"
+                  IL_0041:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [InlineData("""public static string M() => "abc";""")]
+        [InlineData("""public static void M(string s) { switch (s) { case "abc": break; } }""")]
+        public void DataSectionStringLiterals_UsedAssemblyReferences(string code)
+        {
+            var source1 = """
+                namespace System
+                {
+                    public class Object;
+                    public class String
+                    {
+                        public static bool op_Equality(string a, string b) => false;
+                    }
+                    public class ValueType;
+                    public struct Void;
+                    public struct Byte;
+                    public struct Int16;
+                    public struct Int32;
+                    public struct Int64;
+                    public struct Boolean;
+                    public class Attribute;
+                    public class Enum;
+                    public enum AttributeTargets;
+                    public class AttributeUsageAttribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets validOn) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                }
+                """;
+            var ref1 = CreateEmptyCompilation(source1, assemblyName: "MinimalCoreLib").VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                namespace System.Text
+                {
+                    public class Encoding
+                    {
+                        public static Encoding UTF8 => null;
+                        public unsafe string GetString(byte* bytes, int byteCount) => null;
+                    }
+                }
+                """;
+            var ref2 = CreateEmptyCompilation(source2, [ref1], options: TestOptions.UnsafeDebugDll, assemblyName: "Encoding")
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source3 = $$"""
+                public static class C
+                {
+                    {{code}}
+                }
+                """;
+            var comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib1");
+            AssertEx.SetEqual([ref1], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateEmptyCompilation(source3, [ref1, ref2], assemblyName: "Lib2",
+                parseOptions: TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0"));
+            AssertEx.SetEqual([ref1, ref2], comp.GetUsedAssemblyReferences());
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3501,8 +3591,7 @@ public class Child : Parent, IParent
                 """;
 
             var parseOptions = TestOptions.RegularPreview
-                .WithNoRefSafetyRulesAttribute()
-                .WithFeature("experimental-data-section-string-literals", "0");
+                .WithNoRefSafetyRulesAttribute();
 
             CompileAndVerify(CreateEmptyCompilation(source, parseOptions: parseOptions),
                 verify: Verification.Skipped,
@@ -3527,6 +3616,16 @@ public class Child : Parent, IParent
                 .VerifyDiagnostics(
                     // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                     Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+
+            // NOTE: If the feature is enabled by default in the future, it should not fail in case of missing Encoding members
+            //       (it should be automatically disabled instead and could warn) to avoid regressing the scenario above.
+            CreateEmptyCompilation(source,
+                parseOptions: parseOptions.WithFeature("experimental-data-section-string-literals", "0"))
+                .VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 1),
+                // error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 1));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76707")]

@@ -10,18 +10,11 @@ namespace Microsoft.CodeAnalysis.UnifiedSuggestions;
 /// Similar to SuggestedAction, but in a location that can be used by
 /// both local Roslyn and LSP.
 /// </summary>
-internal class UnifiedSuggestedAction : IUnifiedSuggestedAction
+internal class UnifiedSuggestedAction(Workspace workspace, CodeAction codeAction, CodeActionPriority codeActionPriority) : IUnifiedSuggestedAction
 {
-    public Workspace Workspace { get; }
+    public Workspace Workspace { get; } = workspace;
 
-    public CodeAction OriginalCodeAction { get; }
+    public CodeAction OriginalCodeAction { get; } = codeAction;
 
-    public CodeActionPriority CodeActionPriority { get; }
-
-    public UnifiedSuggestedAction(Workspace workspace, CodeAction codeAction, CodeActionPriority codeActionPriority)
-    {
-        Workspace = workspace;
-        OriginalCodeAction = codeAction;
-        CodeActionPriority = codeActionPriority;
-    }
+    public CodeActionPriority CodeActionPriority { get; } = codeActionPriority;
 }

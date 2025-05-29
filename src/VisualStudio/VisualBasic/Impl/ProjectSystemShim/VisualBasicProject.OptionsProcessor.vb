@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.Workspaces.ProjectSystem
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
@@ -20,7 +20,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     ''' <remarks></remarks>
     Partial Friend NotInheritable Class VisualBasicProject
         Friend NotInheritable Class OptionsProcessor
-            Inherits ProjectSystemProjectOptionsProcessor
+            Inherits AbstractLegacyProjectSystemProjectOptionsProcessor
 
             Private _rawOptions As VBCompilerOptions
             Private ReadOnly _imports As New List(Of GlobalImport)

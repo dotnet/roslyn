@@ -2397,6 +2397,11 @@
         <target state="translated">Das Rohzeichenfolgenliteral beginnt nicht mit genügend Anführungszeichen, um so viele aufeinanderfolgende Anführungszeichen als Inhalt zuzulassen.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
         <source>Top-level statements must precede namespace and type declarations.</source>
         <target state="translated">Anweisungen der obersten Ebene müssen vor Namespace- und Typdeklarationen stehen.</target>
@@ -6004,8 +6009,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisIndexerParam">
-        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer '{0}'</source>
-        <target state="translated">Inkonsistenter Zugriff: Parametertyp "{1}" ist weniger zugreifbar als Indexer "{0}".</target>
+        <source>Inconsistent accessibility: parameter type '{1}' is less accessible than indexer or property '{0}'</source>
+        <target state="needs-review-translation">Inkonsistenter Zugriff: Parametertyp "{1}" ist weniger zugreifbar als Indexer "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisOpReturn">

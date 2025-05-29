@@ -116,45 +116,12 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             if (document is null)
                 continue;
 
-            // Currently we do not support analyzing languges other than C# and VB.  This is because we only want to do
-            // this analsis in our OOP process to avoid perf impact on the VS process.  And we don't have OOP for other
-            // languages yet.
-            if (!document.SupportsSemanticModel)
-                continue;
+            using var _ = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var textChanges);
+            foreach (var edit in editGroup)
+                textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
 
-            var normalizedEdits = Normalize(editGroup);
-            if (normalizedEdits.IsDefaultOrEmpty)
-                continue;
-
-            var changeAnalysisService = document.Project.Solution.Services.GetRequiredService<ICopilotChangeAnalysisService>();
-            var analysisResult = await changeAnalysisService.AnalyzeChangeAsync(
-                document, normalizedEdits, cancellationToken).ConfigureAwait(false);
-
-            CopilotChangeAnalysisUtilities.LogCopilotChangeAnalysis(
-                featureId, accepted, proposalId, analysisResult, cancellationToken).Dispose();
+            await CopilotChangeAnalysisUtilities.AnalyzeCopilotChangeAsync(
+                document, accepted, featureId, proposalId, textChanges, cancellationToken).ConfigureAwait(false);
         }
-    }
-
-    private static ImmutableArray<TextChange> Normalize(IEnumerable<ProposedEdit> editGroup)
-    {
-        using var _ = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var builder);
-        foreach (var edit in editGroup)
-            builder.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
-
-        // Ensure everything is sorted.
-        builder.Sort(static (c1, c2) => c1.Span.Start - c2.Span.Start);
-
-        // Now, go through and make sure no edit overlaps another.
-        for (int i = 1, n = builder.Count; i < n; i++)
-        {
-            var lastEdit = builder[i - 1];
-            var currentEdit = builder[i];
-
-            if (lastEdit.Span.OverlapsWith(currentEdit.Span))
-                return default;
-        }
-
-        // Things look good.  Can process these sorted edits.
-        return builder.ToImmutableAndClear();
     }
 }

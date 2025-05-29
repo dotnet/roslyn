@@ -3907,7 +3907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
@@ -4645,8 +4645,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SymbolKind.Property:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-                        return;
+                        if (!((PropertySymbol)member).IsIndexer)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            break;
+                        }
 
                     case SymbolKind.Field:
                     case SymbolKind.Event:

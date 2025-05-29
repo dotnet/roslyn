@@ -98,21 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Protected Overrides Function GetVariableUseSites(roots As IEnumerable(Of SyntaxNode), localOrParameter As ISymbol, model As SemanticModel, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
-            Debug.Assert(TypeOf localOrParameter Is IParameterSymbol OrElse TypeOf localOrParameter Is ILocalSymbol OrElse TypeOf localOrParameter Is IRangeVariableSymbol)
-
-            ' Not supported (it's non trivial to find all places where "this" is used):
-            Debug.Assert(Not localOrParameter.IsThisParameter())
-
-            Return From root In roots
-                   From node In root.DescendantNodesAndSelf()
-                   Where node.IsKind(SyntaxKind.IdentifierName)
-                   Let identifier = DirectCast(node, IdentifierNameSyntax)
-                   Where String.Equals(DirectCast(identifier.Identifier.Value, String), localOrParameter.Name, StringComparison.OrdinalIgnoreCase) AndAlso
-                         If(model.GetSymbolInfo(identifier, cancellationToken).Symbol?.Equals(localOrParameter), False)
-                   Select node
-        End Function
-
         Friend Shared Function FindStatementAndPartner(
             span As TextSpan,
             body As SyntaxNode,
@@ -698,15 +683,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             editKind As EditKind,
             oldNode As SyntaxNode,
             newNode As SyntaxNode,
-            oldModel As SemanticModel,
-            newModel As SemanticModel,
+            oldModel As DocumentSemanticModel,
+            newModel As DocumentSemanticModel,
             cancellationToken As CancellationToken) As OneOrMany(Of (oldSymbol As ISymbol, newSymbol As ISymbol))
 
             Dim oldSymbols = OneOrMany(Of ISymbol).Empty
             Dim newSymbols = OneOrMany(Of ISymbol).Empty
 
-            If oldNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel, oldSymbols, cancellationToken) OrElse
-               newNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel, newSymbols, cancellationToken) Then
+            If oldNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, oldNode, oldModel.RequiredModel, oldSymbols, cancellationToken) OrElse
+               newNode IsNot Nothing AndAlso Not TryGetSyntaxNodesForEdit(editKind, newNode, newModel.RequiredModel, newSymbols, cancellationToken) Then
                 Return OneOrMany(Of (ISymbol, ISymbol)).Empty
             End If
 
@@ -741,8 +726,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             oldSymbol As ISymbol,
             newNode As SyntaxNode,
             newSymbol As ISymbol,
-            oldModel As SemanticModel,
-            newModel As SemanticModel,
+            oldModel As DocumentSemanticModel,
+            newModel As DocumentSemanticModel,
             topMatch As Match(Of SyntaxNode),
             editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind),
             symbolCache As SymbolInfoCache,
@@ -756,10 +741,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                newNode.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso newNode.IsParentKind(SyntaxKind.Parameter) Then
 
                 ' parameter list, member, Or type declaration
-                Dim oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel, topMatch.ReverseMatches, cancellationToken)
-                Dim newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel, topMatch.Matches, cancellationToken)
+                Dim oldContainingMemberOrType = GetParameterContainingMemberOrType(oldNode, newNode, oldModel.RequiredModel, topMatch.ReverseMatches, cancellationToken)
+                Dim newContainingMemberOrType = GetParameterContainingMemberOrType(newNode, oldNode, newModel.RequiredModel, topMatch.Matches, cancellationToken)
 
-                Dim matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel, symbolCache, cancellationToken)
+                Dim matchingNewContainingMemberOrType = GetSemanticallyMatchingNewSymbol(oldContainingMemberOrType, newContainingMemberOrType, newModel.Compilation, symbolCache, cancellationToken)
 
                 ' Any change to a constraint should be analyzed as an update of the type parameter
                 Dim isTypeConstraint = TypeOf oldNode Is TypeParameterConstraintClauseSyntax OrElse
@@ -2289,10 +2274,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                        forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        oldBody As DeclarationBody,
-                                                                       oldModel As SemanticModel,
+                                                                       oldModel As DocumentSemanticModel,
                                                                        newActiveStatement As SyntaxNode,
                                                                        newBody As DeclarationBody,
-                                                                       newModel As SemanticModel,
+                                                                       newModel As DocumentSemanticModel,
                                                                        isNonLeaf As Boolean,
                                                                        cancellationToken As CancellationToken)
 
@@ -2327,10 +2312,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                             forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             oldEncompassingAncestor As SyntaxNode,
-                                                                            oldModel As SemanticModel,
+                                                                            oldModel As DocumentSemanticModel,
                                                                             newActiveStatement As SyntaxNode,
                                                                             newEncompassingAncestor As SyntaxNode,
-                                                                            newModel As SemanticModel,
+                                                                            newModel As DocumentSemanticModel,
                                                                             cancellationToken As CancellationToken)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.

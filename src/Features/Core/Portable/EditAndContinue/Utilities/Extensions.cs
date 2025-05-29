@@ -44,24 +44,38 @@ internal static partial class Extensions
     {
         if (project.FilePath == null)
         {
-            log?.Write($"Project '{project.Name}' ('{project.Id.DebugName}') doesn't support EnC: no file path");
+            LogReason("no file path");
+            return false;
+        }
+
+        if (!project.SupportsCompilation)
+        {
+            LogReason("no compilation");
             return false;
         }
 
         if (project.Services.GetService<IEditAndContinueAnalyzer>() == null)
         {
-            log?.Write($"Project '{project.FilePath}' doesn't support EnC: no EnC service");
+            LogReason("no EnC service");
             return false;
         }
 
         if (!project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
         {
-            log?.Write($"Project '{project.FilePath}' doesn't support EnC: no generated files output directory");
+            LogReason("no generated files output directory");
             return false;
         }
 
+        void LogReason(string message)
+            => log?.Write($"Project '{project.GetLogDisplay()}' doesn't support EnC: {message}");
+
         return true;
     }
+
+    public static string GetLogDisplay(this Project project)
+        => project.FilePath != null
+            ? $"'{project.FilePath}' ('{project.State.NameAndFlavor.flavor}')"
+            : $"'{project.Name}' ('{project.Id.DebugName}'";
 
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
     {

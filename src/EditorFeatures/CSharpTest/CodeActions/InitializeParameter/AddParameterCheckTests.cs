@@ -1977,7 +1977,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2015,7 +2015,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check"
         }.RunAsync();
     }
 
@@ -2046,7 +2046,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 2,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrWhiteSpace_check",
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
@@ -2086,7 +2086,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2142,7 +2142,7 @@ public sealed class AddParameterCheckTests
             }
             """,
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check",
             Options =
             {
                 { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOption2.FalseWithSuggestionEnforcement }
@@ -2740,7 +2740,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2782,7 +2782,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2826,7 +2826,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, false },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2867,7 +2867,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2908,7 +2908,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -2952,7 +2952,7 @@ public sealed class AddParameterCheckTests
                 { CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine, true },
             },
             CodeActionIndex = 1,
-            CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
+            CodeActionEquivalenceKey = "Add_string_IsNullOrEmpty_check"
         }.RunAsync();
     }
 
@@ -3202,5 +3202,384 @@ public sealed class AddParameterCheckTests
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_ModernEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new System.ComponentModel.InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestSimpleEnumIsDefinedCheck_OldEnumIsDefinedOverload()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+            
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek)
+                    {
+                        if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForOutEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(out DayOfWeek [|result|])
+                {
+                    result = default;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckForFlagsEnumParameter()
+    {
+        await VerifyCS.VerifyRefactoringAsync("""
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(MyFlags [|myFlags|])
+                {
+                }
+            }
+
+            [Flags]
+            enum MyFlags
+            {
+                A = 1,
+                B = 2
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_ModernEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestNoEnumIsDefinedCheckIfAlreadyExist_OldEnumIsDefinedOverload()
+    {
+        var code = """
+            using System;
+            using System.ComponentModel;
+            
+            class C
+            {
+                void M(DayOfWeek [|dayOfWeek|])
+                {
+                    if (!Enum.IsDefined(typeof(DayOfWeek), dayOfWeek))
+                    {
+                        throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek [|dayOfWeek2|])
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeAnotherEnumIsDefinedCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek1|], DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek1, DayOfWeek dayOfWeek2)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek1))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek1), (int)dayOfWeek1, typeof(DayOfWeek));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek2))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek2), (int)dayOfWeek2, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckAfterNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(string s, DayOfWeek [|dayOfWeek|])
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(string s, DayOfWeek dayOfWeek)
+                    {
+                        ArgumentNullException.ThrowIfNull(s);
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckBeforeNullCheck()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(DayOfWeek [|dayOfWeek|], object o)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(DayOfWeek dayOfWeek, object o)
+                    {
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66327")]
+    public async Task TestEnumIsDefinedCheckInBetweenChecks()
+    {
+        await new VerifyCS.Test()
+        {
+            TestCode = """
+                using System;
+                using System.ComponentModel;
+
+                class C
+                {
+                    void M(object o, DayOfWeek [|dayOfWeek|], string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+                using System.ComponentModel;
+                
+                class C
+                {
+                    void M(object o, DayOfWeek dayOfWeek, string s)
+                    {
+                        if (o is null)
+                        {
+                            throw new ArgumentNullException(nameof(o));
+                        }
+
+                        if (!Enum.IsDefined(dayOfWeek))
+                        {
+                            throw new InvalidEnumArgumentException(nameof(dayOfWeek), (int)dayOfWeek, typeof(DayOfWeek));
+                        }
+                
+                        ArgumentException.ThrowIfNullOrEmpty(s);
+                    }
+                }
+                """,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80
+        }.RunAsync();
     }
 }

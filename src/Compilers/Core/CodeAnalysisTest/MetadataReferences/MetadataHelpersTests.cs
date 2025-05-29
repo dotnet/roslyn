@@ -503,5 +503,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("a", nestedNamespaces.ElementAt(0).Key);
             Assert.Equal("b", nestedNamespaces.ElementAt(1).Key);
         }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("abc")]
+        [InlineData("\u1234")]
+        public static void GetUserStringBlobSize(string str)
+        {
+            var builder = new BlobBuilder();
+            builder.WriteUserString(str);
+            Assert.Equal(builder.Count, MetadataHelpers.GetUserStringBlobSize(str));
+        }
     }
 }
