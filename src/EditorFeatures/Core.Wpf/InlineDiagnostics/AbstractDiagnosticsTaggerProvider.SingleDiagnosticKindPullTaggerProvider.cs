@@ -35,14 +35,12 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
     /// </summary>
     private sealed class SingleDiagnosticKindPullTaggerProvider(
         AbstractDiagnosticsTaggerProvider<TTag> callback,
-        IDiagnosticAnalyzerService analyzerService,
         DiagnosticKind diagnosticKind,
         TaggerHost taggerHost,
         string featureName)
         : AsynchronousTaggerProvider<TTag>(taggerHost, featureName)
     {
         private readonly DiagnosticKind _diagnosticKind = diagnosticKind;
-        private readonly IDiagnosticAnalyzerService _analyzerService = analyzerService;
 
         // The following three fields are used to help calculate diagnostic performance for syntax errors upon file open.
         // During TagsChanged notification for syntax errors, VSPlatform will check the buffer's property bag for a 
@@ -104,7 +102,8 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
             var snapshot = documentSpanToTag.SnapshotSpan.Snapshot;
 
             var project = document.Project;
-            var workspace = project.Solution.Workspace;
+            var solution = project.Solution;
+            var workspace = solution.Workspace;
 
             // See if we've marked any spans as those we want to suppress diagnostics for.
             // This can happen for buffers used in the preview workspace where some feature
@@ -124,7 +123,8 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
                 // NOTE: We pass 'includeSuppressedDiagnostics: true' to ensure that IDE0079 (unnecessary suppressions)
                 // are flagged and faded in the editor. IDE0079 analyzer requires all source suppressed diagnostics to
                 // be provided to it to function correctly.
-                var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(
+                var analyzerService = solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                var diagnostics = await analyzerService.GetDiagnosticsForSpanAsync(
                     document,
                     requestedSpan.Span.ToTextSpan(),
                     diagnosticKind: _diagnosticKind,
