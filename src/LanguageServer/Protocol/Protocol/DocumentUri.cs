@@ -138,14 +138,12 @@ internal sealed class DocumentUri : IEquatable<DocumentUri>
     }
 
     public static bool operator ==(DocumentUri? uri1, DocumentUri? uri2)
-    {
-        if (uri1 is null)
-            return uri2 is null;
-        else if (uri2 is null)
-            return false;
-
-        return uri1.Equals(uri2);
-    }
+        => (uri1, uri2) switch
+        {
+            (null, null) => true,
+            (null, _) or (_, null) => false,
+            _ => uri1.Equals(uri2)
+        };
 
     public static bool operator !=(DocumentUri? uri1, DocumentUri? uri2)
         => !(uri1 == uri2);
