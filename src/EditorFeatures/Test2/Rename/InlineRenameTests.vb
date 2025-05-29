@@ -6,15 +6,12 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.Host
-Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.InlineRename
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Rename
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
@@ -1832,7 +1829,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub VerifyFileRenamesCorrectlyWhenCaseChanges(host As RenameTestHost)
+        Public Async Function VerifyFileRenamesCorrectlyWhenCaseChanges(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1854,9 +1851,11 @@ class [|$$Test1|]
                 textBuffer.Insert(caretPosition, "t")
 
                 session.Commit()
+                Await VerifyTagsAreCorrect(workspace)
+
                 VerifyFileName(workspace, "test1")
             End Using
-        End Sub
+        End Function
 
         <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/36063")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1885,8 +1884,7 @@ class [|$$Test1|]
                 textBuffer.Insert(caretPosition, "Bar")
                 textBuffer.Delete(New Span(caretPosition, "Bar".Length))
 
-                Dim committed = session.GetTestAccessor().CommitWorker(previewChanges:=False)
-                Assert.False(committed)
+                session.Commit(previewChanges:=False)
 
                 Await VerifyTagsAreCorrect(workspace)
             End Using
