@@ -6,22 +6,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServices.UnitTests;
-using Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer;
+using Microsoft.CodeAnalysis.Test.Utilities.SolutionExplorer;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.UnitTests.SolutionExplorer;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SolutionExplorer;
 
 [UseExportProvider, Trait(Traits.Feature, Traits.Features.SolutionExplorer)]
 public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
     : AbstractSolutionExplorerSymbolTreeItemProviderTests
 {
-    private static readonly TestComposition s_testComposition = VisualStudioTestCompositions.LanguageServices;
-
     protected override TestWorkspace CreateWorkspace(string code)
     {
         return TestWorkspace.CreateCSharp(
-            code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), composition: s_testComposition);
+            code, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
     }
 
     private Task TestCompilationUnit(

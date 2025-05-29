@@ -7,19 +7,16 @@ using System.Composition;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using static Microsoft.CodeAnalysis.CSharp.FindSymbols.FindSymbolsUtilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.CSharp.SolutionExplorer;
+namespace Microsoft.CodeAnalysis.CSharp.SolutionExplorer;
 
 [ExportLanguageService(typeof(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]

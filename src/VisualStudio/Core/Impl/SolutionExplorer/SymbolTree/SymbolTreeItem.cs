@@ -8,39 +8,13 @@ using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
-
-internal readonly record struct SymbolTreeItemKey(
-    string Name,
-    Glyph Glyph,
-    bool HasItems);
-
-internal readonly record struct SymbolTreeItemSyntax(
-    SyntaxNode DeclarationNode,
-    SyntaxToken NavigationToken);
-
-internal readonly record struct SymbolTreeItemData(
-    SymbolTreeItemKey ItemKey,
-    SymbolTreeItemSyntax ItemSyntax)
-{
-    public SymbolTreeItemData(
-        string name,
-        Glyph glyph,
-        bool hasItems,
-        SyntaxNode declarationNode,
-        SyntaxToken navigationToken)
-        : this(new(name, glyph, hasItems), new(declarationNode, navigationToken))
-    {
-    }
-
-    public override string ToString()
-        => $"""Name="{ItemKey.Name}" Glyph={ItemKey.Glyph} HasItems={ItemKey.HasItems}""";
-}
 
 /// <summary>
 /// Actual in-memory object that will be presented in the solution explorer tree.  Note:

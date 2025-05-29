@@ -2,18 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Test.Utilities.SolutionExplorer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests
-Imports Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
-Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.SolutionExplorer
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SolutionExplorer
     <UseExportProvider, Trait(Traits.Feature, Traits.Features.SolutionExplorer)>
     Public NotInheritable Class VisualBasicSolutionExplorerSymbolTreeItemProviderTests
         Inherits AbstractSolutionExplorerSymbolTreeItemProviderTests
 
         Protected Overrides Function CreateWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, composition:=VisualStudioTestCompositions.LanguageServices)
+            Return TestWorkspace.CreateVisualBasic(code)
         End Function
 
         Private Function TestCompilationUnit(

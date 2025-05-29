@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;

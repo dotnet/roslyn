@@ -3,20 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Linq
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Shared.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
+Imports Microsoft.CodeAnalysis.SolutionExplorer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
-Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
+Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
     <ExportLanguageService(GetType(ISolutionExplorerSymbolTreeItemProvider), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicSolutionExplorerSymbolTreeItemProvider
         Inherits AbstractSolutionExplorerSymbolTreeItemProvider(Of
@@ -332,6 +328,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.SolutionExplorer
                     builder.Append(","c, rankSpecifier.CommaTokens.Count)
                     builder.Append(")"c)
                 Next
+
                 Return
             End If
 
