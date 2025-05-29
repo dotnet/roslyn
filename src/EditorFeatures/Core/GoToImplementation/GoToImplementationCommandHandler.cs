@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
@@ -30,20 +29,23 @@ namespace Microsoft.CodeAnalysis.GoToImplementation;
 internal sealed class GoToImplementationCommandHandler(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
-    IUIThreadOperationExecutor uiThreadOperationExecutor,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(threadingContext,
-           streamingPresenter,
-           uiThreadOperationExecutor,
-           listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
-           globalOptions)
+    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IFindUsagesService, GoToImplementationCommandArgs>(
+        threadingContext,
+        streamingPresenter,
+        listenerProvider.GetListener(FeatureAttribute.GoToImplementation),
+        globalOptions)
 {
     public override string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
-    protected override string ScopeDescription => EditorFeaturesResources.Locating_implementations;
     protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToImplementation;
 
-    protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
-        => document.GetRequiredLanguageService<IFindUsagesService>()
-                   .FindImplementationsAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
+    /// <summary>
+    /// If we find a single results quickly enough, we do want to take the user directly to it,
+    /// instead of popping up the FAR window to show it.
+    /// </summary>
+    protected override bool NavigateToSingleResultIfQuick => true;
+
+    protected override Task FindActionAsync(IFindUsagesContext context, Document document, IFindUsagesService service, int caretPosition, CancellationToken cancellationToken)
+        => service.FindImplementationsAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }

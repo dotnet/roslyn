@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.FindReferences
 Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -40,9 +41,10 @@ class C
 
                 Dim context = New FindUsagesTestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                     New MockStreamingFindReferencesPresenter(context),
-                    workspace.GlobalOptions,
-                    listenerProvider)
+                    listenerProvider,
+                    workspace.GlobalOptions)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(

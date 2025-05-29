@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
@@ -30,20 +29,23 @@ namespace Microsoft.CodeAnalysis.GoToBase;
 internal sealed class GoToBaseCommandHandler(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
-    IUIThreadOperationExecutor uiThreadOperationExecutor,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(threadingContext,
-           streamingPresenter,
-           uiThreadOperationExecutor,
-           listenerProvider.GetListener(FeatureAttribute.GoToBase),
-           globalOptions)
+    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
+        threadingContext,
+        streamingPresenter,
+        listenerProvider.GetListener(FeatureAttribute.GoToBase),
+        globalOptions)
 {
     public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-    protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
     protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
-    protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
-        => document.GetRequiredLanguageService<IGoToBaseService>()
-                   .FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
+    /// <summary>
+    /// If we find a single results quickly enough, we do want to take the user directly to it,
+    /// instead of popping up the FAR window to show it.
+    /// </summary>
+    protected override bool NavigateToSingleResultIfQuick => true;
+
+    protected override Task FindActionAsync(IFindUsagesContext context, Document document, IGoToBaseService service, int caretPosition, CancellationToken cancellationToken)
+        => service.FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }
