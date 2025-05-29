@@ -722,6 +722,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
                 .FirstOrDefault(s => s is IMethodSymbol { IsStatic: true, Arity: 1, Parameters.Length: 2 });
             if (throwMethod is not null)
             {
+                // We found 'ThrowIfX' method. Generate 'ArgumentOutOfRangeException.ThrowIfNegative[OrZero](parameter);'
                 return (TStatementSyntax)generator.ExpressionStatement(generator.InvocationExpression(
                     generator.MemberAccessExpression(
                         generator.TypeExpression(argumentOutOfRangeExceptionType),
@@ -730,6 +731,8 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
             }
         }
 
+        // Generate 'manual check' like
+        // if (parameter <[=] 0) throw new ArgumentOutOfRangeException(nameof(parameter), parameter, "message");
         var parameterNameExpression = generator.IdentifierName(parameter.Name);
         var zeroLiteralExpression = generator.LiteralExpression(0);
         var condition = includeZero
