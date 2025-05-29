@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,8 +30,10 @@ namespace Microsoft.CodeAnalysis.FindReferences;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.FindReferences)]
-internal sealed class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
+internal sealed class FindReferencesCommandHandler : AbstractGoToCommandHandler<
+     IFindUsagesService, FindReferencesCommandArgs>
 {
+#if false
     private readonly IStreamingFindUsagesPresenter _streamingPresenter;
     private readonly IGlobalOptionService _globalOptions;
     private readonly IAsynchronousOperationListener _asyncListener;
@@ -156,4 +159,5 @@ internal sealed class FindReferencesCommandHandler : ICommandHandler<FindReferen
         {
         }
     }
+#endif
 }
