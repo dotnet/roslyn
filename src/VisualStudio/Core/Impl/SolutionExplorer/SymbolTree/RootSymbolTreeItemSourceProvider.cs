@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -52,6 +53,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
 
+    public readonly ContextMenuController ContextMenuController;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
@@ -78,6 +81,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     _updateSourcesQueue.AddWork(e.DocumentId);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+
+        this.ContextMenuController = new ContextMenuController(
+            ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
+            shouldShowMenu: objects => objects.FirstOrDefault() is SymbolTreeItem,
+            updateMenu: () =>
+            {
+
+            });
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(

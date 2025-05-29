@@ -6,12 +6,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -70,6 +72,7 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     public override ImageMoniker IconMoniker => this.ItemKey.Glyph.GetImageMoniker();
 
+    // We act as our own invocation controller.
     public override IInvocationController? InvocationController => this;
 
     public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
@@ -79,6 +82,38 @@ internal sealed class SymbolTreeItem : BaseItem,
 
         RootProvider.NavigationSupport.NavigateTo(item.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
         return true;
+    }
+
+    // We act as our own context menu controller.
+    public override IContextMenuController? ContextMenuController => new SymbolItemContextMenuController(this);
+
+    private sealed class SymbolItemContextMenuController : IContextMenuController
+    {
+        private readonly SymbolTreeItem _symbolTreeItem;
+
+        public SymbolItemContextMenuController(SymbolTreeItem symbolTreeItem)
+        {
+            _symbolTreeItem = symbolTreeItem;
+        }
+
+        public bool ShowContextMenu(IEnumerable<object> items, Point location)
+        {
+            if (items.FirstOrDefault() is not SymbolTreeItem item)
+                return false;
+
+            var guidContextMenu = Guids.RoslynGroupId;
+            if (Shell.Package.GetGlobalService(typeof(SVsUIShell)) is not IVsUIShell shell)
+                return false;
+
+            var result = shell.ShowContextMenu(
+                dwCompRole: 0,
+                ref guidContextMenu,
+                0x400,
+                //ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
+                [new() { x = (short)location.X, y = (short)location.Y }],
+                pCmdTrgtActive: null);
+            return ErrorHandler.Succeeded(result);
+        }
     }
 
     public void BeforeExpand()
