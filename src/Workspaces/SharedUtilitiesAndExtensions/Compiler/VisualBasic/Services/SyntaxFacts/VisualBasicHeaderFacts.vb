@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
                 fullHeader As Boolean,
                 ByRef typeDeclaration As SyntaxNode) As Boolean
             Dim typeBlock = TryGetAncestorForLocation(Of TypeBlockSyntax)(root, position, typeDeclaration)
-            If typeBlock IsNot Nothing Then
+            If typeBlock Is Nothing Then
                 Return Nothing
             End If
 
