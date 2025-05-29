@@ -1,0 +1,6 @@
+<Project>
+  <Import Project="..\..\Directory.Packages.props" />
+  <PropertyGroup>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+</Project>
