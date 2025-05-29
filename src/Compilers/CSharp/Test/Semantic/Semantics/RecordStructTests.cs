@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
     [CompilerTrait(CompilerFeature.RecordStructs)]
-    public class RecordStructTests : CompilingTestBase
+    public class RecordStructTests() : CompilingTestBase(TargetFramework.Standard)
     {
         private CSharpCompilation CreateCompilation(CSharpTestSource source)
             => base.CreateCompilation(new[] { source, IsExternalInitTypeDefinition },
