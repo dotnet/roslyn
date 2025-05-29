@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
@@ -28,7 +26,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition;
 
-internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs>(
+internal abstract class AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs>(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListener listener,
@@ -69,7 +67,16 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private Func<CancellationToken, Task>? _delayHook;
 
     public abstract string DisplayName { get; }
+
     protected abstract FunctionId FunctionId { get; }
+
+    /// <summary>
+    /// If we should try to navigate to the sole item found, if that item was found within 1.5seconds.
+    /// </summary>
+    protected abstract bool NavigateToSingleResultIfQuick { get; }
+
+    protected virtual StreamingFindUsagesPresenterOptions GetStreamingPresenterOptions(Document document)
+        => StreamingFindUsagesPresenterOptions.Default;
 
     protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, TLanguageService service, int caretPosition, CancellationToken cancellationToken);
 
@@ -166,16 +173,16 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // IStreamingFindUsagesPresenter.
         var findContext = new BufferedFindUsagesContext();
 
-        var delayTask = DelayAsync(cancellationToken);
+        var delayBeforeShowingResultsWindowTask = DelayAsync(cancellationToken);
         var findTask = FindResultsAsync(findContext, document, service, position, cancellationToken);
 
-        var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
+        var firstFinishedTask = await Task.WhenAny(delayBeforeShowingResultsWindowTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
             // we bailed out because another command was issued.  Immediately stop everything we're doing and return
             // back so the next operation can run.
             return;
 
-        if (firstFinishedTask == findTask)
+        if (this.NavigateToSingleResultIfQuick && firstFinishedTask == findTask)
         {
             // We completed the search within 1.5 seconds.  If we had at least one result then Navigate to it directly
             // (if there is just one) or present them all if there are many.
@@ -196,7 +203,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // We either got no results, or 1.5 has passed and we didn't figure out the symbols to navigate to or
         // present.  So pop up the presenter to show the user that we're involved in a longer search, without
         // blocking them.
-        await PresentResultsInStreamingPresenterAsync(findContext, findTask, cancellationToken).ConfigureAwait(false);
+        await PresentResultsInStreamingPresenterAsync(document, findContext, findTask, cancellationToken).ConfigureAwait(false);
     }
 
     private Task DelayAsync(CancellationToken cancellationToken)
@@ -206,16 +213,24 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             return delayHook(cancellationToken);
         }
 
-        return Task.Delay(TaggerDelay.OnIdle.ComputeTimeDelay(), cancellationToken);
+        // If we want to navigate to a single result if it is found quickly, then delay showing the find-refs winfor
+        // for 1.5 seconds to see if a result comes in by then.  If we're not navigating and are always showing the
+        // far window, then don't have any delay showing the window.
+        var delay = this.NavigateToSingleResultIfQuick
+            ? DelayTimeSpan.Idle
+            : TimeSpan.Zero;
+
+        return Task.Delay(delay, cancellationToken);
     }
 
     private async Task PresentResultsInStreamingPresenterAsync(
+        Document document,
         BufferedFindUsagesContext findContext,
         Task findTask,
         CancellationToken cancellationToken)
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, StreamingFindUsagesPresenterOptions.Default);
+        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, GetStreamingPresenterOptions(document));
 
         try
         {
@@ -276,9 +291,9 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
 
     internal readonly struct TestAccessor
     {
-        private readonly AbstractGoToCommandHandler<TLanguageService, TCommandArgs> _instance;
+        private readonly AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs> _instance;
 
-        internal TestAccessor(AbstractGoToCommandHandler<TLanguageService, TCommandArgs> instance)
+        internal TestAccessor(AbstractGoOrFindCommandHandler<TLanguageService, TCommandArgs> instance)
             => _instance = instance;
 
         internal ref Func<CancellationToken, Task>? DelayHook

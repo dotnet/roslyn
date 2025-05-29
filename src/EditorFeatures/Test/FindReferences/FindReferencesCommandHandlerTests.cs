@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -65,9 +66,10 @@ public sealed class FindReferencesCommandHandlerTests
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
         var handler = new FindReferencesCommandHandler(
+            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
             presenter,
-            workspace.GlobalOptions,
-            listenerProvider);
+            listenerProvider,
+            workspace.GlobalOptions);
 
         var textView = workspace.Documents[0].GetTextView();
         textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));

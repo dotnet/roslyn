@@ -30,7 +30,7 @@ internal sealed class GoToBaseCommandHandler(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
     IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
+    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
         threadingContext,
         streamingPresenter,
         listenerProvider.GetListener(FeatureAttribute.GoToBase),
@@ -39,6 +39,12 @@ internal sealed class GoToBaseCommandHandler(
     public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
     protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
+
+    /// <summary>
+    /// If we find a single results quickly enough, we do want to take the user directly to it,
+    /// instead of popping up the FAR window to show it.
+    /// </summary>
+    protected override bool NavigateToSingleResultIfQuick => true;
 
     protected override Task FindActionAsync(IFindUsagesContext context, Document document, IGoToBaseService service, int caretPosition, CancellationToken cancellationToken)
         => service.FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
