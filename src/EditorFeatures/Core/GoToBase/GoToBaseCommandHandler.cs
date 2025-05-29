@@ -21,6 +21,9 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.GoToBase;
 
+[Export(typeof(GoToBaseNavigationService))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class GoToBaseNavigationService(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,
@@ -51,9 +54,5 @@ internal sealed class GoToBaseNavigationService(
 [Name(PredefinedCommandHandlerNames.GoToBase)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class GoToBaseCommandHandler(
-    IThreadingContext threadingContext,
-    IStreamingFindUsagesPresenter streamingPresenter,
-    IAsynchronousOperationListenerProvider listenerProvider,
-    IGlobalOptionService globalOptions) : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(
-        new GoToBaseNavigationService(threadingContext, streamingPresenter, listenerProvider, globalOptions);
+internal sealed class GoToBaseCommandHandler(GoToBaseNavigationService navigationService)
+    : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(navigationService);
