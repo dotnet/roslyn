@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
+using Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -159,7 +160,7 @@ internal sealed class RoslynPackage : AbstractPackage
         await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
-        await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+        await this.ComponentModel.GetService<SolutionExplorerSymbolTreeItemCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
         await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
 

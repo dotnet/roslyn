@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +13,8 @@ using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -87,7 +90,7 @@ internal sealed class SymbolTreeItem : BaseItem,
     // We act as our own context menu controller.
     public override IContextMenuController? ContextMenuController => new SymbolItemContextMenuController(this);
 
-    private sealed class SymbolItemContextMenuController : IContextMenuController
+    private sealed class SymbolItemContextMenuController : IContextMenuController, IOleCommandTarget
     {
         private readonly SymbolTreeItem _symbolTreeItem;
 
@@ -111,8 +114,18 @@ internal sealed class SymbolTreeItem : BaseItem,
                 //0x400,
                 ID.RoslynCommands.SolutionExplorerSymbolItemContextMenu,
                 [new() { x = (short)location.X, y = (short)location.Y }],
-                pCmdTrgtActive: null);
+                pCmdTrgtActive: this);
             return ErrorHandler.Succeeded(result);
+        }
+
+        public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
+        {
+            return HResult.OK;
+        }
+
+        public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
+        {
+            return HResult.OK;
         }
     }
 

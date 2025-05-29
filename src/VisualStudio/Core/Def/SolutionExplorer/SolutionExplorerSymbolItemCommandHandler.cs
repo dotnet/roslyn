@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SolutionExplorer;
 
-[Export(typeof(SolutionExplorerSymbolTreeItemCommandHandler))]
+[Export(typeof(SolutionExplorerSymbolTreeItemCommandHandler)), Shared]
 internal sealed class SolutionExplorerSymbolTreeItemCommandHandler
 {
     private readonly IThreadingContext _threadingContext;
@@ -42,7 +42,7 @@ internal sealed class SolutionExplorerSymbolTreeItemCommandHandler
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             VisualStudioCommandHandlerHelpers.AddCommand(
                 menuCommandService,
-                ID.RoslynCommands.GoToImplementation,
+                ID.RoslynCommands.SolutionExplorerSymbolItemFindAllReferences,
                 Guids.RoslynGroupId,
                 (sender, args) =>
                 {
