@@ -23,6 +23,10 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.GoOrFind;
 
+/// <summary>
+/// Core service responsible for handling an operation (like 'go to base, go to impl, find references')
+/// and trying to navigate quickly to them if possible, or show their results in the find-usages window.
+/// </summary>
 internal abstract class AbstractGoOrFindNavigationService<TLanguageService>(
     IThreadingContext threadingContext,
     IStreamingFindUsagesPresenter streamingPresenter,

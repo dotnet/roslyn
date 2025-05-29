@@ -19,4 +19,4 @@ namespace Microsoft.CodeAnalysis.GoToBase;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class GoToBaseCommandHandler(GoToBaseNavigationService navigationService)
-    : AbstractGoOrFindCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(navigationService);
+    : AbstractGoOrFindCommandHandler<GoToBaseCommandArgs>(navigationService);
