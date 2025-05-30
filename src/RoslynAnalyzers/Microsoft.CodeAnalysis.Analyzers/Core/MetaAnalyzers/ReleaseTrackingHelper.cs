@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
         internal const string TableHeaderNewOrRemovedRulesLine2 = @"--------|----------|----------|-------";
         internal const string TableHeaderChangedRulesLine1 = @"Rule ID | New Category | New Severity | Old Category | Old Severity | Notes";
         internal const string TableHeaderChangedRulesLine2 = @"--------|--------------|--------------|--------------|--------------|-------";
-        internal const string TableHeaderNewOrRemovedRulesLine1RegexPattern = @"^\s*Rule ID\s*\|\s*Category\s*\|\s*\Severity\s*\|\s*Notes";
-        internal const string TableHeaderChangedRulesLine1RegexPattern = @"^\s*Rule ID\s*\|\s*New Category\s*\|\s*New Severity\s*\|\s*Old Category\s*\|\s*Old Severity\s*\|\s*Notes";
-        internal const string TableHeaderNewOrRemovedRulesLine2RegexPattern = @"^-{3,}\|-{3,}\|-{3,}\|-{3,}";
-        internal const string TableHeaderChangedRulesLine2RegexPattern = @"^-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}";
+        internal const string TableHeaderNewOrRemovedRulesLine1RegexPattern = @"^\|?\s*Rule ID\s*\|\s*Category\s*\|\s*\Severity\s*\|\s*Notes\s*\|?";
+        internal const string TableHeaderChangedRulesLine1RegexPattern = @"^\|?\s*Rule ID\s*\|\s*New Category\s*\|\s*New Severity\s*\|\s*Old Category\s*\|\s*Old Severity\s*\|\s*Notes\s*\|?";
+        internal const string TableHeaderNewOrRemovedRulesLine2RegexPattern = @"^\|?-{3,}\|-{3,}\|-{3,}\|-{3,}\|?";
+        internal const string TableHeaderChangedRulesLine2RegexPattern = @"^\|?-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}\|-{3,}\|?";
 
         internal static Version UnshippedVersion { get; } = new Version(int.MaxValue, int.MaxValue);
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.ReleaseTracking
 
                 RoslynDebug.Assert(currentRuleEntryKind != null);
 
-                var parts = lineText.Split('|').Select(s => s.Trim()).ToArray();
+                var parts = lineText.Trim('|').Split('|').Select(s => s.Trim()).ToArray();
                 if (IsInvalidEntry(parts, currentRuleEntryKind.Value))
                 {
                     // Report invalid entry, but continue parsing remaining entries.

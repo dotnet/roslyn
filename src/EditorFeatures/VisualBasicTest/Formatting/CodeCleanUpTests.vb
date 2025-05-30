@@ -509,7 +509,7 @@ End Class
         End Function
 
         Private Shared Async Function TestThirdPartyCodeFixer(Of TCodefix As {CodeFixProvider, New}, TAnalyzer As {DiagnosticAnalyzer, New})(expected As String, code As String, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Warning) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf.AddParts(GetType(TCodefix)))
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TCodefix)))
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim map = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
                     {
@@ -559,7 +559,7 @@ End Class
                                                                              code As String,
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
-            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeatures)
 
                 workspace.SetAnalyzerFallbackOptions(New OptionsCollection(LanguageNames.VisualBasic) From {
                     {GenerationOptions.SeparateImportDirectiveGroups, separateImportsGroups},
