@@ -137,6 +137,5 @@ internal sealed class SymbolTreeChildCollection(
 
         // Notify any listenerrs that our items have changed.
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
-        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Items)));
     }
 }
