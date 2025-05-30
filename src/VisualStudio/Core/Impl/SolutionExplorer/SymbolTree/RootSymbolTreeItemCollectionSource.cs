@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -33,27 +34,27 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// Whether or not this root solution explorer node has been expanded or not.  Until it is first expanded,
         /// we do no work so as to avoid CPU time and rooting things like syntax nodes.
         /// </summary>
-        private volatile int _initialized;
-        private DocumentId? _documentId;
+        private volatile int _hasEverBeenExpanded;
 
-        internal async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId>? updateSet,
+        public async Task UpdateIfAffectedAsync(
+            HashSet<string>? updatedFilePaths,
             CancellationToken cancellationToken)
         {
             // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
             // in the future as documents are mutated, and we'll ignore until the point that the user has at
             // least expanded this node once.
-            if (_initialized == 0)
+            if (_hasEverBeenExpanded == 0)
                 return;
 
-            var documentId = DetermineDocumentId();
-
-            if (documentId != null && updateSet != null && !updateSet.Contains(documentId))
-            {
-                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
-                // to update a different document than our own.  So we can just ignore this.
+            var filePath = TryGetCanonicalName();
+            if (updatedFilePaths != null && filePath != null && !updatedFilePaths.Contains(filePath))
                 return;
-            }
+
+            // Try to find a roslyn document for this file path.  Note: it is intentional that we continue onwards,
+            // even if this returns null.  We still want to put ourselves into the final "i have no items" state,
+            // instead of bailing out and potentially leaving either stale items, or leaving ourselves in the 
+            // "i don't know what items are in me" state.
+            var documentId = DetermineDocumentId(filePath);
 
             var solution = _rootProvider._workspace.CurrentSolution;
 
@@ -64,11 +65,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             {
                 // Compute the items on the BG.
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var items = itemProvider.GetItems(root, cancellationToken);
+                var items = itemProvider.GetItems(document.Id, root, cancellationToken);
 
                 // Then switch to the UI thread to actually update the collection.
                 await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                _childCollection.SetItemsAndMarkComputed_OnMainThread(document.Id, itemProvider, items);
+                _childCollection.SetItemsAndMarkComputed_OnMainThread(itemProvider, items);
             }
             else
             {
@@ -78,15 +79,38 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             }
         }
 
-        private DocumentId? DetermineDocumentId()
+        private string? TryGetCanonicalName()
         {
-            if (_documentId == null)
+            // Quick check that will be correct the majority of the time.
+            if (!_hierarchyItem.IsDisposed)
             {
-                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-                idMap.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
+                // We are running in the background.  So it's possible that the type may be disposed between
+                // the above check and retrieving the canonical name.  So have to guard against that just in case.
+                try
+                {
+                    return _hierarchyItem.CanonicalName;
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
 
-            return _documentId;
+            return null;
+        }
+
+        private DocumentId? DetermineDocumentId(string? filePath)
+        {
+            if (filePath != null)
+            {
+                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
+                if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
+                {
+                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(filePath);
+                    return documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
+                }
+            }
+
+            return null;
         }
 
         object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
@@ -97,14 +121,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         {
             get
             {
-                if (Interlocked.CompareExchange(ref _initialized, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref _hasEverBeenExpanded, 1, 0) == 0)
                 {
                     // This was the first time this node was expanded.  Kick off the initial work to 
                     // compute the items for it.
-                    var token = _rootProvider.Listener.BeginAsyncOperation(nameof(IAttachedCollectionSource.Items));
-                    UpdateIfAffectedAsync(updateSet: null, _rootProvider.ThreadingContext.DisposalToken)
-                        .ReportNonFatalErrorAsync()
-                        .CompletesAsyncOperation(token);
+                    _rootProvider._updateSourcesQueue.AddWork(_hierarchyItem.CanonicalName);
                 }
 
                 return _childCollection.Items;

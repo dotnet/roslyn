@@ -33,7 +33,6 @@ internal sealed class SymbolTreeItem : BaseItem,
     INotifyPropertyChanged
 {
     public readonly RootSymbolTreeItemSourceProvider RootProvider;
-    public readonly DocumentId DocumentId;
     public readonly ISolutionExplorerSymbolTreeItemProvider ItemProvider;
     public readonly SymbolTreeItemKey ItemKey;
 
@@ -44,12 +43,10 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     public SymbolTreeItem(
         RootSymbolTreeItemSourceProvider rootProvider,
-        DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
         SymbolTreeItemKey itemKey) : base(itemKey.Name, canPreview: true)
     {
         RootProvider = rootProvider;
-        DocumentId = documentId;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
         _childCollection = new(rootProvider, this, hasItems: ItemKey.HasItems);
@@ -83,7 +80,8 @@ internal sealed class SymbolTreeItem : BaseItem,
         if (items.FirstOrDefault() is not SymbolTreeItem item)
             return false;
 
-        RootProvider.NavigationSupport.NavigateTo(item.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
+        RootProvider.NavigationSupport.NavigateTo(
+            item.ItemKey.DocumentId, item.ItemSyntax.NavigationToken.SpanStart, preview);
         return true;
     }
 
@@ -115,9 +113,8 @@ internal sealed class SymbolTreeItem : BaseItem,
             // are already expanded, then recompute our children which will recursively push the change
             // down further.
             var items = this.ItemProvider.GetItems(
-                _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
-            _childCollection.SetItemsAndMarkComputed_OnMainThread(
-                this.DocumentId, this.ItemProvider, items);
+                this.ItemKey.DocumentId, _itemSyntax.DeclarationNode, this.RootProvider.ThreadingContext.DisposalToken);
+            _childCollection.SetItemsAndMarkComputed_OnMainThread(this.ItemProvider, items);
         }
         else
         {

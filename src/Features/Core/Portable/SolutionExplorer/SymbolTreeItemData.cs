@@ -5,6 +5,7 @@
 namespace Microsoft.CodeAnalysis.SolutionExplorer;
 
 internal readonly record struct SymbolTreeItemKey(
+    DocumentId DocumentId,
     string Name,
     Glyph Glyph,
     bool HasItems);
@@ -18,12 +19,13 @@ internal readonly record struct SymbolTreeItemData(
     SymbolTreeItemSyntax ItemSyntax)
 {
     public SymbolTreeItemData(
+        DocumentId documentId,
         string name,
         Glyph glyph,
         bool hasItems,
         SyntaxNode declarationNode,
         SyntaxToken navigationToken)
-        : this(new(name, glyph, hasItems), new(declarationNode, navigationToken))
+        : this(new(documentId, name, glyph, hasItems), new(declarationNode, navigationToken))
     {
     }
 

@@ -32,7 +32,7 @@ public abstract class AbstractSolutionExplorerSymbolTreeItemProviderTests
         var diagnostics = node.GetDiagnostics();
         Assert.Empty(diagnostics);
 
-        var items = service.GetItems(node, CancellationToken.None);
+        var items = service.GetItems(document.Id, node, CancellationToken.None);
 
         var actual = string.Join("\r\n", items);
         AssertEx.SequenceEqual(

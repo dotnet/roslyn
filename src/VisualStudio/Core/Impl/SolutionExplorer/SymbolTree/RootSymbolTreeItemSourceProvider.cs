@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,11 +46,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
 
     /// <summary>
-    /// Queue of notifications we've heard about for changed documents.  We'll then go update the symbol tree item
-    /// for each of these documents so that it is up to date.  Note: if the symbol tree has never been expanded, 
-    /// this will bail immediately to avoid doing unnecessary work.
+    /// Queue of notifications we've heard about for changed document file paths.  We'll then go update the
+    /// symbol tree item for each of these documents so that it is up to date.  Note: if the symbol tree has
+    /// never been expanded,  this will bail immediately to avoid doing unnecessary work.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
+    private readonly AsyncBatchingWorkQueue<string> _updateSourcesQueue;
     private readonly Workspace _workspace;
 
     private readonly IGoOrFindNavigationService _goToBaseNavigationService;
@@ -80,18 +81,25 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
         NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
-        _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
+        _updateSourcesQueue = new AsyncBatchingWorkQueue<string>(
             DelayTimeSpan.Medium,
             UpdateCollectionSourcesAsync,
-            EqualityComparer<DocumentId>.Default,
+            // Ignore case as we're comparing file paths here.
+            StringComparer.OrdinalIgnoreCase,
             this.Listener,
             this.ThreadingContext.DisposalToken);
 
         this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
-                if (e.DocumentId != null)
-                    _updateSourcesQueue.AddWork(e.DocumentId);
+                var oldPath = e.OldSolution.GetDocument(e.DocumentId)?.FilePath;
+                var newPath = e.NewSolution.GetDocument(e.DocumentId)?.FilePath;
+
+                if (oldPath != null)
+                    _updateSourcesQueue.AddWork(oldPath);
+
+                if (newPath != null)
+                    _updateSourcesQueue.AddWork(newPath);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
 
@@ -99,12 +107,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
-        ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
+        ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _1 = Microsoft.CodeAnalysis.PooledObjects.PooledHashSet<DocumentId>.GetInstance(out var documentIdSet);
+        using var _1 = SharedPools.StringIgnoreCaseHashSet.GetPooledObject(out var filePathSet);
         using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
-        documentIdSet.AddRange(documentIds);
+        filePathSet.AddRange(updatedFilePaths);
         sources.AddRange(_hierarchyToCollectionSource.Values);
 
         // Update all the affected documents in parallel.
@@ -113,7 +121,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfAffectedAsync(documentIdSet, cancellationToken)
+                await source.UpdateIfAffectedAsync(filePathSet, cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -122,6 +130,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
         if (item == null ||
+            item.IsDisposed ||
             item.HierarchyIdentity == null ||
             item.HierarchyIdentity.NestedHierarchy == null ||
             relationshipName != KnownRelationships.Contains)
@@ -144,12 +153,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        if (!hierarchy.TryGetCanonicalName(itemId, out var itemName))
+        if (item.CanonicalName is not string filePath)
             return null;
 
         // We only support C# and VB files for now.  This ensures we don't create source providers for
         // other types of files we'll never have results for.
-        var extension = Path.GetExtension(itemName);
+        //
+        // Note: we cannot check if these are files we actually care about at this point.  Collection
+        // sources are normally made far prior to roslyn hearing about the document and incorporating 
+        // it into the solution model.  Instead, we will defer computation of what document this source
+        // belongs to into RootSymbolTreeItemCollectionSource.UpdateIfAffectedAsync.
+        var extension = Path.GetExtension(filePath);
         if (extension is not ".cs" and not ".vb")
             return null;
 
@@ -163,12 +177,19 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
         void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
-            // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
             if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed) && item.IsDisposed)
             {
+                // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
+                // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
+            }
+            else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
+            {
+                // If the filepath changes for an item (which can happen when it is renamed), place a notification
+                // in the queue to update it in the future.  This will ensure all the items presented for it have hte
+                // right document id.
+                _updateSourcesQueue.AddWork(item.CanonicalName);
             }
         }
     }
