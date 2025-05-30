@@ -168,6 +168,9 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             }
             else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
             {
+                // If the filepath changes for an item (which can happen when it is renamed), place a notification
+                // in the queue to update it in the future.  This will ensure all the items presented for it have hte
+                // right document id.
                 _updateSourcesQueue.AddWork(item.CanonicalName);
             }
         }
