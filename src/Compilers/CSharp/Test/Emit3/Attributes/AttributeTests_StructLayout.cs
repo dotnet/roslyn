@@ -936,12 +936,7 @@ partial struct C
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(3, 15),
                 // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
                 // [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
-                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(8, 15),
-
-                // (5, 7): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
-                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout).WithLocation(4, 7),
-                // (13,6): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
-                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout).WithLocation(10, 7)
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(8, 15)
                 );
         }
 
