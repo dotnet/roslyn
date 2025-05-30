@@ -3150,7 +3150,7 @@ class C { }";
 
         var solutionFilePath = GetSolutionFileName(@"TestVB2.sln");
 
-        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack 
+        // The reference assemblies for .NETFramework,Version=v3.5 were not found To resolve this, install the Developer Pack
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
@@ -3272,6 +3272,34 @@ class C { }";
 
         using var workspace = CreateMSBuildWorkspace();
         var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+
+        Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestValidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"CSharpXmlSolution.slnx", Resources.XmlSolutionFiles.CSharp));
+        var solutionFilePath = GetSolutionFileName(@"CSharpXmlSolution.slnx");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+        var csharpProject = Assert.Single(solution.Projects);
+
+        Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+        Assert.Equal("CSharpProject.csproj", Path.GetFileName(csharpProject.FilePath));
+    }
+
+    [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+    public async Task TestInvalidXmlSolutionSupport()
+    {
+        CreateFiles(GetMultiProjectSolutionFiles()
+            .WithFile(@"InvalidXmlSolution.slnx", Resources.XmlSolutionFiles.Invalid));
+        var solutionFilePath = GetSolutionFileName(@"InvalidXmlSolution.slnx");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var exception = await Assert.ThrowsAnyAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
 
         Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
     }

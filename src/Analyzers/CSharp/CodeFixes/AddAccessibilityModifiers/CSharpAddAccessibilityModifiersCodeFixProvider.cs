@@ -16,17 +16,5 @@ namespace Microsoft.CodeAnalysis.CSharp.AddOrRemoveAccessibilityModifiers;
 internal sealed class CSharpAddOrRemoveAccessibilityModifiersCodeFixProvider() : AbstractAddOrRemoveAccessibilityModifiersCodeFixProvider
 {
     protected override SyntaxNode MapToDeclarator(SyntaxNode node)
-    {
-        switch (node)
-        {
-            case FieldDeclarationSyntax field:
-                return field.Declaration.Variables[0];
-
-            case EventFieldDeclarationSyntax eventField:
-                return eventField.Declaration.Variables[0];
-
-            default:
-                return node;
-        }
-    }
+        => node is BaseFieldDeclarationSyntax field ? field.Declaration.Variables[0] : node;
 }

@@ -50,6 +50,16 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Ajouter l'attribut 'DebuggerDisplay'</target>
         <note>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Add_negative_value_check">
+        <source>Add negative value check</source>
+        <target state="new">Add negative value check</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_negative_value_or_zero_check">
+        <source>Add negative value or zero check</source>
+        <target state="new">Add negative value or zero check</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_null_checks_for_all_parameters">
         <source>Add null checks for all parameters</source>
         <target state="translated">Ajouter des vérifications de valeur null pour tous les paramètres</target>
@@ -3168,6 +3178,16 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
       <trans-unit id="_0_bases">
         <source>'{0}' bases</source>
         <target state="translated">'{0}' bases</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative">
+        <source>'{0}' cannot be negative</source>
+        <target state="new">'{0}' cannot be negative</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_cannot_be_negative_or_zero">
+        <source>'{0}' cannot be negative or zero</source>
+        <target state="new">'{0}' cannot be negative or zero</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">

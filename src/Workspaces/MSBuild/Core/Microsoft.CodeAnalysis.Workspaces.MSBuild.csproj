@@ -22,10 +22,17 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.VisualStudio.SolutionPersistence" />
     <PackageReference Include="Newtonsoft.Json" />
+    <!--
+      Since System.Text.Json is part of the .NET BCL we do not want to add
+      it as a package reference. Doing so will pin the version to what we use
+      in our build instead of allowing it to use the version from the .NET Runtime
+      we are running against.
+    -->
+    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />

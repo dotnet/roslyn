@@ -7,7 +7,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
