@@ -34,9 +34,23 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// we do no work so as to avoid CPU time and rooting things like syntax nodes.
         /// </summary>
         private volatile int _initialized;
+
+        private string _itemName = null!;
         private DocumentId? _documentId;
 
-        internal async Task UpdateIfAffectedAsync(
+        public string ItemName
+        {
+            get => _itemName;
+            set
+            {
+                _itemName = value;
+
+                // Clear out any cached doc id as we will need to recompute it with the new 
+                _documentId = null;
+            }
+        }
+
+        public async Task UpdateIfAffectedAsync(
             HashSet<DocumentId>? updateSet,
             CancellationToken cancellationToken)
         {
@@ -80,13 +94,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
         private DocumentId? DetermineDocumentId()
         {
-            if (_documentId == null)
+            if (this.DocumentId == null)
             {
                 var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-                idMap.TryGetDocumentId(_hierarchyItem, targetFrameworkMoniker: null, out _documentId);
+                if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
+                {
+                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.ItemName);
+                    this.DocumentId = documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
+                }
             }
 
-            return _documentId;
+            return this.DocumentId;
         }
 
         object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;

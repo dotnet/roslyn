@@ -135,7 +135,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (extension is not ".cs" and not ".vb")
             return null;
 
-        var source = new RootSymbolTreeItemCollectionSource(this, item);
+        var source = new RootSymbolTreeItemCollectionSource(this, item, itemName);
         _hierarchyToCollectionSource[item] = source;
 
         // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
@@ -145,12 +145,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
 
         void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
-            // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
             if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed) && item.IsDisposed)
             {
+                // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
+                // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
+            }
+            else if (e.PropertyName == nameof(IVsHierarchyItem.Text))
+            {
+                // Name of the file changed.  Clear out the cached document id for it so it is recomputed.
+                source.DocumentId = null;
             }
         }
     }

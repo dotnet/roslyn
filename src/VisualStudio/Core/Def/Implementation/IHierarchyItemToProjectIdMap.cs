@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 /// </summary>
 internal interface IHierarchyItemToProjectIdMap : IWorkspaceService
 {
-    bool TryGetDocumentId(IVsHierarchyItem parent, string? targetFrameworkMoniker, [NotNullWhen(true)] out DocumentId? documentId);
-
     /// <summary>
     /// Given an <see cref="IVsHierarchyItem"/> representing a project and an optional target framework moniker,
     /// returns the <see cref="ProjectId"/> of the equivalent Roslyn <see cref="Project"/>.
@@ -24,7 +22,24 @@ internal interface IHierarchyItemToProjectIdMap : IWorkspaceService
     /// <param name="targetFrameworkMoniker">An optional string representing a TargetFrameworkMoniker.
     /// This is only useful in multi-targeting scenarios where there may be multiple Roslyn projects 
     /// (one per target framework) for a single project on disk.</param>
-    /// <param name="projectId">The <see cref="ProjectId"/> of the found project, if any.</param>
+    /// <param name="project">The <see cref="Project"/> of the found project, if any.</param>
     /// <returns>True if the desired project was found; false otherwise.</returns>
-    bool TryGetProjectId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId);
+    /// <remarks>
+    /// Can be called on any thread.
+    /// </remarks>
+    bool TryGetProject(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out Project? project);
+}
+
+internal static class IHierarchyItemToProjectIdMapExtensions
+{
+    /// <inheritdoc cref="IHierarchyItemToProjectIdMap.TryGetProject"/>"/>
+    public static bool TryGetProjectId(this IHierarchyItemToProjectIdMap idMap, IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out ProjectId? projectId)
+    {
+        projectId = null;
+        if (!idMap.TryGetProject(hierarchyItem, targetFrameworkMoniker, out var project))
+            return false;
+
+        projectId = project.Id;
+        return true;
+    }
 }
