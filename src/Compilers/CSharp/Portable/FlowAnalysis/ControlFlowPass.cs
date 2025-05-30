@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -21,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         private readonly ArrayBuilder<(LocalSymbol symbol, BoundBlock block)> _usingDeclarations = ArrayBuilder<(LocalSymbol, BoundBlock)>.GetInstance();
-        private BoundBlock _currentBlock = null;
+        private BoundBlock? _currentBlock = null;
+        // This dictionary is not owned by ControlFlowPass, it is returned to the caller of the pass who is responsible for freeing it.
+        private PooledDictionary<BoundNode, bool>? _asyncTryFinallyEndsReachable;
 
         protected override void Free()
         {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode Visit(BoundNode node)
+        public override BoundNode? Visit(BoundNode node)
         {
             // there is no need to scan the contents of an expression, as expressions
             // do not contribute to reachability analysis (except for constants, which
@@ -151,9 +151,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform control flow analysis, reporting all necessary diagnostics.  Returns true if the end of
         /// the body might be reachable...
         /// </summary>
-        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag diagnostics)
+        /// <param name="asyncTryFinallyEndsReachable">
+        /// When symbol is an async method, this dictionary contains information about the reachability of the end try-finally blocks, or things
+        /// that could be converted to try/finally blocks with awaits in the finally, such as await foreach or await using.
+        /// </param>
+        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag? diagnostics, out PooledDictionary<BoundNode, bool>? asyncTryFinallyEndsReachable)
         {
             var walker = new ControlFlowPass(compilation, member, block);
+
+            if (member is MethodSymbol { IsAsync: true })
+            {
+                walker._asyncTryFinallyEndsReachable = PooledDictionary<BoundNode, bool>.GetInstance();
+                asyncTryFinallyEndsReachable = walker._asyncTryFinallyEndsReachable;
+            }
+            else
+            {
+                asyncTryFinallyEndsReachable = null;
+            }
 
             if (diagnostics != null)
             {
@@ -188,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// body might be reachable.
         /// </summary>
         /// <returns></returns>
-        protected bool Analyze(ref bool badRegion, DiagnosticBag diagnostics)
+        protected bool Analyze(ref bool badRegion, DiagnosticBag? diagnostics)
         {
             ImmutableArray<PendingBranch> returns = Analyze(ref badRegion);
 
@@ -271,6 +285,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void RecordTryFinallyReachability(BoundNode node)
+        {
+            Debug.Assert(node is BoundTryStatement
+                or BoundForEachStatement { AwaitOpt: not null }
+                or BoundUsingStatement { AwaitOpt: not null });
+            if (_asyncTryFinallyEndsReachable != null)
+            {
+                // If this is an async method, we need to track whether the end of the try block is reachable.
+                // This is used for async exception handler rewriting.
+                _asyncTryFinallyEndsReachable[node] = this.State.Alive;
+            }
+        }
+
+        public override BoundNode VisitForEachStatement(BoundForEachStatement node)
+        {
+            var result = base.VisitForEachStatement(node);
+            if (node.AwaitOpt is not null)
+            {
+                RecordTryFinallyReachability(node);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitUsingStatement(BoundUsingStatement node)
+        {
+            var result = base.VisitUsingStatement(node);
+            if (node.AwaitOpt is not null)
+            {
+                RecordTryFinallyReachability(node);
+            }
+            return result;
+        }
+
+        public override BoundNode VisitTryStatement(BoundTryStatement node)
+        {
+            var result = base.VisitTryStatement(node);
+            RecordTryFinallyReachability(node);
+            return result;
+        }
+
         protected override void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref LocalState tryState)
         {
             if (node.CatchBlocks.IsEmpty)
@@ -321,11 +375,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitLabel(BoundLabeledStatement node)
         {
+            Debug.Assert(_currentBlock != null);
             _labelsDefined[node.Label] = _currentBlock;
             base.VisitLabel(node);
         }
 
-        public override BoundNode VisitLabeledStatement(BoundLabeledStatement node)
+        public override BoundNode? VisitLabeledStatement(BoundLabeledStatement node)
         {
             VisitLabel(node);
             CheckReachable(node);
@@ -358,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // target to branch to.
 
                     // Error if label and using are part of the same block
-                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode target) && target == usingDecl.block)
+                    if (_labelsDefined.TryGetValue(node.Label, out BoundNode? target) && target == usingDecl.block)
                     {
                         Diagnostics.Add(ErrorCode.ERR_GoToBackwardJumpOverUsingVar, sourceLocation);
                         break;
@@ -411,8 +466,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitBlock(node);
 
             _usingDeclarations.Clip(initialUsingCount);
+            if (_asyncTryFinallyEndsReachable is not null)
+            {
+                UsingDeclarationVisitor.Instance.Visit(node, (_asyncTryFinallyEndsReachable, State.Alive));
+            }
             _currentBlock = parentBlock;
             return result;
+        }
+
+        private class UsingDeclarationVisitor : BoundTreeVisitor<(PooledDictionary<BoundNode, bool> dictionary, bool state), object>
+        {
+            public static readonly UsingDeclarationVisitor Instance = new UsingDeclarationVisitor();
+            private UsingDeclarationVisitor()
+            {
+            }
+
+            public override object VisitUsingLocalDeclarations(BoundUsingLocalDeclarations node, (PooledDictionary<BoundNode, bool> dictionary, bool state) arg)
+            {
+                if (node.AwaitOpt is not null)
+                {
+                    arg.dictionary[node] = arg.state;
+                }
+                return base.VisitUsingLocalDeclarations(node, arg);
+            }
         }
     }
 }

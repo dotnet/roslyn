@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, CSharpParseOptions parseOptions = null, string runtimeAsyncAwaitHelpers = RuntimeAsyncAwaitHelpers)
         {
             // PROTOTYPE: Remove this helper and just use .NET 10 when we can
-            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers, AsyncStreamsTypes]);
+            var corlib = CreateEmptyCompilation([RuntimeAsyncCoreLib, runtimeAsyncAwaitHelpers]);
 
             var compilation = CreateEmptyCompilation(source, references: [.. references ?? [], corlib.EmitToImageReference()], options: options, parseOptions: parseOptions ?? WithRuntimeAsync(TestOptions.RegularPreview));
             return compilation;
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
-        private static string ReturnValueMissing(string method, string offset) => $$"""[{{method}}]: Return value missing on the stack. { Offset = {{offset}} }""";
+        internal static string ReturnValueMissing(string method, string offset) => $$"""[{{method}}]: Return value missing on the stack. { Offset = {{offset}} }""";
 
         [Fact]
         public void StructVsClass()

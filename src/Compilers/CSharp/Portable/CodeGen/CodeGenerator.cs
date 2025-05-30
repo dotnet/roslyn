@@ -321,8 +321,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             _builder.MarkLabel(s_returnLabel);
 
-            Debug.Assert(_method.ReturnsVoid == (_returnTemp == null));
+            Debug.Assert((_method.ReturnsVoid == (_returnTemp == null))
+                || (_method.ReturnsVoid
+                    && _module.Compilation.IsRuntimeAsyncEnabledIn(_method)
+                    && ((InternalSpecialType)_method.ReturnType.OriginalDefinition.ExtendedSpecialType) is InternalSpecialType.System_Threading_Tasks_Task or InternalSpecialType.System_Threading_Tasks_ValueTask),
+                "return temp should be null for void methods, or for async Task/ValueTask methods");
 
+            // PROTOTYPE: Revisit
             if (_emitPdbSequencePoints && !_method.IsIterator && !_method.IsAsync)
             {
                 // In debug mode user could set a breakpoint on the last "}" of the method and 
