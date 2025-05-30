@@ -213,7 +213,7 @@ internal sealed partial class ProjectSystemProject
 
             _documentIdToDynamicFileInfoProvider.Add(documentId, fileInfoProvider);
 
-            if (_project._eventSubscriptionTracker.Add(fileInfoProvider))
+            if (_project._dynamicFileInfoProvidersSubscribedTo.Add(fileInfoProvider))
             {
                 // subscribe to the event when we use this provider the first time
                 fileInfoProvider.Updated += _project.OnDynamicFileInfoUpdated;
