@@ -34,7 +34,7 @@ public sealed partial class GenerateTypeTests(ITestOutputHelper logger)
 
     // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
     protected override TestComposition GetComposition()
-        => EditorTestCompositions.EditorFeaturesWpf;
+        => EditorTestCompositions.EditorFeatures;
 
     #region Generate Class
 

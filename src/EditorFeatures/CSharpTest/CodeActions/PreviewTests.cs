@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 
 public sealed partial class PreviewTests : AbstractCSharpCodeActionTest
 {
-    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeaturesWpf
+    private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures
         .AddParts(
             typeof(MockPreviewPaneService));
 

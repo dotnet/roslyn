@@ -128,7 +128,7 @@ internal sealed class RenameTrackingTestState : IDisposable
 
     private static EditorTestWorkspace CreateTestWorkspace(string xml)
     {
-        return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
+        return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeatures);
     }
 
     public void SendEscape()
