@@ -70,237 +70,205 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         switch (member)
         {
             case BaseFieldDeclarationSyntax fieldDeclaration:
-                AddFieldDeclaration(fieldDeclaration, items, nameBuilder);
+                AddFieldDeclaration(fieldDeclaration);
                 return;
 
             case MethodDeclarationSyntax methodDeclaration:
-                AddMethodDeclaration(methodDeclaration, items, nameBuilder);
+                AddMethodDeclaration(methodDeclaration);
                 return;
 
             case OperatorDeclarationSyntax operatorDeclaration:
-                AddOperatorDeclaration(operatorDeclaration, items, nameBuilder);
+                AddOperatorDeclaration(operatorDeclaration);
                 return;
 
             case ConversionOperatorDeclarationSyntax conversionOperatorDeclaration:
-                AddConversionOperatorDeclaration(conversionOperatorDeclaration, items, nameBuilder);
+                AddConversionOperatorDeclaration(conversionOperatorDeclaration);
                 return;
 
             case ConstructorDeclarationSyntax constructorDeclaration:
-                AddConstructorOrDestructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier, items, nameBuilder);
+                AddConstructorOrDestructorDeclaration(constructorDeclaration, constructorDeclaration.Identifier);
                 return;
 
             case DestructorDeclarationSyntax destructorDeclaration:
-                AddConstructorOrDestructorDeclaration(destructorDeclaration, destructorDeclaration.Identifier, items, nameBuilder);
+                AddConstructorOrDestructorDeclaration(destructorDeclaration, destructorDeclaration.Identifier);
                 return;
 
             case PropertyDeclarationSyntax propertyDeclaration:
-                AddPropertyDeclaration(propertyDeclaration, items, nameBuilder);
+                AddPropertyDeclaration(propertyDeclaration);
                 return;
 
             case EventDeclarationSyntax eventDeclaration:
-                AddEventDeclaration(eventDeclaration, items, nameBuilder);
+                AddEventDeclaration(eventDeclaration);
                 return;
 
             case IndexerDeclarationSyntax indexerDeclaration:
-                AddIndexerDeclaration(indexerDeclaration, items, nameBuilder);
+                AddIndexerDeclaration(indexerDeclaration);
                 return;
         }
-    }
 
-    private static void AddIndexerDeclaration(
-        DocumentId documentId,
-        IndexerDeclarationSyntax indexerDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append("this");
-        AppendCommaSeparatedList(
-            nameBuilder, "[", "]",
-            indexerDeclaration.ParameterList.Parameters,
-            static (parameter, nameBuilder) => AppendType(parameter.Type, nameBuilder));
-        nameBuilder.Append(" : ");
-        AppendType(indexerDeclaration.Type, nameBuilder);
 
-        var accessibility = GetAccessibility(indexerDeclaration.GetRequiredParent(), indexerDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Indexer, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            indexerDeclaration,
-            indexerDeclaration.ThisKeyword));
-    }
-
-    private static void AddEventDeclaration(
-        DocumentId documentId,
-        EventDeclarationSyntax eventDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(eventDeclaration.Identifier.ValueText);
-        nameBuilder.Append(" : ");
-        AppendType(eventDeclaration.Type, nameBuilder);
-
-        var accessibility = GetAccessibility(eventDeclaration.GetRequiredParent(), eventDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            eventDeclaration,
-            eventDeclaration.Identifier));
-    }
-
-    private static void AddPropertyDeclaration(
-        DocumentId documentId,
-        PropertyDeclarationSyntax propertyDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(propertyDeclaration.Identifier.ValueText);
-        nameBuilder.Append(" : ");
-        AppendType(propertyDeclaration.Type, nameBuilder);
-
-        var accessibility = GetAccessibility(propertyDeclaration.GetRequiredParent(), propertyDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            propertyDeclaration,
-            propertyDeclaration.Identifier));
-    }
-
-    private static void AddConstructorOrDestructorDeclaration(
-        DocumentId documentId,
-        BaseMethodDeclarationSyntax declaration,
-        SyntaxToken identifier,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        if (declaration.Kind() == SyntaxKind.DestructorDeclaration)
-            nameBuilder.Append('~');
-
-        nameBuilder.Append(identifier.ValueText);
-        AppendParameterList(nameBuilder, declaration.ParameterList);
-
-        var accessibility = GetAccessibility(declaration.GetRequiredParent(), declaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            declaration,
-            identifier));
-    }
-
-    private static void AddConversionOperatorDeclaration(
-        DocumentId documentId,
-        ConversionOperatorDeclarationSyntax operatorDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(operatorDeclaration.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
-            ? "implicit operator "
-            : "explicit operator ");
-        AppendType(operatorDeclaration.Type, nameBuilder);
-        AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
-
-        var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            operatorDeclaration,
-            operatorDeclaration.Type.GetFirstToken()));
-    }
-
-    private static void AddOperatorDeclaration(
-        DocumentId documentId,
-        OperatorDeclarationSyntax operatorDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append("operator ");
-        nameBuilder.Append(operatorDeclaration.OperatorToken.ToString());
-        AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
-        nameBuilder.Append(" : ");
-        AppendType(operatorDeclaration.ReturnType, nameBuilder);
-
-        var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
-        var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            operatorDeclaration,
-            operatorDeclaration.OperatorToken));
-    }
-
-    private static void AddMethodDeclaration(
-        DocumentId documentId,
-        MethodDeclarationSyntax methodDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(methodDeclaration.Identifier.ValueText);
-        AppendTypeParameterList(nameBuilder, methodDeclaration.TypeParameterList);
-        AppendParameterList(nameBuilder, methodDeclaration.ParameterList);
-        nameBuilder.Append(" : ");
-        AppendType(methodDeclaration.ReturnType, nameBuilder);
-
-        var accessibility = GetAccessibility(methodDeclaration.GetRequiredParent(), methodDeclaration.Modifiers);
-        var isExtension = methodDeclaration.IsParentKind(SyntaxKind.ExtensionBlockDeclaration) ||
-            (methodDeclaration.ParameterList is { Parameters: [var parameter, ..] } && parameter.Modifiers.Any(SyntaxKind.ThisKeyword));
-        var glyph = GlyphExtensions.GetGlyph(
-            isExtension ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method, accessibility);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            methodDeclaration,
-            methodDeclaration.Identifier));
-    }
-
-    private static void AddFieldDeclaration(
-        DocumentId documentId,
-        BaseFieldDeclarationSyntax fieldDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        foreach (var variable in fieldDeclaration.Declaration.Variables)
+        void AddMethodDeclaration(MethodDeclarationSyntax methodDeclaration)
         {
-            nameBuilder.Append(variable.Identifier.ValueText);
+            nameBuilder.Append(methodDeclaration.Identifier.ValueText);
+            AppendTypeParameterList(nameBuilder, methodDeclaration.TypeParameterList);
+            AppendParameterList(nameBuilder, methodDeclaration.ParameterList);
             nameBuilder.Append(" : ");
-            AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
+            AppendType(methodDeclaration.ReturnType, nameBuilder);
 
-            var accessibility = GetAccessibility(fieldDeclaration.GetRequiredParent(), fieldDeclaration.Modifiers);
-            var kind = fieldDeclaration is EventFieldDeclarationSyntax
-                ? DeclaredSymbolInfoKind.Event
-                : DeclaredSymbolInfoKind.Field;
+            var accessibility = GetAccessibility(methodDeclaration.GetRequiredParent(), methodDeclaration.Modifiers);
+            var isExtension = methodDeclaration.IsParentKind(SyntaxKind.ExtensionBlockDeclaration) ||
+                (methodDeclaration.ParameterList is { Parameters: [var parameter, ..] } && parameter.Modifiers.Any(SyntaxKind.ThisKeyword));
+            var glyph = GlyphExtensions.GetGlyph(
+                isExtension ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method, accessibility);
 
             items.Add(new(
                 documentId,
                 nameBuilder.ToStringAndClear(),
-                GlyphExtensions.GetGlyph(kind, accessibility),
+                glyph,
                 hasItems: false,
-                variable,
-                variable.Identifier));
+                methodDeclaration,
+                methodDeclaration.Identifier));
+        }
+
+        void AddFieldDeclaration(BaseFieldDeclarationSyntax fieldDeclaration)
+        {
+            foreach (var variable in fieldDeclaration.Declaration.Variables)
+            {
+                nameBuilder.Append(variable.Identifier.ValueText);
+                nameBuilder.Append(" : ");
+                AppendType(fieldDeclaration.Declaration.Type, nameBuilder);
+
+                var accessibility = GetAccessibility(fieldDeclaration.GetRequiredParent(), fieldDeclaration.Modifiers);
+                var kind = fieldDeclaration is EventFieldDeclarationSyntax
+                    ? DeclaredSymbolInfoKind.Event
+                    : DeclaredSymbolInfoKind.Field;
+
+                items.Add(new(
+                    documentId,
+                    nameBuilder.ToStringAndClear(),
+                    GlyphExtensions.GetGlyph(kind, accessibility),
+                    hasItems: false,
+                    variable,
+                    variable.Identifier));
+            }
+        }
+
+        void AddOperatorDeclaration(OperatorDeclarationSyntax operatorDeclaration)
+        {
+            nameBuilder.Append("operator ");
+            nameBuilder.Append(operatorDeclaration.OperatorToken.ToString());
+            AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
+            nameBuilder.Append(" : ");
+            AppendType(operatorDeclaration.ReturnType, nameBuilder);
+
+            var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                operatorDeclaration,
+                operatorDeclaration.OperatorToken));
+        }
+
+        void AddConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax operatorDeclaration)
+        {
+            nameBuilder.Append(operatorDeclaration.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
+                ? "implicit operator "
+                : "explicit operator ");
+            AppendType(operatorDeclaration.Type, nameBuilder);
+            AppendParameterList(nameBuilder, operatorDeclaration.ParameterList);
+
+            var accessibility = GetAccessibility(operatorDeclaration.GetRequiredParent(), operatorDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                operatorDeclaration,
+                operatorDeclaration.Type.GetFirstToken()));
+        }
+
+        void AddConstructorOrDestructorDeclaration(BaseMethodDeclarationSyntax declaration, SyntaxToken identifier)
+        {
+            if (declaration.Kind() == SyntaxKind.DestructorDeclaration)
+                nameBuilder.Append('~');
+
+            nameBuilder.Append(identifier.ValueText);
+            AppendParameterList(nameBuilder, declaration.ParameterList);
+
+            var accessibility = GetAccessibility(declaration.GetRequiredParent(), declaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                declaration,
+                identifier));
+        }
+
+        void AddPropertyDeclaration(PropertyDeclarationSyntax propertyDeclaration)
+        {
+            nameBuilder.Append(propertyDeclaration.Identifier.ValueText);
+            nameBuilder.Append(" : ");
+            AppendType(propertyDeclaration.Type, nameBuilder);
+
+            var accessibility = GetAccessibility(propertyDeclaration.GetRequiredParent(), propertyDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                propertyDeclaration,
+                propertyDeclaration.Identifier));
+        }
+
+        void AddEventDeclaration(EventDeclarationSyntax eventDeclaration)
+        {
+            nameBuilder.Append(eventDeclaration.Identifier.ValueText);
+            nameBuilder.Append(" : ");
+            AppendType(eventDeclaration.Type, nameBuilder);
+
+            var accessibility = GetAccessibility(eventDeclaration.GetRequiredParent(), eventDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                eventDeclaration,
+                eventDeclaration.Identifier));
+        }
+
+        void AddIndexerDeclaration(IndexerDeclarationSyntax indexerDeclaration)
+        {
+            nameBuilder.Append("this");
+            AppendCommaSeparatedList(
+                nameBuilder, "[", "]",
+                indexerDeclaration.ParameterList.Parameters,
+                static (parameter, nameBuilder) => AppendType(parameter.Type, nameBuilder));
+            nameBuilder.Append(" : ");
+            AppendType(indexerDeclaration.Type, nameBuilder);
+
+            var accessibility = GetAccessibility(indexerDeclaration.GetRequiredParent(), indexerDeclaration.Modifiers);
+            var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Indexer, accessibility);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                indexerDeclaration,
+                indexerDeclaration.ThisKeyword));
         }
     }
 
@@ -314,6 +282,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         {
             cancellationToken.ThrowIfCancellationRequested();
             items.Add(new(
+                documentId,
                 member.Identifier.ValueText,
                 Glyph.EnumMemberPublic,
                 hasItems: false,
