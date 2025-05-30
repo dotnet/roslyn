@@ -68,6 +68,7 @@ internal static class FeatureAttribute
     public const string SolutionChecksumUpdater = nameof(SolutionChecksumUpdater);
     public const string SolutionCrawlerLegacy = nameof(SolutionCrawlerLegacy);
     public const string SolutionCrawlerUnitTesting = nameof(SolutionCrawlerUnitTesting);
+    public const string SolutionExplorer = nameof(SolutionExplorer);
     public const string SourceGenerators = nameof(SourceGenerators);
     public const string StringIndentation = nameof(StringIndentation);
     public const string Tagger = nameof(Tagger);
