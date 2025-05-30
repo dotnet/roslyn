@@ -11,6 +11,10 @@ using Microsoft.CodeAnalysis.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
+/// <summary>
+/// Helper type for navigating to items shown in the solution explorer tree. Used for navigating to symbol
+/// tree items, as well as the results of symbol tree search.
+/// </summary>
 internal sealed class SolutionExplorerNavigationSupport(
     Workspace workspace,
     IThreadingContext threadingContext,
