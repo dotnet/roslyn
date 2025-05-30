@@ -161,6 +161,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
             }
+            else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
+            {
+                _updateSourcesQueue.AddWork(item.CanonicalName);
+            }
         }
     }
 }
