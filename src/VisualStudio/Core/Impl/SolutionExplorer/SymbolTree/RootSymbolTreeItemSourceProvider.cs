@@ -114,16 +114,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private async ValueTask UpdateCollectionSourcesAsync(
         ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _1 = SharedPools.StringIgnoreCaseHashSet.GetPooledObject(out var filePathSet);
-        using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
+        using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
         lock (_filePathToCollectionSources)
         {
             foreach (var filePath in updatedFilePaths)
-            {
-                foreach (var source in _filePathToCollectionSources[filePath])
-                    sources.Add(source);
-            }
+                sources.AddRange(_filePathToCollectionSources[filePath]);
         }
 
         // Update all the affected documents in parallel.
@@ -132,7 +128,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfAffectedAsync(cancellationToken)
+                await source.UpdateIfEverExpandedAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
