@@ -2352,6 +2352,11 @@
         <target state="translated">具有字段初始值设定项的“结构”必须包含显式声明的构造函数。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">类型为“{1}”的结构主构造函数参数“{0}”导致结构布局中出现循环</target>

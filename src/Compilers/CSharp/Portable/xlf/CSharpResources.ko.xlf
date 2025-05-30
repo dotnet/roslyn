@@ -2352,6 +2352,11 @@
         <target state="translated">필드 이니셜라이저가 있는 '구조체'에는 명시적으로 선언된 생성자가 포함되어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">'{1}' 형식의 구조체 기본 생성자 '{0}' 매개 변수로 인해 구조체 레이아웃의 주기가 발생합니다.</target>

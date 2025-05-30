@@ -2352,6 +2352,11 @@
         <target state="translated">Alan başlatıcılarına sahip bir 'struct' açıkça bildirilen bir oluşturucu içermelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">'{1}' tipindeki '{0}' yapı birincil oluşturucu parametresi, yapı düzeninde bir döngüye neden olur</target>

@@ -2352,6 +2352,11 @@
         <target state="translated">Položka „struct“ s inicializátory pole musí obsahovat explicitně deklarovaný konstruktor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">Parametr primárního konstruktoru struktury {0} typu{1} způsobuje cyklus v rozložení struktury.</target>

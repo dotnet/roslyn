@@ -2352,6 +2352,11 @@
         <target state="translated">Eine „Struktur“ mit Feldinitialisierern muss einen explizit deklarierten Konstruktor enthalten.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">Der primäre Strukturkonstruktorparameter „{0}“ vom Typ „{1}“ verursacht eine Schleife im struct-Layout.</target>

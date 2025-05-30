@@ -2352,6 +2352,11 @@
         <target state="translated">フィールド初期化子を持つ 'struct' には、明示的に宣言されたコンストラクターを含める必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="new">Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructLayoutCyclePrimaryConstructorParameter">
         <source>Struct primary constructor parameter '{0}' of type '{1}' causes a cycle in the struct layout</source>
         <target state="translated">型 '{1}' の構造体のプライマリ コンストラクター パラメーター '{0}' により、構造体レイアウトで循環が発生します</target>

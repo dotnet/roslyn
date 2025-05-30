@@ -559,7 +559,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     case CompletionPart.Attributes:
                         GetAttributes();
-                        // TODO-ExtendedLayout: Check for a StructLayoutAttribute and ExtendedLayoutAttribute and error if both are present.
                         break;
 
                     case CompletionPart.StartBaseType:

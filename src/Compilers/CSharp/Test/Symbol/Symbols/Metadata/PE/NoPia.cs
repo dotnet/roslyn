@@ -1446,7 +1446,6 @@ public class Derived : Base, I2
 
             var extendedLayoutReference = extendedLayout.ToMetadataReference();
 
-
             var sourcePIA =
 @"using System.Runtime.InteropServices;
 [assembly: PrimaryInteropAssembly(0, 0)]

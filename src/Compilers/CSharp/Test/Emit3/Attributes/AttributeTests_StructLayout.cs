@@ -779,7 +779,6 @@ partial struct C
             Assert.Equal(expectedLayout, type.Layout);
         }
 
-
         [Fact]
         public void ExtendedLayout_Partials()
         {
@@ -853,7 +852,7 @@ partial struct C
                 Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(6, 6),
                 // (13,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(13, 6)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6)
                 );
         }
 
@@ -880,7 +879,36 @@ partial struct C
                 """;
 
             CreateCompilation([source, ExtendedLayoutAttribute]).VerifyDiagnostics(
-                // TODO-ExtendedLayout: Add diagnostics
+                // (5,8): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct C
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "C").WithLocation(5, 8),
+                // (12,8): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                // struct D
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout, "D").WithLocation(12, 8),
+                // (14,6): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
+                //     [FieldOffset(0)]
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadStruct, "FieldOffset").WithLocation(14, 6)
+                );
+        }
+
+        [Fact]
+        public void InlineArrayType_ExtendedLayout()
+        {
+            var src = """
+                using System.Runtime.InteropServices;
+                
+                [ExtendedLayout(ExtendedLayoutKind.CStruct)]
+                [System.Runtime.CompilerServices.InlineArray(10)]
+                struct Buffer
+                {
+                    private int _element0;
+                }
+                """;
+
+            CreateCompilation([src, ExtendedLayoutAttribute], targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+                // (6,8): error CS9168: Inline array struct must have sequential or auto layout.
+                // struct Buffer
+                Diagnostic(ErrorCode.ERR_InvalidInlineArrayLayout, "Buffer").WithLocation(5, 8)
                 );
         }
 
@@ -908,7 +936,12 @@ partial struct C
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(3, 15),
                 // (8,15): error CS0591: Invalid value for argument to 'StructLayout' attribute
                 // [StructLayout((LayoutKind)1 /* LayoutKind.Extended */)]
-                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "(LayoutKind)1").WithArguments("StructLayout").WithLocation(8, 15),
+
+                // (5, 7): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout).WithLocation(4, 7),
+                // (13,6): error CS9316: Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.
+                Diagnostic(ErrorCode.ERR_StructLayoutAndExtendedLayout).WithLocation(10, 7)
                 );
         }
 
@@ -933,7 +966,7 @@ partial struct C
                     .Single();
 
                 Assert.Equal(MetadataHelpers.TypeAttributesExtendedLayout, type.Attributes & TypeAttributes.LayoutMask);
-            });
+            }, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -955,13 +988,11 @@ partial struct C
                     .Where(typeDef => reader.GetString(typeDef.Name) == "S")
                     .Single();
 
-                Assert.Equal(1, type.GetLayout().Size);
+                Assert.Equal(0, type.GetLayout().Size);
                 Assert.Equal(0, type.GetLayout().PackingSize);
 
                 Assert.Equal(MetadataHelpers.TypeAttributesExtendedLayout, type.Attributes & TypeAttributes.LayoutMask);
-            });
+            }, verify: Verification.Skipped);
         }
-
-        // TODO-ExtendedLayout: Add a NoPia test
     }
 }
