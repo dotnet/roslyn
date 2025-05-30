@@ -177,7 +177,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             {
                 // If the filepath changes for an item (which can happen when it is renamed), place a notification
                 // in the queue to update it in the future.  This will ensure all the items presented for it have hte
-                // right document id.
+                // right document id.  Also reset the state of the source.  The filepath could change to something
+                // no longer valid (like .cs to .txt), or vice versa.
                 source.Reset();
                 _updateSourcesQueue.AddWork(item.CanonicalName);
             }
