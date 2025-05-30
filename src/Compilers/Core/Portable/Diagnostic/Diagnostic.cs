@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level. For <see cref="DiagnosticSeverity.Error"/> severity this must be 0. For other <see cref="DiagnosticSeverity"/> severity levels set between 1 and 4.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
         /// <param name="helpLink">An optional hyperlink that provides more detailed information regarding the diagnostic.</param>
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="severity">The diagnostic's effective severity.</param>
         /// <param name="defaultSeverity">The diagnostic's default severity.</param>
         /// <param name="isEnabledByDefault">True if the diagnostic is enabled by default</param>
-        /// <param name="warningLevel">The warning level, greater than 0 if severity is <see cref="DiagnosticSeverity.Warning"/>; otherwise 0.</param>
+        /// <param name="warningLevel">The warning level. For <see cref="DiagnosticSeverity.Error"/> severity this must be 0. For other <see cref="DiagnosticSeverity"/> severity levels set between 1 and 4.</param>
         /// <param name="isSuppressed">Flag indicating whether the diagnostic is suppressed by a source suppression.</param>
         /// <param name="title">An optional short localizable title describing the diagnostic.</param>
         /// <param name="description">An optional longer localizable description for the diagnostic.</param>
@@ -404,8 +404,8 @@ namespace Microsoft.CodeAnalysis
         internal virtual ImmutableArray<string> CustomTags { get { return this.Descriptor.ImmutableCustomTags; } }
 
         /// <summary>
-        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/> 
-        /// if there is no entry. This can be used to put diagnostic specific information you want 
+        /// Gets property bag for the diagnostic. it will return <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>
+        /// if there is no entry. This can be used to put diagnostic specific information you want
         /// to pass around. for example, to corresponding fixer.
         /// </summary>
         public virtual ImmutableDictionary<string, string?> Properties
