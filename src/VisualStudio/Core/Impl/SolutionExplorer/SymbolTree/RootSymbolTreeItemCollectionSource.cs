@@ -34,7 +34,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// Whether or not this root solution explorer node has been expanded or not.  Until it is first expanded,
         /// we do no work so as to avoid CPU time and rooting things like syntax nodes.
         /// </summary>
-        private volatile int _initialized;
+        private volatile int _hasEverBeenExpanded;
 
         public async Task UpdateIfAffectedAsync(
             HashSet<string>? updatedFilePaths,
@@ -43,13 +43,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
             // in the future as documents are mutated, and we'll ignore until the point that the user has at
             // least expanded this node once.
-            if (_initialized == 0)
+            if (_hasEverBeenExpanded == 0)
                 return;
 
             var filePath = TryGetCanonicalName();
             if (updatedFilePaths != null && filePath != null && !updatedFilePaths.Contains(filePath))
                 return;
 
+            // Try to find a roslyn document for this file path.  Note: it is intentional that we continue onwards,
+            // even if this returns null.  We still want to put ourselves into the final "i have no items" state,
+            // instead of bailing out and potentially leaving either stale items, or leaving ourselves in the 
+            // "i don't know what items are in me" state.
             var documentId = DetermineDocumentId(filePath);
 
             var solution = _rootProvider._workspace.CurrentSolution;
@@ -117,14 +121,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         {
             get
             {
-                if (Interlocked.CompareExchange(ref _initialized, 1, 0) == 0)
+                if (Interlocked.CompareExchange(ref _hasEverBeenExpanded, 1, 0) == 0)
                 {
                     // This was the first time this node was expanded.  Kick off the initial work to 
                     // compute the items for it.
-                    var token = _rootProvider.Listener.BeginAsyncOperation(nameof(IAttachedCollectionSource.Items));
-                    UpdateIfAffectedAsync(updatedFilePaths: null, _rootProvider.ThreadingContext.DisposalToken)
-                        .ReportNonFatalErrorAsync()
-                        .CompletesAsyncOperation(token);
+                    _rootProvider._updateSourcesQueue.AddWork(_hierarchyItem.CanonicalName);
                 }
 
                 return _childCollection.Items;
