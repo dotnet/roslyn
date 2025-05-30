@@ -23,25 +23,6 @@ internal sealed class HierarchyItemToProjectIdMap(VisualStudioWorkspaceImpl work
 {
     private readonly VisualStudioWorkspaceImpl _workspace = workspace;
 
-    //public bool TryGetDocumentId(IVsHierarchyItem hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out DocumentId? documentId)
-    //{
-    //    documentId = null;
-
-    //    var identity = hierarchyItem.HierarchyIdentity;
-    //    var solution = _workspace.CurrentSolution;
-    //    if (!TryGetProjectId(solution, hierarchyItem.Parent, targetFrameworkMoniker, out var projectId))
-    //        return false;
-
-    //    var hierarchy = identity.Hierarchy;
-    //    var itemId = identity.ItemID;
-
-    //    if (!hierarchy.TryGetCanonicalName(itemId, out var itemName))
-    //        return false;
-
-
-    //    return documentId != null;
-    //}
-
     public bool TryGetProject(IVsHierarchyItem? hierarchyItem, string? targetFrameworkMoniker, [NotNullWhen(true)] out Project? project)
         => TryGetProject(_workspace.CurrentSolution, hierarchyItem, targetFrameworkMoniker, out project);
 
