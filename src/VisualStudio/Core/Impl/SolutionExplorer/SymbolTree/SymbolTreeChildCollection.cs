@@ -58,10 +58,7 @@ internal sealed class SymbolTreeChildCollection(
 
         // Move back to the state where the children are not initialized.  That way the next attemp to open
         // them will compute them.
-        _symbolTreeItems.IsInitialized = false;
-
-        // Notify any listenerrs that we may or may not have items now.
-        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
+        MarkInitialized(isInitialized: false);
     }
 
     public void SetItemsAndMarkComputed_OnMainThread(
@@ -110,8 +107,10 @@ internal sealed class SymbolTreeChildCollection(
             }
         }
 
-        MarkComputed();
         keyToItems.FreeValues();
+
+        // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
+        MarkInitialized(isInitialized: true);
     }
 
     public void ClearAndMarkComputed_OnMainThread()
@@ -123,17 +122,17 @@ internal sealed class SymbolTreeChildCollection(
             _symbolTreeItems.Clear();
         }
 
-        MarkComputed();
+        // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
+        MarkInitialized(isInitialized: true);
     }
 
-    private void MarkComputed()
+    private void MarkInitialized(bool isInitialized)
     {
         Contract.ThrowIfFalse(_rootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
 
-        // Once we've been initialized once, mark us that way so that we we move out of the 'spinning/computing' state.
-        _symbolTreeItems.IsInitialized = true;
+        _symbolTreeItems.IsInitialized = isInitialized;
 
-        // Notify any listenerrs that we may or may not have items now.
+        // Notify any listenerrs that our items have changed.
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
     }
 }
