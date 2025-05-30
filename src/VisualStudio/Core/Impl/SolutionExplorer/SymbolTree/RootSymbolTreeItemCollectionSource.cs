@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
@@ -48,13 +47,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         public void Reset()
         {
             _rootProvider.ThreadingContext.ThrowIfNotOnUIThread();
-            _hasEverBeenExpanded = 0;
             _childCollection.ResetToUncomputedState(GetHasItemsDefaultValue(_hierarchyItem));
+
+            // Note: we intentionally do not touch _hasEverBeenExpanded.  The platform only ever calls "Items"
+            // at most once (even if we notify that it changed). So if we reset _hasEverBeenExpanded to 0, then
+            // it will never leave that state from that point on, and we'll be stuck in an invalid state.
         }
 
-        public async Task UpdateIfAffectedAsync(
-            HashSet<string> updatedFilePaths,
-            CancellationToken cancellationToken)
+        public async Task UpdateIfEverExpandedAsync(CancellationToken cancellationToken)
         {
             // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
             // in the future as documents are mutated, and we'll ignore until the point that the user has at
@@ -62,15 +62,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             if (_hasEverBeenExpanded == 0)
                 return;
 
-            var filePath = TryGetCanonicalName();
-            if (filePath != null && !updatedFilePaths.Contains(filePath))
-                return;
-
             // Try to find a roslyn document for this file path.  Note: it is intentional that we continue onwards,
             // even if this returns null.  We still want to put ourselves into the final "i have no items" state,
             // instead of bailing out and potentially leaving either stale items, or leaving ourselves in the 
             // "i don't know what items are in me" state.
-            var documentId = DetermineDocumentId(filePath);
+            var documentId = DetermineDocumentId();
 
             var solution = _rootProvider._workspace.CurrentSolution;
 
@@ -95,27 +91,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             }
         }
 
-        private string? TryGetCanonicalName()
+        private DocumentId? DetermineDocumentId()
         {
-            // Quick check that will be correct the majority of the time.
-            if (!_hierarchyItem.IsDisposed)
-            {
-                // We are running in the background.  So it's possible that the type may be disposed between
-                // the above check and retrieving the canonical name.  So have to guard against that just in case.
-                try
-                {
-                    return _hierarchyItem.CanonicalName;
-                }
-                catch (ObjectDisposedException)
-                {
-                }
-            }
+            var filePath = TryGetCanonicalName();
 
-            return null;
-        }
-
-        private DocumentId? DetermineDocumentId(string? filePath)
-        {
             if (filePath != null)
             {
                 var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
@@ -127,6 +106,25 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             }
 
             return null;
+
+            string? TryGetCanonicalName()
+            {
+                // Quick check that will be correct the majority of the time.
+                if (!_hierarchyItem.IsDisposed)
+                {
+                    // We are running in the background.  So it's possible that the type may be disposed between
+                    // the above check and retrieving the canonical name.  So have to guard against that just in case.
+                    try
+                    {
+                        return _hierarchyItem.CanonicalName;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
+                }
+
+                return null;
+            }
         }
 
         object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;

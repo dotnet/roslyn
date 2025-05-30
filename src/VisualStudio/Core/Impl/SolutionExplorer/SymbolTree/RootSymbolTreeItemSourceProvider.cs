@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.Decompiler.Util;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -40,7 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [AppliesToProject("CSharp | VB")]
 internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
-    private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
+    /// <summary>
+    /// Mapping from filepath to the collection sources made for it.  Is a multi dictionary because the same
+    /// file may appear in multiple projects, but each will have its own collection soure to represent the view
+    /// of that file through that project.
+    /// </summary>
+    /// <remarks>Lock this instance when reading/writing as it is used over different threads.</remarks>
+    private readonly MultiDictionary<string, RootSymbolTreeItemCollectionSource> _filePathToCollectionSources = new(
+        StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Queue of notifications we've heard about for changed document file paths.  We'll then go update the
@@ -106,11 +111,13 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private async ValueTask UpdateCollectionSourcesAsync(
         ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _1 = SharedPools.StringIgnoreCaseHashSet.GetPooledObject(out var filePathSet);
-        using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
+        using var _ = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
-        filePathSet.AddRange(updatedFilePaths);
-        sources.AddRange(_hierarchyToCollectionSource.Values);
+        lock (_filePathToCollectionSources)
+        {
+            foreach (var filePath in updatedFilePaths)
+                sources.AddRange(_filePathToCollectionSources[filePath]);
+        }
 
         // Update all the affected documents in parallel.
         await RoslynParallel.ForEachAsync(
@@ -118,7 +125,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfAffectedAsync(filePathSet, cancellationToken)
+                await source.UpdateIfEverExpandedAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -150,11 +157,16 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        if (item.CanonicalName is not string filePath)
+        // Important: currentFilePath is mutable state captured *AND UPDATED* in the local function  
+        // OnItemPropertyChanged below.  It allows us to know the file path of the item *prior* to
+        // it being changed *when* we hear the update about it having changed (since hte event doesn't
+        // contain the old value).  
+        if (item.CanonicalName is not string currentFilePath)
             return null;
 
         var source = new RootSymbolTreeItemCollectionSource(this, item);
-        _hierarchyToCollectionSource[item] = source;
+        lock (_filePathToCollectionSources)
+            _filePathToCollectionSources.Add(currentFilePath, source);
 
         // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
         item.PropertyChanged += OnItemPropertyChanged;
@@ -166,18 +178,37 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             if (e.PropertyName == nameof(ISupportDisposalNotification.IsDisposed) && item.IsDisposed)
             {
                 // We are notified when the IVsHierarchyItem is removed from the tree via its INotifyPropertyChanged
-                // event for the IsDisposed property. When this fires, we remove the item->sourcce mapping we're holding.
-                _hierarchyToCollectionSource.TryRemove(item, out _);
+                // event for the IsDisposed property. When this fires, we remove the filePath->sourcce mapping we're holding.
+                lock (_filePathToCollectionSources)
+                {
+                    _filePathToCollectionSources.Remove(currentFilePath, source);
+                }
+
                 item.PropertyChanged -= OnItemPropertyChanged;
             }
             else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
             {
-                // If the filepath changes for an item (which can happen when it is renamed), place a notification
-                // in the queue to update it in the future.  This will ensure all the items presented for it have hte
-                // right document id.  Also reset the state of the source.  The filepath could change to something
-                // no longer valid (like .cs to .txt), or vice versa.
-                source.Reset();
-                _updateSourcesQueue.AddWork(item.CanonicalName);
+                var newPath = item.CanonicalName;
+                if (newPath != currentFilePath)
+                {
+                    lock (_filePathToCollectionSources)
+                    {
+
+                        // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
+                        _filePathToCollectionSources.Remove(currentFilePath, source);
+                        _filePathToCollectionSources.Add(newPath, source);
+
+                        // Keep track of the 'newPath'.
+                        currentFilePath = newPath;
+                    }
+
+                    // If the filepath changes for an item (which can happen when it is renamed), place a notification
+                    // in the queue to update it in the future.  This will ensure all the items presented for it have hte
+                    // right document id.  Also reset the state of the source.  The filepath could change to something
+                    // no longer valid (like .cs to .txt), or vice versa.
+                    source.Reset();
+                    _updateSourcesQueue.AddWork(newPath);
+                }
             }
         }
     }
