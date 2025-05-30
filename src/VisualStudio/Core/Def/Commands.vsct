@@ -588,7 +588,6 @@
           <LocCanonicalName>Analyzer</LocCanonicalName>
         </Strings>
       </Menu>
-      
       <Menu guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu" priority="100" type="Context">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_SOLNEXPL_ALL" />
         <Strings>
