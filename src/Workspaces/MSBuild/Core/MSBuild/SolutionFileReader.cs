@@ -57,17 +57,17 @@ internal partial class SolutionFileReader
         var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
         foreach (var projectModel in solutionModel.SolutionProjects)
         {
+            Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
             // If we are filtering based on a solution filter, then we need to verify the project is included.
             if (!projectFilter.IsEmpty)
             {
-                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
                 if (!projectFilter.Contains(absoluteProjectPath))
                 {
                     continue;
                 }
             }
 
-            builder.Add((projectModel.FilePath, projectModel.Id.ToString()));
+            builder.Add((absoluteProjectPath, projectModel.Id.ToString()));
         }
 
         return builder.ToImmutable();
