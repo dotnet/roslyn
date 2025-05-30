@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -314,5 +315,13 @@ public sealed class RangeExpressionParsingTests(ITestOutputHelper output)
             }
         }
         EOF();
+    }
+
+    [Fact]
+    public void TestUserFileRange()
+    {
+        var text = File.ReadAllText(@"Q:\github\roslyn\src\Code.txt");
+        var tree = CSharpSyntaxTree.ParseText(text);
+
     }
 }
