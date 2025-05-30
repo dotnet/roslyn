@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         '        GetType(MockDiagnosticUpdateSourceRegistrationService),
         '        GetType(MockWorkspaceEventListenerProvider))
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
