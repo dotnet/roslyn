@@ -39391,6 +39391,8 @@ int.M();
             // (1,5): error CS0117: 'int' does not contain a definition for 'M'
             // int.M();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
     }
 
     [Fact]
