@@ -11,5 +11,5 @@ internal interface IGoOrFindNavigationService
     string DisplayName { get; }
 
     bool IsAvailable([NotNullWhen(true)] Document? document);
-    bool ExecuteCommand(Document document, int position);
+    bool ExecuteCommand(Document document, int position, bool allowInvalidPosition);
 }

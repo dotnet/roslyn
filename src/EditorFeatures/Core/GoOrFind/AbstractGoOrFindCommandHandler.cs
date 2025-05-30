@@ -36,6 +36,9 @@ internal abstract class AbstractGoOrFindCommandHandler<TCommandArgs>(
         if (!_navigationService.IsAvailable(document))
             return false;
 
-        return _navigationService.ExecuteCommand(document, caret.Value.Position);
+        // We were called on the current snapshot of a buffer, and we have a position within that buffer.
+        // We should never have an invalid position here, so pass "false" for allowInvalidPosition so we
+        // blow up if some invariant was broken.
+        return _navigationService.ExecuteCommand(document, caret.Value.Position, allowInvalidPosition: false);
     }
 }

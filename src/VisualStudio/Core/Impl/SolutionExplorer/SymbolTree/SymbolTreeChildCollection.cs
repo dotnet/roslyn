@@ -14,17 +14,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-/// <param name="hasItems">If non-null, the known value for <see cref="HasItems"/>.  If null,
+/// <param name="hasItemsDefault">If non-null, the known value for <see cref="HasItems"/>.  If null,
 /// then only known once <see cref="_symbolTreeItems"/> is initialized</param>
 internal sealed class SymbolTreeChildCollection(
     RootSymbolTreeItemSourceProvider rootProvider,
     object parentItem,
-    bool? hasItems) : IAttachedCollectionSource, INotifyPropertyChanged
+    bool? hasItemsDefault) : IAttachedCollectionSource, INotifyPropertyChanged
 {
     private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
     private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
 
     public object SourceItem { get; } = parentItem;
+
+    private bool? _hasItemsDefault = hasItemsDefault;
 
     /// <summary>
     /// Whether or not we think we have items.  If we aren't fully initialized, then we'll guess that we do have items.
@@ -35,8 +37,8 @@ internal sealed class SymbolTreeChildCollection(
         get
         {
             // Owner initialized us with a known value for this property.  Can just return that value.
-            if (hasItems.HasValue)
-                return hasItems.Value;
+            if (_hasItemsDefault.HasValue)
+                return _hasItemsDefault.Value;
 
             // If we're not initialized yet, we don't know if we have values or not.  Return that we are
             // so the user can at least try to expand this node.
@@ -52,8 +54,9 @@ internal sealed class SymbolTreeChildCollection(
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public void ResetToUncomputedState()
+    public void ResetToUncomputedState(bool? hasItemsDefault)
     {
+        _hasItemsDefault = hasItemsDefault;
         _symbolTreeItems.Clear();
 
         // Move back to the state where the children are not initialized.  That way the next attemp to open

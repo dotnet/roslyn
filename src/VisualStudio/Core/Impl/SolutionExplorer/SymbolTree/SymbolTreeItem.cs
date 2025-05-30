@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -44,18 +45,18 @@ internal sealed class SymbolTreeItem : BaseItem,
         RootProvider = rootProvider;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
-        _childCollection = new(rootProvider, this, hasItems: ItemKey.HasItems);
+        _childCollection = new(rootProvider, this, hasItemsDefault: ItemKey.HasItems);
     }
 
-    private void ThrowIfNotOnMainThread()
-        => Contract.ThrowIfFalse(this.RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+    private void ThrowIfNotOnUIThread()
+        => this.RootProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
     public SymbolTreeItemSyntax ItemSyntax
     {
         get => _itemSyntax;
         set
         {
-            ThrowIfNotOnMainThread();
+            ThrowIfNotOnUIThread();
 
             // When the syntax node for this item is changed, we want to recompute the children for it
             // (if this  node is expanded). Otherwise, we can just throw away what we have and recompute
@@ -67,6 +68,7 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     public override ImageMoniker IconMoniker => this.ItemKey.Glyph.GetImageMoniker();
 
+    // We act as our own invocation controller.
     public override IInvocationController? InvocationController => this;
 
     public bool Invoke(IEnumerable<object> items, InputSource inputSource, bool preview)
@@ -79,23 +81,26 @@ internal sealed class SymbolTreeItem : BaseItem,
         return true;
     }
 
+    public override IContextMenuController? ContextMenuController
+        => RootProvider.ContextMenuController;
+
     public void BeforeExpand()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
         _expanded = true;
         UpdateChildren();
     }
 
     public void AfterCollapse()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
         _expanded = false;
         UpdateChildren();
     }
 
     private void UpdateChildren()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
 
         if (_expanded)
         {
@@ -110,7 +115,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         else
         {
             // Otherwise, return the child collection to the uninitialized state.
-            _childCollection.ResetToUncomputedState();
+            _childCollection.ResetToUncomputedState(this.ItemKey.HasItems);
         }
     }
 

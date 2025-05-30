@@ -8,20 +8,21 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindReferences;
+using Microsoft.CodeAnalysis.GoOrFind;
+using Microsoft.CodeAnalysis.GoToBase;
+using Microsoft.CodeAnalysis.GoToImplementation;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Threading;
 using Microsoft.Internal.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
@@ -49,19 +50,31 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly AsyncBatchingWorkQueue<string> _updateSourcesQueue;
     private readonly Workspace _workspace;
 
+    private readonly IGoOrFindNavigationService _goToBaseNavigationService;
+    private readonly IGoOrFindNavigationService _goToImplementationNavigationService;
+    private readonly IGoOrFindNavigationService _findReferencesNavigationService;
+
     public readonly SolutionExplorerNavigationSupport NavigationSupport;
     public readonly IThreadingContext ThreadingContext;
     public readonly IAsynchronousOperationListener Listener;
+
+    public readonly IContextMenuController ContextMenuController;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RootSymbolTreeItemSourceProvider(
         IThreadingContext threadingContext,
         VisualStudioWorkspace workspace,
+        GoToBaseNavigationService goToBaseNavigationService,
+        GoToImplementationNavigationService goToImplementationNavigationService,
+        FindReferencesNavigationService findReferencesNavigationService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         ThreadingContext = threadingContext;
         _workspace = workspace;
+        _goToBaseNavigationService = goToBaseNavigationService;
+        _goToImplementationNavigationService = goToImplementationNavigationService;
+        _findReferencesNavigationService = findReferencesNavigationService;
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
         NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
@@ -86,6 +99,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     _updateSourcesQueue.AddWork(newPath);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
+
+        this.ContextMenuController = new SymbolItemContextMenuController(this);
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
@@ -138,17 +153,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (item.CanonicalName is not string filePath)
             return null;
 
-        // We only support C# and VB files for now.  This ensures we don't create source providers for
-        // other types of files we'll never have results for.
-        //
-        // Note: we cannot check if these are files we actually care about at this point.  Collection
-        // sources are normally made far prior to roslyn hearing about the document and incorporating 
-        // it into the solution model.  Instead, we will defer computation of what document this source
-        // belongs to into RootSymbolTreeItemCollectionSource.UpdateIfAffectedAsync.
-        var extension = Path.GetExtension(filePath);
-        if (extension is not ".cs" and not ".vb")
-            return null;
-
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         _hierarchyToCollectionSource[item] = source;
 
@@ -170,7 +174,9 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             {
                 // If the filepath changes for an item (which can happen when it is renamed), place a notification
                 // in the queue to update it in the future.  This will ensure all the items presented for it have hte
-                // right document id.
+                // right document id.  Also reset the state of the source.  The filepath could change to something
+                // no longer valid (like .cs to .txt), or vice versa.
+                source.Reset();
                 _updateSourcesQueue.AddWork(item.CanonicalName);
             }
         }
