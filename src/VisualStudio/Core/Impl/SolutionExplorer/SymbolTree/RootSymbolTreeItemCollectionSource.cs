@@ -48,6 +48,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         public void Reset()
         {
             _rootProvider.ThreadingContext.ThrowIfNotOnUIThread();
+            _hasEverBeenExpanded = 0;
             _childCollection.ResetToUncomputedState(GetHasItemsDefaultValue(_hierarchyItem));
         }
 
