@@ -374,6 +374,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
+        public char PreviousChar()
+        {
+            Debug.Assert(this.Position > 0);
+            var desiredPosition = this.Position - 1;
+            if (desiredPosition >= _basis && _offset > 1)
+            {
+                // _basis describes where in the source text the current chunk of characters starts at.
+                // So if the desired position is ahead of that, then we can just read the value out of
+                // the character window directly.
+                return this.CharacterWindow[_offset - 1];
+            }
+
+            // The prior character isn't in the window (trying to read the current character caused us to
+            // read in the next chunk of text into the window, throwing out the preceding characters).
+            // Just go back to the source text to find this character.  While more expensive, this should
+            // be rare given that most of the time we won't be calling this right after loading a new text
+            // chunk.
+            return this.Text[desiredPosition];
+        }
+
         /// <summary>
         /// If the next characters in the window match the given string,
         /// then advance past those characters.  Otherwise, do nothing.

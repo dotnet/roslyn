@@ -476,10 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             //
                             // Move back one space to see what's before this dot and adjust accordingly.
 
-                            this.TextWindow.Reset(atDotPosition - 1);
-                            var priorCharacterIsDot = this.TextWindow.PeekChar() is '.';
-                            this.TextWindow.Reset(atDotPosition);
-
+                            var priorCharacterIsDot = this.TextWindow.PreviousChar() is '.';
                             if (priorCharacterIsDot)
                             {
                                 // We have two dots in a row.  Treat the second dot as a dot, not the start of a number literal.

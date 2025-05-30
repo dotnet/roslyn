@@ -237,7 +237,7 @@ public static partial class EquipmentAttributes
         	Attribute: CombatAttribute.Defense,
         	ModifierType: AttributeModifierType.Percentage,
         	PrimaryStatsByLevel: null,
-        	SecondaryStatByRarityFrom: Create(.03, .05, .07, .1, .16),
+        	SecondaryStatByRarityFrom1: Create(.03, .05, .07, .1, .16),
         	SecondaryStatByRarityTo: Create(.04, .06, .09, .15, .2),
         	CalibrationStatsByLevel: null,
         	UnitEquipmentSubType: UnitEquipmentSubType.Implant);
