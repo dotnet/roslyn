@@ -134,16 +134,15 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        if (!hierarchy.TryGetCanonicalName(itemId, out var itemName))
-            return null;
+        var filePath = item.CanonicalName;
 
         // We only support C# and VB files for now.  This ensures we don't create source providers for
         // other types of files we'll never have results for.
-        var extension = Path.GetExtension(itemName);
+        var extension = Path.GetExtension(filePath);
         if (extension is not ".cs" and not ".vb")
             return null;
 
-        var source = new RootSymbolTreeItemCollectionSource(this, item, itemName);
+        var source = new RootSymbolTreeItemCollectionSource(this, item);
         _hierarchyToCollectionSource[item] = source;
 
         // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
@@ -160,16 +159,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
             }
-            else if (e.PropertyName == nameof(IVsHierarchyItem.Text))
-            {
-                // Name of the file changed.  Clear out the cached document id for it so it is recomputed.
-                if (!hierarchy.TryGetCanonicalName(itemId, out var newItemName))
-                {
-                    Debug.Fail("Couldn't determine new name");
-                    return;
-                }
-                source.FilePath = newItemName;
-            }
+            //else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
+            //{
+            //    // Name of the file changed.  Clear out the cached document id for it so it is recomputed.
+            //    source.FilePath = item.CanonicalName;
+            //}
         }
     }
 }

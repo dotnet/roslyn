@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,8 +22,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 {
     private sealed class RootSymbolTreeItemCollectionSource(
         RootSymbolTreeItemSourceProvider rootProvider,
-        IVsHierarchyItem hierarchyItem,
-        string filePath) : IAttachedCollectionSource, INotifyPropertyChanged
+        IVsHierarchyItem hierarchyItem) : IAttachedCollectionSource, INotifyPropertyChanged
     {
         private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
@@ -36,8 +36,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// </summary>
         private volatile int _initialized;
 
-        public string FilePath { get; set; } = filePath;
-
         public async Task UpdateIfAffectedAsync(
             HashSet<string>? updatedFilePaths,
             CancellationToken cancellationToken)
@@ -48,10 +46,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             if (_initialized == 0)
                 return;
 
-            if (updatedFilePaths != null && !updatedFilePaths.Contains(this.FilePath))
+            var filePath = TryGetCanonicalName();
+            if (updatedFilePaths != null && filePath != null && !updatedFilePaths.Contains(filePath))
                 return;
 
-            var documentId = DetermineDocumentId();
+            var documentId = DetermineDocumentId(filePath);
 
             var solution = _rootProvider._workspace.CurrentSolution;
 
@@ -76,13 +75,35 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             }
         }
 
-        private DocumentId? DetermineDocumentId()
+        private string? TryGetCanonicalName()
         {
-            var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-            if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
+            // Quick check that will be correct the majority of the time.
+            if (!_hierarchyItem.IsDisposed)
             {
-                var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
-                return documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
+                // We are running in the background.  So it's possible that the type may be disposed between
+                // the above check and retrieving the canonical name.  So have to guard against that just in case.
+                try
+                {
+                    return _hierarchyItem.CanonicalName;
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+            }
+
+            return null;
+        }
+
+        private DocumentId? DetermineDocumentId(string? filePath)
+        {
+            if (filePath != null)
+            {
+                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
+                if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
+                {
+                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(filePath);
+                    return documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
+                }
             }
 
             return null;
