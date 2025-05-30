@@ -112,6 +112,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
         if (item == null ||
+            item.IsDisposed ||
             item.HierarchyIdentity == null ||
             item.HierarchyIdentity.NestedHierarchy == null ||
             relationshipName != KnownRelationships.Contains)
@@ -134,7 +135,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             return null;
         }
 
-        var filePath = item.CanonicalName;
+        if (item.CanonicalName is not string filePath)
+            return null;
 
         // We only support C# and VB files for now.  This ensures we don't create source providers for
         // other types of files we'll never have results for.
@@ -159,11 +161,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 _hierarchyToCollectionSource.TryRemove(item, out _);
                 item.PropertyChanged -= OnItemPropertyChanged;
             }
-            //else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
-            //{
-            //    // Name of the file changed.  Clear out the cached document id for it so it is recomputed.
-            //    source.FilePath = item.CanonicalName;
-            //}
         }
     }
 }
