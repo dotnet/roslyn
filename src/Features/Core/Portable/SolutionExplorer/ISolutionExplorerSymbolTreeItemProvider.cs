@@ -84,11 +84,24 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
                 break;
 
             case TTypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclarationMembers(documentId, typeDeclaration, items, nameBuilder, cancellationToken);
+                AddTypeDeclarationMembers(typeDeclaration);
                 break;
         }
 
         return items.ToImmutableAndClear();
+
+        void AddTypeDeclarationMembers(TTypeDeclarationSyntax typeDeclaration)
+        {
+            foreach (var member in GetMembers(typeDeclaration))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (TryAddType(documentId, member, items, nameBuilder))
+                    continue;
+
+                AddMemberDeclaration(documentId, member, items, nameBuilder);
+            }
+        }
     }
 
     private void AddTopLevelTypes(
@@ -99,49 +112,23 @@ internal abstract class AbstractSolutionExplorerSymbolTreeItemProvider<
         CancellationToken cancellationToken)
     {
         foreach (var member in GetMembers(root))
+            RecurseIntoMemberDeclaration(member);
+
+        return;
+
+        void RecurseIntoMemberDeclaration(TMemberDeclarationSyntax member)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (member is TNamespaceDeclarationSyntax baseNamespace)
-                AddTopLevelTypes(documentId, baseNamespace, items, nameBuilder, cancellationToken);
+            {
+                foreach (var childMember in GetMembers(baseNamespace))
+                    RecurseIntoMemberDeclaration(childMember);
+            }
             else
+            {
                 TryAddType(documentId, member, items, nameBuilder);
-        }
-    }
-
-    private void AddTopLevelTypes(
-        DocumentId documentId,
-        TNamespaceDeclarationSyntax baseNamespace,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder,
-        CancellationToken cancellationToken)
-    {
-        foreach (var member in GetMembers(baseNamespace))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (member is TNamespaceDeclarationSyntax childNamespace)
-                AddTopLevelTypes(documentId, childNamespace, items, nameBuilder, cancellationToken);
-            else
-                TryAddType(documentId, member, items, nameBuilder);
-        }
-    }
-
-    private void AddTypeDeclarationMembers(
-        DocumentId documentId,
-        TTypeDeclarationSyntax typeDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder,
-        CancellationToken cancellationToken)
-    {
-        foreach (var member in GetMembers(typeDeclaration))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (TryAddType(documentId, member, items, nameBuilder))
-                continue;
-
-            AddMemberDeclaration(documentId, member, items, nameBuilder);
+            }
         }
     }
 }
