@@ -39,29 +39,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
             Return typeDeclaration.Members
         End Function
 
-        Protected Overrides Function TryAddType(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder) As Boolean
+        Protected Overrides Function TryAddType(documentId As DocumentId, member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder) As Boolean
             Dim typeBlock = TryCast(member, TypeBlockSyntax)
             If typeBlock IsNot Nothing Then
-                AddTypeBlock(typeBlock, items, nameBuilder)
+                AddTypeBlock(documentId, typeBlock, items, nameBuilder)
                 Return True
             End If
 
             Dim enumBlock = TryCast(member, EnumBlockSyntax)
             If enumBlock IsNot Nothing Then
-                AddEnumBlock(enumBlock, items)
+                AddEnumBlock(documentId, enumBlock, items)
                 Return True
             End If
 
             Dim delegateStatement = TryCast(member, DelegateStatementSyntax)
             If delegateStatement IsNot Nothing Then
-                AddDelegateStatement(delegateStatement, items, nameBuilder)
+                AddDelegateStatement(documentId, delegateStatement, items, nameBuilder)
                 Return True
             End If
 
             Return False
         End Function
 
-        Private Shared Sub AddTypeBlock(typeBlock As TypeBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddTypeBlock(documentId As DocumentId, typeBlock As TypeBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             Dim blockStatement As TypeStatementSyntax = typeBlock.BlockStatement
 
             nameBuilder.Append(blockStatement.Identifier.ValueText)
@@ -71,6 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
             Dim accessibility = GetAccessibility(typeBlock.Parent, blockStatement, blockStatement.Modifiers)
 
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(kind, accessibility),
                 hasItems:=typeBlock.Members.Count > 0,
@@ -78,9 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 blockStatement.Identifier))
         End Sub
 
-        Private Shared Sub AddEnumBlock(enumBlock As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData))
+        Private Shared Sub AddEnumBlock(documentId As DocumentId, enumBlock As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData))
             Dim accessibility = GetAccessibility(enumBlock.Parent, enumBlock.EnumStatement, enumBlock.EnumStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 enumBlock.EnumStatement.Identifier.ValueText,
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Enum, accessibility),
                 hasItems:=enumBlock.Members.Count > 0,
@@ -88,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 enumBlock.EnumStatement.Identifier))
         End Sub
 
-        Private Shared Sub AddDelegateStatement(delegateStatement As DelegateStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddDelegateStatement(documentId As DocumentId, delegateStatement As DelegateStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(delegateStatement.Identifier.ValueText)
             AppendTypeParameterList(nameBuilder, delegateStatement.TypeParameterList)
             AppendParameterList(nameBuilder, delegateStatement.ParameterList)
@@ -96,6 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
 
             Dim accessibility = GetAccessibility(delegateStatement.Parent, delegateStatement, delegateStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Delegate, accessibility),
                 hasItems:=False,
@@ -103,58 +106,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 delegateStatement.Identifier))
         End Sub
 
-        Protected Overrides Sub AddEnumDeclarationMembers(enumDeclaration As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), cancellationToken As CancellationToken)
+        Protected Overrides Sub AddEnumDeclarationMembers(documentId As DocumentId, enumDeclaration As EnumBlockSyntax, items As ArrayBuilder(Of SymbolTreeItemData), cancellationToken As CancellationToken)
             For Each member In enumDeclaration.Members
                 Dim enumMember = TryCast(member, EnumMemberDeclarationSyntax)
                 items.Add(New SymbolTreeItemData(
-                enumMember.Identifier.ValueText,
-                Glyph.EnumMemberPublic,
-                hasItems:=False,
-                enumMember,
-                enumMember.Identifier))
+                    documentId,
+                    enumMember.Identifier.ValueText,
+                    Glyph.EnumMemberPublic,
+                    hasItems:=False,
+                    enumMember,
+                    enumMember.Identifier))
             Next
         End Sub
 
-        Protected Overrides Sub AddMemberDeclaration(member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Protected Overrides Sub AddMemberDeclaration(documentId As DocumentId, member As StatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             Dim container = member.Parent
             Dim methodStatement = If(TryCast(member, MethodStatementSyntax), TryCast(member, MethodBlockSyntax)?.SubOrFunctionStatement)
             If methodStatement IsNot Nothing Then
-                AddMethodStatement(container, methodStatement, items, nameBuilder)
+                AddMethodStatement(documentId, container, methodStatement, items, nameBuilder)
                 Return
             End If
 
             Dim constructorStatement = If(TryCast(member, SubNewStatementSyntax), TryCast(member, ConstructorBlockSyntax)?.SubNewStatement)
             If constructorStatement IsNot Nothing Then
-                AddConstructorStatement(container, constructorStatement, items, nameBuilder)
+                AddConstructorStatement(documentId, container, constructorStatement, items, nameBuilder)
                 Return
             End If
 
             Dim operatorStatement = If(TryCast(member, OperatorStatementSyntax), TryCast(member, OperatorBlockSyntax)?.OperatorStatement)
             If operatorStatement IsNot Nothing Then
-                AddOperatorStatement(container, operatorStatement, items, nameBuilder)
+                AddOperatorStatement(documentId, container, operatorStatement, items, nameBuilder)
                 Return
             End If
 
             Dim propertystatement = If(TryCast(member, PropertyStatementSyntax), TryCast(member, PropertyBlockSyntax)?.PropertyStatement)
             If propertystatement IsNot Nothing Then
-                AddPropertyStatement(container, propertystatement, items, nameBuilder)
+                AddPropertyStatement(documentId, container, propertystatement, items, nameBuilder)
                 Return
             End If
 
             Dim eventStatement = If(TryCast(member, EventStatementSyntax), TryCast(member, EventBlockSyntax)?.EventStatement)
             If eventStatement IsNot Nothing Then
-                AddEventStatement(container, eventStatement, items, nameBuilder)
+                AddEventStatement(documentId, container, eventStatement, items, nameBuilder)
                 Return
             End If
 
             Dim fieldDeclaration = TryCast(member, FieldDeclarationSyntax)
             If fieldDeclaration IsNot Nothing Then
-                AddFieldDeclaration(container, fieldDeclaration, items, nameBuilder)
+                AddFieldDeclaration(documentId, container, fieldDeclaration, items, nameBuilder)
                 Return
             End If
         End Sub
 
-        Private Shared Sub AddMethodStatement(container As SyntaxNode, methodStatement As MethodStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddMethodStatement(documentId As DocumentId, container As SyntaxNode, methodStatement As MethodStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(methodStatement.Identifier.ValueText)
             AppendTypeParameterList(nameBuilder, methodStatement.TypeParameterList)
             AppendParameterList(nameBuilder, methodStatement.ParameterList)
@@ -169,6 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
 
             Dim accesibility = GetAccessibility(container, methodStatement, methodStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(If(isExtension, DeclaredSymbolInfoKind.ExtensionMethod, DeclaredSymbolInfoKind.Method), accesibility),
                 hasItems:=False,
@@ -176,12 +181,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 methodStatement.Identifier))
         End Sub
 
-        Private Shared Sub AddConstructorStatement(container As SyntaxNode, constructorStatement As SubNewStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddConstructorStatement(documentId As DocumentId, container As SyntaxNode, constructorStatement As SubNewStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append("New")
             AppendParameterList(nameBuilder, constructorStatement.ParameterList)
 
             Dim accesibility = GetAccessibility(container, constructorStatement, constructorStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accesibility),
                 hasItems:=False,
@@ -189,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 constructorStatement.NewKeyword))
         End Sub
 
-        Private Shared Sub AddOperatorStatement(container As SyntaxNode, operatorStatement As OperatorStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddOperatorStatement(documentId As DocumentId, container As SyntaxNode, operatorStatement As OperatorStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append("Operator ")
             nameBuilder.Append(operatorStatement.OperatorToken.ToString())
             AppendParameterList(nameBuilder, operatorStatement.ParameterList)
@@ -197,6 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
 
             Dim accesibility = GetAccessibility(container, operatorStatement, operatorStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accesibility),
                 hasItems:=False,
@@ -204,13 +211,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 operatorStatement.OperatorToken))
         End Sub
 
-        Private Shared Sub AddPropertyStatement(container As SyntaxNode, propertystatement As PropertyStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddPropertyStatement(documentId As DocumentId, container As SyntaxNode, propertystatement As PropertyStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(propertystatement.Identifier.ValueText)
             AppendParameterList(nameBuilder, propertystatement.ParameterList)
             AppendAsClause(nameBuilder, propertystatement.AsClause, fallbackToObject:=True)
 
             Dim accesibility = GetAccessibility(container, propertystatement, propertystatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accesibility),
                 hasItems:=False,
@@ -218,12 +226,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
                 propertystatement.Identifier))
         End Sub
 
-        Private Shared Sub AddEventStatement(container As SyntaxNode, eventStatement As EventStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
+        Private Shared Sub AddEventStatement(documentId As DocumentId, container As SyntaxNode, eventStatement As EventStatementSyntax, items As ArrayBuilder(Of SymbolTreeItemData), nameBuilder As StringBuilder)
             nameBuilder.Append(eventStatement.Identifier.ValueText)
             AppendAsClause(nameBuilder, eventStatement.AsClause)
 
             Dim accesibility = GetAccessibility(container, eventStatement, eventStatement.Modifiers)
             items.Add(New SymbolTreeItemData(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accesibility),
                 hasItems:=False,
@@ -232,6 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
         End Sub
 
         Private Shared Sub AddFieldDeclaration(
+                documentId As DocumentId,
                 container As SyntaxNode,
                 fieldDeclaration As FieldDeclarationSyntax,
                 items As ArrayBuilder(Of SymbolTreeItemData),
@@ -243,6 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SolutionExplorer
 
                     Dim accesibility = GetAccessibility(container, fieldDeclaration, fieldDeclaration.Modifiers)
                     items.Add(New SymbolTreeItemData(
+                        documentId,
                         nameBuilder.ToStringAndClear(),
                         GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Field, accesibility),
                         hasItems:=False,

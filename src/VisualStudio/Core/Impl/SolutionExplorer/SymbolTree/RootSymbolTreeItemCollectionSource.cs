@@ -61,11 +61,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             {
                 // Compute the items on the BG.
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var items = itemProvider.GetItems(root, cancellationToken);
+                var items = itemProvider.GetItems(document.Id, root, cancellationToken);
 
                 // Then switch to the UI thread to actually update the collection.
                 await _rootProvider.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                _childCollection.SetItemsAndMarkComputed_OnMainThread(document.Id, itemProvider, items);
+                _childCollection.SetItemsAndMarkComputed_OnMainThread(itemProvider, items);
             }
             else
             {
