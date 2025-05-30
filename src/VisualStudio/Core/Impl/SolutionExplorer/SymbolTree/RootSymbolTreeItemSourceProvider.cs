@@ -156,17 +156,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         if (item.CanonicalName is not string filePath)
             return null;
 
-        // We only support C# and VB files for now.  This ensures we don't create source providers for
-        // other types of files we'll never have results for.
-        //
-        // Note: we cannot check if these are files we actually care about at this point.  Collection
-        // sources are normally made far prior to roslyn hearing about the document and incorporating 
-        // it into the solution model.  Instead, we will defer computation of what document this source
-        // belongs to into RootSymbolTreeItemCollectionSource.UpdateIfAffectedAsync.
-        var extension = Path.GetExtension(filePath);
-        if (extension is not ".cs" and not ".vb")
-            return null;
-
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         _hierarchyToCollectionSource[item] = source;
 

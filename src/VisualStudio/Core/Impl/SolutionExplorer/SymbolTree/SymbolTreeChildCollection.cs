@@ -34,17 +34,18 @@ internal sealed class SymbolTreeChildCollection(
     {
         get
         {
-            // Owner initialized us with a known value for this property.  Can just return that value.
+            // If we're initialized, use the true value we computed for this item.
+            if (_symbolTreeItems.IsInitialized)
+                return _symbolTreeItems.Count > 0;
+
+            // Otherwise, return the default we were told to retur up front (if such a value was provided).
             if (hasItems.HasValue)
                 return hasItems.Value;
 
-            // If we're not initialized yet, we don't know if we have values or not.  Return that we are
-            // so the user can at least try to expand this node.
-            if (!_symbolTreeItems.IsInitialized)
-                return true;
-
-            // We are initialized.  So return the actual state based on what has been computed.
-            return _symbolTreeItems.Count > 0;
+            // Otherwise, if we're not initialized yet, we don't know if we have values or not.  Return
+            // that we do have items so the user can at least try to expand this node.  If it turns out we
+            // don't, then the arrow will just dissapear at that point.
+            return true;
         }
     }
 

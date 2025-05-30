@@ -59,7 +59,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
                 if (navigationService != null)
                 {
-                    var document = rootProvider._workspace.CurrentSolution.GetDocument(item.DocumentId);
+                    var document = rootProvider._workspace.CurrentSolution.GetDocument(item.ItemKey.DocumentId);
                     if (document != null)
                     {
                         navigationService.ExecuteCommand(

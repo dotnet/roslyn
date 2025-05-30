@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -28,7 +29,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
 
         // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
-        private readonly SymbolTreeChildCollection _childCollection = new(rootProvider, hierarchyItem, hasItems: null);
+        private readonly SymbolTreeChildCollection _childCollection = new(
+            rootProvider, hierarchyItem,
+            // If this is not a c#/vb file initially, then mark this file as having no symbolic children.
+            // If it is c#/vb, then mark it as null (which means 'unknown') so that we show the arrow next
+            // to the item, but compute only once expanded.
+            hasItems: Path.GetExtension(hierarchyItem.CanonicalName).ToLowerInvariant() is ".cs" or ".vb"
+                ? null
+                : false);
 
         /// <summary>
         /// Whether or not this root solution explorer node has been expanded or not.  Until it is first expanded,
@@ -37,7 +45,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         private volatile int _hasEverBeenExpanded;
 
         public async Task UpdateIfAffectedAsync(
-            HashSet<string>? updatedFilePaths,
+            HashSet<string> updatedFilePaths,
             CancellationToken cancellationToken)
         {
             // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
@@ -47,7 +55,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
                 return;
 
             var filePath = TryGetCanonicalName();
-            if (updatedFilePaths != null && filePath != null && !updatedFilePaths.Contains(filePath))
+            if (filePath != null && !updatedFilePaths.Contains(filePath))
                 return;
 
             // Try to find a roslyn document for this file path.  Note: it is intentional that we continue onwards,
