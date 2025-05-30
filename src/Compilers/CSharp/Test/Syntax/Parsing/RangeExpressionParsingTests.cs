@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -315,13 +316,5 @@ public sealed class RangeExpressionParsingTests(ITestOutputHelper output)
             }
         }
         EOF();
-    }
-
-    [Fact]
-    public void TestUserFileRange()
-    {
-        var text = File.ReadAllText(@"Q:\github\roslyn\src\Code.txt");
-        var tree = CSharpSyntaxTree.ParseText(text);
-
     }
 }

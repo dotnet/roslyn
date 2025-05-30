@@ -4572,5 +4572,15 @@ class C
             Assert.True(trivia.ContainsDiagnostics);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
+        public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
+        {
+            // This is the entire test.  We want to ensure this tree passes invariants.
+            // It specifically validates what happens when we see `.0` at the start of the
+            // sliding text window, where the lexer tries to peek back one char to see if this
+            // is actually `..0` (a range expr) or `.0` (a floating point number).
+            CSharpSyntaxTree.ParseText(Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow);
+        }
     }
 }
