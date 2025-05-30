@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
@@ -49,6 +48,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         {
             _rootProvider.ThreadingContext.ThrowIfNotOnUIThread();
             _childCollection.ResetToUncomputedState(GetHasItemsDefaultValue(_hierarchyItem));
+
+            // Note: we intentionally do not touch _hasEverBeenExpanded.  The platform only ever calls "Items"
+            // at most once (even if we notify that it changed). So if we reset _hasEverBeenExpanded to 0, then
+            // it will never leave that state from that point on, and we'll be stuck in an invalid state.
         }
 
         public async Task UpdateIfEverExpandedAsync(CancellationToken cancellationToken)
