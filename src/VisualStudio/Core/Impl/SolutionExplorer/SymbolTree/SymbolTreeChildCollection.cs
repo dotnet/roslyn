@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.VisualStudio.LanguageServices.Extensions;
@@ -15,16 +14,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-/// <param name="hasItemsDefault">If non-null, the known value for <see cref="HasItems"/>.  If null,
+/// <param name="hasItems">If non-null, the known value for <see cref="HasItems"/>.  If null,
 /// then only known once <see cref="_symbolTreeItems"/> is initialized</param>
 internal sealed class SymbolTreeChildCollection(
     RootSymbolTreeItemSourceProvider rootProvider,
     object parentItem,
-    bool? hasItemsDefault) : IAttachedCollectionSource, INotifyPropertyChanged
+    bool? hasItems) : IAttachedCollectionSource, INotifyPropertyChanged
 {
     private readonly BulkObservableCollectionWithInit<SymbolTreeItem> _symbolTreeItems = [];
     private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
-    private bool? _hasItemsDefault = hasItemsDefault;
 
     public object SourceItem { get; } = parentItem;
 
@@ -36,18 +34,17 @@ internal sealed class SymbolTreeChildCollection(
     {
         get
         {
-            // If we're initialized, use the true value we computed for this item.
-            if (_symbolTreeItems.IsInitialized)
-                return _symbolTreeItems.Count > 0;
+            // Owner initialized us with a known value for this property.  Can just return that value.
+            if (hasItems.HasValue)
+                return hasItems.Value;
 
-            // Otherwise, return the default we were told to retur up front (if such a value was provided).
-            if (_hasItemsDefault.HasValue)
-                return _hasItemsDefault.Value;
+            // If we're not initialized yet, we don't know if we have values or not.  Return that we are
+            // so the user can at least try to expand this node.
+            if (!_symbolTreeItems.IsInitialized)
+                return true;
 
-            // Otherwise, if we're not initialized yet, we don't know if we have values or not.  Return
-            // that we do have items so the user can at least try to expand this node.  If it turns out we
-            // don't, then the arrow will just dissapear at that point.
-            return true;
+            // We are initialized.  So return the actual state based on what has been computed.
+            return _symbolTreeItems.Count > 0;
         }
     }
 
@@ -55,12 +52,9 @@ internal sealed class SymbolTreeChildCollection(
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public void ResetToUncomputedState(bool? hasItemsDefault)
+    public void ResetToUncomputedState()
     {
-        _rootProvider.ThreadingContext.ThrowIfNotOnUIThread();
-
         _symbolTreeItems.Clear();
-        _hasItemsDefault = hasItemsDefault;
 
         // Move back to the state where the children are not initialized.  That way the next attemp to open
         // them will compute them.
