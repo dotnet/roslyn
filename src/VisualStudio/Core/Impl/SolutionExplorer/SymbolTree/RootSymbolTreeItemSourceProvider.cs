@@ -192,24 +192,26 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
             {
                 var newPath = item.CanonicalName;
-
-                lock (_filePathToCollectionSources)
+                if (newPath != currentFilePath)
                 {
+                    lock (_filePathToCollectionSources)
+                    {
 
-                    // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
-                    _filePathToCollectionSources.Remove(currentFilePath, source);
-                    _filePathToCollectionSources.Add(newPath, source);
+                        // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
+                        _filePathToCollectionSources.Remove(currentFilePath, source);
+                        _filePathToCollectionSources.Add(newPath, source);
 
-                    // Keep track of the 'newPath'.
-                    currentFilePath = newPath;
+                        // Keep track of the 'newPath'.
+                        currentFilePath = newPath;
+                    }
+
+                    // If the filepath changes for an item (which can happen when it is renamed), place a notification
+                    // in the queue to update it in the future.  This will ensure all the items presented for it have hte
+                    // right document id.  Also reset the state of the source.  The filepath could change to something
+                    // no longer valid (like .cs to .txt), or vice versa.
+                    source.Reset();
+                    _updateSourcesQueue.AddWork(newPath);
                 }
-
-                // If the filepath changes for an item (which can happen when it is renamed), place a notification
-                // in the queue to update it in the future.  This will ensure all the items presented for it have hte
-                // right document id.  Also reset the state of the source.  The filepath could change to something
-                // no longer valid (like .cs to .txt), or vice versa.
-                source.Reset();
-                _updateSourcesQueue.AddWork(newPath);
             }
         }
     }
