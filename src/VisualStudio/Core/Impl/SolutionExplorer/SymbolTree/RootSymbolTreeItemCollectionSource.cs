@@ -21,7 +21,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 {
     private sealed class RootSymbolTreeItemCollectionSource(
         RootSymbolTreeItemSourceProvider rootProvider,
-        IVsHierarchyItem hierarchyItem) : IAttachedCollectionSource, INotifyPropertyChanged
+        IVsHierarchyItem hierarchyItem,
+        string itemName) : IAttachedCollectionSource, INotifyPropertyChanged
     {
         private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
@@ -35,23 +36,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// </summary>
         private volatile int _initialized;
 
-        private string _itemName = null!;
-        private DocumentId? _documentId;
-
-        public string ItemName
-        {
-            get => _itemName;
-            set
-            {
-                _itemName = value;
-
-                // Clear out any cached doc id as we will need to recompute it with the new 
-                _documentId = null;
-            }
-        }
+        public string ItemName { get; set; } = itemName;
 
         public async Task UpdateIfAffectedAsync(
-            HashSet<DocumentId>? updateSet,
+            HashSet<string>? updatedFilePaths,
             CancellationToken cancellationToken)
         {
             // If we haven't been initialized yet, then we don't have to do anything.  We will get called again
@@ -60,14 +48,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             if (_initialized == 0)
                 return;
 
-            var documentId = DetermineDocumentId();
-
-            if (documentId != null && updateSet != null && !updateSet.Contains(documentId))
-            {
-                // Note: we intentionally return 'true' here.  There was no failure here. We just got a notification
-                // to update a different document than our own.  So we can just ignore this.
+            if (updatedFilePaths != null && !updatedFilePaths.Contains(this.ItemName))
                 return;
-            }
+
+            var documentId = DetermineDocumentId();
 
             var solution = _rootProvider._workspace.CurrentSolution;
 
@@ -94,17 +78,14 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
         private DocumentId? DetermineDocumentId()
         {
-            if (this.DocumentId == null)
+            var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
+            if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
             {
-                var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
-                if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
-                {
-                    var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.ItemName);
-                    this.DocumentId = documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
-                }
+                var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.ItemName);
+                return documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
             }
 
-            return this.DocumentId;
+            return null;
         }
 
         object IAttachedCollectionSource.SourceItem => _childCollection.SourceItem;
@@ -120,7 +101,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
                     // This was the first time this node was expanded.  Kick off the initial work to 
                     // compute the items for it.
                     var token = _rootProvider.Listener.BeginAsyncOperation(nameof(IAttachedCollectionSource.Items));
-                    UpdateIfAffectedAsync(updateSet: null, _rootProvider.ThreadingContext.DisposalToken)
+                    UpdateIfAffectedAsync(updatedFilePaths: null, _rootProvider.ThreadingContext.DisposalToken)
                         .ReportNonFatalErrorAsync()
                         .CompletesAsyncOperation(token);
                 }

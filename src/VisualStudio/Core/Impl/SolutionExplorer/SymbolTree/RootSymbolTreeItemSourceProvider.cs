@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,11 +42,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
     private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
 
     /// <summary>
-    /// Queue of notifications we've heard about for changed documents.  We'll then go update the symbol tree item
-    /// for each of these documents so that it is up to date.  Note: if the symbol tree has never been expanded, 
-    /// this will bail immediately to avoid doing unnecessary work.
+    /// Queue of notifications we've heard about for changed document file paths.  We'll then go update the
+    /// symbol tree item for each of these documents so that it is up to date.  Note: if the symbol tree has
+    /// never been expanded,  this will bail immediately to avoid doing unnecessary work.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<DocumentId> _updateSourcesQueue;
+    private readonly AsyncBatchingWorkQueue<string> _updateSourcesQueue;
     private readonly Workspace _workspace;
 
     public readonly SolutionExplorerNavigationSupport NavigationSupport;
@@ -64,29 +65,36 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         Listener = listenerProvider.GetListener(FeatureAttribute.SolutionExplorer);
         NavigationSupport = new(workspace, threadingContext, listenerProvider);
 
-        _updateSourcesQueue = new AsyncBatchingWorkQueue<DocumentId>(
+        _updateSourcesQueue = new AsyncBatchingWorkQueue<string>(
             DelayTimeSpan.Medium,
             UpdateCollectionSourcesAsync,
-            EqualityComparer<DocumentId>.Default,
+            // Ignore case as we're comparing file paths here.
+            StringComparer.OrdinalIgnoreCase,
             this.Listener,
             this.ThreadingContext.DisposalToken);
 
         this._workspace.RegisterWorkspaceChangedHandler(
             e =>
             {
-                if (e.DocumentId != null)
-                    _updateSourcesQueue.AddWork(e.DocumentId);
+                var oldPath = e.OldSolution.GetDocument(e.DocumentId)?.FilePath;
+                var newPath = e.NewSolution.GetDocument(e.DocumentId)?.FilePath;
+
+                if (oldPath != null)
+                    _updateSourcesQueue.AddWork(oldPath);
+
+                if (newPath != null)
+                    _updateSourcesQueue.AddWork(newPath);
             },
             options: new WorkspaceEventOptions(RequiresMainThread: false));
     }
 
     private async ValueTask UpdateCollectionSourcesAsync(
-        ImmutableSegmentedList<DocumentId> documentIds, CancellationToken cancellationToken)
+        ImmutableSegmentedList<string> updatedFilePaths, CancellationToken cancellationToken)
     {
-        using var _1 = Microsoft.CodeAnalysis.PooledObjects.PooledHashSet<DocumentId>.GetInstance(out var documentIdSet);
+        using var _1 = SharedPools.StringIgnoreCaseHashSet.GetPooledObject(out var filePathSet);
         using var _2 = Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder<RootSymbolTreeItemCollectionSource>.GetInstance(out var sources);
 
-        documentIdSet.AddRange(documentIds);
+        filePathSet.AddRange(updatedFilePaths);
         sources.AddRange(_hierarchyToCollectionSource.Values);
 
         // Update all the affected documents in parallel.
@@ -95,7 +103,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfAffectedAsync(documentIdSet, cancellationToken)
+                await source.UpdateIfAffectedAsync(filePathSet, cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -155,7 +163,12 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             else if (e.PropertyName == nameof(IVsHierarchyItem.Text))
             {
                 // Name of the file changed.  Clear out the cached document id for it so it is recomputed.
-                source.DocumentId = null;
+                if (!hierarchy.TryGetCanonicalName(itemId, out var newItemName))
+                {
+                    Debug.Fail("Couldn't determine new name");
+                    return;
+                }
+                source.ItemName = newItemName;
             }
         }
     }
