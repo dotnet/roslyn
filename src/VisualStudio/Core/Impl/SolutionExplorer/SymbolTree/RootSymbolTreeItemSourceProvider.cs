@@ -168,7 +168,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     Debug.Fail("Couldn't determine new name");
                     return;
                 }
-                source.ItemName = newItemName;
+                source.FilePath = newItemName;
             }
         }
     }

@@ -22,7 +22,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
     private sealed class RootSymbolTreeItemCollectionSource(
         RootSymbolTreeItemSourceProvider rootProvider,
         IVsHierarchyItem hierarchyItem,
-        string itemName) : IAttachedCollectionSource, INotifyPropertyChanged
+        string filePath) : IAttachedCollectionSource, INotifyPropertyChanged
     {
         private readonly RootSymbolTreeItemSourceProvider _rootProvider = rootProvider;
         private readonly IVsHierarchyItem _hierarchyItem = hierarchyItem;
@@ -36,7 +36,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         /// </summary>
         private volatile int _initialized;
 
-        public string ItemName { get; set; } = itemName;
+        public string FilePath { get; set; } = filePath;
 
         public async Task UpdateIfAffectedAsync(
             HashSet<string>? updatedFilePaths,
@@ -48,7 +48,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             if (_initialized == 0)
                 return;
 
-            if (updatedFilePaths != null && !updatedFilePaths.Contains(this.ItemName))
+            if (updatedFilePaths != null && !updatedFilePaths.Contains(this.FilePath))
                 return;
 
             var documentId = DetermineDocumentId();
@@ -81,7 +81,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
             var idMap = _rootProvider._workspace.Services.GetRequiredService<IHierarchyItemToProjectIdMap>();
             if (idMap.TryGetProject(_hierarchyItem.Parent, targetFrameworkMoniker: null, out var project))
             {
-                var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.ItemName);
+                var documentIds = project.Solution.GetDocumentIdsWithFilePath(this.FilePath);
                 return documentIds.FirstOrDefault(static (d, projectId) => d.ProjectId == projectId, project.Id);
             }
 
