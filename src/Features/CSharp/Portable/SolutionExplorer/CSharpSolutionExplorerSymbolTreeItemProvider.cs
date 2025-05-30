@@ -45,23 +45,90 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         switch (member)
         {
             case ExtensionBlockDeclarationSyntax extensionBlock:
-                AddExtensionBlock(extensionBlock, items, nameBuilder);
+                AddExtensionBlock(extensionBlock);
                 return true;
 
             case TypeDeclarationSyntax typeDeclaration:
-                AddTypeDeclaration(typeDeclaration, items, nameBuilder);
+                AddTypeDeclaration(typeDeclaration);
                 return true;
 
             case EnumDeclarationSyntax enumDeclaration:
-                AddEnumDeclaration(enumDeclaration, items);
+                AddEnumDeclaration(enumDeclaration);
                 return true;
 
             case DelegateDeclarationSyntax delegateDeclaration:
-                AddDelegateDeclaration(delegateDeclaration, items, nameBuilder);
+                AddDelegateDeclaration(delegateDeclaration);
                 return true;
         }
 
         return false;
+
+        void AddExtensionBlock(ExtensionBlockDeclarationSyntax extensionBlock)
+        {
+            nameBuilder.Append("extension");
+            AppendTypeParameterList(nameBuilder, extensionBlock.TypeParameterList);
+            AppendParameterList(nameBuilder, extensionBlock.ParameterList);
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                Glyph.ClassPublic,
+                hasItems: extensionBlock.Members.Count > 0,
+                extensionBlock,
+                extensionBlock.Keyword));
+        }
+
+        void AddTypeDeclaration(TypeDeclarationSyntax typeDeclaration)
+        {
+            nameBuilder.Append(typeDeclaration.Identifier.ValueText);
+            AppendTypeParameterList(nameBuilder, typeDeclaration.TypeParameterList);
+
+            var glyph = GlyphExtensions.GetGlyph(
+                GetDeclaredSymbolInfoKind(typeDeclaration),
+                GetAccessibility(typeDeclaration.GetRequiredParent(), typeDeclaration.Modifiers));
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: typeDeclaration.Members.Count > 0,
+                typeDeclaration,
+                typeDeclaration.Identifier));
+        }
+
+        void AddEnumDeclaration(EnumDeclarationSyntax enumDeclaration)
+        {
+            var glyph = GlyphExtensions.GetGlyph(
+                DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration.GetRequiredParent(), enumDeclaration.Modifiers));
+
+            items.Add(new(
+                documentId,
+                enumDeclaration.Identifier.ValueText,
+                glyph,
+                hasItems: enumDeclaration.Members.Count > 0,
+                enumDeclaration,
+                enumDeclaration.Identifier));
+        }
+
+        void AddDelegateDeclaration(DelegateDeclarationSyntax delegateDeclaration)
+        {
+            nameBuilder.Append(delegateDeclaration.Identifier.ValueText);
+            AppendTypeParameterList(nameBuilder, delegateDeclaration.TypeParameterList);
+            AppendParameterList(nameBuilder, delegateDeclaration.ParameterList);
+
+            nameBuilder.Append(" : ");
+            AppendType(delegateDeclaration.ReturnType, nameBuilder);
+
+            var glyph = GlyphExtensions.GetGlyph(
+                DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration.GetRequiredParent(), delegateDeclaration.Modifiers));
+
+            items.Add(new(
+                documentId,
+                nameBuilder.ToStringAndClear(),
+                glyph,
+                hasItems: false,
+                delegateDeclaration,
+                delegateDeclaration.Identifier));
+        }
     }
 
     protected override void AddMemberDeclaration(
@@ -105,7 +172,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 AddIndexerDeclaration(indexerDeclaration);
                 return;
         }
-
 
         void AddMethodDeclaration(MethodDeclarationSyntax methodDeclaration)
         {
@@ -289,88 +355,6 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 member,
                 member.Identifier));
         }
-    }
-
-    private static void AddEnumDeclaration(
-        DocumentId documentId,
-        EnumDeclarationSyntax enumDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items)
-    {
-        var glyph = GlyphExtensions.GetGlyph(
-            DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration.GetRequiredParent(), enumDeclaration.Modifiers));
-
-        items.Add(new(
-            documentId,
-            enumDeclaration.Identifier.ValueText,
-            glyph,
-            hasItems: enumDeclaration.Members.Count > 0,
-            enumDeclaration,
-            enumDeclaration.Identifier));
-    }
-
-    private static void AddExtensionBlock(
-        DocumentId documentId,
-        ExtensionBlockDeclarationSyntax extensionBlock,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append("extension");
-        AppendTypeParameterList(nameBuilder, extensionBlock.TypeParameterList);
-        AppendParameterList(nameBuilder, extensionBlock.ParameterList);
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            Glyph.ClassPublic,
-            hasItems: extensionBlock.Members.Count > 0,
-            extensionBlock,
-            extensionBlock.Keyword));
-    }
-
-    private static void AddDelegateDeclaration(
-        DocumentId documentId,
-        DelegateDeclarationSyntax delegateDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(delegateDeclaration.Identifier.ValueText);
-        AppendTypeParameterList(nameBuilder, delegateDeclaration.TypeParameterList);
-        AppendParameterList(nameBuilder, delegateDeclaration.ParameterList);
-
-        nameBuilder.Append(" : ");
-        AppendType(delegateDeclaration.ReturnType, nameBuilder);
-
-        var glyph = GlyphExtensions.GetGlyph(
-            DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration.GetRequiredParent(), delegateDeclaration.Modifiers));
-
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: false,
-            delegateDeclaration,
-            delegateDeclaration.Identifier));
-    }
-
-    private static void AddTypeDeclaration(
-        DocumentId documentId,
-        TypeDeclarationSyntax typeDeclaration,
-        ArrayBuilder<SymbolTreeItemData> items,
-        StringBuilder nameBuilder)
-    {
-        nameBuilder.Append(typeDeclaration.Identifier.ValueText);
-        AppendTypeParameterList(nameBuilder, typeDeclaration.TypeParameterList);
-
-        var glyph = GlyphExtensions.GetGlyph(
-            GetDeclaredSymbolInfoKind(typeDeclaration),
-            GetAccessibility(typeDeclaration.GetRequiredParent(), typeDeclaration.Modifiers));
-        items.Add(new(
-            documentId,
-            nameBuilder.ToStringAndClear(),
-            glyph,
-            hasItems: typeDeclaration.Members.Count > 0,
-            typeDeclaration,
-            typeDeclaration.Identifier));
     }
 
     private static void AppendTypeParameterList(
