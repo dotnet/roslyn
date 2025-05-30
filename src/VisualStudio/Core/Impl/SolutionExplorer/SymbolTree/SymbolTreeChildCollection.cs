@@ -65,7 +65,6 @@ internal sealed class SymbolTreeChildCollection(
     }
 
     public void SetItemsAndMarkComputed_OnMainThread(
-        DocumentId documentId,
         ISolutionExplorerSymbolTreeItemProvider itemProvider,
         ImmutableArray<SymbolTreeItemData> itemDatas)
     {
@@ -93,7 +92,6 @@ internal sealed class SymbolTreeChildCollection(
                     if (matchingItems.Count == 0)
                         keyToItems.Remove(itemData.ItemKey);
 
-                    Contract.ThrowIfFalse(matchingItem.DocumentId == documentId);
                     Contract.ThrowIfFalse(matchingItem.ItemProvider == itemProvider);
                     Contract.ThrowIfFalse(matchingItem.ItemKey == itemData.ItemKey);
 
@@ -104,7 +102,7 @@ internal sealed class SymbolTreeChildCollection(
                 else
                 {
                     // If we didn't find an existing item, create a new one.
-                    _symbolTreeItems.Add(new(_rootProvider, documentId, itemProvider, itemData.ItemKey)
+                    _symbolTreeItems.Add(new(_rootProvider, itemProvider, itemData.ItemKey)
                     {
                         ItemSyntax = itemData.ItemSyntax
                     });

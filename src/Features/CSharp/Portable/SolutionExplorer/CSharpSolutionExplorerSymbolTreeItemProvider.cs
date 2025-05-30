@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -39,7 +40,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         => typeDeclaration.Members;
 
     protected override bool TryAddType(
-        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+        DocumentId documentId, MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {
         switch (member)
         {
@@ -64,7 +65,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     protected override void AddMemberDeclaration(
-        MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+        DocumentId documentId, MemberDeclarationSyntax member, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
     {
         switch (member)
         {
@@ -107,6 +108,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddIndexerDeclaration(
+        DocumentId documentId,
         IndexerDeclarationSyntax indexerDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -123,6 +125,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Indexer, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -131,6 +134,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddEventDeclaration(
+        DocumentId documentId,
         EventDeclarationSyntax eventDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -143,6 +147,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Event, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -151,7 +156,10 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddPropertyDeclaration(
-        PropertyDeclarationSyntax propertyDeclaration, ArrayBuilder<SymbolTreeItemData> items, StringBuilder nameBuilder)
+        DocumentId documentId,
+        PropertyDeclarationSyntax propertyDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items,
+        StringBuilder nameBuilder)
     {
         nameBuilder.Append(propertyDeclaration.Identifier.ValueText);
         nameBuilder.Append(" : ");
@@ -161,6 +169,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Property, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -169,6 +178,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddConstructorOrDestructorDeclaration(
+        DocumentId documentId,
         BaseMethodDeclarationSyntax declaration,
         SyntaxToken identifier,
         ArrayBuilder<SymbolTreeItemData> items,
@@ -184,6 +194,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Constructor, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -192,6 +203,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddConversionOperatorDeclaration(
+        DocumentId documentId,
         ConversionOperatorDeclarationSyntax operatorDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -206,6 +218,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -214,6 +227,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddOperatorDeclaration(
+        DocumentId documentId,
         OperatorDeclarationSyntax operatorDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -228,6 +242,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         var glyph = GlyphExtensions.GetGlyph(DeclaredSymbolInfoKind.Operator, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -236,6 +251,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddMethodDeclaration(
+        DocumentId documentId,
         MethodDeclarationSyntax methodDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -253,6 +269,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
             isExtension ? DeclaredSymbolInfoKind.ExtensionMethod : DeclaredSymbolInfoKind.Method, accessibility);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -261,6 +278,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddFieldDeclaration(
+        DocumentId documentId,
         BaseFieldDeclarationSyntax fieldDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -277,6 +295,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 : DeclaredSymbolInfoKind.Field;
 
             items.Add(new(
+                documentId,
                 nameBuilder.ToStringAndClear(),
                 GlyphExtensions.GetGlyph(kind, accessibility),
                 hasItems: false,
@@ -286,6 +305,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     protected override void AddEnumDeclarationMembers(
+        DocumentId documentId,
         EnumDeclarationSyntax enumDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         CancellationToken cancellationToken)
@@ -302,12 +322,16 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         }
     }
 
-    private static void AddEnumDeclaration(EnumDeclarationSyntax enumDeclaration, ArrayBuilder<SymbolTreeItemData> items)
+    private static void AddEnumDeclaration(
+        DocumentId documentId,
+        EnumDeclarationSyntax enumDeclaration,
+        ArrayBuilder<SymbolTreeItemData> items)
     {
         var glyph = GlyphExtensions.GetGlyph(
             DeclaredSymbolInfoKind.Enum, GetAccessibility(enumDeclaration.GetRequiredParent(), enumDeclaration.Modifiers));
 
         items.Add(new(
+            documentId,
             enumDeclaration.Identifier.ValueText,
             glyph,
             hasItems: enumDeclaration.Members.Count > 0,
@@ -316,6 +340,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddExtensionBlock(
+        DocumentId documentId,
         ExtensionBlockDeclarationSyntax extensionBlock,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -325,6 +350,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
         AppendParameterList(nameBuilder, extensionBlock.ParameterList);
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             Glyph.ClassPublic,
             hasItems: extensionBlock.Members.Count > 0,
@@ -333,6 +359,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddDelegateDeclaration(
+        DocumentId documentId,
         DelegateDeclarationSyntax delegateDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -348,6 +375,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
             DeclaredSymbolInfoKind.Delegate, GetAccessibility(delegateDeclaration.GetRequiredParent(), delegateDeclaration.Modifiers));
 
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: false,
@@ -356,6 +384,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
     }
 
     private static void AddTypeDeclaration(
+        DocumentId documentId,
         TypeDeclarationSyntax typeDeclaration,
         ArrayBuilder<SymbolTreeItemData> items,
         StringBuilder nameBuilder)
@@ -367,6 +396,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
             GetDeclaredSymbolInfoKind(typeDeclaration),
             GetAccessibility(typeDeclaration.GetRequiredParent(), typeDeclaration.Modifiers));
         items.Add(new(
+            documentId,
             nameBuilder.ToStringAndClear(),
             glyph,
             hasItems: typeDeclaration.Members.Count > 0,
