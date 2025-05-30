@@ -53,8 +53,6 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
         {
             try
             {
-                var cancellationToken = parameters.CancellationToken;
-
                 var solution = _workspace.CurrentSolution;
                 var searcher = NavigateToSearcher.Create(
                     solution,
@@ -63,7 +61,7 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
                     NavigateToUtilities.GetKindsProvided(solution),
                     new SolutionExplorerNavigateToSearcherHost(_workspace));
 
-                await searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken).ConfigureAwait(false);
+                await searcher.SearchAsync(NavigateToSearchScope.Solution, parameters.CancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
