@@ -99,7 +99,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.877-preview.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.1210-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.205-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.13.226" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.13.226" />
