@@ -41,13 +41,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [AppliesToProject("CSharp | VB")]
 internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
-    // private readonly ConcurrentDictionary<IVsHierarchyItem, RootSymbolTreeItemCollectionSource> _hierarchyToCollectionSource = [];
-
     /// <summary>
     /// Mapping from filepath to the collection sources made for it.  Is a multi dictionary because the same
     /// file may appear in multiple projects, but each will have its own collection soure to represent the view
     /// of that file through that project.
     /// </summary>
+    /// <remarks>Lock this instance when reading/writing as it is used over different threads.</remarks>
     private readonly MultiDictionary<string, RootSymbolTreeItemCollectionSource> _filePathToCollectionSources = new(
         StringComparer.OrdinalIgnoreCase);
 
@@ -133,7 +132,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             cancellationToken,
             async (source, cancellationToken) =>
             {
-                await source.UpdateIfAffectedAsync(filePathSet, cancellationToken)
+                await source.UpdateIfAffectedAsync(cancellationToken)
                     .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
                     .ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -196,11 +195,17 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             }
             else if (e.PropertyName == nameof(IVsHierarchyItem.CanonicalName))
             {
+                var newPath = item.CanonicalName;
+
                 lock (_filePathToCollectionSources)
                 {
+
+                    // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
                     _filePathToCollectionSources.Remove(currentFilePath, source);
-                    _filePathToCollectionSources.Add(item.CanonicalName, source);
-                    currentFilePath = item.CanonicalName;
+                    _filePathToCollectionSources.Add(newPath, source);
+
+                    // Keep track of the 'newPath'.
+                    currentFilePath = newPath;
                 }
 
                 // If the filepath changes for an item (which can happen when it is renamed), place a notification
@@ -208,7 +213,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 // right document id.  Also reset the state of the source.  The filepath could change to something
                 // no longer valid (like .cs to .txt), or vice versa.
                 source.Reset();
-                _updateSourcesQueue.AddWork(currentFilePath);
+                _updateSourcesQueue.AddWork(newPath);
             }
         }
     }
