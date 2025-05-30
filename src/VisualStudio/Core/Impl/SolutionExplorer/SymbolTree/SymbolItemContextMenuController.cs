@@ -44,6 +44,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
         {
             public int QueryStatus(ref Guid pguidCmdGroup, uint cCmds, OLECMD[] prgCmds, IntPtr pCmdText)
             {
+                // All commands are available on all items currently.  Note: we could refine this if we want to.
+                // For example "go to base/derived" doesn't really make sense on fields.  For now thoug, we just
+                // keep things simple.  This is similar to how you always get all these nav options in the editor
+                // when you right click on any location in a C# file.
                 return HResult.OK;
             }
 
