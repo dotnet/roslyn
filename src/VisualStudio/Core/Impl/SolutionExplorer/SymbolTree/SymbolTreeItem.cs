@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -17,6 +18,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.ProjectSystem.VS;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -49,18 +51,18 @@ internal sealed class SymbolTreeItem : BaseItem,
         RootProvider = rootProvider;
         ItemProvider = itemProvider;
         ItemKey = itemKey;
-        _childCollection = new(rootProvider, this, hasItems: ItemKey.HasItems);
+        _childCollection = new(rootProvider, this, hasItemsDefault: ItemKey.HasItems);
     }
 
-    private void ThrowIfNotOnMainThread()
-        => Contract.ThrowIfFalse(this.RootProvider.ThreadingContext.JoinableTaskContext.IsOnMainThread);
+    private void ThrowIfNotOnUIThread()
+        => this.RootProvider.ThreadingContext.ThrowIfNotOnUIThread();
 
     public SymbolTreeItemSyntax ItemSyntax
     {
         get => _itemSyntax;
         set
         {
-            ThrowIfNotOnMainThread();
+            ThrowIfNotOnUIThread();
 
             // When the syntax node for this item is changed, we want to recompute the children for it
             // (if this  node is expanded). Otherwise, we can just throw away what we have and recompute
@@ -90,21 +92,21 @@ internal sealed class SymbolTreeItem : BaseItem,
 
     public void BeforeExpand()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
         _expanded = true;
         UpdateChildren();
     }
 
     public void AfterCollapse()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
         _expanded = false;
         UpdateChildren();
     }
 
     private void UpdateChildren()
     {
-        ThrowIfNotOnMainThread();
+        ThrowIfNotOnUIThread();
 
         if (_expanded)
         {
@@ -119,7 +121,7 @@ internal sealed class SymbolTreeItem : BaseItem,
         else
         {
             // Otherwise, return the child collection to the uninitialized state.
-            _childCollection.ResetToUncomputedState();
+            _childCollection.ResetToUncomputedState(this.ItemKey.HasItems);
         }
     }
 

@@ -10,10 +10,9 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionExplorer;
 using Microsoft.VisualStudio.Shell;
 
@@ -30,19 +29,27 @@ internal sealed partial class RootSymbolTreeItemSourceProvider
 
         // Mark hasItems as null as we don't know up front if we have items, and instead have to compute it on demand.
         private readonly SymbolTreeChildCollection _childCollection = new(
-            rootProvider, hierarchyItem,
-            // If this is not a c#/vb file initially, then mark this file as having no symbolic children.
-            // If it is c#/vb, then mark it as null (which means 'unknown') so that we show the arrow next
-            // to the item, but compute only once expanded.
-            hasItems: Path.GetExtension(hierarchyItem.CanonicalName).ToLowerInvariant() is ".cs" or ".vb"
-                ? null
-                : false);
+            rootProvider, hierarchyItem, hasItemsDefault: GetHasItemsDefaultValue(hierarchyItem));
 
         /// <summary>
         /// Whether or not this root solution explorer node has been expanded or not.  Until it is first expanded,
         /// we do no work so as to avoid CPU time and rooting things like syntax nodes.
         /// </summary>
         private volatile int _hasEverBeenExpanded;
+
+        private static bool? GetHasItemsDefaultValue(IVsHierarchyItem hierarchyItem)
+            // If this is not a c#/vb file initially, then mark this file as having no symbolic children.
+            // If it is c#/vb, then mark it as null (which means 'unknown') so that we show the arrow next
+            // to the item, but compute only once expanded.
+            => Path.GetExtension(hierarchyItem.CanonicalName).ToLowerInvariant() is ".cs" or ".vb"
+                ? null
+                : false;
+
+        public void Reset()
+        {
+            _rootProvider.ThreadingContext.ThrowIfNotOnUIThread();
+            _childCollection.ResetToUncomputedState(GetHasItemsDefaultValue(_hierarchyItem));
+        }
 
         public async Task UpdateIfAffectedAsync(
             HashSet<string> updatedFilePaths,
