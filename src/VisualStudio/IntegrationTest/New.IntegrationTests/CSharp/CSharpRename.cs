@@ -799,9 +799,6 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
     [IdeFact]
     public async Task VerifyAsyncRename()
     {
-        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-        globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, true);
-
         var markup = """
             class Program
             {
