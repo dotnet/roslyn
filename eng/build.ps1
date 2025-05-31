@@ -269,6 +269,7 @@ function BuildSolution() {
     # TODO: Remove DotNetBuildRepo property when roslyn is on Arcade 10
     MSBuild $toolsetBuildProj `
       $bl `
+      /check `
       /p:Configuration=$configuration `
       /p:Projects=$projects `
       /p:RepoRoot=$RepoRoot `
