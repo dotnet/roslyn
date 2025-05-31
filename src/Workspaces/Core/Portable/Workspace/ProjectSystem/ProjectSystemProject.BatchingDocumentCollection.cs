@@ -478,15 +478,16 @@ internal sealed partial class ProjectSystemProject
 
                 using (await _project._gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // If our project has already been removed, this is a stale notification, and we can disregard.
+                    // If our project has already been removed, and we can disregard everything and just 'return'
                     if (_project.HasBeenRemoved)
                         return;
 
+                    // For everything else, if it's not here 'continue' to the next item in the batch.
                     if (!_documentPathsToDocumentIds.TryGetValue(workspaceFilePath, out documentId))
-                        return;
+                        continue;
 
                     if (!_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out fileInfoProvider))
-                        return;
+                        continue;
                 }
 
                 // Now that we've got all our basic data, let's fetch the new document outside the lock, since this could be expensive.
