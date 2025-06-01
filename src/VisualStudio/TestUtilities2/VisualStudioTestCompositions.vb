@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private Sub New()
         End Sub
 
-        Public Shared ReadOnly LanguageServices As TestComposition = EditorTestCompositions.EditorFeaturesWpf.
+        Public Shared ReadOnly LanguageServices As TestComposition = EditorTestCompositions.EditorFeatures.
             AddAssemblies(
                 GetType(ServicesVSResources).Assembly,
                 GetType(CSharpVSResources).Assembly,

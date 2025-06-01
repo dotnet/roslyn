@@ -180,9 +180,11 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
+    protected sealed record RemoteProjectLoadResult(RemoteProjectFile ProjectFile, bool HasAllInformation, BuildHostProcessKind Preferred, BuildHostProcessKind Actual);
+
     /// <summary>Loads a project in the MSBuild host.</summary>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
-    protected abstract Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
+    protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
 
     /// <returns>True if the project needs a NuGet restore, false otherwise.</returns>
@@ -203,13 +205,17 @@ internal abstract class LanguageServerProjectLoader
 
         try
         {
-            if (await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken)
-                is not var (remoteProjectFile, hasAllInformation, preferredBuildHostKind, actualBuildHostKind))
+            var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
+            if (remoteProjectLoadResult is null)
             {
+                // Note that this is a fairly common condition, e.g. for VB projects.
+                // In the file-based programs primordial case, no 'LoadedProject' is produced for the project,
+                // and therefore no reloading is performed for it after failing to load it once (in this code path).
                 _logger.LogWarning($"Unable to load project '{projectPath}'.");
                 return false;
             }
 
+            (RemoteProjectFile remoteProjectFile, bool hasAllInformation, BuildHostProcessKind preferredBuildHostKind, BuildHostProcessKind actualBuildHostKind) = remoteProjectLoadResult;
             if (preferredBuildHostKind != actualBuildHostKind)
                 preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
 
@@ -249,15 +255,10 @@ internal abstract class LanguageServerProjectLoader
                     var (target, targetAlreadyExists) = await GetOrCreateProjectTargetAsync(previousProjectTargets, loadedProjectInfo);
                     newProjectTargetsBuilder.Add(target);
 
-                    if (targetAlreadyExists)
+                    var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
+                    needsRestore |= targetNeedsRestore;
+                    if (!targetAlreadyExists)
                     {
-                        // https://github.com/dotnet/roslyn/issues/78561: Automatic restore should run even when the target is already loaded
-                        _ = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                    }
-                    else
-                    {
-                        var (targetTelemetryInfo, targetNeedsRestore) = await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, hasAllInformation, _logger);
-                        needsRestore |= targetNeedsRestore;
                         telemetryInfos[loadedProjectInfo] = targetTelemetryInfo with { IsSdkStyle = preferredBuildHostKind == BuildHostProcessKind.NetCore };
                     }
                 }
