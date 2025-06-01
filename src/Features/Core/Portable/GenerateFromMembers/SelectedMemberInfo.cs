@@ -11,7 +11,7 @@ internal sealed class SelectedMemberInfo(
     ImmutableArray<SyntaxNode> selectedDeclarations,
     ImmutableArray<ISymbol> selectedMembers)
 {
-    public readonly INamedTypeSymbol ContainingType = containingType;
+    public readonly INamedTypeSymbol? ContainingType = containingType;
     public readonly ImmutableArray<SyntaxNode> SelectedDeclarations = selectedDeclarations;
     public readonly ImmutableArray<ISymbol> SelectedMembers = selectedMembers;
 }

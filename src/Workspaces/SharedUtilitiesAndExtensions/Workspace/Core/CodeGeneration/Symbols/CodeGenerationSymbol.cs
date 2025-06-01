@@ -29,7 +29,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
     public Accessibility DeclaredAccessibility { get; }
     protected internal DeclarationModifiers Modifiers { get; }
     public string Name { get; }
-    public INamedTypeSymbol ContainingType { get; protected set; }
+    public INamedTypeSymbol? ContainingType { get; protected set; }
 
     protected CodeGenerationSymbol(
         IAssemblySymbol containingAssembly,
@@ -79,15 +79,15 @@ internal abstract class CodeGenerationSymbol : ISymbol
 
     public string Language => "Code Generation Agnostic Language";
 
-    public virtual ISymbol ContainingSymbol => null;
+    public virtual ISymbol? ContainingSymbol => null;
 
-    public IAssemblySymbol ContainingAssembly { get; }
+    public IAssemblySymbol? ContainingAssembly { get; }
 
     public static IMethodSymbol ContainingMethod => null;
 
-    public IModuleSymbol ContainingModule => null;
+    public IModuleSymbol? ContainingModule => null;
 
-    public INamespaceSymbol ContainingNamespace => null;
+    public INamespaceSymbol? ContainingNamespace => null;
 
     public bool IsDefinition => true;
 

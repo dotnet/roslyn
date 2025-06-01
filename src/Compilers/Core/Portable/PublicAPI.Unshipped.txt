@@ -31,3 +31,8 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementAssignmentOper
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementAssignmentOperatorName = "op_CheckedIncrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DecrementAssignmentOperatorName = "op_DecrementAssignment" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementAssignmentOperatorName = "op_IncrementAssignment" -> string!
+~Microsoft.CodeAnalysis.ISymbol.ContainingAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
+~Microsoft.CodeAnalysis.ISymbol.ContainingModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
+~Microsoft.CodeAnalysis.ISymbol.ContainingNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
+~Microsoft.CodeAnalysis.ISymbol.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
+~Microsoft.CodeAnalysis.ISymbol.ContainingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol

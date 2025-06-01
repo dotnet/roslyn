@@ -151,7 +151,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
             Compilation compilation,
-            IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            IEnumerable<(IOperation Operation, ISymbol? ContainingSymbol)> rootOperationsNeedingAnalysis,
             AnalyzerOptions analyzerOptions,
             string typeToTrackMetadataName,
             ConstructorMapper constructorMapper,
@@ -187,7 +187,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <remarks>Unlike <see cref="GetOrComputeResult"/>, this overload also performs DFA on all descendant local and anonymous functions.</remarks>
         public static PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? BatchGetOrComputeHazardousUsages(
             Compilation compilation,
-            IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            IEnumerable<(IOperation Operation, ISymbol? ContainingSymbol)> rootOperationsNeedingAnalysis,
             AnalyzerOptions analyzerOptions,
             ImmutableHashSet<string> typeToTrackMetadataNames,
             ConstructorMapper constructorMapper,
@@ -197,7 +197,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             bool pessimisticAnalysis = false)
         {
             PooledDictionary<(Location Location, IMethodSymbol? Method), HazardousUsageEvaluationResult>? allResults = null;
-            foreach ((IOperation Operation, ISymbol ContainingSymbol) in rootOperationsNeedingAnalysis)
+            foreach ((IOperation Operation, ISymbol? ContainingSymbol) in rootOperationsNeedingAnalysis)
             {
                 var success = Operation.TryGetEnclosingControlFlowGraph(out ControlFlowGraph? enclosingControlFlowGraph);
                 Debug.Assert(success);

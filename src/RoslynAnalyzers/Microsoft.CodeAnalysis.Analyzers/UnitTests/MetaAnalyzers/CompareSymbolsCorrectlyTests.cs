@@ -30,11 +30,11 @@ class Symbol : ISymbol {
     public string Language => throw new NotImplementedException();
     public string Name => throw new NotImplementedException();
     public string MetadataName => throw new NotImplementedException();
-    public ISymbol ContainingSymbol => throw new NotImplementedException();
-    public IAssemblySymbol ContainingAssembly => throw new NotImplementedException();
-    public IModuleSymbol ContainingModule => throw new NotImplementedException();
-    public INamedTypeSymbol ContainingType => throw new NotImplementedException();
-    public INamespaceSymbol ContainingNamespace => throw new NotImplementedException();
+    public ISymbol? ContainingSymbol => throw new NotImplementedException();
+    public IAssemblySymbol? ContainingAssembly => throw new NotImplementedException();
+    public IModuleSymbol? ContainingModule => throw new NotImplementedException();
+    public INamedTypeSymbol? ContainingType => throw new NotImplementedException();
+    public INamespaceSymbol? ContainingNamespace => throw new NotImplementedException();
     public bool IsDefinition => throw new NotImplementedException();
     public bool IsStatic => throw new NotImplementedException();
     public bool IsVirtual => throw new NotImplementedException();

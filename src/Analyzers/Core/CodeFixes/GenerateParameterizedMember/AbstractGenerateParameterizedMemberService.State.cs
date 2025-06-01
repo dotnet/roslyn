@@ -21,7 +21,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
 {
     internal abstract class State
     {
-        public INamedTypeSymbol ContainingType { get; protected set; }
+        public INamedTypeSymbol? ContainingType { get; protected set; }
         public INamedTypeSymbol TypeToGenerateIn { get; protected set; }
         public bool IsStatic { get; protected set; }
         public bool IsContainedInUnsafeType { get; protected set; }

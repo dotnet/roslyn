@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// <see cref="ISymbol"/> for the declaration containing the operation.
         /// </summary>
-        public ISymbol ContainingSymbol => _containingSymbol;
+        public ISymbol? ContainingSymbol => _containingSymbol;
 
         /// <summary>
         /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="IOperation"/>.

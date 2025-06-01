@@ -26,7 +26,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         private readonly TService _service;
         private readonly SemanticDocument _document;
 
-        public INamedTypeSymbol ContainingType { get; private set; }
+        public INamedTypeSymbol? ContainingType { get; private set; }
         public INamedTypeSymbol TypeToGenerateIn { get; private set; }
         public IMethodSymbol ContainingMethod { get; private set; }
         public bool IsStatic { get; private set; }
