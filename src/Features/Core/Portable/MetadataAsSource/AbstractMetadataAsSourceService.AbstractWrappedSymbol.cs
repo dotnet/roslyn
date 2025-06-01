@@ -28,15 +28,15 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool CanBeReferencedByName => _symbol.CanBeReferencedByName;
 
-        public IAssemblySymbol? ContainingAssembly => _symbol.ContainingAssembly;
+        public IAssemblySymbol ContainingAssembly => _symbol.ContainingAssembly;
 
-        public IModuleSymbol? ContainingModule => _symbol.ContainingModule;
+        public IModuleSymbol ContainingModule => _symbol.ContainingModule;
 
-        public INamespaceSymbol? ContainingNamespace => _symbol.ContainingNamespace;
+        public INamespaceSymbol ContainingNamespace => _symbol.ContainingNamespace;
 
-        public ISymbol? ContainingSymbol => _symbol.ContainingSymbol;
+        public ISymbol ContainingSymbol => _symbol.ContainingSymbol;
 
-        public INamedTypeSymbol? ContainingType => _symbol.ContainingType;
+        public INamedTypeSymbol ContainingType => _symbol.ContainingType;
 
         public Accessibility DeclaredAccessibility => _symbol.DeclaredAccessibility;
 

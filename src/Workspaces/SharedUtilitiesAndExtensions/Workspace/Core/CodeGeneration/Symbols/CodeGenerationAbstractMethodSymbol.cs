@@ -88,7 +88,7 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
 
     public bool IsCheckedBuiltin => false;
 
-    public override ISymbol? ContainingSymbol => this.ContainingType;
+    public override ISymbol ContainingSymbol => this.ContainingType;
 
     public virtual bool HidesBaseMethodsByName => false;
 

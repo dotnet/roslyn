@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             var p = parameters[i];
-                            this.GetReferenceGenerator(p.ContainingSymbol).Visit(p.Type);
+                            this.GetReferenceGenerator(p.ContainingSymbol!).Visit(p.Type);
                             if (p.RefKind != RefKind.None)
                             {
                                 _builder.Append('@');
@@ -1407,16 +1407,16 @@ namespace Microsoft.CodeAnalysis
                 return parameterType != null && symbol.Type.Equals(parameterType, SymbolEqualityComparer.CLRSignature);
             }
 
-            private static ITypeParameterSymbol? GetNthTypeParameter(INamedTypeSymbol typeSymbol, int n)
+            private static ITypeParameterSymbol? GetNthTypeParameter(INamedTypeSymbol? typeSymbol, int n)
             {
-                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol.ContainingType);
+                var containingTypeParameterCount = GetTypeParameterCount(typeSymbol?.ContainingType);
                 if (n < containingTypeParameterCount)
                 {
-                    return GetNthTypeParameter(typeSymbol.ContainingType, n);
+                    return GetNthTypeParameter(typeSymbol?.ContainingType, n);
                 }
 
                 var index = n - containingTypeParameterCount;
-                var typeParameters = typeSymbol.TypeParameters;
+                var typeParameters = typeSymbol?.TypeParameters ?? [];
                 if (index < typeParameters.Length)
                 {
                     return typeParameters[index];
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            private static int GetTypeParameterCount(INamedTypeSymbol typeSymbol)
+            private static int GetTypeParameterCount(INamedTypeSymbol? typeSymbol)
             {
                 if (typeSymbol == null)
                 {
@@ -1450,7 +1450,7 @@ namespace Microsoft.CodeAnalysis
 
             private static readonly ListPool<ParameterInfo> s_parameterListPool = new ListPool<ParameterInfo>();
 
-            private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol typeParameterContext, List<ParameterInfo> parameters)
+            private static bool ParseParameterList(string id, ref int index, Compilation compilation, ISymbol? typeParameterContext, List<ParameterInfo> parameters)
             {
                 System.Diagnostics.Debug.Assert(typeParameterContext != null);
 
