@@ -461,24 +461,12 @@ class Class
 |]", new TestParameters(options: options));
         }
 
-        public enum MultiVariableTestKind
-        {
-            Field,
-            Event
-        }
-
-        [Theory, CombinatorialData]
+        [Theory]
+        [InlineData("event", "EventHandler")]
+        [InlineData("static", "int")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
-        public async Task TestRemoveDiagnosticSuppression_Attribute_MultiVariableDeclaration(MultiVariableTestKind testKind)
+        public async Task TestRemoveDiagnosticSuppression_Attribute_MultiVariableDeclaration(string keyword, string type)
         {
-            var (keyword, type) = testKind switch
-            {
-                MultiVariableTestKind.Event => ("event", "EventHandler"),
-                // Using static here to avoid diff issues due to whitespace formatting changes.
-                MultiVariableTestKind.Field => ("static", "int"),
-                _ => throw new NotSupportedException(),
-            };
-
             await TestInRegularAndScript1Async(
                 $$"""
                 public class C
