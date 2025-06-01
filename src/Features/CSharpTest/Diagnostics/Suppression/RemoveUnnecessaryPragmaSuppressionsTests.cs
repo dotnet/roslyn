@@ -461,6 +461,40 @@ class Class
 |]", new TestParameters(options: options));
         }
 
+        public enum MultiVariableTestKind
+        {
+            Field,
+            Event
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_MultiVariableDeclaration(MultiVariableTestKind testKind)
+        {
+            var (keyword, type) = testKind switch
+            {
+                MultiVariableTestKind.Event => ("event", "EventHandler"),
+                // Using static here to avoid diff issues due to whitespace formatting changes.
+                MultiVariableTestKind.Field => ("static", "int"),
+                _ => throw new NotSupportedException(),
+            };
+
+            await TestInRegularAndScript1Async(
+                $$"""
+                public class C
+                {
+                    [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]|]
+                    public {{keyword}} {{type}} A, B;
+                }
+                """,
+                $$"""
+                public class C
+                {
+                    public {{keyword}} {{type}} A, B;
+                }
+                """);
+        }
+
         [Fact]
         public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
         {

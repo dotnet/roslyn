@@ -760,16 +760,22 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
                 }
 
                 var symbols = SemanticFacts.GetDeclaredSymbols(semanticModel, node, cancellationToken);
+
                 foreach (var symbol in symbols)
                 {
+                    var isPossibleMultiVariableDeclaration = false;
+
                     switch (symbol?.Kind)
                     {
                         // Local SuppressMessageAttributes are only applicable for types and members.
                         case SymbolKind.NamedType:
                         case SymbolKind.Method:
-                        case SymbolKind.Field:
                         case SymbolKind.Property:
+                            break;
+
+                        case SymbolKind.Field:
                         case SymbolKind.Event:
+                            isPossibleMultiVariableDeclaration = true;
                             break;
 
                         default:
@@ -811,8 +817,16 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
                             // NOTE: For attributes on partial symbols with multiple declarations, we conservatively
                             // consider them as used and avoid unnecessary attribute analysis because that would potentially
                             // require analysis across multiple files, which can be expensive from a performance standpoint.
+
                             suppressMessageAttributesToIsUsedMap.Add(attributeNode, isPartial);
                         }
+                    }
+
+                    if (isPossibleMultiVariableDeclaration)
+                    {
+                        // Individual variables within a variable declaration cannot be decorated with distinct attributes, so we
+                        // should avoid looking at any of the subsequent symbols for this node as they will be the same.
+                        break;
                     }
                 }
             }
