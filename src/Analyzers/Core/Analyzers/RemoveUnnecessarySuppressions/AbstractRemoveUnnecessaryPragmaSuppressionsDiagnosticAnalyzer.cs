@@ -817,7 +817,6 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
                             // NOTE: For attributes on partial symbols with multiple declarations, we conservatively
                             // consider them as used and avoid unnecessary attribute analysis because that would potentially
                             // require analysis across multiple files, which can be expensive from a performance standpoint.
-
                             suppressMessageAttributesToIsUsedMap.Add(attributeNode, isPartial);
                         }
                     }
