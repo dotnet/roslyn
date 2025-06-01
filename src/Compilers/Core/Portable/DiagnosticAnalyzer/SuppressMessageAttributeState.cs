@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return false;
 
-            bool hasNamespaceSuppression(INamespaceSymbol namespaceSymbol, bool inImmediatelyContainingSymbol)
+            bool hasNamespaceSuppression(INamespaceSymbol? namespaceSymbol, bool inImmediatelyContainingSymbol)
             {
                 do
                 {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return true;
                     }
 
-                    namespaceSymbol = namespaceSymbol.ContainingNamespace;
+                    namespaceSymbol = namespaceSymbol?.ContainingNamespace;
                     inImmediatelyContainingSymbol = false;
                 }
                 while (namespaceSymbol != null);

@@ -7140,7 +7140,7 @@ oneMoreTime:
             // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
             if (operation.Instance is IInstanceReferenceOperation instanceReference &&
                 instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
-                operation.Property.ContainingType.IsAnonymousType &&
+                operation.Property.ContainingType?.IsAnonymousType is true &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {
                 Debug.Assert(_currentImplicitInstance.AnonymousTypePropertyValues is not null);

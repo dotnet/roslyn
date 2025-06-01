@@ -1260,7 +1260,7 @@ namespace Microsoft.CodeAnalysis
 
                 addIfNotNull(Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName));
 
-                var corLib = ObjectType.ContainingAssembly;
+                var corLib = ObjectType.ContainingAssembly!;
 
                 if (!ReferenceEquals(corLib, Assembly))
                 {
@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            bool assemblyIsInReferences(IAssemblySymbol a)
+            bool assemblyIsInReferences(IAssemblySymbol? a)
             {
                 if (assemblyIsInCompilationReferences(a, this))
                 {
@@ -1685,8 +1685,13 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            bool assemblyIsInCompilationReferences(IAssemblySymbol a, Compilation compilation)
+            bool assemblyIsInCompilationReferences(IAssemblySymbol? a, Compilation compilation)
             {
+                if(a is null)
+                {
+                    return false;
+                }
+                
                 if (a.Equals(compilation.Assembly))
                 {
                     return true;
