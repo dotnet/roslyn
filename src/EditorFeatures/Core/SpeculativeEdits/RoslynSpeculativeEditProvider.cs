@@ -6,7 +6,9 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -21,23 +23,28 @@ namespace Microsoft.CodeAnalysis.SpeculativeEdits;
 [ContentType(ContentTypeNames.RoslynContentType)]
 internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
 {
+    private readonly IThreadingContext _threadingContext;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
     private readonly ITextBufferCloneService _textBufferCloneService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public RoslynSpeculativeEditProvider(
+        IThreadingContext threadingContext,
         ITextBufferFactoryService3 textBufferFactoryService,
         ITextDocumentFactoryService textDocumentFactoryService,
         ITextBufferCloneService textBufferCloneService)
     {
         this.TextBufferFactoryService = textBufferFactoryService;
+        _threadingContext = threadingContext;
         _textDocumentFactoryService = textDocumentFactoryService;
         _textBufferCloneService = textBufferCloneService;
     }
 
     public override ISpeculativeEditSession? TryStartSpeculativeEditSession(SpeculativeEditOptions options)
     {
+        _threadingContext.ThrowIfNotOnUIThread();
+
         var oldTextSnapshot = options.SourceSnapshot;
         var document = oldTextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document is null)
@@ -76,6 +83,7 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
         // Wrap everything we need into a final ISpeculativeEditSession for the caller.  It owns the lifetime of the data
         // and will dispose it when done. At that point, we can release the allocated preview workspace new 
         return new RoslynSpeculativeEditSession(
+            this,
             options,
             clonedSnapshotBeforeEdits,
             previewWorkspace,
@@ -92,6 +100,7 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
     }
 
     private sealed class RoslynSpeculativeEditSession(
+        RoslynSpeculativeEditProvider speculativeEditProvider,
         SpeculativeEditOptions options,
         ITextSnapshot clonedSnapshotBeforeEdits,
         PreviewWorkspace previewWorkspace,
@@ -103,6 +112,7 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
 
         public void Dispose()
         {
+            speculativeEditProvider._threadingContext.ThrowIfNotOnUIThread();
             previewWorkspace.Dispose();
             newTextDocument.Dispose();
         }
