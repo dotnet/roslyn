@@ -484,6 +484,134 @@ class Class
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_PartialMethodDefinition()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                public partial class C
+                {
+                    [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]|]
+                    partial void M();
+                }
+
+                public partial class C
+                {
+                    partial void M()
+                    {
+                    }
+                }
+                """,
+                """
+                public partial class C
+                {
+                    partial void M();
+                }
+                
+                public partial class C
+                {
+                    partial void M()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_PartialMethodImplementation()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                public partial class C
+                {
+                    partial void M();
+                }
+
+                public partial class C
+                {
+                    [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]|]
+                    partial void M()
+                    {
+                    }
+                }
+                """,
+                """
+                public partial class C
+                {
+                    partial void M();
+                }
+                
+                public partial class C
+                {
+                    partial void M()
+                    {
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_PartialPropertyDefinition()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                public partial class C
+                {
+                    [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]|]
+                    partial int P { get; }
+                }
+                
+                public partial class C
+                {
+                    partial int P => 5230;
+                }
+                """,
+                """
+                public partial class C
+                {
+                    partial int P { get; }
+                }
+                
+                public partial class C
+                {
+                    partial int P => 5230;
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78786")]
+        public async Task TestRemoveDiagnosticSuppression_Attribute_PartialPropertyImplementation()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                public partial class C
+                {
+                    partial int P { get; }
+                }
+
+                public partial class C
+                {
+                    [|[System.Diagnostics.CodeAnalysis.SuppressMessage("Naming", "CA1720:Identifier contains type name", Justification = "<Pending>")]|]
+                    partial int P => 5230;
+                }
+                """,
+                """
+                public partial class C
+                {
+                    partial int P { get; }
+                }
+                
+                public partial class C
+                {
+                    partial int P => 5230;
+                }
+                """);
+        }
+
+        [Fact]
         public async Task TestDoNotRemoveDiagnosticSuppression_Attribute_OnPartialDeclarations()
         {
             await TestMissingInRegularAndScriptAsync(

@@ -759,75 +759,78 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
                     continue;
                 }
 
-                var symbols = SemanticFacts.GetDeclaredSymbols(semanticModel, node, cancellationToken);
+                // In the case of declaration nodes that can have more than one symbol e.g. fields and events,
+                // the attributes are shared between then. Given this, we only need to inspect the first symbol
+                // of the node.
+                var symbol = SemanticFacts
+                    .GetDeclaredSymbols(semanticModel, node, cancellationToken)
+                    .FirstOrDefault();
 
-                foreach (var symbol in symbols)
+                // If we somehow do not have a symbol, we can't do anything. Otherwise, check if our symbol is
+                // a partial definition. If it is, skip it in favor of checking the implementation.
+                if (symbol is null or
+                    IMethodSymbol { IsPartialDefinition: true } or
+                    IPropertySymbol { IsPartialDefinition: true })
                 {
-                    var isPossibleMultiVariableDeclaration = false;
+                    continue;
+                }
 
-                    switch (symbol?.Kind)
-                    {
-                        // Local SuppressMessageAttributes are only applicable for types and members.
-                        case SymbolKind.NamedType:
-                        case SymbolKind.Method:
-                        case SymbolKind.Property:
-                            break;
-
-                        case SymbolKind.Field:
-                        case SymbolKind.Event:
-                            isPossibleMultiVariableDeclaration = true;
-                            break;
-
-                        default:
-                            continue;
-                    }
-
-                    // Skip already processed symbols from partial declarations
-                    var isPartial = symbol.Locations.Length > 1;
-                    if (isPartial && !processedPartialSymbols.Add(symbol))
-                    {
-                        continue;
-                    }
-
-                    foreach (var attribute in symbol.GetAttributes())
-                    {
-                        if (attribute.ApplicationSyntaxReference != null &&
-                            TryGetSuppressedDiagnosticId(attribute, suppressMessageAttributeType, out var id, out var category))
-                        {
-                            // Ignore unsupported IDs and those excluded through user option.
-                            if (!IsSupportedAnalyzerDiagnosticId(id) ||
-                                userIdExclusions.Contains(id, StringComparer.OrdinalIgnoreCase) ||
-                                category?.Length > 0 && userCategoryExclusions.Contains(category, StringComparer.OrdinalIgnoreCase))
-                            {
-                                continue;
-                            }
-
-                            if (!idToSuppressMessageAttributesMap.TryGetValue(id, out var nodesForId))
-                            {
-                                nodesForId = [];
-                                idToSuppressMessageAttributesMap.Add(id, nodesForId);
-                            }
-
-                            var attributeNode = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                            nodesForId.Add(attributeNode);
-
-                            // Initialize the attribute node as unnecessary at the start of the algorithm.
-                            // Later processing will identify attributes which are indeed responsible for suppressing diagnostics
-                            // and mark them as used.
-                            // NOTE: For attributes on partial symbols with multiple declarations, we conservatively
-                            // consider them as used and avoid unnecessary attribute analysis because that would potentially
-                            // require analysis across multiple files, which can be expensive from a performance standpoint.
-                            suppressMessageAttributesToIsUsedMap.Add(attributeNode, isPartial);
-                        }
-                    }
-
-                    if (isPossibleMultiVariableDeclaration)
-                    {
-                        // Individual variables within a variable declaration cannot be decorated with distinct attributes, so we
-                        // should avoid looking at any of the subsequent symbols for this node as they will be the same.
+                switch (symbol?.Kind)
+                {
+                    // Local SuppressMessageAttributes are only applicable for types and members.
+                    case SymbolKind.NamedType:
+                    case SymbolKind.Method:
+                    case SymbolKind.Field:
+                    case SymbolKind.Property:
+                    case SymbolKind.Event:
                         break;
+
+                    default:
+                        continue;
+                }
+
+                // Skip already processed symbols from partial declarations
+                var isPartial = symbol.Locations.Length > 1;
+
+                if (isPartial && !processedPartialSymbols.Add(symbol))
+                {
+                    continue;
+                }
+
+                foreach (var attribute in symbol.GetAttributes())
+                {
+                    if (attribute.ApplicationSyntaxReference != null &&
+                        TryGetSuppressedDiagnosticId(attribute, suppressMessageAttributeType, out var id, out var category))
+                    {
+                        // Ignore unsupported IDs and those excluded through user option.
+                        if (!IsSupportedAnalyzerDiagnosticId(id) ||
+                            userIdExclusions.Contains(id, StringComparer.OrdinalIgnoreCase) ||
+                            category?.Length > 0 && userCategoryExclusions.Contains(category, StringComparer.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        if (!idToSuppressMessageAttributesMap.TryGetValue(id, out var nodesForId))
+                        {
+                            nodesForId = [];
+                            idToSuppressMessageAttributesMap.Add(id, nodesForId);
+                        }
+
+                        var attributeNode = await attribute.ApplicationSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                        nodesForId.Add(attributeNode);
+
+                        // Initialize the attribute node as unnecessary at the start of the algorithm.
+                        // Later processing will identify attributes which are indeed responsible for suppressing diagnostics
+                        // and mark them as used.
+                        // NOTE: For attributes on partial symbols with multiple declarations, we conservatively
+                        // consider them as used and avoid unnecessary attribute analysis because that would potentially
+                        // require analysis across multiple files, which can be expensive from a performance standpoint.
+                        suppressMessageAttributesToIsUsedMap.Add(attributeNode, isPartial);
                     }
                 }
+
+                // Individual variables within a variable declaration cannot be decorated with distinct attributes, so we
+                // should avoid looking at any of the subsequent symbols for this node as they will be the same.
             }
         }
 
