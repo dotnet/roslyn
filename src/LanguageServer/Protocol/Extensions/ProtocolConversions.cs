@@ -492,7 +492,7 @@ internal static partial class ProtocolConversions
 
         if (uri == null)
         {
-            context?.TraceInformation($"Could not convert '{mappedSpan.FilePath}' to uri");
+            context?.TraceWarning($"Could not convert '{mappedSpan.FilePath}' to uri");
             return null;
         }
 
@@ -832,7 +832,9 @@ internal static partial class ProtocolConversions
         {
             Id = ProjectIdToProjectContextId(project.Id),
             Label = project.Name,
-            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
+            // IsMiscellaneous controls whether a toast appears which warns that editor features are not available.
+            // In case HasAllInformation is true, though, we do actually have all information needed to light up any features user is trying to use related to the project.
+            IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles && !project.State.HasAllInformation,
         };
 
         if (project.Language == LanguageNames.CSharp)

@@ -109,13 +109,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         Public Async Function AssertNavigationPointAsync(
                 workspaceElement As XElement,
                 host As TestHost,
-                startingDocumentFilePath As String,
+                startingDocumentName As String,
                 leftItemToSelectText As String,
                 rightItemToSelectText As String,
                 Optional expectedVirtualSpace As Integer = 0) As Tasks.Task
 
             Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=If(host = TestHost.OutOfProcess, s_oopComposition, s_composition))
-                Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.FilePath = startingDocumentFilePath)
+                Dim sourceDocument = workspace.CurrentSolution.Projects.First().Documents.First(Function(doc) doc.Name = startingDocumentName)
                 Dim snapshot = (Await sourceDocument.GetTextAsync()).FindCorrespondingEditorTextSnapshot()
 
                 Dim service = DirectCast(sourceDocument.GetLanguageService(Of INavigationBarItemService)(), AbstractEditorNavigationBarItemService)

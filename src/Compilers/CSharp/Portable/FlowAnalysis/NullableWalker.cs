@@ -5921,6 +5921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Therefore we do a VisitPossibleConditionalAccess here which unconditionally includes the "after receiver" state in State
                 // and includes the "after subsequent conditional accesses" in stateWhenNotNull
                 VisitPossibleConditionalAccess(node.AccessExpression, out stateWhenNotNull);
+                Unsplit();
             }
             else
             {

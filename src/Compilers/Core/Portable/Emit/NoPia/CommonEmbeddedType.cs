@@ -4,13 +4,14 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit.NoPia
 {
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 // Put the CompilerGenerated attribute on the NoPIA types we define so that 
                 // static analysis tools (e.g. fxcop) know that they can be skipped
-                builder.AddOptional(TypeManager.CreateCompilerGeneratedAttribute());
+                builder.AddIfNotNull(TypeManager.CreateCompilerGeneratedAttribute());
 
                 // Copy some of the attributes.
 
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         {
                             // If this type has a GuidAttribute, we should emit it.
                             hasGuid = true;
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.ComEventInterfaceAttribute, out signatureIndex))
@@ -125,14 +126,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
                             hasComEventInterfaceAttribute = true;
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComEventInterfaceAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ComEventInterfaceAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.InterfaceTypeAttribute, out signatureIndex))
                     {
                         if ((signatureIndex == 0 || signatureIndex == 1) && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(signatureIndex == 0 ? WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16 :
                                 WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorComInterfaceType,
                                 constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
@@ -141,28 +142,28 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_BestFitMappingAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.CoClassAttribute, out signatureIndex))
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.FlagsAttribute, out signatureIndex))
                     {
                         if (UnderlyingNamedType.IsEnum && signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_FlagsAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else if (IsTargetAttribute(attrData, AttributeDescription.DefaultMemberAttribute, out signatureIndex))
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
 
                             // Embed members matching default member name.
                             string defaultMember = constructorArguments[0].ValueInternal as string;
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                 }
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // when we try to predict what attributes we will emit on embedded type, which corresponds the 
                 // type we are retargeting.
 
-                builder.AddOptional(CreateTypeIdentifierAttribute(hasGuid && IsInterface, syntaxNodeOpt, diagnostics));
+                builder.AddIfNotNull(CreateTypeIdentifierAttribute(hasGuid && IsInterface, syntaxNodeOpt, diagnostics));
 
                 return builder.ToImmutableAndFree();
             }

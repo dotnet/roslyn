@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Friend Interface IMockSymbol

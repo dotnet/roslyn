@@ -310,7 +310,7 @@ internal sealed partial class TriviaDataFactory
             if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
             {
                 var triviaString = trivia.ToString();
-                if (!string.IsNullOrEmpty(triviaString) && SyntaxFacts.IsNewLine(triviaString.Last()))
+                if (!string.IsNullOrEmpty(triviaString) && SyntaxFacts.IsNewLine(triviaString[^1]))
                 {
                     ResetStateAfterNewLine(index);
                 }

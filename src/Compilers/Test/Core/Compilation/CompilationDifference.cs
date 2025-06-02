@@ -64,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber] int callerLine = 0,
             [CallerFilePath] string callerPath = null)
         {
-            string actualIL = ILDelta.GetMethodIL();
+            using var readerProvider = MetadataReaderProvider.FromMetadataImage(MetadataDelta);
+            string actualIL = ILValidation.DumpEncDeltaMethodBodies(ILDelta, [readerProvider.GetMetadataReader()]);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: false, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
