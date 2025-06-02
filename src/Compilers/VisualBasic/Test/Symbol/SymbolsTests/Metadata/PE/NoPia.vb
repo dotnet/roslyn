@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Basic.Reference.Assemblies
 Imports CompilationCreationTestHelpers
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities

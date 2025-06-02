@@ -4,9 +4,7 @@
 
 Imports System.Globalization
 Imports System.Threading.Thread
-Imports Microsoft.CodeAnalysis.Collections
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 

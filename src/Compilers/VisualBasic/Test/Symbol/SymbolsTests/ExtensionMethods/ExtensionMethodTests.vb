@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports Basic.Reference.Assemblies
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
