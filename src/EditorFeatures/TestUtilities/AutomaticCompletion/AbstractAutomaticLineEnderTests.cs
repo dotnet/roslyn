@@ -70,7 +70,7 @@ public abstract class AbstractAutomaticLineEnderTests
         var markupCode = code[0..position] + "$$" + code[position..];
 
         // WPF is required for some reason: https://github.com/dotnet/roslyn/issues/46286
-        using var workspace = EditorTestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, [markupCode], composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.Create(Language, compilationOptions: null, parseOptions: null, [markupCode], composition: EditorTestCompositions.EditorFeatures);
 
         var view = workspace.Documents.Single().GetTextView();
         var buffer = workspace.Documents.Single().GetTextBuffer();

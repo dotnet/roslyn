@@ -131,7 +131,7 @@ public sealed class ExtractMethodMiscellaneousTests
 
     private static async Task TestCommandHandler(string markupCode, string? result, bool expectNotification)
     {
-        using var workspace = EditorTestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeaturesWpf);
+        using var workspace = EditorTestWorkspace.CreateCSharp(markupCode, composition: EditorTestCompositions.EditorFeatures);
         var testDocument = workspace.Documents.Single();
 
         var view = testDocument.GetTextView();

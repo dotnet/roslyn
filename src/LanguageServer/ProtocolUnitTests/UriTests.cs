@@ -352,6 +352,23 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         Assert.Equal("hello", (await document!.GetTextAsync()).ToString());
     }
 
+    [Theory]
+    [InlineData(true, null, null)]
+    [InlineData(false, "file://c:\\valid", null)]
+    [InlineData(false, null, "file://c:\\valid")]
+    [InlineData(true, "file://c:\\valid", "file://c:\\valid")]
+    [InlineData(true, "file://c:\\valid", "file:///c:/valid")]
+    [InlineData(true, "file://c:\\valid", "file://c:\\VALID")]
+    [InlineData(false, "file://c:\\valid", "file://c:\\valid2")]
+    public void TestUriEquality(bool areEqual, string? uriString1, string? uriString2)
+    {
+        var documentUri1 = uriString1 != null ? new DocumentUri(uriString1) : null;
+        var documentUri2 = uriString2 != null ? new DocumentUri(uriString2) : null;
+
+        Assert.True(areEqual == (documentUri1 == documentUri2));
+        Assert.True(areEqual != (documentUri1 != documentUri2));
+    }
+
     private sealed record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
     private sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
 

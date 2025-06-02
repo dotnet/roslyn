@@ -124,9 +124,9 @@ internal sealed partial class ProjectSystemProject
     private readonly IFileChangeContext _documentFileChangeContext;
 
     /// <summary>
-    /// track whether we have been subscribed to <see cref="IDynamicFileInfoProvider.Updated"/> event
+    /// The set of dynamic file info providers we have already subscribed to.
     /// </summary>
-    private readonly HashSet<IDynamicFileInfoProvider> _eventSubscriptionTracker = [];
+    private readonly HashSet<IDynamicFileInfoProvider> _dynamicFileInfoProvidersSubscribedTo = [];
 
     /// <summary>
     /// Map of the original dynamic file path to the <see cref="DynamicFileInfo.FilePath"/> that was associated with it.
@@ -1417,12 +1417,12 @@ internal sealed partial class ProjectSystemProject
             _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
 
             // clear tracking to external components
-            foreach (var provider in _eventSubscriptionTracker)
+            foreach (var provider in _dynamicFileInfoProvidersSubscribedTo)
             {
                 provider.Updated -= OnDynamicFileInfoUpdated;
             }
 
-            _eventSubscriptionTracker.Clear();
+            _dynamicFileInfoProvidersSubscribedTo.Clear();
         }
 
         _documentFileChangeContext.Dispose();

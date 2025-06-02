@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Function Create(test As XElement) As CommitTestData
-            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeaturesWpf)
+            Dim workspace = EditorTestWorkspace.Create(test, composition:=EditorTestCompositions.EditorFeatures)
             Return New CommitTestData(workspace)
         End Function
 

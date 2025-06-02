@@ -41,10 +41,11 @@ class C
 
                 Dim context = New FindUsagesTestContext()
                 Dim commandHandler = New FindReferencesCommandHandler(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
-                    New MockStreamingFindReferencesPresenter(context),
-                    listenerProvider,
-                    workspace.GlobalOptions)
+                    New FindReferencesNavigationService(
+                        workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
+                        New MockStreamingFindReferencesPresenter(context),
+                        listenerProvider,
+                        workspace.GlobalOptions))
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
                 commandHandler.ExecuteCommand(

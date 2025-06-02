@@ -66,10 +66,11 @@ public sealed class FindReferencesCommandHandlerTests
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
         var handler = new FindReferencesCommandHandler(
-            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-            presenter,
-            listenerProvider,
-            workspace.GlobalOptions);
+            new FindReferencesNavigationService(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                presenter,
+                listenerProvider,
+                workspace.GlobalOptions));
 
         var textView = workspace.Documents[0].GetTextView();
         textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, 7));
