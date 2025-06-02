@@ -49,6 +49,7 @@
     <PackageVersion Include="Microsoft.Build" Version="17.15.0-preview-25279-04" />
     <PackageVersion Include="Microsoft.Build.Framework" Version="17.15.0-preview-25279-04" />
     <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="17.15.0-preview-25279-04" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="17.15.0-preview-25279-04" />
   </ItemGroup>
 
   <ItemGroup>
