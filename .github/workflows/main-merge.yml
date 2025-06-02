@@ -23,3 +23,8 @@ jobs:
     with:
       configuration_file_path: 'eng/config/branch-merge.jsonc'
       configuration_file_branch: ${{ inputs.configuration_file_branch || 'main' }}
+  merge-2:
+    uses: dotnet/arcade/.github/workflows/inter-branch-merge-base.yml@main
+    with:
+      configuration_file_path: 'eng/config/branch-merge-2.jsonc'
+      configuration_file_branch: ${{ inputs.configuration_file_branch || 'main' }}
