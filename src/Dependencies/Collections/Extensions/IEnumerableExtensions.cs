@@ -16,12 +16,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Roslyn.Utilities
 {
+    /// <summary>
+    /// Enumerable extensions that are not polyfills or variants of existing APIs defined in System.* namespaces.
+    /// </summary>
     internal static partial class EnumerableExtensions
     {
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
@@ -695,7 +697,7 @@ namespace Roslyn.Utilities
 namespace System.Linq
 {
     /// <remarks>
-    /// Defines follyfil methods and overloads or alternative names of existing methods defined in System.Linq.
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Linq.
     /// 
     /// Methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> are defined in System.Linq namespace
     /// to avoid accidental boxing of <see cref="ImmutableArray{T}"/>. The boxing would occur if the file calling these methods didn't have <c>using System.Linq</c>.

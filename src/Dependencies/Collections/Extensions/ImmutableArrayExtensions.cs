@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis
 namespace System.Linq
 {
     /// <remarks>
-    /// Defines follyfil methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
     ///
     /// Extension methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> in System.Linq namespace
     /// are defined in System.Linq namespace to avoid accidental boxing of <see cref="ImmutableArray{T}"/>.
@@ -1408,7 +1408,7 @@ namespace System.Linq
 namespace System.Collections.Immutable
 {
     /// <remarks>
-    /// Defines follyfil methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
+    /// Defines polyfill methods and overloads or alternative names of existing methods defined in System.Collections.Immutable.
     ///
     /// Methods that are available on both <see cref="IEnumerable{T}"/> and <see cref="ImmutableArray{T}"/> in System.Collections.Immutable namespace
     /// are defined in System.Collections.Immutable namespace to avoid accidental boxing of <see cref="ImmutableArray{T}"/>.

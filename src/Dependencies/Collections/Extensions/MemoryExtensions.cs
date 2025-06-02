@@ -7,7 +7,7 @@
 namespace System
 {
     /// <remarks>
-    /// Defines follyfil methods and overloads or alternative names of existing Span related methods defined in System.
+    /// Defines polyfill methods and overloads or alternative names of existing Span related methods defined in System.
     /// </remarks>
     internal static class RoslynMemoryExtensions
     {
