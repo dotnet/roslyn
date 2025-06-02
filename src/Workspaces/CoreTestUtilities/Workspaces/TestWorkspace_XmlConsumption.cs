@@ -146,6 +146,11 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
                  language == LanguageNames.VisualBasic ? ".vbproj" : ("." + language));
         }
 
+        if (projectFilePath != null)
+        {
+            projectFilePath = PathUtilities.CombinePaths(TestWorkspace.RootDirectory, projectFilePath);
+        }
+
         var projectOutputDir = AbstractTestHostProject.GetTestOutputDirectory(projectFilePath);
 
         var languageServices = Services.GetLanguageServices(language);
@@ -667,8 +672,10 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             AssertEx.Fail($"The document attributes on file {fileName} conflicted");
         }
 
+        var filePath = Path.Combine(TestWorkspace.RootDirectory, fileName);
+
         return CreateDocument(
-            exportProvider, languageServiceProvider, code, fileName, fileName, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
+            exportProvider, languageServiceProvider, code, fileName, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
     }
 #nullable enable
 

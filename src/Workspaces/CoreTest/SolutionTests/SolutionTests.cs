@@ -2436,6 +2436,29 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    public async Task GetFirstRelatedDocumentIdWithDuplicatedDocuments()
+    {
+        using var workspace = CreateWorkspaceWithProjectAndDocuments();
+        var origSolution = workspace.CurrentSolution;
+        var project = origSolution.Projects.Single();
+
+        var origDocumentId = project.DocumentIds.Single();
+        var newDocumentId = DocumentId.CreateNewId(project.Id);
+
+        var document = project.GetRequiredDocument(origDocumentId);
+        var sourceText = await document.GetTextAsync();
+
+        var newSolution = origSolution.AddDocument(newDocumentId, document.Name, sourceText, filePath: document.FilePath!);
+
+        // Populate the SolutionState cache for this document id
+        _ = newSolution.GetRelatedDocumentIds(origDocumentId);
+
+        // Ensure a GetFirstRelatedDocumentId call with a poulated cache doesn't return newDocumentId
+        var relatedDocument = newSolution.GetFirstRelatedDocumentId(origDocumentId, relatedProjectIdHint: null);
+        Assert.Null(relatedDocument);
+    }
+
+    [Fact]
     public void AddDocument_SyntaxRoot()
     {
         var projectId = ProjectId.CreateNewId();
@@ -2478,7 +2501,7 @@ public sealed class SolutionTests : TestBase
         var filePath = Path.Combine(TempRoot.Root, "x.cs");
         var folders = new[] { "folder1", "folder2" };
 
-        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: null, SourceHashAlgorithm.Sha1)).GetRoot();
+        var root = CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From("class C {}", encoding: Encoding.ASCII, SourceHashAlgorithm.Sha1)).GetRoot();
         Assert.Equal(SourceHashAlgorithm.Sha1, root.SyntaxTree.GetText().ChecksumAlgorithm);
 
         var solution2 = solution.AddDocument(documentId, "name", root, folders, filePath);
@@ -2488,6 +2511,9 @@ public sealed class SolutionTests : TestBase
 
         // the checksum algorithm of the tree is ignored, instead the one set on the project is used:
         Assert.Equal(SourceHashAlgorithms.Default, sourceText.ChecksumAlgorithm);
+
+        // the encoding is preserved:
+        Assert.Equal(Encoding.ASCII, sourceText.Encoding);
 
         AssertEx.Equal(folders, document2.Folders);
         Assert.Equal(filePath, document2.FilePath);
@@ -2866,8 +2892,7 @@ public sealed class SolutionTests : TestBase
                     {
                         compilation.References.Single(r =>
                         {
-                            var cr = r as CompilationReference;
-                            return cr != null && cr.Compilation == compilationReference.Compilation;
+                            return r is CompilationReference cr && cr.Compilation == compilationReference.Compilation;
                         });
                     }
                 }

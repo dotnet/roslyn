@@ -2012,7 +2012,7 @@ $@"class MyClass
             """
             <Workspace>
                 <Project Language = "C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <Document FilePath = "z:\\File1.cs">
+                    <Document FilePath = "File1.cs">
             public sealed partial class Test
             {
                 private int [|_value|];
@@ -2021,7 +2021,7 @@ $@"class MyClass
                     => _ = new Test { Value = 1 };
             }
                     </Document>
-                    <Document FilePath = "z:\\File2.g.cs">
+                    <Document FilePath = "File2.g.cs">
             using System.CodeDom.Compiler;
 
             [GeneratedCode(null, null)]

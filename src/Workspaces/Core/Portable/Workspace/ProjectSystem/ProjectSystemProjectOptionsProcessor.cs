@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -17,13 +16,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private readonly ProjectSystemProject _project;
     private readonly SolutionServices _workspaceServices;
     private readonly ICommandLineParserService _commandLineParserService;
-    private readonly ITemporaryStorageServiceInternal _temporaryStorageService;
-
-    /// <summary>
-    /// Gate to guard all mutable fields in this class.
-    /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
-    /// </summary>
-    private readonly object _gate = new();
 
     /// <summary>
     /// A hashed checksum of the last command line we were set to.  We use this
@@ -32,17 +24,19 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// </summary>
     private Checksum? _commandLineChecksum;
 
-    /// <summary>
-    /// To save space in the managed heap, we dump the entire command-line string to our
-    /// temp-storage-service. This is helpful as compiler command-lines can grow extremely large
-    /// (especially in cases with many references).
-    /// </summary>
-    /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-    private ITemporaryStorageStreamHandle? _commandLineStorageHandle;
-
     private CommandLineArguments _commandLineArgumentsForCommandLine;
-    private string? _explicitRuleSetFilePath;
     private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
+
+    /// <summary>
+    /// To save space in the managed heap, we only cache the command line if we have a ruleset or if we are in a legacy project.
+    /// </summary>
+    private ImmutableArray<string> _commandLine;
+
+    /// <summary>
+    /// Gate to guard all mutable fields in this class.
+    /// The lock hierarchy means you are allowed to call out of this class and into <see cref="_project"/> while holding the lock.
+    /// </summary>
+    protected readonly object _gate = new();
 
     public ProjectSystemProjectOptionsProcessor(
         ProjectSystemProject project,
@@ -51,7 +45,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         _project = project ?? throw new ArgumentNullException(nameof(project));
         _workspaceServices = workspaceServices;
         _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
-        _temporaryStorageService = workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
 
         // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
         // the constructor so nothing can race.
@@ -70,24 +63,17 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
         _commandLineChecksum = checksum;
 
-        // Dispose the existing stored command-line and then persist the new one so we can
-        // recover it later.  Only bother persisting things if we have a non-empty string.
-
-        _commandLineStorageHandle = null;
-        if (!arguments.IsEmpty)
-        {
-            using var stream = SerializableBytes.CreateWritableStream();
-            using var writer = new StreamWriter(stream);
-
-            foreach (var value in arguments)
-                writer.WriteLine(value);
-
-            writer.Flush();
-            _commandLineStorageHandle = _temporaryStorageService.WriteToTemporaryStorage(stream, CancellationToken.None);
-        }
-
         ReparseCommandLine_NoLock(arguments);
+        _commandLine = ShouldSaveCommandLine(arguments) ? arguments : default;
+
         return true;
+    }
+
+    protected virtual bool ShouldSaveCommandLine(ImmutableArray<string> arguments)
+    {
+        // Only bother storing the command line if there is an effective ruleset, as that may
+        // require a later reparse using it.
+        return GetEffectiveRulesetFilePath() != null;
     }
 
     public void SetCommandLine(string commandLine)
@@ -108,26 +94,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // we don't need to do anything.
             if (ReparseCommandLineIfChanged_NoLock(arguments))
             {
-                UpdateProjectOptions_NoLock();
-            }
-        }
-    }
-
-    public string? ExplicitRuleSetFilePath
-    {
-        get => _explicitRuleSetFilePath;
-
-        set
-        {
-            lock (_gate)
-            {
-                if (_explicitRuleSetFilePath == value)
-                {
-                    return;
-                }
-
-                _explicitRuleSetFilePath = value;
-
                 UpdateProjectOptions_NoLock();
             }
         }
@@ -161,6 +127,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
     private void ReparseCommandLine_NoLock(ImmutableArray<string> arguments)
     {
+        // If arguments isn't set, we somehow lost the command line
+        Debug.Assert(!arguments.IsDefault);
+
         _commandLineArgumentsForCommandLine = _commandLineParserService.Parse(arguments, Path.GetDirectoryName(_project.FilePath), isInteractive: false, sdkDirectory: null);
     }
 
@@ -173,9 +142,12 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         return _commandLineArgumentsForCommandLine;
     }
 
-    private void UpdateProjectOptions_NoLock()
+    protected virtual string? GetEffectiveRulesetFilePath()
+        => _commandLineArgumentsForCommandLine.RuleSetPath;
+
+    protected void UpdateProjectOptions_NoLock()
     {
-        var effectiveRuleSetPath = ExplicitRuleSetFilePath ?? _commandLineArgumentsForCommandLine.RuleSetPath;
+        var effectiveRuleSetPath = GetEffectiveRulesetFilePath();
 
         if (_ruleSetFile?.Target.Value.FilePath != effectiveRuleSetPath)
         {
@@ -245,23 +217,9 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
             // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
             // includes in the IDE so we can be watching for changes again.
-            var commandLine = _commandLineStorageHandle == null
-                ? []
-                : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
-
             DisposeOfRuleSetFile_NoLock();
-            ReparseCommandLine_NoLock(commandLine);
+            ReparseCommandLine_NoLock(_commandLine);
             UpdateProjectOptions_NoLock();
-        }
-
-        static IEnumerable<string> EnumerateLines(
-            ITemporaryStorageStreamHandle storageHandle)
-        {
-            using var stream = storageHandle.ReadFromTemporaryStorage();
-            using var reader = new StreamReader(stream);
-
-            while (reader.ReadLine() is string line)
-                yield return line;
         }
     }
 
@@ -278,18 +236,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// </summary>
     protected virtual ParseOptions ComputeParseOptionsWithHostValues(ParseOptions parseOptions)
         => parseOptions;
-
-    /// <summary>
-    /// Called by a derived class to notify that we need to update the settings in the project system for something that will be provided
-    /// by either <see cref="ComputeCompilationOptionsWithHostValues(CompilationOptions, IRuleSetFile)"/> or <see cref="ComputeParseOptionsWithHostValues(ParseOptions)"/>.
-    /// </summary>
-    protected void UpdateProjectForNewHostValues()
-    {
-        lock (_gate)
-        {
-            UpdateProjectOptions_NoLock();
-        }
-    }
 
     public void Dispose()
     {

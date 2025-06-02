@@ -927,8 +927,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             else if (token.Width > 1 && next.Width > 1)
             {
-                var tokenLastChar = token.Text.Last();
-                var nextFirstChar = next.Text.First();
+                var tokenLastChar = token.Text[^1];
+                var nextFirstChar = next.Text[0];
                 if (tokenLastChar == nextFirstChar && TokenCharacterCanBeDoubled(tokenLastChar))
                 {
                     return true;
@@ -1251,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia || trivia.Kind() == SyntaxKind.DisabledTextTrivia)
             {
                 var text = trivia.ToFullString();
-                return text.Length > 0 && SyntaxFacts.IsNewLine(text.Last());
+                return text.Length > 0 && SyntaxFacts.IsNewLine(text[^1]);
             }
 
             if (trivia.HasStructure)

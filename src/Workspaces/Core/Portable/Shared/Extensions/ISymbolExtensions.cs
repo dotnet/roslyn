@@ -309,8 +309,7 @@ internal static partial class ISymbolExtensions
             }
         }
 
-        var container = node as XContainer;
-        if (container == null)
+        if (node is not XContainer container)
         {
             return [Copy(node, copyAttributeAnnotations: false)];
         }

@@ -37,7 +37,8 @@ usage()
   echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
-  echo "  --sourceBuild              Simulate building for source-build"
+  echo "  --sourceBuild              Build the repository in source-only mode"
+  echo "  --productBuild             Build the repository in product-build mode."
   echo "  --solution                 Solution to build (default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
@@ -80,6 +81,7 @@ prepare_machine=false
 warn_as_error=false
 properties=""
 source_build=false
+product_build=false
 solution_to_build="Compilers.slnf"
 
 args=""
@@ -173,8 +175,12 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild|-sb)
+    --sourcebuild|--source-build|-sb)
       source_build=true
+      product_build=true
+      ;;
+    --productbuild|--product-build|-pb)
+      product_build=true
       ;;
     --solution)
       solution_to_build=$2
@@ -281,12 +287,6 @@ function BuildSolution {
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
-  local source_build_args=""
-  if [[ "$source_build" == true ]]; then
-    source_build_args="/p:DotNetBuildSourceOnly=true \
-                       /p:DotNetBuildRepo=true"
-  fi
-
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
   # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
@@ -308,7 +308,8 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    $source_build_args \
+    /p:DotNetBuildSourceOnly=$source_build \
+    /p:DotNetBuildRepo=$product_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \

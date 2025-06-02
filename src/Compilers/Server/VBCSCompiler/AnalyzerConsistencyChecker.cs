@@ -5,13 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {

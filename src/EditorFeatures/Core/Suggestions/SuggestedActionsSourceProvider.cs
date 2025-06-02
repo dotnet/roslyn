@@ -93,7 +93,7 @@ internal sealed partial class SuggestedActionsSourceProvider : ISuggestedActions
             return null;
 
         return new SuggestedActionsSource(
-            _threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry, this.OperationListener);
+            _threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
     }
 
     private static CodeActionRequestPriority? TryGetPriority(string priority)

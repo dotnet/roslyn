@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </remarks>
         Private ReadOnly _metadataName As String
 
-        Public Sub New(sourceAssembly As SourceAssemblySymbol,
+        Friend Sub New(sourceAssembly As SourceAssemblySymbol,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As Cci.ModulePropertiesForSerialization,
@@ -195,6 +195,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
                 Return Nothing
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property FieldRvaSupported As Boolean
+            Get
+                Return True
             End Get
         End Property
 

@@ -792,7 +792,7 @@ End Class", Async Function(w)
                         Assert.Equal(value, descriptionItem.Details.Single().Text)
                     End Sub
 
-                assertDescription("File:", w.Documents.Single().Name)
+                assertDescription("File:", w.Documents.Single().FilePath)
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "Test")
             End Function)

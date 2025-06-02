@@ -69,7 +69,7 @@ public static class SolutionUtilities
         var projectDifferences = GetSingleChangedProjectChanges(oldSolution, newSolution);
         var documentId = projectDifferences.GetAddedDocuments().Single();
 
-        return newSolution.GetDocument(documentId)!;
+        return newSolution.GetRequiredDocument(documentId);
     }
 
     public static IEnumerable<DocumentId> GetTextChangedDocuments(Solution oldSolution, Solution newSolution)

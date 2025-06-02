@@ -330,13 +330,13 @@ internal readonly struct RequestContext
         // handler treats those as separate worlds that they are responsible for.
         if (TextDocument is not TDocument document)
         {
-            TraceInformation($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
+            TraceDebug($"Ignoring diagnostics request because no {typeof(TDocument).Name} was provided");
             return null;
         }
 
         if (!IsTracking(document.GetURI()))
         {
-            TraceWarning($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
+            TraceDebug($"Ignoring diagnostics request for untracked document: {document.GetURI()}");
             return null;
         }
 
@@ -360,6 +360,9 @@ internal readonly struct RequestContext
 
         _lspSolution.Value = default;
     }
+
+    public void TraceDebug(string message)
+        => _logger.LogDebug(message);
 
     /// <summary>
     /// Logs an informational message.

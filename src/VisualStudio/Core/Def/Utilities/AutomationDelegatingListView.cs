@@ -3,15 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 extern alias slowautomation;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using slowautomation::System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
+using slowautomation::System.Windows.Automation;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 

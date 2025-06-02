@@ -13,9 +13,4 @@ This package contains shared code implementing specialized collection types.
 
 ## Usage
 
-The source package produced by this project may be consumed by other projects outside dotnet/roslyn. Due to source generation requirements for resource files and XLF-based localization, consuming projects may need to use [Arcade SDK](https://github.com/dotnet/arcade).
-
-* Consuming projects must be written in C#, version 9 or greater
-* Projects must update the automatically included `EmbeddedResource` item **Strings.resx** to have the following attributes:
-    * `GenerateSource="true"`
-    * `ClassName="Microsoft.CodeAnalysis.Collections.SR"`
+The source package produced by this project may be consumed by other projects outside dotnet/roslyn.

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options;
 #if DEBUG
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 #endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;

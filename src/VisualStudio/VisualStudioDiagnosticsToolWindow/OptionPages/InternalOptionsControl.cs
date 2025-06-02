@@ -45,8 +45,7 @@ internal partial class InternalOptionsControl : AbstractOptionPageControl
         {
             foreach (var item in optionsPanel.Children.OfType<CheckBox>())
             {
-                var title = item.Content as string;
-                if (title == null)
+                if (item.Content is not string title)
                 {
                     continue;
                 }

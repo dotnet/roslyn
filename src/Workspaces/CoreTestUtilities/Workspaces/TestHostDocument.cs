@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -186,7 +187,7 @@ public class TestHostDocument
             => _hostDocument.FilePath;
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-            => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: null, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
+            => Task.FromResult(TextAndVersion.Create(SourceText.From(_text, encoding: Encoding.UTF8, options.ChecksumAlgorithm), VersionStamp.Create(), _hostDocument.FilePath));
     }
 
     public TextLoader Loader => _loader;

@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -65,7 +66,10 @@ public sealed class BuildHostProcessManagerTests
     {
         const string BinaryLogPath = "test.binlog";
 
-        var processStartInfo = new BuildHostProcessManager(binaryLogPath: BinaryLogPath)
+        var binLogPathProviderMock = new Mock<IBinLogPathProvider>(MockBehavior.Strict);
+        binLogPathProviderMock.Setup(m => m.GetNewLogPath()).Returns(BinaryLogPath);
+
+        var processStartInfo = new BuildHostProcessManager(binaryLogPathProvider: binLogPathProviderMock.Object)
             .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET

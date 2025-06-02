@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
                     Dim shiftConst = expression.Right.ConstantValueOpt
                     If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMax Then
-                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax))
+                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax), expression.Right.Syntax)
                         _builder.EmitOpCode(ILOpCode.And)
                     End If
 
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim shiftMax = GetShiftSizeMask(expression.Left.Type)
                     Dim shiftConst = expression.Right.ConstantValueOpt
                     If shiftConst Is Nothing OrElse shiftConst.UInt32Value > shiftMax Then
-                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax))
+                        _builder.EmitConstantValue(ConstantValue.Create(shiftMax), expression.Right.Syntax)
                         _builder.EmitOpCode(ILOpCode.And)
                     End If
 
@@ -579,7 +579,7 @@ BinaryOperatorKindEqual:
                 EmitBox(comparandType, comparand.Syntax)
             End If
 
-            _builder.EmitConstantValue(nullOrZero)
+            _builder.EmitConstantValue(nullOrZero, comparand.Syntax)
             _builder.EmitOpCode(ILOpCode.Cgt_un)
         End Sub
 
@@ -591,7 +591,7 @@ BinaryOperatorKindEqual:
                 EmitBox(comparandType, comparand.Syntax)
             End If
 
-            _builder.EmitConstantValue(nullOrZero)
+            _builder.EmitConstantValue(nullOrZero, comparand.Syntax)
             _builder.EmitOpCode(ILOpCode.Ceq)
         End Sub
 

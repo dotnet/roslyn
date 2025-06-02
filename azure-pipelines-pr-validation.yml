@@ -290,10 +290,39 @@ extends:
           pool:
             name: VSEngSS-MicroBuild2022-1ES
 
+    - stage: publish
+      displayName: Publish
+      dependsOn:
+      - build
+      jobs:
+      - job: publishDarc
+        displayName: Publish using darc
+        pool:
+          name: VSEngSS-MicroBuild2022-1ES
+        steps:
+        - checkout: none
+        # Make BarBuildId available.
+        - template: /eng/common/templates/post-build/setup-maestro-vars.yml@self
+
+        - powershell: |
+            $versionEndpoint = 'https://maestro.dot.net/api/assets/darc-version?api-version=2019-01-16'
+            $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
+            $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --add-source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
+          displayName: Install darc tool
+
+        - task: AzureCLI@2
+          inputs:
+            azureSubscription: "Darc: Maestro Production"
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: $(Agent.ToolsDirectory)\darc\darc add-build-to-channel --id $(BARBuildId) --channel ".NET Internal Tooling" --publishing-infra-version 3 --ci --azdev-pat $(System.AccessToken)
+          displayName: Add build to .NET Internal Tooling
+
     - stage: insert
       dependsOn:
       - build
-      - publish_using_darc
+      - publish
       displayName: Insert to VS
 
       jobs:
@@ -331,14 +360,3 @@ extends:
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber
           condition: succeeded()
-
-    # Use post-build to publish symbol packages.
-    - template: /eng/common/templates-official/post-build/post-build.yml@self
-      parameters:
-        publishingInfraVersion: 3
-        # Symbol validation is not entirely reliable as of yet, so should be turned off until
-        # https://github.com/dotnet/arcade/issues/2871 is resolved.
-        enableSymbolValidation: false
-        enableSigningValidation: false
-        enableSourceLinkValidation: false
-        SDLValidationParameters: false

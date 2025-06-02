@@ -1304,6 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidPathMap,
                      ERRID.ERR_PublicSignNoKey,
                      ERRID.ERR_TooManyUserStrings,
+                     ERRID.ERR_TooManyUserStrings_RestartRequired,
                      ERRID.ERR_PeWritingFailure,
                      ERRID.ERR_OptionMustBeAbsolutePath,
                      ERRID.ERR_DocFileGen,
