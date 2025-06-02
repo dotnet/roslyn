@@ -5,7 +5,6 @@
 ' TODO https : //github.com/dotnet/roslyn/issues/71625 
 #If NET472 Then
 
-Imports Microsoft.CodeAnalysis.Collections
 Imports VerifyCodeFix = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors.VisualBasicGenerateDefaultConstructorsCodeFixProvider)
