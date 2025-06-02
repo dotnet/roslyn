@@ -93,8 +93,8 @@
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
       See https://github.com/dotnet/arcade/blob/main/Documentation/MirroringPackages.md if any of these packages fail to restore.
     -->
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.8.3" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.12.20" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.2-beta" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.44" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.44" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
@@ -107,7 +107,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.15.10-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.18" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.231-preview" />
