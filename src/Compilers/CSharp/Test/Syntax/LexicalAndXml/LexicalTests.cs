@@ -4602,7 +4602,7 @@ class C
             {
                 if (i == 1326)
                 {
-                    // Ensure that the lexer's window is starting with the next FP number ("0.03") right at
+                    // Ensure that the lexer's window is starting with the next FP number (".03") right at
                     // the start of the window.
                     Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
 
