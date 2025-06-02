@@ -3195,7 +3195,7 @@ static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Nested' that could not be resolved
             // /// <see cref="E.extension(int).Nested"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).Nested").WithArguments("extension(int).Nested").WithLocation(1, 16),
-            // (6,22): error CS9282: Extension declarations can include only methods or properties
+            // (6,22): error CS9282: This member is not allowed in an extension block
             //         public class Nested { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "Nested").WithLocation(6, 22));
 
@@ -3238,7 +3238,7 @@ interface I
             // (6,16): error CS0541: 'E.extension(int).M()': explicit interface declaration can only be declared in a class, record, struct or interface
             //         void I.M() { }
             Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("E.extension(int).M()").WithLocation(6, 16),
-            // (6,16): error CS9282: Extension declarations can include only methods or properties
+            // (6,16): error CS9282: This member is not allowed in an extension block
             //         void I.M() { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "M").WithLocation(6, 16));
 
@@ -3687,7 +3687,7 @@ static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).extension(string).M' that could not be resolved
             // /// <see cref="E.extension(int).extension(string).M"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).extension(string).M").WithArguments("extension(int).extension(string).M").WithLocation(1, 16),
-            // (6,9): error CS9282: Extension declarations can include only methods or properties
+            // (6,9): error CS9282: This member is not allowed in an extension block
             //         extension(string)
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(6, 9));
     }
