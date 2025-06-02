@@ -4576,6 +4576,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
         public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
         {
+            // This test depends on the line endings for the file being \r\n to ensure the right contents lines up at
+            // the right locations.
+            var code = Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow;
+            if (!code.Contains("\r\n"))
+                code = code.Replace("\n", "\r\n");
+
             // It specifically validates what happens when we see `.0` at the start of the
             // sliding text window, where the lexer tries to peek back one char to see if this
             // is actually `..0` (a range expr) or `.0` (a floating point number).
