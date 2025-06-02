@@ -105,7 +105,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.13.33" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
-    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.15.10-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.231-preview" />
