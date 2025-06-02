@@ -703,6 +703,9 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
     [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
     internal bool HasSdkCodeStyleAnalyzers => this.ProjectInfo.HasSdkCodeStyleAnalyzers;
 
+    [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+    internal ImmutableArray<MetadataResourceInfo> ManifestResources => this.ProjectInfo.ManifestResources;
+
     private ProjectState With(
         ProjectInfo? projectInfo = null,
         TextDocumentStates<DocumentState>? documentStates = null,
@@ -765,7 +768,10 @@ internal sealed partial class ProjectState : IComparable<ProjectState>
         => (runAnalyzers == RunAnalyzers) ? this : WithNewerAttributes(Attributes.With(runAnalyzers: runAnalyzers, version: Version.GetNewerVersion()));
 
     internal ProjectState WithHasSdkCodeStyleAnalyzers(bool hasSdkCodeStyleAnalyzers)
-    => (hasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers) ? this : WithNewerAttributes(Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers, version: Version.GetNewerVersion()));
+        => (hasSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers) ? this : WithNewerAttributes(Attributes.With(hasSdkCodeStyleAnalyzers: hasSdkCodeStyleAnalyzers, version: Version.GetNewerVersion()));
+
+    internal ProjectState WithManifestResources(ImmutableArray<MetadataResourceInfo> resources)
+        => (resources == ManifestResources) ? this : WithNewerAttributes(Attributes.With(manifestResources: resources, version: Version.GetNewerVersion()));
 
     public ProjectState WithChecksumAlgorithm(SourceHashAlgorithm checksumAlgorithm)
     {

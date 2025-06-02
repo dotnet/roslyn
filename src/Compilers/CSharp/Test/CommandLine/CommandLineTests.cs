@@ -913,210 +913,196 @@ class C
         }
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
-        public void ParseResources()
+        public void TryParseResourceDescription()
         {
             var diags = new List<Diagnostic>();
+            CommandLineResource resource;
 
-            ResourceDescription desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someName", desc.ResourceName);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someName", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\s""ome Fil""e.goo.bar,someName", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\s""ome Fil""e.goo.bar,someName", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"some File.goo.bar", desc.FileName);
-            Assert.Equal("someName", desc.ResourceName);
+            Assert.Equal(@"some File.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someName", resource.ResourceName);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,""some Name"",public", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,""some Name"",public", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("some Name", desc.ResourceName);
-            Assert.True(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("some Name", resource.ResourceName);
+            Assert.True(resource.IsPublic);
 
             // Use file name in place of missing resource name.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // Quoted accessibility is fine.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,""private""", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,""private""", out resource));
             Assert.Equal(0, diags.Count);
-            Assert.Equal(@"someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal(@"someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // Leading commas are not ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @",,\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@",,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
-            Assert.Null(desc);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @", ,\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@", ,\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify(
                 // error CS1906: Invalid option '\somepath\someFile.goo.bar'; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(@"\somepath\someFile.goo.bar"));
             diags.Clear();
-            Assert.Null(desc);
 
             // Trailing commas are ignored...
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             // ...even if there's whitespace between them.
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,,private, ,", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse(@"\somepath\someFile.goo.bar,,private, ,", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("someFile.goo.bar", desc.FileName);
-            Assert.Equal("someFile.goo.bar", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("someFile.goo.bar", resource.LinkedResourceFileName);
+            Assert.Equal("someFile.goo.bar", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"\somepath\someFile.goo.bar,someName,publi", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"\somepath\someFile.goo.bar,someName,publi", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments("publi"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"D:rive\relative\path,someName,public", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"D:rive\relative\path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"D:rive\relative\path"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", @"inva\l*d?path,someName,public", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(@"inva\l*d?path,someName,public", out resource));
             diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"inva\l*d?path"));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", (string)null, WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse((string)null, out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("", out resource));
             diags.Verify(Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments(""));
-            Assert.Null(desc);
             diags.Clear();
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , ", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, ", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse("path, ", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal("path", desc.ResourceName);
-            Assert.True(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal("path", resource.ResourceName);
+            Assert.True(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, , ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path, , ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name, ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ' '; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " , ,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" , ,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name,", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name,,", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name,,", out resource));
             diags.Verify(
                 // CONSIDER: Dev10 actually prints "Invalid option '|'" (note the pipe)
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(""));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path,name, ", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse("path,name, ", out resource));
             diags.Verify(
                 // error CS1906: Invalid option ''; Resource visibility must be either 'public' or 'private'
                 Diagnostic(ErrorCode.ERR_BadResourceVis).WithArguments(" "));
             diags.Clear();
-            Assert.Null(desc);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", "path, ,private", WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse("path, ,private", out resource));
             diags.Verify();
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal("path", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal("path", resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name,private", WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse(" ,name,private", out resource));
             diags.Verify(
                 // error CS2005: Missing file specification for '' option
                 Diagnostic(ErrorCode.ERR_NoFileSpec).WithArguments("").WithLocation(1, 1));
             diags.Clear();
-            Assert.Null(desc);
 
             var longE = new String('e', 1024);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("path,{0},private", longE), WorkingDirectory, diags, embedded: false);
+            Assert.True(TryParse($"path,{longE},private", out resource));
             diags.Verify(); // Now checked during emit.
             diags.Clear();
-            Assert.Equal("path", desc.FileName);
-            Assert.Equal(longE, desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            Assert.Equal("path", resource.LinkedResourceFileName);
+            Assert.Equal(longE, resource.ResourceName);
+            Assert.False(resource.IsPublic);
 
             var longI = new String('i', 260);
 
-            desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), WorkingDirectory, diags, embedded: false);
+            Assert.False(TryParse($"{longI},e,private", out resource));
             diags.Verify(
-                // error CS2021: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1));
+                // error CS2021: File name '...' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(longI).WithLocation(1, 1));
+
+            bool TryParse(string value, out CommandLineResource resource) =>
+               CSharpCommandLineParser.TryParseResourceDescription(argName: "", value.AsMemory(), WorkingDirectory, diags, isEmbedded: false, out resource);
         }
 
         [Fact]

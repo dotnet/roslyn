@@ -93,6 +93,9 @@ internal static class Extensions
                 ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
         .GetRequiredDocument(id);
 
+    public static Project WithManifestResources(this Project project, params IEnumerable<MetadataResourceInfo> resources)
+        => project.WithAttributes(project.State.Attributes.With(manifestResources: [.. resources]));
+
     public static Guid CreateProjectTelemetryId(string projectName)
     {
         Assert.True(Encoding.UTF8.GetByteCount(projectName) <= 20, "Use shorter project names in tests");

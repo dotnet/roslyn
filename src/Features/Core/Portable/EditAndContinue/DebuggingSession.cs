@@ -309,7 +309,7 @@ internal sealed class DebuggingSession : IDisposable
         Guid moduleId,
         Project baselineProject,
         Compilation baselineCompilation,
-        out ImmutableArray<Diagnostic> errors,
+        ArrayBuilder<Diagnostic> diagnostics,
         out ReaderWriterLockSlim baselineAccessLock)
     {
         baselineAccessLock = _baselineAccessLock;
@@ -319,17 +319,16 @@ internal sealed class DebuggingSession : IDisposable
         {
             if (TryGetBaselinesContainingModuleVersion(moduleId, out existingBaselines))
             {
-                errors = [];
                 return existingBaselines;
             }
         }
 
         var outputs = GetCompilationOutputs(baselineProject);
-        if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, out errors, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
+        if (!TryCreateInitialBaseline(baselineCompilation, outputs, baselineProject.Id, diagnostics, out var initialBaseline, out var debugInfoReaderProvider, out var metadataReaderProvider))
         {
             // Unable to read the DLL/PDB at this point (it might be open by another process).
             // Don't cache the failure so that the user can attempt to apply changes again.
-            return existingBaselines ?? [];
+            return [];
         }
 
         lock (_projectEmitBaselinesGuard)
@@ -359,7 +358,7 @@ internal sealed class DebuggingSession : IDisposable
         Compilation compilation,
         CompilationOutputs compilationOutputs,
         ProjectId projectId,
-        out ImmutableArray<Diagnostic> errors,
+        ArrayBuilder<Diagnostic> diagnostics,
         [NotNullWhen(true)] out EmitBaseline? baseline,
         [NotNullWhen(true)] out DebugInformationReaderProvider? debugInfoReaderProvider,
         [NotNullWhen(true)] out MetadataReaderProvider? metadataReaderProvider)
@@ -370,7 +369,6 @@ internal sealed class DebuggingSession : IDisposable
         // Alternatively, we could drop the data once we are done with emitting the delta and re-emit the baseline again 
         // when we need it next time and the module is loaded.
 
-        errors = [];
         baseline = null;
         debugInfoReaderProvider = null;
         metadataReaderProvider = null;
@@ -413,7 +411,7 @@ internal sealed class DebuggingSession : IDisposable
             SessionLog.Write($"Failed to create baseline for '{projectId.DebugName}': {e.Message}", LogMessageSeverity.Error);
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-            errors = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];
+            diagnostics.Add(Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message]));
         }
         finally
         {
@@ -552,21 +550,10 @@ internal sealed class DebuggingSession : IDisposable
                 break;
         }
 
-        using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);
-        foreach (var (projectId, documentsWithRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.Id.ProjectId).OrderBy(static id => id))
-        {
-            foreach (var documentWithRudeEdits in documentsWithRudeEdits)
-            {
-                var document = await solution.GetDocumentAsync(documentWithRudeEdits.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-                var tree = (document != null) ? await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) : null;
-                rudeEditDiagnostics.Add(new(projectId, documentWithRudeEdits.RudeEdits.SelectAsArray(static (rudeEdit, tree) => rudeEdit.ToDiagnostic(tree), tree)));
-            }
-        }
-
         EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
             solution,
             solutionUpdate.ModuleUpdates,
-            rudeEditDiagnostics,
+            solutionUpdate.Diagnostics,
             runningProjects,
             out var projectsToRestart,
             out var projectsToRebuild);
@@ -578,7 +565,6 @@ internal sealed class DebuggingSession : IDisposable
             Solution = solution,
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
-            RudeEdits = rudeEditDiagnostics.ToImmutable(),
             SyntaxError = solutionUpdate.SyntaxError,
             ProjectsToRestart = projectsToRestart,
             ProjectsToRebuild = projectsToRebuild

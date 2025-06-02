@@ -15,20 +15,19 @@ internal readonly struct SolutionUpdate(
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
-    ImmutableArray<DocumentWithRudeEdits> documentsWithRudeEdits,
     Diagnostic? syntaxError)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
     public readonly ImmutableArray<ProjectId> ProjectsToStale = projectsToStale;
     public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions = nonRemappableRegions;
     public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
+
+    // Diagnostics for projects, unique entries per project.
     public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
-    public readonly ImmutableArray<DocumentWithRudeEdits> DocumentsWithRudeEdits = documentsWithRudeEdits;
     public readonly Diagnostic? SyntaxError = syntaxError;
 
     public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
-        ImmutableArray<DocumentWithRudeEdits> documentsWithRudeEdits,
         Diagnostic? syntaxError,
         ModuleUpdateStatus status)
         => new(
@@ -37,7 +36,6 @@ internal readonly struct SolutionUpdate(
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,
-            documentsWithRudeEdits,
             syntaxError);
 
     internal void Log(TraceLog log, UpdateId updateId)
@@ -56,18 +54,12 @@ internal readonly struct SolutionUpdate(
         {
             foreach (var diagnostic in projectDiagnostics.Diagnostics)
             {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                log.Write($"[{projectDiagnostics.ProjectId.DebugName}]: {diagnostic}", diagnostic.Severity switch
                 {
-                    log.Write($"Project {projectDiagnostics.ProjectId.DebugName} update error: {diagnostic}", LogMessageSeverity.Error);
-                }
-            }
-        }
-
-        foreach (var documentWithRudeEdits in DocumentsWithRudeEdits)
-        {
-            foreach (var rudeEdit in documentWithRudeEdits.RudeEdits)
-            {
-                log.Write($"Document {documentWithRudeEdits.Id.DebugName} rude edit: {rudeEdit.Kind} {rudeEdit.SyntaxKind}", LogMessageSeverity.Error);
+                    DiagnosticSeverity.Warning => LogMessageSeverity.Warning,
+                    DiagnosticSeverity.Error => LogMessageSeverity.Error,
+                    _ => LogMessageSeverity.Info
+                });
             }
         }
     }
