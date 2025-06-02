@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Globalization
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 

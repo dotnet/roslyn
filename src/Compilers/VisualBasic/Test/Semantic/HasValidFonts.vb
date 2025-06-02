@@ -4,7 +4,6 @@
 
 Imports System.Drawing
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
 Imports Roslyn.Test.Utilities
 
 Friend Class HasValidFonts
