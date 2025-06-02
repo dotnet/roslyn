@@ -113,6 +113,7 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
         public void Dispose()
         {
             speculativeEditProvider._threadingContext.ThrowIfNotOnUIThread();
+
             previewWorkspace.Dispose();
             newTextDocument.Dispose();
         }
