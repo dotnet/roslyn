@@ -15,7 +15,8 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.SpeculativeEdits;
 
-[Obsolete]
+// The entire SpeculativeEdit api is marked as obsolete since this is a preview API.  So we do the same here as well.
+[Obsolete("This is a preview api and subject to change")]
 [Export(typeof(SpeculativeEditProvider))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
