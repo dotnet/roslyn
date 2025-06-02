@@ -1997,7 +1997,7 @@ next:;
 
             void checkUnderspecifiedGenericExtension(ParameterSymbol parameter, ImmutableArray<TypeParameterSymbol> typeParameters, BindingDiagnosticBag diagnostics)
             {
-                if (GetMembers().All((m, a) => m is MethodSymbol { MethodKind: MethodKind.Ordinary }, arg: (object?)null))
+                if (GetMembers().All(m => m is MethodSymbol { MethodKind: MethodKind.Ordinary }))
                 {
                     return;
                 }

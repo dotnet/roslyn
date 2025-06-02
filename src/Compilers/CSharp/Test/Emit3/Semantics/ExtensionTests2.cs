@@ -2313,6 +2313,7 @@ static class E2
 """;
 
         var comp = CreateCompilation(src);
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
         comp.VerifyEmitDiagnostics(
             // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
             // var x = object.M; // 1
@@ -2326,8 +2327,9 @@ var x = I.M; // binds to I1.M (method)
 x();
 
 System.Action y = I.M; // binds to I1.M (method)
+y();
 
-interface I1 { static void M() { } }
+interface I1 { static void M() { System.Console.Write("I1.M() "); } }
 interface I2 { static int M => 0;   }
 interface I3 { static int M = 0;   }
 interface I : I1, I2, I3 { }
@@ -2335,21 +2337,26 @@ interface I : I1, I2, I3 { }
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped);
 
         src = """
-I i = null;
+I i = new C();
 var x = i.M; // binds to I1.M (method)
 x();
 
 System.Action y = i.M; // binds to I1.M (method)
+y();
 
-interface I1 { void M() { } }
+interface I1 { void M() { System.Console.Write("I1.M() "); } }
 interface I2 { int M => 0;   }
 interface I : I1, I2 { }
+
+class C : I { }
 """;
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped);
     }
 }
 
