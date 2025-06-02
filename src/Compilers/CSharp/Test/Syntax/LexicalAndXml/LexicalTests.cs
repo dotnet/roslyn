@@ -4582,20 +4582,20 @@ class C
             if (!code.Contains("\r\n"))
                 code = code.Replace("\n", "\r\n");
 
+            var sourceText = SourceText.From(code);
+
             // It specifically validates what happens when we see `.0` at the start of the
             // sliding text window, where the lexer tries to peek back one char to see if this
             // is actually `..0` (a range expr) or `.0` (a floating point number).
 
             // Do a full parse of the file that previous had broken parsing.  Running ParseText
             // will ensure this tree passes invariants.  
-            CSharpSyntaxTree.ParseText(Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow);
+            CSharpSyntaxTree.ParseText(sourceText);
 
             // Now, replicate the same conditions that hte parser runs through by driving the a new lexer here
             // directly.  That ensures that we are actually validating exactly the conditions that led to the bug
             // (a dot token starting a number, right at the start of the character window).
-            var lexer = new Lexer(
-                SourceText.From(Resources.DotPrefixedNumberStartingAtStartOfSlidingTextWindow),
-                CSharpParseOptions.Default);
+            var lexer = new Lexer(sourceText, CSharpParseOptions.Default);
 
             var mode = LexerMode.Syntax;
             for (var i = 0; i < 1327; i++)
