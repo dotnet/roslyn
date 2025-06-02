@@ -126,21 +126,21 @@
 // ------------------------------
 // Hash: D5-B1-B5-D5-B6-27-C1-44-E0-20-77-14-52-A7-7A-E3-26-1C-6C-74-82-E1-2D-00-C3-73-22-7D-F5-CF-1B-76-95-45-88-4A-9A-0D-E3-D1-8F-69-F3-C3-76-41-92-67-F1-9D-64-EF-86-77-39-48-8C-0E-20-44-51-CA-5D-65
 
-using Foobar.Combat;
-using Foobar.Commons.Rules;
-using Foobar.Localization;
-using Foobar.Shared.Entities.Units;
+using Goobar.Combat;
+using Goobar.Commons.Rules;
+using Goobar.Localization;
+using Goobar.Shared.Entities.Units;
 using static System.Collections.Immutable.ImmutableArray;
 using System;
 using System.Collections.Immutable;
-using Foobar.Shared.Utils;
+using Goobar.Shared.Utils;
 using System.Collections.Generic;
-using Foobar.GeneratedCode;
+using Goobar.GeneratedCode;
 
-namespace Foobar;
+namespace Goobar;
 
 
-[GenerateAllValues(typeof(Foobar.Commons.Rules.UnitEquipmentAttributeDefinition))]
+[GenerateAllValues(typeof(Goobar.Commons.Rules.UnitEquipmentAttributeDefinition))]
 public static partial class EquipmentAttributes
 {
 
