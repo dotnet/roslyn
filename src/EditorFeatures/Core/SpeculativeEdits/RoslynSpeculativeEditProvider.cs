@@ -49,20 +49,11 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
         var documentId = document.Id;
 
         // Clone the existing text into a new editor snapshot/buffer that we can fork independently of the original.
-        // To do this, we associate a clone of the buffer with a text document with random file path to satisfy
-        // extensibility points expecting absolute file path.  We also ensure the new path preserves the same
-        // extension as before as that extension is used by LSP to determine the language of the document.
-        var clonedTextDocument = _textDocumentFactoryService.CreateTextDocument(
-            _textBufferCloneService.Clone(oldTextSnapshot.AsText(), options.DocumentContentType),
-            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), document.Name));
+        var clonedSnapshotBeforeEdits = this.CloneWithEdits(options, options.DocumentContentType);
 
         // Grab the ITextSnapshot of this cloned buffer before making any changes.  The SpeculativeEdit api needs it
         // as part of the returned set of values.
-        var clonedBuffer = clonedTextDocument.TextBuffer;
-        var clonedSnapshotBeforeEdits = clonedBuffer.CurrentSnapshot;
-
-        // Now take the cloned buffer and apply the edits to it the caller wants to speculate about.
-        ApplyEditsToClonedBuffer(options, clonedBuffer);
+        var clonedBuffer = clonedSnapshotBeforeEdits.TextBuffer;
 
         // Now create a forked solution that takes the original document and updates it to point at the current state
         // of the text buffer with the edits applied.  Ensure that this properly updates linked files as well so everything
@@ -82,33 +73,19 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
             this,
             options,
             clonedSnapshotBeforeEdits,
-            previewWorkspace,
-            clonedTextDocument);
-
-        static void ApplyEditsToClonedBuffer(SpeculativeEditOptions options, ITextBuffer newBuffer)
-        {
-            using var bulkEdit = newBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
-            foreach (var edit in options.Edits)
-                bulkEdit.Replace(edit.Span, edit.NewText);
-
-            bulkEdit.Apply();
-        }
+            previewWorkspace);
     }
 
     private sealed class RoslynSpeculativeEditSession(
         SpeculativeEditOptions options,
         ITextSnapshot clonedSnapshotBeforeEdits,
-        PreviewWorkspace previewWorkspace,
-        ITextDocument newTextDocument) : ISpeculativeEditSession
+        PreviewWorkspace previewWorkspace) : ISpeculativeEditSession
     {
         public ITextSnapshot ClonedSnapshot { get; } = clonedSnapshotBeforeEdits;
 
         public SpeculativeEditOptions CreationOptions { get; } = options;
 
         public void Dispose()
-        {
-            previewWorkspace.Dispose();
-            newTextDocument.Dispose();
-        }
+            => previewWorkspace.Dispose();
     }
 }
