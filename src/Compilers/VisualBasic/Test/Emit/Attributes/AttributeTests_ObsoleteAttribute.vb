@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Basic.Reference.Assemblies
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 

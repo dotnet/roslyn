@@ -6,7 +6,6 @@ Imports System.ComponentModel
 Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities

@@ -4,7 +4,6 @@
 
 Imports System.IO
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Metadata.Tools

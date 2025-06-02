@@ -4,8 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text

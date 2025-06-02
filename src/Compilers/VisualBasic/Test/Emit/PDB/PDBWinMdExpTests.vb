@@ -5,7 +5,6 @@
 Imports System.IO
 Imports System.Text
 Imports System.Xml
-Imports Microsoft.CodeAnalysis.Collections
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
