@@ -8,7 +8,7 @@
     <_BasicReferenceAssembliesVersion>1.7.9</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>17.13.226</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>18.0.231-preview</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -95,29 +95,29 @@
     -->
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.8.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.12.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.12.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.205-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.44" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="17.13.226" />
-    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="17.13.40008" />
+    <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.893-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.1210-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.205-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="17.13.226" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.13.226" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.13.33" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.13.7" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.13.40008" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.8" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.205-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.205-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.205-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.205-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.13.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.12.87" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageVersion Include="StreamJsonRpc" Version="2.23.6-alpha" />
+    <PackageVersion Include="StreamJsonRpc" Version="2.23.8-alpha" />
 
     <!--
       VS Debugger
@@ -265,7 +265,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingVersion)" />
     <PackageVersion Include="System.Management" Version="7.0.0" />
-    <PackageVersion Include="System.Drawing.Common" Version="8.0.8" />
+    <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
     <PackageVersion Include="System.CodeDom" Version="8.0.0" />
