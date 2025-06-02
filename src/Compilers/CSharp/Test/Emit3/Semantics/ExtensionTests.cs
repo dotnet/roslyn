@@ -39882,7 +39882,7 @@ static class E
 """, e.GetDocumentationCommentXml());
 
         var extension = e.GetTypeMembers().Single();
-        Assert.Equal("T:E.&lt;&gt;E__0`1", extension.GetDocumentationCommentId());
+        Assert.Equal("T:E.<>E__0`1", extension.GetDocumentationCommentId());
         AssertEx.Equal("""
 <member name="T:E.&lt;&gt;E__0`1">
     <summary>Summary for extension block</summary>

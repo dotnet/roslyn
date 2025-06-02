@@ -222,6 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle extension operators
+
             if (containerOpt is not NamedTypeSymbol namedContainer)
             {
                 ambiguityWinner = null;
@@ -262,6 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
 
+                Debug.Assert(syntax.Parameters is not null);
+                ImmutableArray<ParameterSymbol> extensionParameterSymbols = BindCrefParameters(syntax.Parameters, diagnostics);
+
                 foreach (var nested in container.GetTypeMembers())
                 {
                     if (!nested.IsExtension || nested.Arity != extensionArity || nested.ExtensionParameter is null)
@@ -271,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var constructedNested = (NamedTypeSymbol)ConstructWithCrefTypeParameters(extensionArity, extensionTypeArguments, nested);
 
+                    // Use signature method symbols to match extension blocks
                     var candidateExtensionSignature = new SignatureOnlyMethodSymbol(
                          methodKind: MethodKind.Ordinary,
                          typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
@@ -285,8 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                          returnType: default,
                          refCustomModifiers: [],
                          explicitInterfaceImplementations: []);
-
-                    ImmutableArray<ParameterSymbol> extensionParameterSymbols = syntax.Parameters is { } extensionParameterListSyntax ? BindCrefParameters(extensionParameterListSyntax, diagnostics) : default;
 
                     var providedExtensionSignature = new SignatureOnlyMethodSymbol(
                          methodKind: MethodKind.Ordinary,

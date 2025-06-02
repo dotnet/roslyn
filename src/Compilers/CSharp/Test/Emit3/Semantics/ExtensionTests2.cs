@@ -4,7 +4,9 @@
 #nullable disable
 
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -2312,6 +2314,8 @@ static class E
 
 """, e.GetDocumentationCommentXml());
 
+        AssertEx.Equal("T:E.<>E__0", e.GetTypeMembers().Single().GetDocumentationCommentId());
+
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
@@ -2343,6 +2347,8 @@ static class E
 </member>
 
 """, e.GetDocumentationCommentXml());
+
+        AssertEx.Equal("T:E.<>E__0`1", e.GetTypeMembers().Single().GetDocumentationCommentId());
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -3724,6 +3730,156 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_47()
+    {
+        // Xml doc APIs on PE symbols
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var comp2 = CreateCompilation("", references: [comp.EmitToImageReference(documentation: new TestDocumentationProvider())]);
+
+        var mSkeleton = comp2.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
+        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentId());
+        Assert.Equal("M:E.<>E__0.M", mSkeleton.GetDocumentationCommentXml());
+    }
+
+    private class TestDocumentationProvider : DocumentationProvider
+    {
+        protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
+        {
+            return documentationMemberID;
+        }
+
+        public override bool Equals(object obj) => throw new NotImplementedException();
+
+        public override int GetHashCode() => throw new NotImplementedException();
+    }
+
+    [Fact]
+    public void Cref_48()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+
+        var src = """
+/// <see cref="E.extension(int).M"/>
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var c = comp.GetMember<NamedTypeSymbol>("C");
+        AssertEx.Equal("""
+<member name="T:C">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+</member>
+
+""", c.GetDocumentationCommentXml());
+    }
+
+    [Fact]
+    public void Cref_49()
+    {
+        var src = """
+/// <see cref="E.extension(missing).M"/>
+static class E
+{
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(missing).M' that could not be resolved
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(missing).M").WithArguments("extension(missing).M").WithLocation(1, 16),
+            // (1,28): warning CS1580: Invalid type for parameter missing in XML comment cref attribute: 'E.extension(missing).M'
+            // /// <see cref="E.extension(missing).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRefParamType, "missing").WithArguments("missing", "E.extension(missing).M").WithLocation(1, 28));
+    }
+
+    [Fact]
+    public void Cref_50()
+    {
+        var src = """
+/// <see cref="E.extension(int).M"/>
+/// <see cref="E.extension(int).M2"/>
+static class E
+{
+    extension(int i)
+    {
+        public void M() => throw null!;
+        public void M2(int j) => throw null!;
+    }
+    extension(int i)
+    {
+        public void M(int j) => throw null!;
+        public void M2() => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (1,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M'. Assuming 'E.extension(int).M()', but could have also matched other overloads including 'E.extension(int).M(int)'.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M").WithArguments("E.extension(int).M", "E.extension(int).M()", "E.extension(int).M(int)").WithLocation(1, 16),
+            // (2,16): warning CS0419: Ambiguous reference in cref attribute: 'E.extension(int).M2'. Assuming 'E.extension(int).M2(int)', but could have also matched other overloads including 'E.extension(int).M2()'.
+            // /// <see cref="E.extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "E.extension(int).M2").WithArguments("E.extension(int).M2", "E.extension(int).M2(int)", "E.extension(int).M2()").WithLocation(2, 16));
+
+        var e = comp.GetMember<NamedTypeSymbol>("E");
+        AssertEx.Equal("""
+<member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M"/>
+    <see cref="M:E.&lt;&gt;E__0.M2(System.Int32)"/>
+</member>
+
+""", e.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).M, null)", "(E.extension(int).M2, null)"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_51()
+    {
+        var src = """
+/// <see cref="E.extension(int).@M"/>
+static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(E.extension(int).@M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
     }
 }
 
