@@ -3,22 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Internal.Proposals;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.CodeAnalysis.SpeculativeEdits;
 
@@ -45,47 +38,72 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
     public override ISpeculativeEditSession? TryStartSpeculativeEditSession(SpeculativeEditOptions options)
     {
         var oldTextSnapshot = options.SourceSnapshot;
-        var oldDocument = oldTextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (oldDocument is null)
+        var document = oldTextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document is null)
             return null;
 
-        var oldSourceText = oldTextSnapshot.AsText();
-        var newSourceText = oldSourceText;
+        var documentId = document.Id;
 
-        var newDocument = oldDocument.WithText(newSourceText);
+        // Clone the existing text into a new editor snapshot/buffer that we can fork independently of the original.
+        // To do this, we associate a clone of the buffer with a text document with random file path to satisfy
+        // extensibility points expecting absolute file path.  We also ensure the new path preserves the same
+        // extension as before as that extension is used by LSP to determine the language of the document.
+        var clonedTextDocument = _textDocumentFactoryService.CreateTextDocument(
+            _textBufferCloneService.Clone(oldTextSnapshot.AsText(), options.DocumentContentType),
+            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), document.Name));
 
-        // Associate buffer with a text document with random file path to satisfy extensibility points expecting
-        // absolute file path.  Ensure the new path preserves the same extension as before as that extension is used by
-        // LSP to determine the language of the document.
-        var textDocument = _textDocumentFactoryService.CreateTextDocument(
-            _textBufferCloneService.Clone(newSourceText, options.DocumentContentType),
-            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), oldDocument.Name));
+        // Grab the ITextSnapshot of this cloned buffer before making any changes.  The SpeculativeEdit api needs it
+        // as part of the returned set of values.
+        var clonedBuffer = clonedTextDocument.TextBuffer;
+        var clonedSnapshotBeforeEdits = clonedBuffer.CurrentSnapshot;
 
-        var oldBuffer = oldTextSnapshot.TextBuffer;
-        var newBuffer = textDocument.TextBuffer;
+        // Now take the cloned buffer and apply the edits to it the caller wants to speculate about.
+        ApplyEditsToClonedBuffer(options, clonedBuffer);
 
-        var newSolution = newDocument.Project.Solution;
-        newSolution = newSolution.WithDocumentText(
-            newSolution.GetRelatedDocumentIds(newDocument.Id),
-            newBuffer.AsTextContainer().CurrentText,
+        // Now create a forked solution that takes the original document and updates it to point at the current state
+        // of the text buffer with the edits applied.  Ensure that this properly updates linked files as well so everything
+        // is consistent.
+        var newSolution = document.Project.Solution.WithDocumentText(
+            document.Project.Solution.GetRelatedDocumentIds(documentId),
+            clonedBuffer.AsTextContainer().CurrentText,
             PreservationMode.PreserveIdentity);
 
+        // Now, create a preview workspace with that forked document opened within it so that we can lightup features properly there.
         var previewWorkspace = new PreviewWorkspace(newSolution);
-        previewWorkspace.OpenDocument(newDocument.Id, newBuffer.AsTextContainer());
+        previewWorkspace.OpenDocument(documentId, clonedBuffer.AsTextContainer());
 
-        return new RoslynSpeculativeEditSession();
+        // Wrap everything we need into a final ISpeculativeEditSession for the caller.  It owns the lifetime of the data
+        // and will dispose it when done. At that point, we can release the allocated preview workspace new 
+        return new RoslynSpeculativeEditSession(
+            options,
+            clonedSnapshotBeforeEdits,
+            previewWorkspace,
+            clonedTextDocument);
+
+        static void ApplyEditsToClonedBuffer(SpeculativeEditOptions options, ITextBuffer newBuffer)
+        {
+            using var bulkEdit = newBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+            foreach (var edit in options.Edits)
+                bulkEdit.Replace(edit.Span, edit.NewText);
+
+            bulkEdit.Apply();
+        }
     }
 
     private sealed class RoslynSpeculativeEditSession(
-        SpeculativeEditOptions options) : ISpeculativeEditSession
+        SpeculativeEditOptions options,
+        ITextSnapshot clonedSnapshotBeforeEdits,
+        PreviewWorkspace previewWorkspace,
+        ITextDocument newTextDocument) : ISpeculativeEditSession
     {
-        public ITextSnapshot ClonedSnapshot => throw new NotImplementedException();
+        public ITextSnapshot ClonedSnapshot { get; } = clonedSnapshotBeforeEdits;
 
-        public SpeculativeEditOptions CreationOptions { get; } options;
+        public SpeculativeEditOptions CreationOptions { get; } = options;
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            previewWorkspace.Dispose();
+            newTextDocument.Dispose();
         }
     }
 }
