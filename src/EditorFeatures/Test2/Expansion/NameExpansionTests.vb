@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     <Trait(Traits.Feature, Traits.Features.Expansion)>

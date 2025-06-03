@@ -49,7 +49,7 @@ public sealed class EmitSolutionUpdateResultsTests
     private static ModuleUpdates CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
         => new(ModuleUpdateStatus.Blocked, [.. projectIds.Select(CreateMockUpdate)]);
 
-    private static ArrayBuilder<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
+    private static ImmutableArray<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
         => [.. blocking.Select(id => (id, kind: RudeEditKind.InternalError)).Concat(noEffect.Select(id => (id, kind: RudeEditKind.UpdateMightNotHaveAnyEffect)))
             .GroupBy(e => e.id)
             .OrderBy(g => g.Key)
@@ -139,8 +139,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var data = new EmitSolutionUpdateResults.Data()
         {
-            Diagnostics = diagnostics,
-            RudeEdits = rudeEdits,
+            Diagnostics = [.. diagnostics, .. rudeEdits],
             SyntaxError = syntaxError,
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),
             ProjectsToRebuild = [],
@@ -149,7 +148,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var actual = data.GetAllDiagnostics();
 
-        AssertEx.Equal(
+        AssertEx.SetEqual(
         [
             $@"Warning CS0001: {razorPath1} (10,10)-(10,15): warning",
             $@"Error CS0012: {razorPath2} (10,10)-(10,15): error",
