@@ -57,7 +57,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         ProjectFactory.SolutionPath = solutionFilePath;
 
-        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, CancellationToken.None);
+        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
         foreach (var (path, guid) in projects)
         {
             await BeginLoadingProjectAsync(path, guid);
