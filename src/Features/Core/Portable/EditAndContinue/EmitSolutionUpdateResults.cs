@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,9 +28,6 @@ internal readonly struct EmitSolutionUpdateResults
         public required ImmutableArray<DiagnosticData> Diagnostics { get; init; }
 
         [DataMember]
-        public required ImmutableArray<DiagnosticData> RudeEdits { get; init; }
-
-        [DataMember]
         public required DiagnosticData? SyntaxError { get; init; }
 
         [DataMember]
@@ -42,14 +40,20 @@ internal readonly struct EmitSolutionUpdateResults
         {
             using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
 
-            // Add semantic and lowering diagnostics reported during delta emit:
-
             foreach (var diagnostic in Diagnostics)
             {
-                builder.Add(diagnostic.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: false));
-            }
+                var severity = diagnostic.Severity switch
+                {
+                    DiagnosticSeverity.Error => EditAndContinueDiagnosticDescriptors.IsEncDiagnostic(diagnostic.Id) ? ManagedHotReloadDiagnosticSeverity.RestartRequired : ManagedHotReloadDiagnosticSeverity.Error,
+                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
+                    _ => default
+                };
 
-            // Add syntax error:
+                if (severity != default)
+                {
+                    builder.Add(diagnostic.ToHotReloadDiagnostic(severity));
+                }
+            }
 
             if (SyntaxError != null)
             {
@@ -66,13 +70,6 @@ internal readonly struct EmitSolutionUpdateResults
                     fileSpan.Span.ToSourceSpan()));
             }
 
-            // Report all rude edits.
-
-            foreach (var data in RudeEdits)
-            {
-                builder.Add(data.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: true));
-            }
-
             return builder.ToImmutableAndClear();
         }
     }
@@ -82,7 +79,6 @@ internal readonly struct EmitSolutionUpdateResults
         Solution = null,
         ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, []),
         Diagnostics = [],
-        RudeEdits = [],
         SyntaxError = null,
         ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
         ProjectsToRebuild = [],
@@ -100,12 +96,11 @@ internal readonly struct EmitSolutionUpdateResults
     public required ModuleUpdates ModuleUpdates { get; init; }
 
     /// <summary>
-    /// Reported diagnostics, other than rude edits, per project.
-    /// May contain multiple entries for the same project.
+    /// Reported diagnostics per project.
+    /// At most one set of diagnostics per project.
     /// </summary>
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
 
-    public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
     public required Diagnostic? SyntaxError { get; init; }
 
     /// <summary>
@@ -126,7 +121,6 @@ internal readonly struct EmitSolutionUpdateResults
         {
             ModuleUpdates = ModuleUpdates,
             Diagnostics = [],
-            RudeEdits = [],
             SyntaxError = null,
             ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
             ProjectsToRebuild = [],
@@ -135,7 +129,6 @@ internal readonly struct EmitSolutionUpdateResults
         {
             ModuleUpdates = ModuleUpdates,
             Diagnostics = Diagnostics.ToDiagnosticData(Solution),
-            RudeEdits = RudeEdits.ToDiagnosticData(Solution),
             SyntaxError = GetSyntaxErrorData(),
             ProjectsToRestart = ProjectsToRestart,
             ProjectsToRebuild = ProjectsToRebuild,
@@ -168,17 +161,17 @@ internal readonly struct EmitSolutionUpdateResults
     internal static void GetProjectsToRebuildAndRestart(
         Solution solution,
         ModuleUpdates moduleUpdates,
-        ArrayBuilder<ProjectDiagnostics> rudeEdits,
+        ImmutableArray<ProjectDiagnostics> diagnostics,
         ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
         out ImmutableArray<ProjectId> projectsToRebuild)
     {
-        Debug.Assert(!rudeEdits.HasDuplicates(d => d.ProjectId));
-        Debug.Assert(rudeEdits.Select(re => re.ProjectId).IsSorted());
+        Debug.Assert(!diagnostics.HasDuplicates(d => d.ProjectId));
+        Debug.Assert(diagnostics.Select(re => re.ProjectId).IsSorted());
 
-        // Projects with blocking rude edits should not have updates:
-        Debug.Assert(rudeEdits
-            .Where(r => r.Diagnostics.HasBlockingRudeEdits())
+        // Projects with errors (including blocking rude edits) should not have updates:
+        Debug.Assert(diagnostics
+            .Where(r => r.Diagnostics.Any(static d => d.Severity == DiagnosticSeverity.Error))
             .Select(r => r.ProjectId)
             .Intersect(moduleUpdates.Updates.Select(u => u.ProjectId))
             .IsEmpty());
@@ -207,12 +200,9 @@ internal readonly struct EmitSolutionUpdateResults
         using var _4 = ArrayBuilder<(ProjectId projectWithRudeEdits, ImmutableArray<ProjectId> impactedRunningProjects)>.GetInstance(out var impactedRunningProjectMap);
         using var _5 = ArrayBuilder<ProjectId>.GetInstance(out var impactedRunningProjects);
 
-        for (var i = 0; i < rudeEdits.Count; i++)
+        foreach (var (projectId, projectDiagnostics) in diagnostics)
         {
-            var (projectId, projectDiagnostics) = rudeEdits[i];
-
-            var hasBlocking = projectDiagnostics.HasBlockingRudeEdits();
-            var hasNoEffect = projectDiagnostics.HasNoEffectRudeEdits();
+            ClassifyRudeEdits(projectDiagnostics, out var hasBlocking, out var hasNoEffect);
             if (!hasBlocking && !hasNoEffect)
             {
                 continue;
@@ -356,47 +346,82 @@ internal readonly struct EmitSolutionUpdateResults
         }
     }
 
-    public ImmutableArray<Diagnostic> GetAllDiagnostics()
+    private static void ClassifyRudeEdits(ImmutableArray<Diagnostic> diagnostics, out bool blocking, out bool noEffect)
     {
-        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+        noEffect = false;
+        blocking = false;
 
-        // add semantic and lowering diagnostics reported during delta emit:
-        foreach (var (_, projectEmitDiagnostics) in Diagnostics)
+        foreach (var diagnostic in diagnostics)
         {
-            diagnostics.AddRange(projectEmitDiagnostics);
-        }
+            noEffect |= diagnostic.IsNoEffectDiagnostic();
+            blocking |= diagnostic.IsEncDiagnostic() && diagnostic.Severity == DiagnosticSeverity.Error;
 
-        // add syntax error:
-        if (SyntaxError != null)
-        {
-            diagnostics.Add(SyntaxError);
+            if (noEffect && blocking)
+            {
+                return;
+            }
         }
-
-        // add rude edits:
-        foreach (var (_, projectEmitDiagnostics) in RudeEdits)
-        {
-            diagnostics.AddRange(projectEmitDiagnostics);
-        }
-
-        return diagnostics.ToImmutableAndClear();
     }
 
-    public ImmutableArray<Diagnostic> GetAllCompilationDiagnostics()
+    public ImmutableArray<Diagnostic> GetAllDiagnostics()
     {
-        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
 
-        // add semantic and lowering diagnostics reported during delta emit:
         foreach (var (_, projectEmitDiagnostics) in Diagnostics)
         {
-            diagnostics.AddRange(projectEmitDiagnostics);
+            result.AddRange(projectEmitDiagnostics);
         }
 
-        // add syntax error:
         if (SyntaxError != null)
         {
-            diagnostics.Add(SyntaxError);
+            result.Add(SyntaxError);
         }
 
-        return diagnostics.ToImmutableAndClear();
+        return result.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Returns all diagnostics that can be addressed by rebuilding/restarting the project.
+    /// </summary>
+    public ImmutableArray<(ProjectId projectId, ImmutableArray<Diagnostic> diagnostics)> GetTransientDiagnostics()
+    {
+        using var _ = ArrayBuilder<(ProjectId projectId, ImmutableArray<Diagnostic> diagnostics)>.GetInstance(out var result);
+
+        foreach (var (projectId, diagnostics) in Diagnostics)
+        {
+            var transientDiagnostics = diagnostics.WhereAsArray(static d => d.IsEncDiagnostic());
+            if (transientDiagnostics.Length > 0)
+            {
+                result.Add((projectId, transientDiagnostics));
+            }
+        }
+
+        return result.ToImmutable();
+    }
+
+    /// <summary>
+    /// Returns all diagnostics that can't be addressed by rebuilding/restarting the project.
+    /// </summary>
+    public ImmutableArray<Diagnostic> GetPersistentDiagnostics()
+    {
+        using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
+
+        foreach (var (_, diagnostics) in Diagnostics)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                if (!diagnostic.IsEncDiagnostic())
+                {
+                    result.AddRange(diagnostics);
+                }
+            }
+        }
+
+        if (SyntaxError != null)
+        {
+            result.Add(SyntaxError);
+        }
+
+        return result.ToImmutableAndClear();
     }
 }

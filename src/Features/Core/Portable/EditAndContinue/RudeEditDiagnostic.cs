@@ -47,27 +47,3 @@ internal readonly struct RudeEditDiagnostic
         return Diagnostic.Create(descriptor, tree?.GetLocation(Span) ?? Location.None, Arguments);
     }
 }
-
-internal static class RudeEditExtensions
-{
-    internal static DiagnosticSeverity GetSeverity(this RudeEditKind kind)
-        => EditAndContinueDiagnosticDescriptors.GetDescriptor(kind).DefaultSeverity;
-
-    internal static bool IsBlocking(this RudeEditKind kind)
-        => kind.GetSeverity() == DiagnosticSeverity.Error;
-
-    internal static bool IsBlockingRudeEdit(this Diagnostic diagnostic)
-        => diagnostic.Descriptor.DefaultSeverity == DiagnosticSeverity.Error;
-
-    internal static bool IsNoEffectRudeEdit(this Diagnostic diagnostic)
-        => EditAndContinueDiagnosticDescriptors.GetRudeEditKind(diagnostic.Id) == RudeEditKind.UpdateMightNotHaveAnyEffect;
-
-    public static bool HasBlockingRudeEdits(this ImmutableArray<Diagnostic> diagnostics)
-        => diagnostics.Any(IsBlockingRudeEdit);
-
-    public static bool HasNoEffectRudeEdits(this ImmutableArray<Diagnostic> diagnostics)
-        => diagnostics.Any(IsNoEffectRudeEdit);
-
-    public static bool HasBlockingRudeEdits(this ImmutableArray<RudeEditDiagnostic> diagnostics)
-        => diagnostics.Any(static e => e.Kind.IsBlocking());
-}

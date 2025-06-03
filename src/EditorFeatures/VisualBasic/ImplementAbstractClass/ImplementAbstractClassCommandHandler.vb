@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 Imports Microsoft.CodeAnalysis.ImplementAbstractClass

@@ -8,6 +8,7 @@ Imports System.IO.Pipelines
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
