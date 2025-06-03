@@ -2,9 +2,9 @@
 
 name: Inter-branch merge
 on:
-  # schedule:
-  #   # Create a merge every 3 hours (works only for merges from `main`, others would need a `push` trigger).
-  #   - cron: '0 */3 * * *'
+  schedule:
+    # Create a merge every 3 hours (works only for merges from `main`, others would need a `push` trigger).
+    - cron: '0 */3 * * *'
   workflow_dispatch:
     inputs:
       configuration_file_branch:
