@@ -65,6 +65,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="17.12.2037-preview3" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="17.12.2037-preview3" />
     <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
     <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Progression.Common" Version="15.8.27812-alpha" />
@@ -79,6 +80,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.10.961-preview.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
     <PackageVersion Include="Microsoft.VisualStudio.Workspace.VSIntegration" Version="17.9.29-preview-0001" />
     <PackageVersion Include="VsWebSite.Interop" Version="8.0.50727" />
