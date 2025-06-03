@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true; // An error scenario
                 }
 
-                return ExtensionParameterTypeMatchesExtendedType(type, checkStrippedType, extendedType);
+                return ExtensionOperatorParameterTypeMatchesExtendedType(type, checkStrippedType, extendedType);
             }
 
             if (checkStrippedType)
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    (IsInInterfaceAndAbstractOrVirtual() && IsSelfConstrainedTypeParameter(type));
         }
 
-        internal static bool ExtensionParameterTypeMatchesExtendedType(TypeSymbol type, bool checkStrippedType, TypeSymbol extendedType)
+        internal static bool ExtensionOperatorParameterTypeMatchesExtendedType(TypeSymbol type, bool checkStrippedType, TypeSymbol extendedType)
         {
             if (checkStrippedType && type.IsNullableType())
             {
