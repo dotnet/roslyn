@@ -216,7 +216,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
 
         // If the changes fail to apply dotnet-watch fails.
         // We don't support discarding the changes and letting the user retry.
-        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready or ModuleUpdateStatus.RestartRequired)
+        if (!RequireCommit && results.ModuleUpdates.Status is ModuleUpdateStatus.Ready)
         {
             _encService.CommitSolutionUpdate(sessionId);
         }
@@ -226,7 +226,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             Status = results.ModuleUpdates.Status switch
             {
                 ModuleUpdateStatus.None => Status.NoChangesToApply,
-                ModuleUpdateStatus.Ready or ModuleUpdateStatus.RestartRequired => Status.ReadyToApply,
+                ModuleUpdateStatus.Ready => Status.ReadyToApply,
                 ModuleUpdateStatus.Blocked => Status.Blocked,
                 _ => throw ExceptionUtilities.UnexpectedValue(results.ModuleUpdates.Status)
             },

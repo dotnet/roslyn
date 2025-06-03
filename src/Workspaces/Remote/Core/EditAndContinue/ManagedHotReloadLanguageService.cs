@@ -301,22 +301,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
-
-                var diagnostic = Diagnostic.Create(
-                    descriptor,
-                    Location.None,
-                    string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
-
-                var firstProject = designTimeSolution.GetProject(runningProjectInfos.FirstOrDefault().Key) ?? designTimeSolution.Projects.First();
-                results = new EmitSolutionUpdateResults.Data()
-                {
-                    Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
-                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
-                    SyntaxError = null,
-                    ProjectsToRebuild = [],
-                    ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
-                };
+                results = EmitSolutionUpdateResults.Data.CreateFromInternalError(solution, e.Message, runningProjectInfos);
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
