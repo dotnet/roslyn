@@ -262,7 +262,7 @@ namespace Roslyn.Utilities
             => source.HasDuplicates(selector, EqualityComparer<TValue>.Default);
 
         /// <summary>
-        /// Determines whether duplicates exist using default equality comparer.
+        /// Determines whether duplicates exist using given equality comparer.
         /// </summary>
         /// <param name="source">Array to search for duplicates</param>
         /// <returns>Whether duplicates were found</returns>
@@ -272,6 +272,11 @@ namespace Roslyn.Utilities
         /// </remarks>
         public static bool HasDuplicates<TItem, TValue>(this IEnumerable<TItem> source, Func<TItem, TValue> selector, IEqualityComparer<TValue> comparer)
         {
+            if (source is IReadOnlyList<TItem> list)
+            {
+                return list.HasDuplicates(selector, comparer);
+            }
+
             TItem firstItem = default!;
             HashSet<TValue>? set = null;
             var isFirstItem = true;

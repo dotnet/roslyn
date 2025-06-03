@@ -9,7 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -18,7 +17,12 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 public class EnumerableExtensionsTests
 {
     private static IEnumerable<T> MakeEnumerable<T>(params T[] values)
-        => values;
+    {
+        foreach (var value in values)
+        {
+            yield return value;
+        }
+    }
 
     [Fact]
     public void SequenceEqual()
@@ -169,32 +173,32 @@ public class EnumerableExtensionsTests
     {
         var comparer = new Comparer<int>((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
 
-        Assert.False(new int[0].HasDuplicates());
-        Assert.False(new int[0].HasDuplicates(comparer));
-        Assert.False(new int[0].HasDuplicates(i => i + 1));
+        Assert.False(MakeEnumerable<int>().HasDuplicates());
+        Assert.False(MakeEnumerable<int>().HasDuplicates(comparer));
+        Assert.False(MakeEnumerable<int>().HasDuplicates(i => i + 1));
 
-        Assert.False(new[] { 1 }.HasDuplicates());
-        Assert.False(new[] { 1 }.HasDuplicates(comparer));
-        Assert.False(new[] { 1 }.HasDuplicates(i => i + 1));
+        Assert.False(MakeEnumerable(1).HasDuplicates());
+        Assert.False(MakeEnumerable(1).HasDuplicates(comparer));
+        Assert.False(MakeEnumerable(1).HasDuplicates(i => i + 1));
 
-        Assert.False(new[] { 1, 2 }.HasDuplicates());
-        Assert.False(new[] { 1, 2 }.HasDuplicates(comparer));
-        Assert.False(new[] { 1, 2 }.HasDuplicates(i => i + 1));
+        Assert.False(MakeEnumerable(1, 2).HasDuplicates());
+        Assert.False(MakeEnumerable(1, 2).HasDuplicates(comparer));
+        Assert.False(MakeEnumerable(1, 2).HasDuplicates(i => i + 1));
 
-        Assert.True(new[] { 1, 1 }.HasDuplicates());
-        Assert.True(new[] { 11, 1 }.HasDuplicates(comparer));
-        Assert.True(new[] { 1, 3 }.HasDuplicates(i => i % 2));
-        Assert.True(new[] { 11.0, 1.2 }.HasDuplicates(i => (int)i, comparer));
+        Assert.True(MakeEnumerable(1, 1).HasDuplicates());
+        Assert.True(MakeEnumerable(11, 1).HasDuplicates(comparer));
+        Assert.True(MakeEnumerable(1, 3).HasDuplicates(i => i % 2));
+        Assert.True(MakeEnumerable(11.0, 1.2).HasDuplicates(i => (int)i, comparer));
 
-        Assert.False(new[] { 2, 0, 1, 3 }.HasDuplicates());
-        Assert.False(new[] { 2, 0, 1, 13 }.HasDuplicates(comparer));
-        Assert.False(new[] { 2, 0, 1, 53 }.HasDuplicates(i => i % 10));
-        Assert.False(new[] { 2.3, 0.1, 1.3, 53.4 }.HasDuplicates(i => (int)i, comparer));
+        Assert.False(MakeEnumerable(2, 0, 1, 3).HasDuplicates());
+        Assert.False(MakeEnumerable(2, 0, 1, 13).HasDuplicates(comparer));
+        Assert.False(MakeEnumerable(2, 0, 1, 53).HasDuplicates(i => i % 10));
+        Assert.False(MakeEnumerable(2.3, 0.1, 1.3, 53.4).HasDuplicates(i => (int)i, comparer));
 
-        Assert.True(new[] { 2, 0, 1, 2 }.HasDuplicates());
-        Assert.True(new[] { 2, 0, 1, 12 }.HasDuplicates(comparer));
-        Assert.True(new[] { 2, 0, 1, 52 }.HasDuplicates(i => i % 10));
-        Assert.True(new[] { 2.3, 0.1, 1.3, 52.4 }.HasDuplicates(i => (int)i, comparer));
+        Assert.True(MakeEnumerable(2, 0, 1, 2).HasDuplicates());
+        Assert.True(MakeEnumerable(2, 0, 1, 12).HasDuplicates(comparer));
+        Assert.True(MakeEnumerable(2, 0, 1, 52).HasDuplicates(i => i % 10));
+        Assert.True(MakeEnumerable(2.3, 0.1, 1.3, 52.4).HasDuplicates(i => (int)i, comparer));
     }
 }
 

@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis
             => array.HasDuplicates(selector, EqualityComparer<TValue>.Default);
 
         /// <summary>
-        /// Determines whether duplicates exist using default equality comparer.
+        /// Determines whether duplicates exist using given equality comparer.
         /// </summary>
         /// <param name="array">Array to search for duplicates</param>
         /// <returns>Whether duplicates were found</returns>
