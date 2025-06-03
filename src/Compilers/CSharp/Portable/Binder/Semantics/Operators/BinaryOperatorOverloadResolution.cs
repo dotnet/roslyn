@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (extension.Arity == 0)
                     {
-                        if (isApplicableToReceiver(candidate, left, right, ref useSiteInfo))
+                        if (isApplicableToReceiver(in candidate, left, right, ref useSiteInfo))
                         {
                             continue;
                         }
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     inferredCandidate = new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, method, constrainedToTypeOpt: null);
                                 }
 
-                                if (isApplicableToReceiver(inferredCandidate, left, right, ref useSiteInfo))
+                                if (isApplicableToReceiver(in inferredCandidate, left, right, ref useSiteInfo))
                                 {
                                     operators[i] = inferredCandidate;
                                     continue;
@@ -1551,16 +1551,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool isApplicableToReceiver(BinaryOperatorSignature candidate, BoundExpression left, BoundExpression right, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool isApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression left, BoundExpression right, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
 
-                if (left.Type is not null && isOperandApplicableToReceiver(candidate, left, ref useSiteInfo))
+                if (left.Type is not null && parameterMatchesReceiver(in candidate, 0) && isOperandApplicableToReceiver(in candidate, left, ref useSiteInfo))
                 {
                     return true;
                 }
 
-                if (!kind.IsShift() && right.Type is not null && isOperandApplicableToReceiver(candidate, right, ref useSiteInfo))
+                if (!kind.IsShift() && right.Type is not null && parameterMatchesReceiver(in candidate, 1) && isOperandApplicableToReceiver(in candidate, right, ref useSiteInfo))
                 {
                     return true;
                 }
@@ -1568,7 +1568,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            bool isOperandApplicableToReceiver(BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            static bool parameterMatchesReceiver(in BinaryOperatorSignature candidate, int paramIndex)
+            {
+                var method = candidate.Method.OriginalDefinition;
+                var extensionParameter = method.ContainingType.ExtensionParameter;
+                Debug.Assert(extensionParameter is not null);
+
+                return SourceUserDefinedOperatorSymbolBase.ExtensionParameterTypeMatchesExtendedType(method.Parameters[paramIndex].Type, checkStrippedType: true, extensionParameter.Type);
+            }
+
+            bool isOperandApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
                 Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);

@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (extension.Arity == 0)
                     {
-                        if (isApplicableToReceiver(candidate, operand, ref useSiteInfo))
+                        if (isApplicableToReceiver(in candidate, operand, ref useSiteInfo))
                         {
                             continue;
                         }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     inferredCandidate = new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, method, constrainedToTypeOpt: null);
                                 }
 
-                                if (isApplicableToReceiver(inferredCandidate, operand, ref useSiteInfo))
+                                if (isApplicableToReceiver(in inferredCandidate, operand, ref useSiteInfo))
                                 {
                                     operators[i] = inferredCandidate;
                                     continue;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool isApplicableToReceiver(UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool isApplicableToReceiver(in UnaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 Debug.Assert(operand.Type is not null);
                 Debug.Assert(candidate.Method.ContainingType.ExtensionParameter is not null);
