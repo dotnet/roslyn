@@ -20471,6 +20471,49 @@ static class E
         Debug.Assert(false);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+
+
+namespace System
+{
+    public ref struct Span<T>
+    {
+    }
+}
+
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
+        try
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            // Expect: error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        Debug.Assert(false);
+    }
+
     [Fact]
     public void ExtensionMemberLookup_PatternBased_Deconstruct_Generic()
     {
@@ -21017,6 +21060,50 @@ static class E
 """;
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("pin 2"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var text = """
+unsafe class C
+{
+    public static void M()
+    {
+        System.ReadOnlySpan<string> x = default;
+        fixed (long* p = x)
+        {
+        }
+    }
+}
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public ref long GetPinnableReference() => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (5,16): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //         System.ReadOnlySpan<string> x = default;
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<string>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(5, 16),
+            // (6,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            //         fixed (long* p = x)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(6, 26),
+            // (14,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<object> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<object>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(14, 22));
     }
 
     [Fact]
@@ -22608,6 +22695,39 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_09()
+    {
+        // We check conversion during initial binding
+        var src = """
+int[] i = [];
+_ = i is { Property: 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<int> r)
+    {
+        public int Property => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            // _ = i is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Property").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(2, 12),
+            // (6,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<int> r)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<int>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(6, 22));
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_Patterns_ExtendedPropertyPattern()
     {
         var src = """
@@ -22811,6 +22931,56 @@ static class E
             // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             // new System.ReadOnlySpan<string>().Property = 43;
             Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_03()
+    {
+        // implicit tuple conversion
+        var src = """
+_ = new System.ValueTuple<int, string>() { Property = 42 };
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public int Property
+        {
+            set { System.Console.Write("property"); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,44): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.ValueTuple<int, string>() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 44));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_04()
+    {
+        // implicit span conversion from string
+        var src = """
+_ = new System.String('a', 10) { Property = 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<char> s)
+    {
+        public int Property
+        {
+            set { System.Console.Write(value); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (1,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.String('a', 10) { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 34));
     }
 
     [Fact]

@@ -702,7 +702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                          _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
-            rewrittenReceiver = this.ConvertReceiverForExtensionMemberIfNeeded(memberSymbol, rewrittenReceiver);
+            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+            rewrittenReceiver = this.ConvertReceiverForExtensionMemberIfNeeded(memberSymbol, rewrittenReceiver, markAsChecked: true);
 
             switch (memberSymbol.Kind)
             {

@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
         }
 
-        private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver)
+        private BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver, bool markAsChecked)
         {
             if (member.GetIsNewExtensionMember())
             {
@@ -1148,7 +1148,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this._compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
 #endif
 
-                return MakeConversionNode(receiver, extensionParameter.Type, @checked: false, acceptFailingConversion: false, markAsChecked: true);
+                // We don't need to worry about checked context because only implicit conversions are allowed on the receiver of an extension member
+                return MakeConversionNode(receiver, extensionParameter.Type, @checked: false, acceptFailingConversion: false, markAsChecked: markAsChecked);
             }
 
             return receiver;

@@ -258,6 +258,36 @@ static class E
     }
 
     [Fact]
+    public void PositionalPattern_05()
+    {
+        // We check conversion during initial binding
+        var src = """
+int[] i = [];
+_ = i is var (x, y);
+
+static class E
+{
+    extension(System.ReadOnlySpan<int> r)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,14): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            // _ = i is var (x, y);
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(x, y)").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(2, 14));
+    }
+
+    [Fact]
     public void InvocationOnNull()
     {
         var src = """
