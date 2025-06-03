@@ -497,7 +497,8 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
-                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
+                   special = SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -762,8 +763,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -974,8 +974,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__CreateSpanRuntimeFieldHandle,
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
-                         WellKnownMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
