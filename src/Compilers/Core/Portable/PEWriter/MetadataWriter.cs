@@ -1719,7 +1719,6 @@ namespace Microsoft.Cci
             Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
             PopulateEncTables(typeSystemRowCounts);
 
-            Debug.Assert(managedResourceDataBuilder == null);
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
@@ -1744,6 +1743,9 @@ namespace Microsoft.Cci
 
                 // in EnC delta FieldRVA data are appended to the IL stream:
                 mappedFieldDataBuilder?.WriteContentTo(ilStream);
+
+                // in EnC delta ManifestResource data are appended to the IL stream:
+                managedResourceDataBuilder?.WriteContentTo(ilStream);
 
                 metadataBuilder.WriteContentTo(metadataStream);
             }
