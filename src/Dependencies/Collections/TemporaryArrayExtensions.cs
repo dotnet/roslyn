@@ -8,7 +8,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.CodeAnalysis.Shared.Collections
+namespace Microsoft.CodeAnalysis.Collections
 {
     internal static class TemporaryArrayExtensions
     {
