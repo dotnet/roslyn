@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var knownMissingTypes = new HashSet<int>()
             {
-                (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute
+                (int)SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute,
+                (int)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                (int)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
             };
 
             for (int i = 1; i <= (int)SpecialType.Count; i++)

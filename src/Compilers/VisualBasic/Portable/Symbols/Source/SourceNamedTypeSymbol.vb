@@ -1732,12 +1732,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+            m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                    StateFlags.ReportedCodeAnalysisEmbeddedAttributeDiagnostics,
                                                                    0,
-                                                                   diagnostics) Then
-                DeclaringCompilation.SymbolDeclaredEvent(Me)
-            End If
+                                                                   diagnostics)
 
             diagnostics?.Free()
         End Sub
