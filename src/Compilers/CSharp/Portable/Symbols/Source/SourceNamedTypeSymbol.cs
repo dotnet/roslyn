@@ -1227,7 +1227,14 @@ next:;
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute))
             {
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
+                if (attribute.AttributeClass.ExtendedSpecialType != InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InvalidExtendedLayoutAttribute, arguments.AttributeSyntaxOpt.Name.Location);
+                }
+                else
+                {
+                    arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasExtendedLayoutAttribute = true;
+                }
             }
             else
             {

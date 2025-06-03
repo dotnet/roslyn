@@ -1313,6 +1313,14 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Type, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
+                // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                1,                                                                                                          // Method Signature
+                (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,                                          // Return Type
+                (byte)SignatureTypeCode.TypeHandle,
+                (byte)InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind        // Argument: System.Runtime.InteropServices.ExtendedLayoutKind
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1474,6 +1482,7 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Array__Empty
                 "SetValue",                                 // System_Array__SetValue
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
+                ".ctor",                                    // System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

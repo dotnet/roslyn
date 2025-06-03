@@ -62,6 +62,11 @@
         <target state="translated">El argumento diagnosticId del atributo "Experimental" debe ser un identificador válido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtendedLayoutAttribute">
+        <source>The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</source>
+        <target state="new">The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
         <target state="translated">La versión especificada contiene comodines, que no son compatibles con la determinación. Quite los comodines de la cadena de versión o deshabilite la determinación para esta compilación.</target>

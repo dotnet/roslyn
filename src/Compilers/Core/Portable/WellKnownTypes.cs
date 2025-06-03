@@ -246,11 +246,11 @@ namespace Microsoft.CodeAnalysis
 
         CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
 
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
         System_ValueTuple,
 
         System_ValueTuple_T1,
-
-        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
         System_ValueTuple_T2,
         System_ValueTuple_T3,
@@ -597,10 +597,10 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.GCLatencyMode",
 
+            "", // WellKnownType.ExtSentinel extension marker
+
             "System.ValueTuple",
             "System.ValueTuple`1",
-
-            "", // WellKnownType.ExtSentinel extension marker
 
             "System.ValueTuple`2",
             "System.ValueTuple`3",
@@ -764,8 +764,8 @@ namespace Microsoft.CodeAnalysis
             // Some compile time asserts
             {
                 // We should not add new types to CSharp7 set
-                _ = new int[(int)WellKnownType.CSharp7Sentinel - 252];
-                _ = new int[252 - (int)WellKnownType.CSharp7Sentinel];
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - 254];
+                _ = new int[254 - (int)WellKnownType.CSharp7Sentinel];
 
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];

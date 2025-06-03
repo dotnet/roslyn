@@ -2348,7 +2348,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute) Then
-                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
+
+                    If attrData.AttributeClass.ExtendedSpecialType = InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute Then
+                        arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
+                    Else
+                        diagnostics.Add(ERRID.ERR_InvalidExtendedLayoutAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
+                    End If
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True

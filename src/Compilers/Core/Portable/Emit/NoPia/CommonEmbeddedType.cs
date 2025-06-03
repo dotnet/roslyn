@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     {
                         if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out constructorArguments, out namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
+                            builder.AddIfNotNull(TypeManager.CreateSynthesizedAttribute(SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                 }

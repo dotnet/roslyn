@@ -62,6 +62,11 @@
         <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtendedLayoutAttribute">
+        <source>The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</source>
+        <target state="new">The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
         <target state="translated">Zadaný řetězec verze obsahuje zástupné znaky, které nejsou kompatibilní s determinismem. Odeberte zástupné znaky z řetězce verze nebo pro tuto kompilaci zakažte determinismus.</target>

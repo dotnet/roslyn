@@ -62,6 +62,11 @@
         <target state="translated">“Experimental” 属性的 diagnosticId 参数必须是有效的标识符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExtendedLayoutAttribute">
+        <source>The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</source>
+        <target state="new">The System.Runtime.InteropServices.ExtendedLayoutAttribute must be defined in the core assembly.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
         <target state="translated">指定的版本字符串包含通配符，这与确定性不兼容。请删除版本字符串中的通配符，或禁用此编译的确定性。</target>

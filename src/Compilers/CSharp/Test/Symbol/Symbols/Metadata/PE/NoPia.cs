@@ -1424,27 +1424,30 @@ public class Derived : Base, I2
         [Fact]
         public void ExtendedLayoutAttribute()
         {
-            var sourceExtendedLayout = """
+            var corlibExtendedSource = """
             namespace System.Runtime.InteropServices;
+            #pragma warning disable CS9113
 
             [AttributeUsage(AttributeTargets.Struct)]
-            #pragma warning disable CS9113
-            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute
-            #pragma warning restore CS9113
-            {
-            }
+            public sealed class ExtendedLayoutAttribute(ExtendedLayoutKind kind): Attribute;
+
+            [AttributeUsage(AttributeTargets.Assembly)]
+            public sealed class PrimaryInteropAssemblyAttribute(int major, int minor): Attribute;
+
+            [AttributeUsage(AttributeTargets.Assembly)]
+            public sealed class GuidAttribute(string guid) : Attribute;
 
             public enum ExtendedLayoutKind
             {
                 CStruct,
                 CUnion
             }
+
+            [System.AttributeUsage(System.AttributeTargets.Delegate | System.AttributeTargets.Enum | System.AttributeTargets.Interface | System.AttributeTargets.Struct, AllowMultiple=false, Inherited=false)]
+            public sealed class TypeIdentifierAttribute(string scope, string identifier) : Attribute;
             """;
 
-            var extendedLayout = CreateCompilation(sourceExtendedLayout, options: TestOptions.DebugDll);
-            extendedLayout.VerifyDiagnostics();
-
-            var extendedLayoutReference = extendedLayout.ToMetadataReference();
+            var minimalCoreLibReference = MinimalCoreLibBuilder.Create(corlibExtendedSource).ToMetadataReference();
 
             var sourcePIA =
 @"using System.Runtime.InteropServices;
@@ -1464,13 +1467,13 @@ public class C
     public virtual int F1(S s) => s.i;
 }
 ";
-            var compilationPIA = CreateCompilation(sourcePIA, [extendedLayoutReference], TestOptions.DebugDll);
+            var compilationPIA = CreateCompilation(sourcePIA, [minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             compilationPIA.VerifyDiagnostics();
 
             var referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes: true);
             var referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes: true);
 
-            var compilationBase = CreateCompilation(sourceBase, [referencePIASource, extendedLayoutReference], TestOptions.DebugDll);
+            var compilationBase = CreateCompilation(sourceBase, [referencePIASource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             compilationBase.VerifyDiagnostics();
 
             var referenceBaseImage = compilationBase.EmitToImageReference();
@@ -1483,16 +1486,16 @@ public class Derived : C
     public override int F1(S s) => s.i * 2;
 }
 ";
-            var compilationDerived1 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseSource, extendedLayoutReference], TestOptions.DebugDll);
+            var compilationDerived1 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseSource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             verify(compilationDerived1);
 
-            var compilationDerived2 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseSource, extendedLayoutReference], TestOptions.DebugDll);
+            var compilationDerived2 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseSource, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             verify(compilationDerived2);
 
-            var compilationDerived3 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseImage, extendedLayoutReference], TestOptions.DebugDll);
+            var compilationDerived3 = CreateCompilation(sourceDerived, [referencePIASource, referenceBaseImage, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             verify(compilationDerived3);
 
-            var compilationDerived4 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseImage, extendedLayoutReference], TestOptions.DebugDll);
+            var compilationDerived4 = CreateCompilation(sourceDerived, [referencePIAImage, referenceBaseImage, minimalCoreLibReference], TestOptions.DebugDll, targetFramework: TargetFramework.Empty);
             verify(compilationDerived4);
 
             static void verify(CSharpCompilation compilationDerived)
