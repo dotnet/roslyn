@@ -78,7 +78,6 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
             {
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
                 Diagnostics = [],
-                RudeEdits = [],
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
@@ -90,7 +89,6 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
             {
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
                 Diagnostics = GetInternalErrorDiagnosticData(e.Message),
-                RudeEdits = [],
                 SyntaxError = null,
                 ProjectsToRebuild = [],
                 ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
