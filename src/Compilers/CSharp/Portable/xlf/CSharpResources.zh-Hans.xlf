@@ -1472,6 +1472,11 @@
         <target state="translated">“{0}”没有与函数指针“{1}”匹配的重载</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">意外的关键字 \"record\"。你的意思是 \"record struct\" 还是 \"record class\"?</target>

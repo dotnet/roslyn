@@ -1472,6 +1472,11 @@
         <target state="translated">Nessun overload per '{0}' corrisponde al puntatore a funzione '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">Parola chiave 'record' imprevista. Si intendeva 'struct record' o 'classe record'?</target>

@@ -1472,6 +1472,11 @@
         <target state="translated">'{0}' 沒有任何多載符合函式指標 '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
         <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
         <target state="translated">未預期的關鍵字 'record'。您是指 'record struct' 或 'record class'?</target>

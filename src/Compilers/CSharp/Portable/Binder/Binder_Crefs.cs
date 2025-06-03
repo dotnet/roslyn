@@ -223,6 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
             // Tracked by https://github.com/dotnet/roslyn/issues/76130 : handle extension operators
+            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
 
             if (containerOpt is not NamedTypeSymbol namedContainer)
             {
@@ -260,12 +261,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(name is not null);
 
+                Debug.Assert(syntax.Parameters is not null);
+                ImmutableArray<ParameterSymbol> extensionParameterSymbols = BindCrefParameters(syntax.Parameters, diagnostics);
+
+                // Use signature method symbols to match extension blocks
+                var providedExtensionSignature = new SignatureOnlyMethodSymbol(
+                     methodKind: MethodKind.Ordinary,
+                     typeParameters: IndexedTypeParameterSymbol.TakeSymbols(extensionArity),
+                     parameters: extensionParameterSymbols,
+                     callingConvention: Cci.CallingConvention.Default,
+                     // These are ignored by this specific MemberSignatureComparer.
+                     containingType: null,
+                     name: null,
+                     refKind: RefKind.None,
+                     isInitOnly: false,
+                     isStatic: false,
+                     returnType: default,
+                     refCustomModifiers: [],
+                     explicitInterfaceImplementations: []);
+
                 LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.MustNotBeParameter;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = this.GetNewCompoundUseSiteInfo(diagnostics);
                 ArrayBuilder<Symbol>? sortedSymbolsBuilder = null;
-
-                Debug.Assert(syntax.Parameters is not null);
-                ImmutableArray<ParameterSymbol> extensionParameterSymbols = BindCrefParameters(syntax.Parameters, diagnostics);
 
                 foreach (var nested in container.GetTypeMembers())
                 {
@@ -276,26 +293,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var constructedNested = (NamedTypeSymbol)ConstructWithCrefTypeParameters(extensionArity, extensionTypeArguments, nested);
 
-                    // Use signature method symbols to match extension blocks
                     var candidateExtensionSignature = new SignatureOnlyMethodSymbol(
                          methodKind: MethodKind.Ordinary,
                          typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
                          parameters: [constructedNested.ExtensionParameter],
-                         callingConvention: Cci.CallingConvention.Default,
-                         // These are ignored by this specific MemberSignatureComparer.
-                         containingType: null,
-                         name: null,
-                         refKind: RefKind.None,
-                         isInitOnly: false,
-                         isStatic: false,
-                         returnType: default,
-                         refCustomModifiers: [],
-                         explicitInterfaceImplementations: []);
-
-                    var providedExtensionSignature = new SignatureOnlyMethodSymbol(
-                         methodKind: MethodKind.Ordinary,
-                         typeParameters: IndexedTypeParameterSymbol.TakeSymbols(constructedNested.Arity),
-                         parameters: extensionParameterSymbols,
                          callingConvention: Cci.CallingConvention.Default,
                          // These are ignored by this specific MemberSignatureComparer.
                          containingType: null,

@@ -2294,20 +2294,30 @@ public static class E
         var src = """
 /// <see cref="E.extension(int).M(string)"/>
 /// <see cref="E.M(int, string)"/>
+/// <see cref="E.extension(int).M"/>
+/// <see cref="E.M"/>
 static class E
 {
     extension(int i)
     {
+        /// <see cref="M(int, string)"/>
+        /// <see cref="M(string)"/>
+        /// <see cref="M"/>
         public void M(string s) => throw null!;
     }
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (10,24): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
+            //         /// <see cref="M(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "M(string)").WithArguments("M(string)").WithLocation(10, 24));
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
 <member name="T:E">
+    <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
+    <see cref="M:E.M(System.Int32,System.String)"/>
     <see cref="M:E.&lt;&gt;E__0.M(System.String)"/>
     <see cref="M:E.M(System.Int32,System.String)"/>
 </member>
@@ -2316,11 +2326,26 @@ static class E
 
         AssertEx.Equal("T:E.<>E__0", e.GetTypeMembers().Single().GetDocumentationCommentId());
 
+        var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single().GetMember("M");
+        AssertEx.Equal("""
+<member name="M:E.&lt;&gt;E__0.M(System.String)">
+    <see cref="M:E.M(System.Int32,System.String)"/>
+    <see cref="!:M(string)"/>
+    <see cref="M:E.M(System.Int32,System.String)"/>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
             "(E.extension(int).M(string), void E.<>E__0.M(System.String s))",
-            "(E.M(int, string), void E.M(this System.Int32 i, System.String s))"],
+            "(E.M(int, string), void E.M(this System.Int32 i, System.String s))",
+            "(E.extension(int).M, void E.<>E__0.M(System.String s))",
+            "(E.M, void E.M(this System.Int32 i, System.String s))",
+            "(M(int, string), void E.M(this System.Int32 i, System.String s))",
+            "(M(string), null)",
+            "(M, void E.M(this System.Int32 i, System.String s))"],
             PrintXmlCrefSymbols(tree, model));
     }
 
@@ -3414,6 +3439,7 @@ static class E
     public void Cref_36()
     {
         // method named "extension"
+        // Note: one cannot refer to extension block
         var src = """
 /// <see cref="E.extension()"/>
 /// <see cref="E.extension(int)"/>
@@ -3422,15 +3448,32 @@ static class E
     public static void extension() { }
     public static void extension(int i) { }
 }
+
+/// <see cref="E2.extension()"/>
+/// <see cref="E2.extension(int)"/>
+static class E2
+{
+    extension(int)
+    {
+    }
+}
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (9,16): warning CS1574: XML comment has cref attribute 'extension()' that could not be resolved
+            // /// <see cref="E2.extension()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension()").WithArguments("extension()").WithLocation(9, 16),
+            // (10,16): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
+            // /// <see cref="E2.extension(int)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension(int)").WithArguments("extension(int)").WithLocation(10, 16));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
             "(E.extension(), void E.extension())",
-            "(E.extension(int), void E.extension(System.Int32 i))"],
+            "(E.extension(int), void E.extension(System.Int32 i))",
+            "(E2.extension(), null)",
+            "(E2.extension(int), null)"],
             PrintXmlCrefSymbols(tree, model));
     }
 
@@ -3684,9 +3727,12 @@ static class E
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
-            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).extension(string).M' that could not be resolved
+            // (1,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'E.extension(int).extension(string).M'
             // /// <see cref="E.extension(int).extension(string).M"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).extension(string).M").WithArguments("extension(int).extension(string).M").WithLocation(1, 16),
+            Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "E.extension(int).extension(string).M").WithArguments("E.extension(int).extension(string).M").WithLocation(1, 16),
+            // (1,33): warning CS1658: An extension member syntax is disallowed in nested position within an extension member syntax. See also error CS9309.
+            // /// <see cref="E.extension(int).extension(string).M"/>
+            Diagnostic(ErrorCode.WRN_ErrorOverride, "extension(string).M").WithArguments("An extension member syntax is disallowed in nested position within an extension member syntax", "9309").WithLocation(1, 33),
             // (6,9): error CS9282: This member is not allowed in an extension block
             //         extension(string)
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "extension").WithLocation(6, 9));
@@ -3735,6 +3781,7 @@ static class E
     [Fact]
     public void Cref_47()
     {
+        // TODO2 error in Ioperation 
         // Xml doc APIs on PE symbols
         var src = """
 static class E
@@ -3762,7 +3809,7 @@ static class E
             return documentationMemberID;
         }
 
-        public override bool Equals(object obj) => throw new NotImplementedException();
+        public override bool Equals(object obj) => (object)this == obj;
 
         public override int GetHashCode() => throw new NotImplementedException();
     }
@@ -3880,6 +3927,129 @@ static class E
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal(["(E.extension(int).@M, void E.<>E__0.M())"], PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_52()
+    {
+        // unqualified reference
+        var src = """
+static class E
+{
+    extension(int)
+    {
+        /// <see cref="extension(int).M2"/>
+        public static void M() { }
+
+        /// <see cref="extension(int).M"/>
+        public static void M2() { }
+    }
+}
+""";
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider allowing unqualified references in CREF
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
+            //         /// <see cref="extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(5, 24),
+            // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
+            //         /// <see cref="extension(int).M"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M").WithArguments("extension(int).M").WithLocation(8, 24));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal(["(extension(int).M2, null)", "(extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+
+        src = """
+static class E
+{
+    static class Nested
+    {
+        /// <see cref="Nested.M2"/>
+        public static void M() { }
+
+        /// <see cref="Nested.M"/>
+        public static void M2() { }
+    }
+}
+""";
+        comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Cref_53()
+    {
+        var src = """
+static class E
+{
+    extension(int i)
+    {
+        /// <see cref="M2(string)"/>
+        /// <see cref="M2"/>
+        public void M(string s) => throw null!;
+    }
+    extension(int i)
+    {
+        public void M2(string s) => throw null!;
+    }
+}
+""";
+        var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics(
+            // (5,24): warning CS1574: XML comment has cref attribute 'M2(string)' that could not be resolved
+            //         /// <see cref="M2(string)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "M2(string)").WithArguments("M2(string)").WithLocation(5, 24));
+
+        var mSkeleton = comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().First().GetMember("M");
+        AssertEx.Equal("""
+<member name="M:E.&lt;&gt;E__0.M(System.String)">
+    <see cref="!:M2(string)"/>
+    <see cref="M:E.M2(System.Int32,System.String)"/>
+</member>
+
+""", mSkeleton.GetDocumentationCommentXml());
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        AssertEx.Equal([
+            "(M2(string), null)",
+            "(M2, void E.M2(this System.Int32 i, System.String s))"],
+            PrintXmlCrefSymbols(tree, model));
+    }
+
+    [Fact]
+    public void Cref_54()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(int)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc);
+        var libRef = libComp.EmitToImageReference();
+
+        var src = """
+/// <see cref="E.extension(int).M"/>
+class C
+{
+}
+""";
+        var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular13.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics(
+            // (1,18): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // /// <see cref="E.extension(int).M"/>
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).M").WithArguments("extensions").WithLocation(1, 18));
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp.VerifyEmitDiagnostics();
+
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
+        comp.VerifyEmitDiagnostics();
     }
 }
 

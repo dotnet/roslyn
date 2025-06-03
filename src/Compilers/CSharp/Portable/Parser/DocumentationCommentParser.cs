@@ -1001,6 +1001,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             SyntaxToken dotToken = EatToken(SyntaxKind.DotToken);
             MemberCrefSyntax member = ParseMemberCref();
+            if (member is ExtensionMemberCrefSyntax)
+            {
+                member = AddErrorAsWarning(member, ErrorCode.ERR_MisplacedExtension);
+            }
 
             return SyntaxFactory.ExtensionMemberCref(ConvertToKeyword(identifierToken), typeArguments, parameters, dotToken, member);
         }
