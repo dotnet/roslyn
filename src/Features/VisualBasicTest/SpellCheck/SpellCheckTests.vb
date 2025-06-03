@@ -5,10 +5,11 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.SpellCheck
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
     <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>

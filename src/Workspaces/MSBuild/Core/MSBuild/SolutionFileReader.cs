@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal partial class SolutionFileReader
 {
-    public static Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, CancellationToken cancellationToken)
+    public static Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
-        return ReadSolutionFileAsync(solutionFilePath, new PathResolver(diagnosticReporter: null), cancellationToken);
+        return ReadSolutionFileAsync(solutionFilePath, new PathResolver(diagnosticReporter: null), diagnosticReportingMode, cancellationToken);
     }
 
-    public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, CancellationToken cancellationToken)
+    public static async Task<(string AbsoluteSolutionPath, ImmutableArray<(string ProjectPath, string ProjectGuid)> Projects)> ReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath));
 
@@ -31,7 +31,7 @@ internal partial class SolutionFileReader
             throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
         }
 
-        var projects = await TryReadSolutionFileAsync(absoluteSolutionPath, pathResolver, projectFilter, cancellationToken).ConfigureAwait(false);
+        var projects = await TryReadSolutionFileAsync(absoluteSolutionPath, pathResolver, projectFilter, diagnosticReportingMode, cancellationToken).ConfigureAwait(false);
         if (!projects.HasValue)
         {
             throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_0, absoluteSolutionPath));
@@ -40,7 +40,7 @@ internal partial class SolutionFileReader
         return (absoluteSolutionPath, projects.Value);
     }
 
-    private static async Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>?> TryReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<(string ProjectPath, string ProjectGuid)>?> TryReadSolutionFileAsync(string solutionFilePath, PathResolver pathResolver, ImmutableHashSet<string> projectFilter, DiagnosticReportingMode diagnosticReportingMode, CancellationToken cancellationToken)
     {
         var serializer = SolutionSerializers.GetSerializerByMoniker(solutionFilePath);
         if (serializer == null)
@@ -57,17 +57,21 @@ internal partial class SolutionFileReader
         var builder = ImmutableArray.CreateBuilder<(string ProjectPath, string ProjectGuid)>();
         foreach (var projectModel in solutionModel.SolutionProjects)
         {
-            // If we are filtering based on a solution filter, then we need to verify the project is included.
-            if (!projectFilter.IsEmpty)
+            // If we didn't get an absolute path skip the file.  The solution may have an invalid project in it,
+            // but we don't want to throw on that here.  The path resolver will throw / report a diagnostic if it couldn't resolve the path.
+            if (pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, diagnosticReportingMode, out var absoluteProjectPath))
             {
-                Contract.ThrowIfFalse(pathResolver.TryGetAbsoluteProjectPath(projectModel.FilePath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath));
-                if (!projectFilter.Contains(absoluteProjectPath))
+                // If we are filtering based on a solution filter, then we need to verify the project is included.
+                if (!projectFilter.IsEmpty)
                 {
-                    continue;
+                    if (!projectFilter.Contains(absoluteProjectPath))
+                    {
+                        continue;
+                    }
                 }
-            }
 
-            builder.Add((projectModel.FilePath, projectModel.Id.ToString()));
+                builder.Add((absoluteProjectPath, projectModel.Id.ToString()));
+            }
         }
 
         return builder.ToImmutable();
