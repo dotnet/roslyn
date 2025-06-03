@@ -4,6 +4,7 @@
 
 Imports System.IO
 Imports System.Text
+Imports System.Xml.Linq
 Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
