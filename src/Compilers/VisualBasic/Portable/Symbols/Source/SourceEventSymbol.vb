@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -367,7 +368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim method As New CustomEventAccessorSymbol(
                 Me._containingType,
                 Me,
-                binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
+                Binder.GetAccessorName(Me.Name, flags.ToMethodKind(), isWinMd:=False),
                 flags,
                 binder.GetSyntaxReference(syntax),
                 location)

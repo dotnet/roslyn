@@ -5,6 +5,7 @@
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
