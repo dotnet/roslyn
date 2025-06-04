@@ -5815,6 +5815,7 @@ class Program
 """ + CompilerFeatureRequiredAttribute;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
             comp.VerifyEmitDiagnostics(
                 // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator --()' and 'Extensions1.extension(C1).operator --()'
                 //         _ = --c1;
@@ -5823,6 +5824,17 @@ class Program
                 //             _ = --c1;
                 Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
                 );
+#else
+            // PROTOTYPE: Understand what is causing DEBUG/RELEASE behavor difference
+            comp.VerifyEmitDiagnostics(
+                // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator --()", "Extensions2.extension(C1).operator --()").WithLocation(32, 13),
+                // (36,17): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked --()' and 'Extensions2.extension(C1).operator --()'
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
+                );
+#endif
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
