@@ -35607,14 +35607,34 @@ static class E
 }
 """;
         var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130
-        // FindEntryPoint/NameSymbolSearcher skip "E" since it has not declaration named "Main"
-        // CompileAndVerify(comp, expectedOutput: "ran");
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_02()
+    {
+        string source = """
+static class E
+{
+    extension(int)
+    {
+        public static System.Action Main => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp.VerifyDiagnostics(
+            // (1,14): error CS1558: 'E' does not have a suitable static 'Main' method
+            // static class E
+            Diagnostic(ErrorCode.ERR_NoMainInClass, "E").WithArguments("E").WithLocation(1, 14));
     }
 
     [Fact]
@@ -35625,7 +35645,7 @@ static class E
 {
     extension(int i)
     {
-        public static void Main() { System.Console.Write("ran"); }
+        public static void Main() => throw null;
     }
 }
 """;
@@ -35633,6 +35653,11 @@ static class E
         comp.VerifyEmitDiagnostics(
             // error CS1555: Could not find 'E.<>E__0' specified for Main method
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<>E__0").WithLocation(1, 1));
+
+        Assert.Equal("<>E__0", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionName);
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should find the unspeakable nested type
+        Assert.Null(comp.GetTypeByMetadataName("E+<>E__0"));
     }
 
     [Fact]
@@ -35647,13 +35672,97 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130
-        // FindEntryPoint should not attempt to find types with an empty name
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E."));
         comp.VerifyEmitDiagnostics(
-            // (3,5): error CS1556: 'E.extension(int)' specified for Main method must be a non-generic class, record, struct, or interface
-            //     extension(int i)
-            Diagnostic(ErrorCode.ERR_MainClassNotClass, "extension").WithArguments("E.extension(int)").WithLocation(3, 5));
+            // error CS7088: Invalid 'MainTypeName' value: 'E.'.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "E.").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E.  "));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: 'E.  '.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "E.  ").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName(""));
+        comp.VerifyEmitDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("  "));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: '  '.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "  ").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName(".A"));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: '.A'.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", ".A").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_05()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static async System.Threading.Tasks.Task<int> Main() { System.Console.Write("ran"); await System.Threading.Tasks.Task.Yield(); return 0; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_06()
+    {
+        string source = """
+static class E
+{
+    extension(string[] args)
+    {
+        public void Main() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_07()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS1558: 'E' does not have a suitable static 'Main' method
+            // static class E
+            Diagnostic(ErrorCode.ERR_NoMainInClass, "E").WithArguments("E").WithLocation(1, 14),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
     }
 
     [Fact]
