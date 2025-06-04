@@ -7,13 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Collections
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class ImmutableArrayExtensionsTests
     {
@@ -543,6 +542,48 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             Assert.True(array.ToImmutableArray().IsSubsetOf(other.ToImmutableArray()));
             Assert.True(other.ToImmutableArray().IsSubsetOf(array.ToImmutableArray()));
+        }
+
+        public sealed class Comparer<T>(Func<T, T, bool> equals, Func<T, int> hashCode) : IEqualityComparer<T>
+        {
+            private readonly Func<T, T, bool> _equals = equals;
+            private readonly Func<T, int> _hashCode = hashCode;
+
+            public bool Equals(T x, T y) => _equals(x, y);
+            public int GetHashCode(T obj) => _hashCode(obj);
+        }
+
+        [Fact]
+        public void HasDuplicates()
+        {
+            var comparer = new Comparer<int>((x, y) => x % 10 == y % 10, x => (x % 10).GetHashCode());
+
+            Assert.False(ImmutableArray<int>.Empty.HasDuplicates());
+            Assert.False(ImmutableArray<int>.Empty.HasDuplicates(comparer));
+            Assert.False(ImmutableArray<int>.Empty.HasDuplicates(i => i + 1));
+
+            Assert.False(ImmutableArray.Create(1).HasDuplicates());
+            Assert.False(ImmutableArray.Create(1).HasDuplicates(comparer));
+            Assert.False(ImmutableArray.Create(1).HasDuplicates(i => i + 1));
+
+            Assert.False(ImmutableArray.Create(1, 2).HasDuplicates());
+            Assert.False(ImmutableArray.Create(1, 2).HasDuplicates(comparer));
+            Assert.False(ImmutableArray.Create(1, 2).HasDuplicates(i => i + 1));
+
+            Assert.True(ImmutableArray.Create(1, 1).HasDuplicates());
+            Assert.True(ImmutableArray.Create(11, 1).HasDuplicates(comparer));
+            Assert.True(ImmutableArray.Create(1, 3).HasDuplicates(i => i % 2));
+            Assert.True(ImmutableArray.Create(11.0, 1.2).HasDuplicates(i => (int)i, comparer));
+
+            Assert.False(ImmutableArray.Create(2, 0, 1, 3).HasDuplicates());
+            Assert.False(ImmutableArray.Create(2, 0, 1, 13).HasDuplicates(comparer));
+            Assert.False(ImmutableArray.Create(2, 0, 1, 53).HasDuplicates(i => i % 10));
+            Assert.False(ImmutableArray.Create(2.3, 0.1, 1.3, 53.4).HasDuplicates(i => (int)i, comparer));
+
+            Assert.True(ImmutableArray.Create(2, 0, 1, 2).HasDuplicates());
+            Assert.True(ImmutableArray.Create(2, 0, 1, 12).HasDuplicates(comparer));
+            Assert.True(ImmutableArray.Create(2, 0, 1, 52).HasDuplicates(i => i % 10));
+            Assert.True(ImmutableArray.Create(2.3, 0.1, 1.3, 52.4).HasDuplicates(i => (int)i, comparer));
         }
     }
 }

@@ -806,12 +806,25 @@ namespace Microsoft.CodeAnalysis
             return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+            => array.HasDuplicates(EqualityComparer<T>.Default);
+
+        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
+            => array.HasDuplicates(static x => x, comparer);
+
+        public static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector)
+            => array.HasDuplicates(selector, EqualityComparer<TValue>.Default);
+
         /// <summary>
-        /// Determines whether duplicates exist using default equality comparer.
+        /// Determines whether duplicates exist using given equality comparer.
         /// </summary>
         /// <param name="array">Array to search for duplicates</param>
         /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array)
+        /// <remarks>
+        /// API proposal: https://github.com/dotnet/runtime/issues/30582.
+        /// <seealso cref="Roslyn.Utilities.EnumerableExtensions.HasDuplicates{TItem, TValue}(IEnumerable{TItem}, Func{TItem, TValue}, IEqualityComparer{TValue})"/>
+        /// </remarks>
+        internal static bool HasDuplicates<TItem, TValue>(this ImmutableArray<TItem> array, Func<TItem, TValue> selector, IEqualityComparer<TValue> comparer)
         {
             switch (array.Length)
             {
@@ -820,56 +833,23 @@ namespace Microsoft.CodeAnalysis
                     return false;
 
                 case 2:
-                    return EqualityComparer<T>.Default.Equals(array[0], array[1]);
+                    return comparer.Equals(selector(array[0]), selector(array[1]));
 
                 default:
-                    var set = PooledHashSet<T>.GetInstance();
-                    var foundDuplicate = false;
+                    var set = comparer == EqualityComparer<TValue>.Default ? PooledHashSet<TValue>.GetInstance() : new HashSet<TValue>(comparer);
+                    var result = false;
 
                     foreach (var element in array)
                     {
-                        if (!set.Add(element))
+                        if (!set.Add(selector(element)))
                         {
-                            foundDuplicate = true;
+                            result = true;
                             break;
                         }
                     }
 
-                    set.Free();
-                    return foundDuplicate;
-            }
-        }
-
-        /// <summary>
-        /// Determines whether duplicates exist using <paramref name="comparer"/>. Use other override
-        /// if you don't need a custom comparer.
-        /// </summary>
-        /// <param name="array">Array to search for duplicates</param>
-        /// <param name="comparer">Comparer to use in search</param>
-        /// <returns>Whether duplicates were found</returns>
-        internal static bool HasDuplicates<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer)
-        {
-            switch (array.Length)
-            {
-                case 0:
-                case 1:
-                    return false;
-
-                case 2:
-                    comparer ??= EqualityComparer<T>.Default;
-                    return comparer.Equals(array[0], array[1]);
-
-                default:
-                    var set = new HashSet<T>(comparer);
-                    foreach (var element in array)
-                    {
-                        if (!set.Add(element))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
+                    (set as PooledHashSet<TValue>)?.Free();
+                    return result;
             }
         }
 
