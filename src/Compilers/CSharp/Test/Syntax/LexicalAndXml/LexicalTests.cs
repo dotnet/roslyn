@@ -4601,10 +4601,6 @@ class C
             for (var i = 0; i < 1326; i++)
                 lexer.Lex(ref mode);
 
-            // Ensure that the lexer's window is starting with the next FP number (".03") right at
-            // the start of the window.
-            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
-
             // Lexer will read from index 0 in the arrray.
             Assert.Equal(0, lexer.TextWindow.Offset);
 
@@ -4620,13 +4616,14 @@ class C
             // We're at the start of a token.
             Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
 
+            // Ensure that the lexer's window is starting with the next FP number (".03") right at
+            // the start of the window.
+            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
+
             var token = lexer.Lex(ref mode);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind);
             Assert.Equal(3, token.FullWidth);
             Assert.Equal(".03", token.ToString());
-
-            // Character window didn't changee.
-            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
 
             // But we moved 3 characters forward.
             Assert.Equal(3, lexer.TextWindow.Offset);
@@ -4639,6 +4636,9 @@ class C
 
             // We're at the start of a token.
             Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
+
+            // Character window didn't changee.
+            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
         }
     }
 }
