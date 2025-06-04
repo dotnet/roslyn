@@ -2,13 +2,60 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Public Class IteratorTests
         Inherits FlowTestBase
+
+        <Fact>
+        Public Sub BasicIterator()
+            Dim compilation = CreateCompilation(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System.Collections.Generic
+
+Class C
+    Public Iterator Function I As IEnumerable(Of Integer)
+        Yield 1
+    End Function
+End Class
+]]>
+                        </file>
+                    </compilation>).VerifyDiagnostics()
+
+            Dim i = compilation.GetMember(Of MethodSymbol)("C.I")
+            Assert.True(i.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub BasicIterator_Metadata()
+            Dim sourceComp = CreateCompilation(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System.Collections.Generic
+
+Public Class C
+    Public Iterator Function I As IEnumerable(Of Integer)
+        Yield 1
+    End Function
+End Class
+]]>
+                        </file>
+                    </compilation>).VerifyDiagnostics()
+
+            Dim userComp = CreateCompilation("", references:={sourceComp.EmitToImageReference()}).VerifyDiagnostics()
+            Dim cMetadataType = Assert.IsAssignableFrom(Of PENamedTypeSymbol)(userComp.GetTypeByMetadataName("C"))
+
+            Dim i = cMetadataType.GetMethod("I")
+            Assert.False(i.IsIterator)
+        End Sub
 
         <Fact()>
         Public Sub IteratorNoYields()
@@ -1019,6 +1066,30 @@ End Class
             Assert.True([property].GetMethod.IsIterator)
             Assert.False([property].SetMethod.IsIterator)
             CompileAndVerify(compilation, expectedOutput:="123")
+        End Sub
+
+        <Fact>
+        Public Sub IteratorProperty_Metadata()
+            Dim sourceComp = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+
+Class C
+    Iterator ReadOnly Property P As IEnumerable(Of Integer)
+        Get
+            Yield 1
+        End Get
+    End Property
+End Class
+]]></file>
+</compilation>).VerifyDiagnostics()
+
+            Dim userComp = CreateCompilation("", references:={sourceComp.EmitToImageReference()}).VerifyDiagnostics()
+            Dim cMetadataType = Assert.IsAssignableFrom(Of PENamedTypeSymbol)(userComp.GetTypeByMetadataName("C"))
+
+            Dim [property] = cMetadataType.GetProperty("P")
+            Assert.False([property].GetMethod.IsIterator)
         End Sub
 
         <Fact()>
