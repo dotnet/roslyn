@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(this.Position > 0);
             var desiredPosition = this.Position - 1;
-            if (desiredPosition >= _basis && _offset >= 1)
+            if (desiredPosition >= _basis/* && _offset >= 1*/)
             {
                 // _basis describes where in the source text the current chunk of characters starts at.
                 // So if the desired position is ahead of that, then we can just read the value out of
