@@ -1811,16 +1811,8 @@ LoopExit:
                 var width = this.CurrentLexemeWidth; // exact size of input characters
 
                 // id buffer is identical to width in input
-                if (_identLen == width)
-                {
-                    info.StringValue = TextWindow.GetInternedText();
-                    info.Text = info.StringValue;
-                }
-                else
-                {
-                    info.StringValue = TextWindow.Intern(_identBuffer, 0, _identLen);
-                    info.Text = GetNonInternedLexemeText();
-                }
+                info.StringValue = TextWindow.Intern(_identBuffer, 0, _identLen);
+                info.Text = _identLen == width ? info.StringValue : GetNonInternedLexemeText();
 
                 return true;
             }

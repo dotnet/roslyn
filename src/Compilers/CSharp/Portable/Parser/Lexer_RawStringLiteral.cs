@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // trusting the contents.
             if (this.HasErrors)
             {
-                var afterStartDelimiter = TextWindow.LexemeStartPosition + startingQuoteCount;
+                var afterStartDelimiter = LexemeStartPosition + startingQuoteCount;
                 var valueLength = TextWindow.Position - afterStartDelimiter;
 
                 info.StringValue = TextWindow.GetText(
