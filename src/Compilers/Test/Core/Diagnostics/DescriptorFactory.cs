@@ -29,10 +29,9 @@ namespace Roslyn.Test.Utilities
         /// <returns>A <see cref="DiagnosticDescriptor"/> with specified <see cref="DiagnosticDescriptor.Id"/>.</returns>
         public static DiagnosticDescriptor CreateSimpleDescriptor(string id, params string[] additionalCustomTags)
         {
-            var customTags = additionalCustomTags.Concat(WellKnownDiagnosticTags.NotConfigurable).AsArray();
             return new DiagnosticDescriptor(id, title: "", messageFormat: id, category: "",
                 defaultSeverity: DiagnosticSeverity.Hidden, isEnabledByDefault: true,
-                customTags: customTags);
+                customTags: [.. additionalCustomTags, WellKnownDiagnosticTags.NotConfigurable]);
         }
     }
 }
