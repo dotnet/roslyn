@@ -119,6 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Reset(int positionInText)
         {
+            positionInText = Math.Min(positionInText, _textEnd);
+
             _positionInText = positionInText;
 
             // if position is within already read character range then just use what we have
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var array = CharacterWindow.Array!;
             var amountToRead = Math.Min(_text.Length - positionInText, array.Length);
             if (amountToRead > 0)
-                _text.CopyTo(_positionInText, array, 0, amountToRead);
+                _text.CopyTo(positionInText, array, 0, amountToRead);
 
             CharacterWindow = new(array, 0, amountToRead);
             _characterWindowStartPositionInText = positionInText;
