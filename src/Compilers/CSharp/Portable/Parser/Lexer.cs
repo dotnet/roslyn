@@ -1599,7 +1599,7 @@ top:
             }
 
 LoopExit:
-            var width = TextWindow.Width; // exact size of input characters
+            var width = this.LexemeWidth; // exact size of input characters
             if (_identLen > 0)
             {
                 info.Text = TextWindow.GetInternedText();
@@ -1808,7 +1808,7 @@ LoopExit:
                 // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
-                var width = TextWindow.Width; // exact size of input characters
+                var width = this.LexemeWidth; // exact size of input characters
 
                 // id buffer is identical to width in input
                 if (_identLen == width)
@@ -2168,7 +2168,7 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.TextWindow.Width > 0)
+            if (this.LexemeWidth > 0)
             {
                 this.AddTrivia(SyntaxFactory.DisabledText(GetNonInternedLexemeText()), ref triviaList);
             }
@@ -2189,7 +2189,7 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.TextWindow.Width > 0)
+            if (this.LexemeWidth > 0)
             {
                 this.AddTrivia(SyntaxFactory.EndOfLine(GetNonInternedLexemeText()), ref triviaList);
             }
@@ -2328,15 +2328,14 @@ top:
                     break;
             }
 
-            if (TextWindow.Width == 1 && onlySpaces)
+            var currentLexemeWidth = this.LexemeWidth;
+            if (currentLexemeWidth == 1 && onlySpaces)
             {
                 return SyntaxFactory.Space;
             }
             else
             {
-                var width = TextWindow.Width;
-
-                if (width < MaxCachedTokenSize)
+                if (currentLexemeWidth < MaxCachedTokenSize)
                 {
                     return _cache.LookupTrivia(
                         TextWindow.CharacterWindow,
@@ -2457,7 +2456,7 @@ top:
                         }
 
                         followedByDirective = false;
-                        return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
+                        return this.LexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
                     case '#':
                         if (!_allowPreprocessorDirectives) goto default;
                         followedByDirective = true;
@@ -2467,7 +2466,7 @@ top:
                         }
 
                         TextWindow.Reset(lastLineStart);  // reset so directive parser can consume the starting whitespace on this line
-                        return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
+                        return this.LexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
                     case '\r':
                     case '\n':
                         this.ScanEndOfLine();

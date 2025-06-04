@@ -141,6 +141,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected string GetInternedLexemeText()
             => TextWindow.GetText(LexemeStartPosition, intern: true);
 
+        protected int CurrentLexemeWidth
+            => this.TextWindow.Position - LexemeStartPosition;
+
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code)
         {
             return new SyntaxDiagnosticInfo(code);
