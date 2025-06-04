@@ -194,10 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.Start();
             var state = QuickScanState.Initial;
 
-            var charWindow = TextWindow.CharacterWindow.Array!;
+            var charWindow = TextWindow.CharacterWindow;
             var startIndex = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
             var currentIndex = startIndex;
-            var n = charWindow.Length;
+            var n = charWindow.Count;
+
+            var charWindowRawArray = charWindow.Array!;
 
             n = Math.Min(n, currentIndex + MaxCachedTokenSize);
 
@@ -208,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             for (; currentIndex < n; currentIndex++)
             {
-                char c = charWindow[currentIndex];
+                char c = charWindowRawArray[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -239,7 +241,7 @@ exitWhile:
 
                 // this is a good token!
                 var token = _cache.LookupToken(
-                    charWindow,
+                    charWindowRawArray,
                     startIndex,
                     tokenLength,
                     hashCode,

@@ -1343,9 +1343,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var characterWindow = TextWindow.CharacterWindow.Array!;
+            var characterWindow = TextWindow.CharacterWindow;
             var currentOffset = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
-            var characterWindowCount = characterWindow.Length;
+            var characterWindowCount = characterWindow.Count;
+
+            var characterWindowRawArray = characterWindow.Array!;
 
             var startOffset = currentOffset;
 
@@ -1357,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                switch (characterWindow[currentOffset])
+                switch (characterWindowRawArray[currentOffset])
                 {
                     case '&':
                         // CONSIDER: This method is performance critical, so
@@ -1409,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // done.
                         var length = currentOffset - startOffset;
                         TextWindow.AdvanceChar(length);
-                        info.Text = info.StringValue = TextWindow.Intern(characterWindow, startOffset, length);
+                        info.Text = info.StringValue = TextWindow.Intern(characterWindowRawArray, startOffset, length);
                         info.IsVerbatim = false;
                         return true;
                     case >= '0' and <= '9':
