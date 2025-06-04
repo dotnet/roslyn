@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -20338,7 +20339,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_01()
     {
         var src = """
 var (x, y) = new C();
@@ -20356,6 +20357,91 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_02()
+    {
+        // array to Span
+        var src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
+        try
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        Debug.Assert(false);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct Span<T>
+    {
+    }
+}
+""";
+#if RELEASE
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // var (x, y) = new int[] { 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var (x, y) = new int[] { 42 }").WithArguments("System.Span<T>", "op_Implicit").WithLocation(1, 1),
+            // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.Span<int> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
+#endif
+
+#if DEBUG
+        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
+        try
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        Debug.Assert(false);
+#endif
     }
 
     [Fact]
@@ -20851,7 +20937,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_02_Conversion()
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_01()
     {
         var text = """
 unsafe class C
@@ -20877,6 +20963,77 @@ static class E
 """;
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_02()
+    {
+        var text = """
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (0, ""))
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public ref int GetPinnableReference() { System.Console.Write("pin "); return ref (new int[] { 1, 2, 3 })[0]; }
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("pin 2"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var text = """
+unsafe class C
+{
+    public static void M()
+    {
+        System.ReadOnlySpan<string> x = default;
+        fixed (long* p = x)
+        {
+        }
+    }
+}
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public ref long GetPinnableReference() => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (5,16): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //         System.ReadOnlySpan<string> x = default;
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<string>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(5, 16),
+            // (6,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            //         fixed (long* p = x)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(6, 26),
+            // (14,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<object> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<object>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(14, 22));
     }
 
     [Fact]
@@ -22119,7 +22276,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_Patterns_Conversion()
+    public void ExtensionMemberLookup_Patterns_Conversion_01()
     {
         var src = """
 var c = new C();
@@ -22140,6 +22297,382 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_02()
+    {
+        // implicit span conversion: array to Span
+        var src = """
+int[] i = [42];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.Span<int> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (int[] V_0) //i
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "int"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   42
+  IL_000a:  stelem.i4
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brfalse.s  IL_0020
+  IL_000f:  ldloc.0
+  IL_0010:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+  IL_0015:  call       "int E.get_Property(System.Span<int>)"
+  IL_001a:  ldc.i4.s   42
+  IL_001c:  ceq
+  IL_001e:  br.s       IL_0021
+  IL_0020:  ldc.i4.0
+  IL_0021:  pop
+  IL_0022:  ldloc.0
+  IL_0023:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+  IL_0028:  call       "void E.M(System.Span<int>)"
+  IL_002d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_03()
+    {
+        // implicit span conversion: array to Span
+        var src = """
+string[] i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.Span<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.Span<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS9286: 'string[]' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+            // _ = i is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Property").WithArguments("string[]", "Property").WithLocation(2, 12),
+            // (3,1): error CS1929: 'string[]' does not contain a definition for 'M' and the best extension method overload 'E.M(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // i.M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("string[]", "M", "E.M(System.Span<object>)", "System.Span<object>").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_04()
+    {
+        // implicit span conversion: Span to ReadOnlySpan
+        var src = """
+System.Span<string> i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  newobj     "System.Span<string>..ctor(ref string)"
+  IL_000d:  dup
+  IL_000e:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+  IL_0013:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0018:  call       "int E.get_Property(System.ReadOnlySpan<object>)"
+  IL_001d:  pop
+  IL_001e:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+  IL_0023:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0028:  call       "void E.M(System.ReadOnlySpan<object>)"
+  IL_002d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_05()
+    {
+        // implicit span conversion: ReadOnlySpan to ReadOnlySpan
+        var src = """
+System.ReadOnlySpan<string> i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
+  IL_000d:  dup
+  IL_000e:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0013:  call       "int E.get_Property(System.ReadOnlySpan<object>)"
+  IL_0018:  pop
+  IL_0019:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_001e:  call       "void E.M(System.ReadOnlySpan<object>)"
+  IL_0023:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_06()
+    {
+        // implicit span conversion: string to ReadOnlySpan
+        var src = """
+string s = "";
+_ = s is { Property: 42 };
+s.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<char> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<char> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (string V_0) //s
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brfalse.s  IL_001a
+  IL_0009:  ldloc.0
+  IL_000a:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000f:  call       "int E.get_Property(System.ReadOnlySpan<char>)"
+  IL_0014:  ldc.i4.s   42
+  IL_0016:  ceq
+  IL_0018:  br.s       IL_001b
+  IL_001a:  ldc.i4.0
+  IL_001b:  pop
+  IL_001c:  ldloc.0
+  IL_001d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0022:  call       "void E.M(System.ReadOnlySpan<char>)"
+  IL_0027:  ret
+}
+""");
+
+        var spanSrc = """
+namespace System;
+
+public readonly ref struct ReadOnlySpan<T>
+{
+}
+""";
+        comp = CreateCompilation([src, spanSrc]);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // _ = s is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Property").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 12),
+            // (3,1): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // s.M();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_07()
+    {
+        // boxing
+        var src = """
+int i = 42;
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this object o) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verify = CompileAndVerify(comp, expectedOutput: "property method").VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  dup
+  IL_0003:  box        "int"
+  IL_0008:  call       "int E.get_Property(object)"
+  IL_000d:  pop
+  IL_000e:  box        "int"
+  IL_0013:  call       "void E.M(object)"
+  IL_0018:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_08()
+    {
+        // implicit tuple conversion
+        var src = """
+(int, string) t = (42, "");
+_ = t is { Property: 42 };
+t.M();
+
+class C { }
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this (object, object) t) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, string> V_0)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ldstr      ""
+  IL_0007:  newobj     "System.ValueTuple<int, string>..ctor(int, string)"
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      "int System.ValueTuple<int, string>.Item1"
+  IL_0014:  box        "int"
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      "string System.ValueTuple<int, string>.Item2"
+  IL_001f:  newobj     "System.ValueTuple<object, object>..ctor(object, object)"
+  IL_0024:  call       "int E.get_Property(System.ValueTuple<object, object>)"
+  IL_0029:  pop
+  IL_002a:  stloc.0
+  IL_002b:  ldloc.0
+  IL_002c:  ldfld      "int System.ValueTuple<int, string>.Item1"
+  IL_0031:  box        "int"
+  IL_0036:  ldloc.0
+  IL_0037:  ldfld      "string System.ValueTuple<int, string>.Item2"
+  IL_003c:  newobj     "System.ValueTuple<object, object>..ctor(object, object)"
+  IL_0041:  call       "void E.M(System.ValueTuple<object, object>)"
+  IL_0046:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_09()
+    {
+        // We check conversion during initial binding
+        var src = """
+int[] i = [];
+_ = i is { Property: 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<int> r)
+    {
+        public int Property => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            // _ = i is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Property").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(2, 12),
+            // (6,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<int> r)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<int>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(6, 22));
     }
 
     [Fact]
@@ -22299,7 +22832,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_ObjectInitializer_Conversion()
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_01()
     {
         var src = """
 _ = new C() { Property = 42 };
@@ -22320,12 +22853,105 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_02()
+    {
+        var src = """
+_ = new System.ReadOnlySpan<string>() { Property = 42 };
+
+new System.ReadOnlySpan<string>().Property = 43;
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider adjusting receiver requirements for extension members
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,41): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.ReadOnlySpan<string>() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 41),
+            // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // new System.ReadOnlySpan<string>().Property = 43;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+
+        src = """
+new S().Property = 42;
+
+struct S
+{
+    public int Property { set { } }
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // new S().Property = 42;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_03()
+    {
+        // implicit tuple conversion
+        var src = """
+_ = new System.ValueTuple<int, string>() { Property = 42 };
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public int Property
+        {
+            set { System.Console.Write("property"); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,44): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.ValueTuple<int, string>() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 44));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_04()
+    {
+        // implicit span conversion from string
+        var src = """
+_ = new System.String('a', 10) { Property = 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<char> s)
+    {
+        public int Property
+        {
+            set { System.Console.Write(value); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (1,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.String('a', 10) { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 34));
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_With()
     {
         var src = """
-/*<bind>*/
 _ = new S() with { Property = 42 };
-/*</bind>*/
 
 struct S { }
 
