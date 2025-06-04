@@ -118,11 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public void Reset(int positionInText)
         {
+            _positionInText = positionInText;
+
             // if position is within already read character range then just use what we have
-            if (positionInText >= _characterWindowStartPositionInText &&
-                positionInText < CharacterWindowEndPositionInText)
+            if (_positionInText >= CharacterWindowStartPositionInText &&
+                _positionInText < CharacterWindowEndPositionInText)
             {
-                _positionInText = positionInText;
                 return;
             }
 
@@ -137,8 +138,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _text.CopyTo(_positionInText, array, 0, amountToRead);
 
             _characterWindow = new(array, 0, amountToRead);
-            _positionInText = positionInText;
             _characterWindowStartPositionInText = positionInText;
+        }
+
+        public char CharAt(int positionInText)
+        {
+            // If it's not in the source text at all, return an invalid char.  This allows us to easily index without
+            // having to do length checks.
+            if (positionInText < 0 || positionInText >= _textEnd)
+                return InvalidCharacter;
+
+            // If the position is outside of the chunk we're currently pointing to, read in a chunk starting at the
+            // location we're trying to read at.
+            if (positionInText < CharacterWindowStartPositionInText ||
+                positionInText >= CharacterWindowEndPositionInText)
+            {
+                this.ReadChunkAt(positionInText);
+            }
+
+            Debug.Assert(positionInText >= CharacterWindowStartPositionInText && positionInText < CharacterWindowEndPositionInText);
+            return this._characterWindow.Array![positionInText - this.CharacterWindowStartPositionInText];
         }
 
         /// <summary>
@@ -242,15 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public char PreviousChar()
             => this.PeekChar(this.Position - 1);
 
-        public char CharAt(int positionInText)
-        {
-            if (positionInText < 0 || positionInText >= _textEnd)
-                return InvalidCharacter;
-
-            this.Reset(positionInText);
-            return this._characterWindow.Array![this.PositionInText - this._characterWindowStartPositionInText];
-        }
-
         /// <summary>
         /// If the next characters in the window match the given string,
         /// then advance past those characters.  Otherwise, do nothing.
@@ -288,7 +298,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
-            this.Reset(position);
             var start = position;
             var end = start + length;
 
