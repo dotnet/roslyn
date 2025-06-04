@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -377,12 +373,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public char PreviousChar()
         {
             Debug.Assert(this.Position > 0);
-            var desiredPosition = this.Position - 1;
-            if (desiredPosition >= _basis && _offset >= 1)
+            if (_offset > 0)
             {
-                // _basis describes where in the source text the current chunk of characters starts at.
-                // So if the desired position is ahead of that, then we can just read the value out of
-                // the character window directly.
+                // The allowed region of the window that can be read is from 0 to _characterWindowCount (which _offset)
+                // is in between.  So as long as _offset is greater than 0, we can read the previous character directly
+                // from the current chunk of characters in the window.
                 return this.CharacterWindow[_offset - 1];
             }
 
@@ -391,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Just go back to the source text to find this character.  While more expensive, this should
             // be rare given that most of the time we won't be calling this right after loading a new text
             // chunk.
-            return this.Text[desiredPosition];
+            return this.Text[this.Position - 1];
         }
 
         /// <summary>
@@ -499,6 +494,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 lowSurrogate = (char)((codepoint - 0x00010000) % 0x0400 + 0xDC00);
                 return (char)((codepoint - 0x00010000) / 0x0400 + 0xD800);
             }
+        }
+
+        public TestAccessor GetTestAccessor()
+            => new(this);
+
+        public readonly struct TestAccessor(SlidingTextWindow window)
+        {
+            private readonly SlidingTextWindow _window = window;
+
+            public void SetDefaultCharacterWindow()
+                => _window._characterWindow = new char[DefaultWindowLength];
         }
     }
 }
