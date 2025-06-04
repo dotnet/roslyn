@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         var atDotPosition = this.TextWindow.Position;
                         if (atDotPosition >= 1 &&
-                            atDotPosition == this.TextWindow.LexemeStartPosition)
+                            atDotPosition == this.LexemeStartPosition)
                         {
                             // We have something like: .0
                             //

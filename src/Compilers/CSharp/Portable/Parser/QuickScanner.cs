@@ -245,7 +245,7 @@ exitWhile:
             }
             else
             {
-                TextWindow.Reset(TextWindow.LexemeStartPosition);
+                TextWindow.Reset(this.LexemeStartPosition);
                 return null;
             }
         }
@@ -255,7 +255,7 @@ exitWhile:
 #if DEBUG
             var quickWidth = lexer.TextWindow.Width;
 #endif
-            lexer.TextWindow.Reset(lexer.TextWindow.LexemeStartPosition);
+            lexer.TextWindow.Reset(lexer.LexemeStartPosition);
             var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);
