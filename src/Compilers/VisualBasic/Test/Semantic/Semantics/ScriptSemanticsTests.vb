@@ -113,7 +113,7 @@ BC2014: the value 'Nothing' is invalid for option 'ScriptClassName'
                 )
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/78792")>
         <WorkItem(10023, "https://github.com/dotnet/roslyn/issues/10023")>
         Public Sub Errors_02()
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit("System.Console.WriteLine(1)", options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
