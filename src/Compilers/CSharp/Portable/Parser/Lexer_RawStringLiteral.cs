@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 };
             }
 
-            info.Text = TextWindow.GetText(intern: true);
+            info.Text = GetInternedLexemeText();
         }
 
         private void ScanSingleLineRawStringLiteral(ref TokenInfo info, int startingQuoteCount)

@@ -2728,7 +2728,7 @@ top:
                         }
 
                         info.Kind = SyntaxKind.None;
-                        info.Text = TextWindow.GetText(true);
+                        info.Text = GetInternedLexemeText();
                     }
 
                     break;
