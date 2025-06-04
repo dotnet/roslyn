@@ -300,6 +300,27 @@ class C
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestFindReferencesAsync_UsingAlias(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            using {|caret:MyType|} = System.{|reference:String|};
+
+            class SomeClassToExtract
+            {
+                void M()
+                {
+                    {|reference:MyType|} p;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+
+        var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
+        AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location).WhereNotNull());
+    }
+
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
         => new LSP.ReferenceParams()
         {

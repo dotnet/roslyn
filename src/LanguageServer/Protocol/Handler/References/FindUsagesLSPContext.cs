@@ -253,7 +253,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
 
         // If we have no document span, our location may be in metadata or may be a namespace.
         var symbol = await SymbolFinder.FindSymbolAtPositionAsync(_document, _position, cancellationToken).ConfigureAwait(false);
-        if (symbol == null || symbol.Locations.IsEmpty || symbol.Kind == SymbolKind.Namespace)
+        if (symbol == null || symbol.Locations.IsEmpty || symbol.Kind is SymbolKind.Namespace or SymbolKind.Alias)
         {
             // Either:
             // (1) We couldn't find the location in metadata and it's not in any of our known documents.
