@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private readonly StringTable _strings;
 
         /// <summary>
-        /// The underlying text being lexed/parsed.  Used to fill <see cref="_characterWindow"/>.  Can also be queried
-        /// directly in rare cases where a character is needed, and is not in <see cref="_characterWindow"/> and we don't
+        /// The underlying text being lexed/parsed.  Used to fill <see cref="CharacterWindow"/>.  Can also be queried
+        /// directly in rare cases where a character is needed, and is not in <see cref="CharacterWindow"/> and we don't
         /// want to both pulling an entire chunk of data from it into the window.
         /// </summary>
         private readonly SourceText _text;
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// of the chunk of <see cref="_text"/> this corresponds to, then the Lexeme text to read will be fetched from the 
         /// <see cref="_text"/> value instead.
         /// </remarks>
-        private ArraySegment<char> _characterWindow;
+        public ArraySegment<char> CharacterWindow { get; private set; }
 
         /// <summary>
-        /// Where the <see cref="_characterWindow"/> starts from inside <see cref="_text"/>
+        /// Where the <see cref="CharacterWindow"/> starts from inside <see cref="_text"/>
         /// </summary>
         private int _characterWindowStartPositionInText;
 
@@ -75,14 +75,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private int _positionInText;
 
-        public ArraySegment<char> CharacterWindow => _characterWindow;
-
         public SlidingTextWindow(SourceText text)
         {
             _text = text;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
-            _characterWindow = new(s_windowPool.Allocate());
+            CharacterWindow = new(s_windowPool.Allocate());
 
             // Read the first chunk of the file into the character window.
             this.ReadChunkAt(0);
@@ -91,16 +89,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static void ReturnArray(char[] array)
         {
             if (array.Length == DefaultWindowLength)
+            {
+                Array.Clear(array, 0, array.Length);
                 s_windowPool.Free(array);
+            }
         }
 
         public void Dispose()
         {
-            var array = _characterWindow.Array;
+            var array = CharacterWindow.Array;
             if (array != null)
             {
                 ReturnArray(array);
-                _characterWindow = default;
+                CharacterWindow = default;
                 _strings.Free();
             }
         }
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public int Position => PositionInText;
 
         public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
-        public int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
+        public int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + CharacterWindow.Count;
 
         public void Reset(int positionInText)
         {
@@ -132,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ReadChunkAt(int positionInText)
         {
-            var array = _characterWindow.Array!;
+            var array = CharacterWindow.Array!;
             var amountToRead = Math.Min(_text.Length - positionInText, array.Length);
             if (amountToRead > 0)
                 _text.CopyTo(_positionInText, array, 0, amountToRead);
 
-            _characterWindow = new(array, 0, amountToRead);
+            CharacterWindow = new(array, 0, amountToRead);
             _characterWindowStartPositionInText = positionInText;
         }
 
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             Debug.Assert(positionInText >= CharacterWindowStartPositionInText && positionInText < CharacterWindowEndPositionInText);
-            return this._characterWindow.Array![positionInText - this.CharacterWindowStartPositionInText];
+            return this.CharacterWindow.Array![positionInText - this.CharacterWindowStartPositionInText];
         }
 
         /// <summary>
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => this.CharAt(this.Position + delta);
 
         public char PreviousChar()
-            => this.PeekChar(this.Position - 1);
+            => this.PeekChar(-1);
 
         /// <summary>
         /// If the next characters in the window match the given string,
@@ -339,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (start >= this.CharacterWindowStartPositionInText && end <= this.CharacterWindowEndPositionInText)
             {
                 var offset = position - this.CharacterWindowStartPositionInText;
-                var array = this._characterWindow.Array!;
+                var array = this.CharacterWindow.Array!;
                 return intern
                     ? this.Intern(array, offset, length)
                     : new string(array, offset, length);
