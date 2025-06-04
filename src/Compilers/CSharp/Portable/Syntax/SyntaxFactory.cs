@@ -1713,21 +1713,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static TypeSyntax ParseTypeName(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseTypeName();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (TypeSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<TypeSyntax>(node, lexer.Options);
             }
         }
 
@@ -1741,21 +1732,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ExpressionSyntax ParseExpression(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseExpression();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (ExpressionSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<ExpressionSyntax>(node, lexer.Options);
             }
         }
 
@@ -1769,21 +1751,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static StatementSyntax ParseStatement(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseStatement();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (StatementSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<StatementSyntax>(node, lexer.Options);
             }
         }
 
@@ -1798,8 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input following a declaration should be treated as an error</param>
         public static MemberDeclarationSyntax? ParseMemberDeclaration(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseMemberDeclaration();
@@ -1808,15 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var red = (MemberDeclarationSyntax)(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node).CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<MemberDeclarationSyntax>(consumeFullText ? parser.ConsumeUnexpectedTokens(node) : node, lexer.Options);
             }
         }
 
@@ -1836,15 +1800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseCompilationUnit();
-                var red = (CompilationUnitSyntax)node.CreateRed();
-                if (options is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, options);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<CompilationUnitSyntax>(node, lexer.Options);
             }
         }
 
@@ -1858,21 +1814,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ParameterListSyntax ParseParameterList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseParenthesizedParameterList(forExtension: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (ParameterListSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<ParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1886,21 +1833,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static BracketedParameterListSyntax ParseBracketedParameterList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseBracketedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (BracketedParameterListSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<BracketedParameterListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1914,21 +1852,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static ArgumentListSyntax ParseArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseParenthesizedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (ArgumentListSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<ArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1942,21 +1871,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static BracketedArgumentListSyntax ParseBracketedArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using (var lexer = MakeLexer(text, offset, cSharpOptions))
+            using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
                 var node = parser.ParseBracketedArgumentList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
-                var red = (BracketedArgumentListSyntax)node.CreateRed();
-                if (cSharpOptions is not null)
-                {
-                    Debug.Assert(red._syntaxTree is null);
-#pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                    red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
-#pragma warning restore
-                }
-                return red;
+                return CreateRed<BracketedArgumentListSyntax>(node, lexer.Options);
             }
         }
 
@@ -1970,8 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consumeFullText">True if extra tokens in the input should be treated as an error</param>
         public static AttributeArgumentListSyntax? ParseAttributeArgumentList(string text, int offset = 0, ParseOptions? options = null, bool consumeFullText = true)
         {
-            var cSharpOptions = (CSharpParseOptions?)options;
-            using var lexer = MakeLexer(text, offset, cSharpOptions);
+            using var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options);
             using var parser = MakeParser(lexer);
 
             var node = parser.ParseAttributeArgumentList() ?? new InternalSyntax.AttributeArgumentListSyntax(
@@ -1983,14 +1902,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 annotations: null);
             if (consumeFullText)
                 node = parser.ConsumeUnexpectedTokens(node);
-            var red = (AttributeArgumentListSyntax)node.CreateRed();
-            if (cSharpOptions is not null)
-            {
-                Debug.Assert(red._syntaxTree is null);
+            return CreateRed<AttributeArgumentListSyntax>(node, lexer.Options);
+        }
+
+        private static TSyntax CreateRed<TSyntax>(InternalSyntax.CSharpSyntaxNode green, CSharpParseOptions options)
+            where TSyntax : CSharpSyntaxNode
+        {
+            var red = (TSyntax)green.CreateRed();
+            Debug.Assert(red._syntaxTree is null);
 #pragma warning disable RS0030 // Do not use banned APIs (CreateWithoutClone is intended to be used from this call site)
-                red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, cSharpOptions);
+            red._syntaxTree = CSharpSyntaxTree.CreateWithoutClone(red, options);
 #pragma warning restore
-            }
             return red;
         }
 
