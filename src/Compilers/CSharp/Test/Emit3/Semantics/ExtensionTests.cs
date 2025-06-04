@@ -97,7 +97,7 @@ public partial class ExtensionTests : CompilingTestBase
         Assert.Equal(Accessibility.Public, symbol.DeclaredAccessibility);
 
         var namedTypeSymbol = symbol.GetSymbol<NamedTypeSymbol>();
-        Assert.False(namedTypeSymbol.HasSpecialName);
+        Assert.True(namedTypeSymbol.HasSpecialName);
         Assert.False(namedTypeSymbol.IsImplicitlyDeclared);
     }
 
@@ -122,7 +122,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -212,7 +212,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
     {
         // Methods
@@ -292,7 +292,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
         extends [netstandard]System.Object
     {
         // Methods
@@ -578,7 +578,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
     {
         .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
@@ -825,7 +825,7 @@ public static partial class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1121,7 +1121,7 @@ public static class Extensions
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1285,7 +1285,7 @@ public static class IntExt
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1450,7 +1450,7 @@ public static class IntExt
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1740,7 +1740,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1846,7 +1846,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1967,7 +1967,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -2136,7 +2136,7 @@ extends [netstandard]System.Object
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -4623,7 +4623,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -4742,7 +4742,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5111,7 +5111,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5291,7 +5291,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5479,7 +5479,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5880,7 +5880,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6180,7 +6180,7 @@ public class C<T>(string v)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6421,7 +6421,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6696,7 +6696,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6955,7 +6955,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -7344,7 +7344,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -7661,7 +7661,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8142,7 +8142,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8320,7 +8320,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8506,7 +8506,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8871,7 +8871,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9161,7 +9161,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9450,7 +9450,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9661,7 +9661,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9810,7 +9810,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9961,7 +9961,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10108,7 +10108,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10248,7 +10248,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10390,7 +10390,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10539,7 +10539,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10732,7 +10732,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10895,7 +10895,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -30570,7 +30570,7 @@ static class E
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends System.Object
     {
         // Methods
@@ -30641,7 +30641,7 @@ i.M(2);
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
@@ -35050,7 +35050,7 @@ ref struct RS { }
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
@@ -39709,7 +39709,7 @@ static class E
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed
@@ -39772,7 +39772,7 @@ _ = 42.P;
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
@@ -39839,6 +39839,54 @@ _ = 42.P2;
 """;
         var comp = CreateCompilationWithIL(source, ilSrc);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void SpecialName_03()
+    {
+        // extension(int)
+        // {
+        //    public void M() { }
+        // }
+        // but no specialname on skeleton type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+	.method public hidebysig static void M () cil managed
+	{
+		IL_0000: nop
+		IL_0001: ret
+	}
+}
+""";
+        string source = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
     }
 
     [Fact]
