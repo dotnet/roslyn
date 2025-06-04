@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case 3:
-                    if (CharAt(position) == '/' && CharAt(position + 1) == '/' && CharAt(position + 1) == ' ')
+                    if (CharAt(position) == '/' && CharAt(position + 1) == '/' && CharAt(position + 2) == ' ')
                         return "// ";
 
                     break;
