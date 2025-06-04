@@ -20489,21 +20489,29 @@ static class E
     }
 }
 
-
 namespace System
 {
     public ref struct Span<T>
     {
     }
 }
-
 """;
+#if RELEASE
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // var (x, y) = new int[] { 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var (x, y) = new int[] { 42 }").WithArguments("System.Span<T>", "op_Implicit").WithLocation(1, 1),
+            // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.Span<int> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
+#endif
 
+#if DEBUG
         // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
         try
         {
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-            // Expect: error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
             comp.VerifyEmitDiagnostics();
         }
         catch (InvalidOperationException)
@@ -20512,6 +20520,7 @@ namespace System
         }
 
         Debug.Assert(false);
+#endif
     }
 
     [Fact]
@@ -22918,11 +22927,12 @@ static class E
 {
     extension(System.ReadOnlySpan<object> s)
     {
-        public int Property { set { System.Console.Write("property"); } }
+        public int Property { set { } }
     }
 }
 """;
 
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider adjusting receiver requirements for extension members
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (1,41): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -22931,6 +22941,21 @@ static class E
             // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             // new System.ReadOnlySpan<string>().Property = 43;
             Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+
+        src = """
+new S().Property = 42;
+
+struct S
+{
+    public int Property { set { } }
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // new S().Property = 42;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().Property").WithLocation(1, 1));
     }
 
     [Fact]
