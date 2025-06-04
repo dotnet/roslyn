@@ -2607,7 +2607,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
@@ -2628,7 +2628,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
@@ -2650,7 +2650,7 @@ Class C
     End Sub
 End Class
 }]]></Document>,
-                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
+                  extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)
 
