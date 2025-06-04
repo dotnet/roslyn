@@ -83,6 +83,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
             _characterWindow = new(s_windowPool.Allocate());
+
+            // Read the first chunk of the file into the character window.
+            this.ReadChunkAt(0);
         }
 
         private static void ReturnArray(char[] array)
@@ -123,6 +126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return;
             }
 
+            ReadChunkAt(positionInText);
+        }
+
+        private void ReadChunkAt(int positionInText)
+        {
             var array = _characterWindow.Array!;
             var amountToRead = Math.Min(_text.Length - positionInText, array.Length);
             if (amountToRead > 0)
@@ -219,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar()
-            => this.CharAt(0);
+            => this.CharAt(this.Position);
 
         /// <summary>
         /// Gets the character at the given offset to the current position if
@@ -232,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             => this.CharAt(this.Position + delta);
 
         public char PreviousChar()
-            => this.PeekChar(-1);
+            => this.PeekChar(this.Position - 1);
 
         public char CharAt(int positionInText)
         {
@@ -280,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public string GetText(int position, int length, bool intern)
         {
+            this.Reset(position);
             var start = position;
             var end = start + length;
 
