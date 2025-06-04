@@ -92,7 +92,7 @@ public sealed class SyntaxTokenParser : IDisposable
     /// <param name="position">The absolute location in the original text to move to.</param>
     public void SkipForwardTo(int position)
     {
-        _lexer.TextWindow.ResetToPositionInText(position);
+        _lexer.TextWindow.Reset(position);
     }
 
     /// <summary>

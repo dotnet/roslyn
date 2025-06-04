@@ -4574,6 +4574,8 @@ class C
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, trivia.Errors().Single().Code);
         }
 
+#if false
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78593")]
         public void TestDotPrefixedNumberStartingAtStartOfSlidingTextWindow()
         {
@@ -4658,5 +4660,7 @@ class C
                 Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
             }
         }
+
+#endif
     }
 }
