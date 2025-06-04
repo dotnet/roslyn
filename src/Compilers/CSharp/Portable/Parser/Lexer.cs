@@ -1343,7 +1343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var startPosition = TextWindow.Position;
             var characterWindow = TextWindow.CharacterWindow.Array!;
             var currentOffset = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
             var characterWindowCount = characterWindow.Length;
