@@ -181,23 +181,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return kind != SyntaxKind.None;
         }
 
-        internal SyntaxTrivia LookupTrivia<TArg>(
-            char[] textBuffer,
-            int keyStart,
-            int keyLength,
-            int hashCode,
-            Func<TArg, SyntaxTrivia> createTriviaFunction,
-            TArg data)
+        internal SyntaxTrivia LookupWhitespaceTrivia(
+            SlidingTextWindow textWindow,
+            int lexemeStartPosition,
+            int hashCode)
         {
-            var value = TriviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            var lexemeWidth = textWindow.Position - lexemeStartPosition;
+            var textBuffer = textWindow.CharacterWindow.Array!;
 
-            if (value == null)
+            // If the whitespace is entirely within the character window, grab from that and cache.
+            var lexemeEndPosition = lexemeStartPosition + lexemeWidth;
+            if (lexemeStartPosition >= textWindow.CharacterWindowStartPositionInText && lexemeEndPosition <= textWindow.CharacterWindowEndPositionInText)
             {
-                value = createTriviaFunction(data);
-                TriviaMap.AddItem(textBuffer, keyStart, keyLength, hashCode, value);
+                var keyStart = lexemeStartPosition - textWindow.CharacterWindowStartPositionInText;
+                var value = TriviaMap.FindItem(textBuffer, keyStart, lexemeWidth, hashCode);
+
+                if (value == null)
+                {
+                    value = SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
+                    TriviaMap.AddItem(textBuffer, keyStart, lexemeWidth, hashCode, value);
+                }
+
+                return value;
             }
 
-            return value;
+            // Otherwise, if it's outside of the window, just grab from the underlying text.
+            return SyntaxFactory.Whitespace(textWindow.GetText(lexemeStartPosition, intern: true));
         }
 
         // TODO: remove this when done tweaking this cache.

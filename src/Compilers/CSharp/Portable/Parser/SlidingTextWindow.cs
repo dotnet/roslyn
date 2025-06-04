@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public int Position => PositionInText;
 
         public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
-        private int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
+        public int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
 
         ///// <summary>
         ///// The current offset inside the window (relative to the window start).

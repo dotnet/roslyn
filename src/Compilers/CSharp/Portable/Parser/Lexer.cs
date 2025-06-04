@@ -2337,24 +2337,16 @@ top:
             {
                 if (currentLexemeWidth < MaxCachedTokenSize)
                 {
-                    return _cache.LookupTrivia(
-                        TextWindow.CharacterWindow,
-                        TextWindow.LexemeRelativeStart,
-                        width,
-                        hashCode,
-                        CreateWhitespaceTrivia,
-                        TextWindow);
+                    return _cache.LookupWhitespaceTrivia(
+                        TextWindow,
+                        this.LexemeStartPosition,
+                        hashCode);
                 }
                 else
                 {
-                    return CreateWhitespaceTrivia(TextWindow);
+                    return SyntaxFactory.Whitespace(this.GetInternedLexemeText());
                 }
             }
-        }
-
-        private static SyntaxTrivia CreateWhitespaceTrivia(SlidingTextWindow textWindow)
-        {
-            return SyntaxFactory.Whitespace(textWindow.GetText(intern: true));
         }
 
         private void LexDirectiveAndExcludedTrivia(
