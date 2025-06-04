@@ -135,6 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return position >= LexemeStartPosition ? position - LexemeStartPosition : position;
         }
 
+        protected string GetNonInternedLexemeText()
+            => TextWindow.GetText(LexemeStartPosition, intern: false);
+
+        protected string GetInternedLexemeText()
+            => TextWindow.GetText(LexemeStartPosition, intern: true);
+
         protected static SyntaxDiagnosticInfo MakeError(ErrorCode code)
         {
             return new SyntaxDiagnosticInfo(code);
