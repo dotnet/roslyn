@@ -12,11 +12,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     /// <summary>
-    /// Keeps a sliding buffer over the SourceText of a file for the lexer. Also
-    /// provides the lexer with the ability to keep track of a current "lexeme"
-    /// by leaving a marker and advancing ahead the offset. The lexer can then
-    /// decide to "keep" the lexeme by erasing the marker, or abandon the current
-    /// lexeme by moving the offset back to the marker.
+    /// Keeps a sliding buffer over the SourceText of a file for the lexer.  Keeps a chunk of a <see cref="SourceText"/> in contiguous
+    /// span of characters for easy access during lexing.
     /// </summary>
     internal sealed class SlidingTextWindow : IDisposable
     {
@@ -428,6 +425,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.Text[this.PositionInText - 1];
         }
 
+        public char CharAt(int positionInText)
+        {
+            if (positionInText >= _textEnd)
+                return InvalidCharacter;
+
+            this.ResetToPositionInText(positionInText);
+            return this._characterWindow.Array![this.PositionInText - this._characterWindowStartPositionInText];
+        }
+
         /// <summary>
         /// If the next characters in the window match the given string,
         /// then advance past those characters.  Otherwise, do nothing.
@@ -467,58 +473,68 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         //{
         //    return this.GetText(this.LexemeStartPosition, this.Width, intern);
         //}
-
-        //public string GetText(int position, int length, bool intern)
+        //public string GetInternedText(int )
         //{
-        //    int offset = position - _basis;
-
-        //    // PERF: Whether interning or not, there are some frequently occurring
-        //    // easy cases we can pick off easily.
-        //    switch (length)
-        //    {
-        //        case 0:
-        //            return string.Empty;
-
-        //        case 1:
-        //            if (_characterWindow[offset] == ' ')
-        //            {
-        //                return " ";
-        //            }
-        //            if (_characterWindow[offset] == '\n')
-        //            {
-        //                return "\n";
-        //            }
-        //            break;
-
-        //        case 2:
-        //            char firstChar = _characterWindow[offset];
-        //            if (firstChar == '\r' && _characterWindow[offset + 1] == '\n')
-        //            {
-        //                return "\r\n";
-        //            }
-        //            if (firstChar == '/' && _characterWindow[offset + 1] == '/')
-        //            {
-        //                return "//";
-        //            }
-        //            break;
-
-        //        case 3:
-        //            if (_characterWindow[offset] == '/' && _characterWindow[offset + 1] == '/' && _characterWindow[offset + 2] == ' ')
-        //            {
-        //                return "// ";
-        //            }
-        //            break;
-        //    }
-
-        //    if (intern)
-        //    {
-        //        return this.Intern(_characterWindow, offset, length);
-        //    }
-        //    else
-        //    {
-        //        return new string(_characterWindow, offset, length);
-        //    }
+        //    return this.Intern(_characterWindow, _lexemeStart, this.Width);
         //}
+
+        public string GetText(int startPosition, bool intern)
+        {
+            return this.GetText(startPosition, this.Position - startPosition, intern);
+        }
+
+        public string GetText(int position, int length, bool intern)
+        {
+            var start = position;
+            var end = start + length;
+
+            // PERF: Whether interning or not, there are some frequently occurring
+            // easy cases we can pick off easily.
+            switch (length)
+            {
+                case 0: return string.Empty;
+
+                case 1:
+                    {
+                        var character = CharAt(position);
+                        if (character == ' ')
+                            return " ";
+
+                        if (character == '\n')
+                            return "\n";
+                    }
+
+                    break;
+
+                case 2:
+                    var firstChar = CharAt(position);
+                    if (firstChar == '\r' && CharAt(position + 1) == '\n')
+                        return "\r\n";
+
+                    if (firstChar == '/' && CharAt(position + 1) == '/')
+                        return "//";
+
+                    break;
+
+                case 3:
+                    if (CharAt(position) == '/' && CharAt(position + 1) == '/' && CharAt(position + 1) == ' ')
+                        return "// ";
+
+                    break;
+            }
+
+            if (start >= this.CharacterWindowStartPositionInText && end <= this.CharacterWindowEndPositionInText)
+            {
+                var offset = position - this.CharacterWindowStartPositionInText;
+                var array = this._characterWindow.Array!;
+                return intern
+                    ? this.Intern(array, offset, length)
+                    : new string(array, offset, length);
+            }
+
+            // Text crosses beyond what the character window directly holds.  Just go to the underlying source text.
+            return _text.ToString(new TextSpan(position, length));
+        }
 
         internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
         {

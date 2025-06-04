@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (quoteCharacter == '\'')
             {
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = TextWindow.GetText(LexemeStartPosition, intern: true);
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.Kind = SyntaxKind.StringLiteralToken;
                 }
 
-                info.Text = TextWindow.GetText(intern: true);
+                info.Text = TextWindow.GetText(LexemeStartPosition, intern: true);
 
                 if (_builder.Length > 0)
                 {
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 info.Kind = SyntaxKind.StringLiteralToken;
             }
 
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = TextWindow.GetText(LexemeStartPosition, intern: false);
             info.StringValue = _builder.ToString();
         }
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             subScanner.ScanInterpolatedStringLiteralTop(out kind, out openQuoteRange, interpolations, out closeQuoteRange);
             error = subScanner.Error;
             info.Kind = SyntaxKind.InterpolatedStringToken;
-            info.Text = TextWindow.GetText(intern: false);
+            info.Text = TextWindow.GetText(LexemeStartPosition, intern: false);
         }
 
         /// <summary>
