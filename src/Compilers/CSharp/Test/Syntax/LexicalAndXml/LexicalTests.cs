@@ -4618,7 +4618,7 @@ class C
 
             // Ensure that the lexer's window is starting with the next FP number (".03") right at
             // the start of the window.
-            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
+            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
 
             var token = lexer.Lex(ref mode);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind);
@@ -4638,7 +4638,7 @@ class C
             Assert.Equal(lexer.TextWindow.LexemeStartPosition, lexer.TextWindow.Position);
 
             // Character window didn't changee.
-            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..]);
+            Assert.True(lexer.TextWindow.CharacterWindow is ['.', '0', '3', ',', ..], $"Start of window was '{new string(lexer.TextWindow.CharacterWindow, 0, 4)}'");
         }
     }
 }
