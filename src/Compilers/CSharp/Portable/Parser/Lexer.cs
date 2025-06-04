@@ -2072,7 +2072,7 @@ LoopExit:
                     this.AddError(ErrorCode.ERR_OpenEndedComment);
                 }
 
-                var text = TextWindow.GetText(false);
+                var text = TextWindow.GetText(LexemeStartPosition, intern: false);
                 this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
             }
         }
