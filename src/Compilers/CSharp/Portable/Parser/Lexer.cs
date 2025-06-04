@@ -1599,10 +1599,10 @@ top:
             }
 
 LoopExit:
-            var width = this.LexemeWidth; // exact size of input characters
+            var width = this.CurrentLexemeWidth; // exact size of input characters
             if (_identLen > 0)
             {
-                info.Text = TextWindow.GetInternedText();
+                info.Text = GetInternedLexemeText();
 
                 // id buffer is identical to width in input
                 if (_identLen == width)
@@ -1808,7 +1808,7 @@ LoopExit:
                 // The text does not have to be interned (and probably shouldn't be
                 // if it contains entities (else-case).
 
-                var width = this.LexemeWidth; // exact size of input characters
+                var width = this.CurrentLexemeWidth; // exact size of input characters
 
                 // id buffer is identical to width in input
                 if (_identLen == width)
@@ -2168,7 +2168,7 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.LexemeWidth > 0)
+            if (this.CurrentLexemeWidth > 0)
             {
                 this.AddTrivia(SyntaxFactory.DisabledText(GetNonInternedLexemeText()), ref triviaList);
             }
@@ -2189,7 +2189,7 @@ LoopExit:
                 this.TextWindow.AdvanceChar();
             }
 
-            if (this.LexemeWidth > 0)
+            if (this.CurrentLexemeWidth > 0)
             {
                 this.AddTrivia(SyntaxFactory.EndOfLine(GetNonInternedLexemeText()), ref triviaList);
             }
@@ -2328,7 +2328,7 @@ top:
                     break;
             }
 
-            var currentLexemeWidth = this.LexemeWidth;
+            var currentLexemeWidth = this.CurrentLexemeWidth;
             if (currentLexemeWidth == 1 && onlySpaces)
             {
                 return SyntaxFactory.Space;
@@ -2456,7 +2456,7 @@ top:
                         }
 
                         followedByDirective = false;
-                        return this.LexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
+                        return this.CurrentLexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
                     case '#':
                         if (!_allowPreprocessorDirectives) goto default;
                         followedByDirective = true;
@@ -2466,7 +2466,7 @@ top:
                         }
 
                         TextWindow.Reset(lastLineStart);  // reset so directive parser can consume the starting whitespace on this line
-                        return this.LexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
+                        return this.CurrentLexemeWidth > 0 ? SyntaxFactory.DisabledText(GetNonInternedLexemeText()) : null;
                     case '\r':
                     case '\n':
                         this.ScanEndOfLine();
@@ -2837,7 +2837,7 @@ top:
                 // The comment didn't end.  Report an error at the start point.
                 // NOTE: report this error even if the DocumentationMode is less than diagnose - the comment
                 // would be malformed as a non-doc comment as well.
-                this.AddError(TextWindow.LexemeStartPosition, TextWindow.Width, ErrorCode.ERR_OpenEndedComment);
+                this.AddError(LexemeStartPosition, this.CurrentLexemeWidth, ErrorCode.ERR_OpenEndedComment);
             }
 
             return docComment;
