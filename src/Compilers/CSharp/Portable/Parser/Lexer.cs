@@ -1344,10 +1344,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var startPosition = TextWindow.Position;
+            var characterWindow = TextWindow.CharacterWindow.Array!;
+            var currentOffset = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
+            var characterWindowCount = characterWindow.Length;
+
+            var startOffset = currentOffset;
 
             while (true)
             {
-                switch (TextWindow.PeekChar())
+                if (currentOffset == characterWindowCount)
+                {
+                    // no more contiguous characters.  Fall back to slow path
+                    return false;
+                }
+
+                switch (characterWindow[currentOffset])
                 {
                     case '&':
                         // CONSIDER: This method is performance critical, so
@@ -1359,7 +1370,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (InXmlCrefOrNameAttributeValue)
                         {
                             // Fall back on the slow path.
-                            TextWindow.ResetToPositionInText(startPosition);
                             return false;
                         }
 
@@ -1398,13 +1408,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // All of the following characters are not valid in an 
                         // identifier.  If we see any of them, then we know we're
                         // done.
-                        info.Text = info.StringValue = TextWindow.GetText(startPosition, intern: true);
+                        var length = currentOffset - startOffset;
+                        TextWindow.AdvanceChar(length);
+                        info.Text = info.StringValue = TextWindow.Intern(characterWindow, startOffset, length);
                         info.IsVerbatim = false;
                         return true;
                     case >= '0' and <= '9':
-                        if (TextWindow.Position == startPosition)
+                        if (currentOffset == startOffset)
                         {
-                            TextWindow.ResetToPositionInText(startPosition);
                             return false;
                         }
                         else
@@ -1415,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '_':
                         // All of these characters are valid inside an identifier.
                         // consume it and keep processing.
-                        TextWindow.AdvanceChar();
+                        currentOffset++;
                         continue;
 
                     // case '@':  verbatim identifiers are handled in the slow path
@@ -1424,7 +1435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // Any other character is something we cannot handle.  i.e.
                         // unicode chars or an escape.  Just break out and move to
                         // the slow path.
-                        TextWindow.ResetToPositionInText(startPosition);
                         return false;
                 }
             }

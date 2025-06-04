@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private int _positionInText;
 
-
+        public ArraySegment<char> CharacterWindow => _characterWindow;
 
         //private int _basis;                                // Offset of the window relative to the SourceText start.
         //private int _offset;                               // Offset from the start of the window.
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public int PositionInText => _positionInText;
         public int Position => PositionInText;
 
-        private int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
+        public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
         private int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + _characterWindow.Count;
 
         ///// <summary>
