@@ -2523,5 +2523,39 @@ public struct Buffer4<T>
             Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(20, 25)
             );
     }
+
+    [Fact]
+    public void DelegateCreation_01()
+    {
+        var src = """
+string s;
+_ = new System.Action(s.M);
+
+string s2;
+_ = new System.Action(s2.M2);
+
+_ = new System.Action(string.M2);
+
+static class E 
+{
+    extension(string s)
+    {
+        public void M() { }
+        public static void M2() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (2,23): error CS0165: Use of unassigned local variable 's'
+            // _ = new System.Action(s.M);
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(2, 23),
+            // (4,8): warning CS0168: The variable 's2' is declared but never used
+            // string s2;
+            Diagnostic(ErrorCode.WRN_UnreferencedVar, "s2").WithArguments("s2").WithLocation(4, 8),
+            // (5,23): error CS0176: Member 'E.extension(string).M2()' cannot be accessed with an instance reference; qualify it with a type name instead
+            // _ = new System.Action(s2.M2);
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "s2.M2").WithArguments("E.extension(string).M2()").WithLocation(5, 23));
+    }
 }
 
