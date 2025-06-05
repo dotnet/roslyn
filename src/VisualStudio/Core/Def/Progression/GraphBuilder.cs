@@ -33,9 +33,6 @@ internal sealed partial class GraphBuilder
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
     private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
 
-    private readonly Dictionary<GraphNode, Project> _nodeToContextProjectMap = [];
-    private readonly Dictionary<GraphNode, Document> _nodeToContextDocumentMap = [];
-
     internal static async Task<GraphNode> GetOrCreateNodeAsync(Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         GraphNode node;
@@ -465,32 +462,6 @@ internal sealed partial class GraphBuilder
         using (_gate.DisposableWait(cancellationToken))
         {
             Graph.Links.GetOrCreate(from, to).AddCategory(category);
-        }
-    }
-
-    public GraphNode? TryAddNodeForDocument(Document document, CancellationToken cancellationToken)
-    {
-        // Under the covers, progression will attempt to convert a label into a URI.  Ensure that we
-        // can do this safely. before proceeding.
-        //
-        // The corresponding code on the progression side does: new Uri(text, UriKind.RelativeOrAbsolute)
-        // so we check that same kind here.
-        var fileName = Path.GetFileName(document.FilePath);
-        if (!Uri.TryCreate(fileName, UriKind.RelativeOrAbsolute, out _))
-            return null;
-
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            var id = GraphNodeIdCreation.GetIdForDocument(document);
-
-            var node = Graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
-
-            _nodeToContextDocumentMap[node] = document;
-            _nodeToContextProjectMap[node] = document.Project;
-
-            _createdNodes.Add(node);
-
-            return node;
         }
     }
 
