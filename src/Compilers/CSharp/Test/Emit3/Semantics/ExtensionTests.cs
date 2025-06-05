@@ -21867,7 +21867,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -22009,7 +22009,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -22125,7 +22125,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
