@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(span == originalSpan);
                 Debug.Assert(!builder.ViaExtensionMethod || builder.GetEnumeratorInfo.Method.IsExtensionMethod || builder.GetEnumeratorInfo.Method.GetIsNewExtensionMember());
 #endif
-                if (!builder.ViaExtensionMethod && // Tracked by https://github.com/dotnet/roslyn/issues/76130: Add test coverage for new extensions TODO2
+                if (!builder.ViaExtensionMethod &&
                     ((result is EnumeratorResult.Succeeded && builder.ElementTypeWithAnnotations.Equals(elementField.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions) &&
                       builder.CurrentPropertyGetter?.RefKind == (wellKnownSpan == WellKnownType.System_ReadOnlySpan_T ? RefKind.RefReadOnly : RefKind.Ref)) ||
                      result is EnumeratorResult.FailedAndReported))

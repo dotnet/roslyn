@@ -2470,5 +2470,58 @@ static class E
             // tc
             Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "tc").WithArguments("Test.TestClass", "int[]", "SelectMany"));
     }
+
+    [Fact]
+    public void Foreach_Extension_01()
+    {
+        var src = """
+class Program
+{
+    public static void M(Buffer4<int> x)
+    {
+        foreach(var s in x)
+        {
+        }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+    }
+}
+
+static class Ext 
+{
+    extension<T>(System.Span<T> f)
+    {
+        public Enumerator<T> GetEnumerator() => default;
+    }
+
+    public ref struct Enumerator<T>
+    {
+        public ref T Current => throw null;
+
+        public bool MoveNext() => false;
+    }
+}
+
+[System.Runtime.CompilerServices.InlineArray(4)]
+public struct Buffer4<T>
+{
+    private T _element0;
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+        comp.VerifyDiagnostics(
+            // (5,26): error CS9189: foreach statement on an inline array of type 'Buffer4<int>' is not supported
+            //         foreach(var s in x)
+            Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(5, 26),
+            // (20,25): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension<T>(System.Span<T> f)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<T>").WithArguments("", "System.Span<T>", "System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(20, 25)
+            );
+    }
 }
 
