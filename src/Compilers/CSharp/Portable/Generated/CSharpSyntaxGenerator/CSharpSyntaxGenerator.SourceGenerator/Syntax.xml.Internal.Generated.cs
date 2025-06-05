@@ -22659,6 +22659,118 @@ internal sealed partial class NameMemberCrefSyntax : MemberCrefSyntax
         => new NameMemberCrefSyntax(this.Kind, this.name, this.parameters, GetDiagnostics(), annotations);
 }
 
+internal sealed partial class ExtensionMemberCrefSyntax : MemberCrefSyntax
+{
+    internal readonly SyntaxToken extensionKeyword;
+    internal readonly TypeArgumentListSyntax? typeArgumentList;
+    internal readonly CrefParameterListSyntax parameters;
+    internal readonly SyntaxToken dotToken;
+    internal readonly MemberCrefSyntax member;
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    internal ExtensionMemberCrefSyntax(SyntaxKind kind, SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+      : base(kind)
+    {
+        this.SlotCount = 5;
+        this.AdjustFlagsAndWidth(extensionKeyword);
+        this.extensionKeyword = extensionKeyword;
+        if (typeArgumentList != null)
+        {
+            this.AdjustFlagsAndWidth(typeArgumentList);
+            this.typeArgumentList = typeArgumentList;
+        }
+        this.AdjustFlagsAndWidth(parameters);
+        this.parameters = parameters;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(member);
+        this.member = member;
+    }
+
+    public SyntaxToken ExtensionKeyword => this.extensionKeyword;
+    public TypeArgumentListSyntax? TypeArgumentList => this.typeArgumentList;
+    public CrefParameterListSyntax Parameters => this.parameters;
+    public SyntaxToken DotToken => this.dotToken;
+    public MemberCrefSyntax Member => this.member;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.extensionKeyword,
+            1 => this.typeArgumentList,
+            2 => this.parameters,
+            3 => this.dotToken,
+            4 => this.member,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.ExtensionMemberCrefSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExtensionMemberCref(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitExtensionMemberCref(this);
+
+    public ExtensionMemberCrefSyntax Update(SyntaxToken extensionKeyword, TypeArgumentListSyntax typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+        if (extensionKeyword != this.ExtensionKeyword || typeArgumentList != this.TypeArgumentList || parameters != this.Parameters || dotToken != this.DotToken || member != this.Member)
+        {
+            var newNode = SyntaxFactory.ExtensionMemberCref(extensionKeyword, typeArgumentList, parameters, dotToken, member);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new ExtensionMemberCrefSyntax(this.Kind, this.extensionKeyword, this.typeArgumentList, this.parameters, this.dotToken, this.member, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new ExtensionMemberCrefSyntax(this.Kind, this.extensionKeyword, this.typeArgumentList, this.parameters, this.dotToken, this.member, GetDiagnostics(), annotations);
+}
+
 /// <summary>
 /// A MemberCrefSyntax specified by a this keyword and an optional parameter list.
 /// For example, "this" or "this[int]".
@@ -27037,6 +27149,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -27287,6 +27400,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitTypeCref(TypeCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQualifiedCref(QualifiedCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitNameMemberCref(NameMemberCrefSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitExtensionMemberCref(ExtensionMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitIndexerMemberCref(IndexerMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitOperatorMemberCref(OperatorMemberCrefSyntax node) => this.DefaultVisit(node);
     public virtual void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node) => this.DefaultVisit(node);
@@ -27948,6 +28062,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
 
     public override CSharpSyntaxNode VisitNameMemberCref(NameMemberCrefSyntax node)
         => node.Update((TypeSyntax)Visit(node.Name), (CrefParameterListSyntax)Visit(node.Parameters));
+
+    public override CSharpSyntaxNode VisitExtensionMemberCref(ExtensionMemberCrefSyntax node)
+        => node.Update((SyntaxToken)Visit(node.ExtensionKeyword), (TypeArgumentListSyntax)Visit(node.TypeArgumentList), (CrefParameterListSyntax)Visit(node.Parameters), (SyntaxToken)Visit(node.DotToken), (MemberCrefSyntax)Visit(node.Member));
 
     public override CSharpSyntaxNode VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
         => node.Update((SyntaxToken)Visit(node.ThisKeyword), (CrefBracketedParameterListSyntax)Visit(node.Parameters));
@@ -32591,6 +32708,20 @@ internal partial class ContextAwareSyntax
         }
 
         return result;
+    }
+
+    public ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+#if DEBUG
+        if (extensionKeyword == null) throw new ArgumentNullException(nameof(extensionKeyword));
+        if (extensionKeyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+#endif
+
+        return new ExtensionMemberCrefSyntax(SyntaxKind.ExtensionMemberCref, extensionKeyword, typeArgumentList, parameters, dotToken, member, this.context);
     }
 
     public IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)
@@ -37944,6 +38075,20 @@ internal static partial class SyntaxFactory
         }
 
         return result;
+    }
+
+    public static ExtensionMemberCrefSyntax ExtensionMemberCref(SyntaxToken extensionKeyword, TypeArgumentListSyntax? typeArgumentList, CrefParameterListSyntax parameters, SyntaxToken dotToken, MemberCrefSyntax member)
+    {
+#if DEBUG
+        if (extensionKeyword == null) throw new ArgumentNullException(nameof(extensionKeyword));
+        if (extensionKeyword.Kind != SyntaxKind.ExtensionKeyword) throw new ArgumentException(nameof(extensionKeyword));
+        if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (member == null) throw new ArgumentNullException(nameof(member));
+#endif
+
+        return new ExtensionMemberCrefSyntax(SyntaxKind.ExtensionMemberCref, extensionKeyword, typeArgumentList, parameters, dotToken, member);
     }
 
     public static IndexerMemberCrefSyntax IndexerMemberCref(SyntaxToken thisKeyword, CrefBracketedParameterListSyntax? parameters)

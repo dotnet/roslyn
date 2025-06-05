@@ -4473,6 +4473,20 @@
     <Field Name="Name" Type="TypeSyntax"/>
     <Field Name="Parameters" Type="CrefParameterListSyntax" Optional="true"/>
   </Node>
+  
+  <Node Name="ExtensionMemberCrefSyntax" Base="MemberCrefSyntax">
+    <Kind Name="ExtensionMemberCref"/>
+    <Field Name="ExtensionKeyword" Type="SyntaxToken">
+      <Kind Name="ExtensionKeyword"/>
+    </Field>
+    <Field Name="TypeArgumentList" Type="TypeArgumentListSyntax" Optional="true"/>
+    <Field Name="Parameters" Type="CrefParameterListSyntax"/>
+    <Field Name="DotToken" Type="SyntaxToken">
+      <Kind Name="DotToken"/>
+    </Field>
+    <Field Name="Member" Type="MemberCrefSyntax"/>
+  </Node>
+  
   <Node Name="IndexerMemberCrefSyntax" Base="MemberCrefSyntax">
     <TypeComment>
       <summary>

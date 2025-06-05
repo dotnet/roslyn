@@ -4618,53 +4618,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void checkExtensionMember(Symbol member, BindingDiagnosticBag diagnostics)
             {
-                switch (member.Kind)
+                if (!IsAllowedExtensionMember(member))
                 {
-                    case SymbolKind.Method:
-                        var meth = (MethodSymbol)member;
-                        switch (meth.MethodKind)
-                        {
-                            case MethodKind.Constructor:
-                            case MethodKind.Conversion:
-                            case MethodKind.UserDefinedOperator:
-                            case MethodKind.Destructor:
-                            case MethodKind.EventAdd:
-                            case MethodKind.EventRemove:
-                            case MethodKind.StaticConstructor:
-                                break;
-                            case MethodKind.ExplicitInterfaceImplementation:
-                                // error, but reported elsewhere
-                                return;
-                            case MethodKind.Ordinary:
-                            case MethodKind.PropertyGet:
-                            case MethodKind.PropertySet:
-                                return;
-                            default:
-                                throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
-                        }
-                        break;
-
-                    case SymbolKind.Property:
-                        if (!((PropertySymbol)member).IsIndexer)
-                        {
-                            return;
-                        }
-                        else
-                        {
-                            break;
-                        }
-
-                    case SymbolKind.Field:
-                    case SymbolKind.Event:
-                    case SymbolKind.NamedType:
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                    diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
                 }
-
-                diagnostics.Add(ErrorCode.ERR_ExtensionDisallowsMember, member.GetFirstLocation());
             }
+        }
+
+        internal static bool IsAllowedExtensionMember(Symbol member)
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    var meth = (MethodSymbol)member;
+                    switch (meth.MethodKind)
+                    {
+                        case MethodKind.Constructor:
+                        case MethodKind.Conversion:
+                        case MethodKind.UserDefinedOperator:
+                        case MethodKind.Destructor:
+                        case MethodKind.EventAdd:
+                        case MethodKind.EventRemove:
+                        case MethodKind.StaticConstructor:
+                        case MethodKind.ExplicitInterfaceImplementation:
+                            break;
+                        case MethodKind.Ordinary:
+                        case MethodKind.PropertyGet:
+                        case MethodKind.PropertySet:
+                            return true;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(meth.MethodKind);
+                    }
+                    break;
+
+                case SymbolKind.Property:
+                    if (!((PropertySymbol)member).IsIndexer)
+                    {
+                        return true;
+                    }
+                    break;
+
+                case SymbolKind.Field:
+                case SymbolKind.Event:
+                case SymbolKind.NamedType:
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+
+            return false;
         }
 
         private static void CheckForStructDefaultConstructors(
