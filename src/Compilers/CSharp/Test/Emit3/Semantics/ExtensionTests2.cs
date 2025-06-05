@@ -2428,5 +2428,47 @@ class C : I { }
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped).VerifyDiagnostics();
     }
+
+    [Fact]
+    public void CS1943ERR_QueryTypeInferenceFailedSelectMany()
+    {
+        // ReportQueryInferenceFailedSelectMany
+        var comp = CreateCompilation("""
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    class TestClass
+    { }
+
+    static void Main()
+    {
+        int[] nums = { 0, 1, 2, 3, 4, 5 };
+        TestClass tc = new TestClass();
+
+        var x = from n in nums
+                from s in tc // CS1943
+                select n + s;
+    }
+}
+
+static class E
+{
+    extension<TSource>(IEnumerable<TSource> source)
+    {
+        public IEnumerable<TResult> SelectMany<TCollection, TResult>(
+            Func<TSource, IEnumerable<TCollection>> collectionSelector,
+            Func<TSource, TCollection,TResult> resultSelector)
+            => throw null;
+    }
+}
+""");
+
+        comp.VerifyDiagnostics(
+            // (13,27): error CS1943: An expression of type 'Test.TestClass' is not allowed in a subsequent from clause in a query expression with source type 'int[]'.  Type inference failed in the call to 'SelectMany'.
+            // tc
+            Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "tc").WithArguments("Test.TestClass", "int[]", "SelectMany"));
+    }
 }
 
