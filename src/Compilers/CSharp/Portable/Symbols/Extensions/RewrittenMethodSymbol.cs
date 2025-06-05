@@ -107,7 +107,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 

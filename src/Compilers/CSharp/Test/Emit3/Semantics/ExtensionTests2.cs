@@ -2465,7 +2465,7 @@ static class E
 }
 """);
 
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (13,27): error CS1943: An expression of type 'Test.TestClass' is not allowed in a subsequent from clause in a query expression with source type 'int[]'.  Type inference failed in the call to 'SelectMany'.
             // tc
             Diagnostic(ErrorCode.ERR_QueryTypeInferenceFailedSelectMany, "tc").WithArguments("Test.TestClass", "int[]", "SelectMany"));
@@ -2514,7 +2514,7 @@ public struct Buffer4<T>
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (5,26): error CS9189: foreach statement on an inline array of type 'Buffer4<int>' is not supported
             //         foreach(var s in x)
             Diagnostic(ErrorCode.ERR_InlineArrayForEachNotSupported, "x").WithArguments("Buffer4<int>").WithLocation(5, 26),
@@ -2546,7 +2546,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (2,23): error CS0165: Use of unassigned local variable 's'
             // _ = new System.Action(s.M);
             Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(2, 23),
@@ -2556,6 +2556,85 @@ static class E
             // (5,23): error CS0176: Member 'E.extension(string).M2()' cannot be accessed with an instance reference; qualify it with a type name instead
             // _ = new System.Action(s2.M2);
             Diagnostic(ErrorCode.ERR_ObjectProhibited, "s2.M2").WithArguments("E.extension(string).M2()").WithLocation(5, 23));
+    }
+
+    [Fact]
+    public void AsyncMethodBuilder_01()
+    {
+        var src = """
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+Console.Write(await object.M());
+
+static class C
+{
+    extension(object)
+    {
+        [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+        public static async MyTask<int> M() { await Task.Yield(); Console.Write("M "); return 3; }
+    }
+}
+
+public class MyTask<T>
+{
+    private Action _continuation;
+    private bool _isCompleted;
+    internal  T _result;
+
+    public Awaiter GetAwaiter() => new Awaiter(this);
+    public T Result => _result;
+
+    internal void Complete(T result)
+    {
+        _result = result;
+        _isCompleted = true;
+        _continuation?.Invoke();
+    }
+
+    public readonly struct Awaiter : ICriticalNotifyCompletion
+    {
+        private readonly MyTask<T> _task;
+        internal Awaiter(MyTask<T> task) => _task = task;
+
+        public bool IsCompleted => _task._isCompleted;
+        public T GetResult() => _task._result;
+
+        public void OnCompleted(Action cont) => HandleCompletion(cont);
+        public void UnsafeOnCompleted(Action cont) => HandleCompletion(cont);
+
+        private void HandleCompletion(Action cont)
+        {
+            if (_task._isCompleted) { cont(); return; }
+
+            _task._continuation = cont;
+        }
+    }
+}
+
+public struct MyTaskMethodBuilder<T>
+{
+    private readonly MyTask<T> _task;
+    private MyTaskMethodBuilder(MyTask<T> task) => _task = task;
+
+    public static MyTaskMethodBuilder<T> Create() => new MyTaskMethodBuilder<T>(new MyTask<T>());
+    public MyTask<T> Task => _task;
+    public void Start<TSM>(ref TSM sm) where TSM : IAsyncStateMachine => sm.MoveNext();
+
+    public void SetStateMachine(IAsyncStateMachine _) { }
+    public void SetResult(T result) => _task.Complete(result);
+    public void SetException(Exception e) => throw null;
+
+    public void AwaitOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : INotifyCompletion where TSM: IAsyncStateMachine => a.OnCompleted(sm.MoveNext);
+    public void AwaitUnsafeOnCompleted<TA, TSM>(ref TA a, ref TSM sm) where TA : ICriticalNotifyCompletion where TSM: IAsyncStateMachine => a.UnsafeOnCompleted(sm.MoveNext);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } } 
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "M 3");
     }
 }
 
