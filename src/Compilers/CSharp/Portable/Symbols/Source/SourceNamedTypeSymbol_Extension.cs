@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             }
 
             if (_lazyExtensionInfo is null)
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             }
 
             if (_lazyExtensionInfo.LazyImplementationMap is null)

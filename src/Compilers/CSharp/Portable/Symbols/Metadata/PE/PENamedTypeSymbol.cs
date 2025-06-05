@@ -406,14 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?)
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?) TODO2
                     if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
                         methodSymbol.ParameterCount != 1)
                     {
-                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
@@ -444,12 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (this.ContainingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             }
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -469,20 +469,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well TODO2
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
                     if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     if (!method.IsStatic &&
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     if (!MemberSignatureComparer.HaveSameParameterTypes(
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
                     if (MemberSignatureComparer.HaveSameConstraints(
@@ -532,10 +532,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return candidate;
                     }
 
-                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                 }
 
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
             }
         }
 
@@ -2045,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
-                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                         }
 
                         foundMarkerMethod = methodHandle;

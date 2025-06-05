@@ -1484,7 +1484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (diagnosticInfo == null && _containingType.IsExtension &&
                     TryGetCorrespondingExtensionImplementationMethod() is null)
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
                 }
 

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ConstructIfGeneric(method.ContainingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Concat(method.TypeArgumentsWithAnnotations));
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path
+                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     return null;
                 }
             }
