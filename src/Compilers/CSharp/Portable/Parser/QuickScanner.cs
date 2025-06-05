@@ -193,19 +193,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             this.Start();
             var state = QuickScanState.Initial;
-            int i = TextWindow.Offset;
-            int n = TextWindow.CharacterWindowCount;
-            n = Math.Min(n, i + MaxCachedTokenSize);
+
+            var charWindow = TextWindow.CharacterWindow;
+            var startIndex = TextWindow.Position - TextWindow.CharacterWindowStartPositionInText;
+            var currentIndex = startIndex;
+            var n = charWindow.Count;
+
+            var charWindowRawArray = charWindow.Array!;
+
+            n = Math.Min(n, currentIndex + MaxCachedTokenSize);
 
             int hashCode = Hash.FnvOffsetBias;
 
             //localize frequently accessed fields
-            var charWindow = TextWindow.CharacterWindow;
             var charPropLength = CharProperties.Length;
 
-            for (; i < n; i++)
+            for (; currentIndex < n; currentIndex++)
             {
-                char c = charWindow[i];
+                char c = charWindowRawArray[currentIndex];
                 int uc = unchecked((int)c);
 
                 var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
@@ -227,25 +232,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             state = QuickScanState.Bad; // ran out of characters in window
 exitWhile:
-
-            TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
 
             if (state == QuickScanState.Done)
             {
+                var tokenLength = currentIndex - startIndex;
+                TextWindow.AdvanceChar(tokenLength);
+
                 // this is a good token!
                 var token = _cache.LookupToken(
-                    TextWindow.CharacterWindow,
-                    TextWindow.LexemeRelativeStart,
-                    i - TextWindow.LexemeRelativeStart,
+                    charWindowRawArray,
+                    startIndex,
+                    tokenLength,
                     hashCode,
                     CreateQuickToken,
                     this);
+
                 return token;
             }
             else
             {
-                TextWindow.Reset(TextWindow.LexemeStartPosition);
+                TextWindow.Reset(this.LexemeStartPosition);
                 return null;
             }
         }
@@ -253,9 +260,9 @@ exitWhile:
         private static SyntaxToken CreateQuickToken(Lexer lexer)
         {
 #if DEBUG
-            var quickWidth = lexer.TextWindow.Width;
+            var quickWidth = lexer.CurrentLexemeWidth;
 #endif
-            lexer.TextWindow.Reset(lexer.TextWindow.LexemeStartPosition);
+            lexer.TextWindow.Reset(lexer.LexemeStartPosition);
             var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);

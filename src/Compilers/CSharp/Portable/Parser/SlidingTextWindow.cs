@@ -3,12 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,14 +12,13 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     /// <summary>
-    /// Keeps a sliding buffer over the SourceText of a file for the lexer. Also
-    /// provides the lexer with the ability to keep track of a current "lexeme"
-    /// by leaving a marker and advancing ahead the offset. The lexer can then
-    /// decide to "keep" the lexeme by erasing the marker, or abandon the current
-    /// lexeme by moving the offset back to the marker.
+    /// Keeps a sliding buffer over the SourceText of a file for the lexer.  Keeps a chunk of a <see cref="SourceText"/> in contiguous
+    /// span of characters for easy access during lexing.
     /// </summary>
     internal sealed class SlidingTextWindow : IDisposable
     {
+        private static readonly ObjectPool<char[]> s_windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength]);
+
         /// <summary>
         /// In many cases, e.g. PeekChar, we need the ability to indicate that there are
         /// no characters left and we have reached the end of the stream, or some other
@@ -40,43 +35,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private const int DefaultWindowLength = 2048;
 
-        private readonly SourceText _text;                 // Source of text to parse.
-        private int _basis;                                // Offset of the window relative to the SourceText start.
-        private int _offset;                               // Offset from the start of the window.
-        private readonly int _textEnd;                     // Absolute end position
-        private char[] _characterWindow;                   // Moveable window of chars from source text
-        private int _characterWindowCount;                 // # of valid characters in chars buffer
-
-        private int _lexemeStart;                          // Start of current lexeme relative to the window start.
-
-        // Example for the above variables:
-        // The text starts at 0.
-        // The window onto the text starts at basis.
-        // The current character is at (basis + offset), AKA the current "Position".
-        // The current lexeme started at (basis + lexemeStart), which is <= (basis + offset)
-        // The current lexeme is the characters between the lexemeStart and the offset.
-
         private readonly StringTable _strings;
 
-        private static readonly ObjectPool<char[]> s_windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength]);
+        /// <summary>
+        /// The underlying text being lexed/parsed.  Used to fill <see cref="CharacterWindow"/>.  Can also be queried
+        /// directly in rare cases where a character is needed, and is not in <see cref="CharacterWindow"/> and we don't
+        /// want to both pulling an entire chunk of data from it into the window.
+        /// </summary>
+        private readonly SourceText _text;
+
+        /// <summary>
+        /// Absolute end position of <see cref="_text"/>.
+        /// </summary>
+        private readonly int _textEnd;
+
+        /// <summary>
+        /// Current chunk of <see cref="_text"/> that is available to read as a low-overhead, contiguous span of characters.
+        /// This represents the following region with <see cref="_text"/>
+        /// 
+        /// <code>
+        /// [_characterWindowStartPositionInText, _characterWindowStartPositionInText + _characterWindow.Length)
+        /// </code>
+        /// 
+        /// </summary>
+        /// <remarks>
+        /// Lexeme text within this span can be read directly from this array.  However, if the span to read goes out of bounds
+        /// of the chunk of <see cref="_text"/> this corresponds to, then the Lexeme text to read will be fetched from the 
+        /// <see cref="_text"/> value instead.
+        /// </remarks>
+        public ArraySegment<char> CharacterWindow { get; private set; }
+
+        /// <summary>
+        /// Where the <see cref="CharacterWindow"/> starts from inside <see cref="_text"/>
+        /// </summary>
+        private int _characterWindowStartPositionInText;
+
+        /// <summary>
+        /// The index within _text that the current character can be read from.
+        /// </summary>
+        private int _positionInText;
 
         public SlidingTextWindow(SourceText text)
         {
             _text = text;
-            _basis = 0;
-            _offset = 0;
             _textEnd = text.Length;
             _strings = StringTable.GetInstance();
-            _characterWindow = s_windowPool.Allocate();
-            _lexemeStart = 0;
+            CharacterWindow = new(s_windowPool.Allocate());
+
+            // Read the first chunk of the file into the character window.
+            this.ReadChunkAt(0);
+        }
+
+        private static void ReturnArray(char[] array)
+        {
+            if (array.Length == DefaultWindowLength)
+            {
+                Array.Clear(array, 0, array.Length);
+                s_windowPool.Free(array);
+            }
         }
 
         public void Dispose()
         {
-            if (_characterWindow != null)
+            var array = CharacterWindow.Array;
+            if (array != null)
             {
-                s_windowPool.Free(_characterWindow);
-                _characterWindow = null!;
+                ReturnArray(array);
+                CharacterWindow = default;
                 _strings.Free();
             }
         }
@@ -86,159 +111,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// The current absolute position in the text file.
         /// </summary>
-        public int Position
-        {
-            get
-            {
-                return _basis + _offset;
-            }
-        }
+        public int PositionInText => _positionInText;
+        public int Position => PositionInText;
 
-        /// <summary>
-        /// The current offset inside the window (relative to the window start).
-        /// </summary>
-        public int Offset
-        {
-            get
-            {
-                return _offset;
-            }
-        }
+        public int CharacterWindowStartPositionInText => _characterWindowStartPositionInText;
+        public int CharacterWindowEndPositionInText => _characterWindowStartPositionInText + CharacterWindow.Count;
 
-        /// <summary>
-        /// The buffer backing the current window.
-        /// </summary>
-        public char[] CharacterWindow
+        public void Reset(int positionInText)
         {
-            get
-            {
-                return _characterWindow;
-            }
-        }
+            positionInText = Math.Min(positionInText, _textEnd);
 
-        /// <summary>
-        /// Returns the start of the current lexeme relative to the window start.
-        /// </summary>
-        public int LexemeRelativeStart
-        {
-            get
-            {
-                return _lexemeStart;
-            }
-        }
+            _positionInText = positionInText;
 
-        /// <summary>
-        /// Number of characters in the character window.
-        /// </summary>
-        public int CharacterWindowCount
-        {
-            get
-            {
-                return _characterWindowCount;
-            }
-        }
-
-        /// <summary>
-        /// The absolute position of the start of the current lexeme in the given
-        /// SourceText.
-        /// </summary>
-        public int LexemeStartPosition
-        {
-            get
-            {
-                return _basis + _lexemeStart;
-            }
-        }
-
-        /// <summary>
-        /// The number of characters in the current lexeme.
-        /// </summary>
-        public int Width
-        {
-            get
-            {
-                return _offset - _lexemeStart;
-            }
-        }
-
-        /// <summary>
-        /// Start parsing a new lexeme.
-        /// </summary>
-        public void Start()
-        {
-            _lexemeStart = _offset;
-        }
-
-        public void Reset(int position)
-        {
             // if position is within already read character range then just use what we have
-            int relative = position - _basis;
-            if (relative >= 0 && relative <= _characterWindowCount)
+            if (_positionInText >= CharacterWindowStartPositionInText &&
+                _positionInText < CharacterWindowEndPositionInText)
             {
-                _offset = relative;
+                return;
             }
-            else
-            {
-                // we need to reread text buffer
-                int amountToRead = Math.Min(_text.Length, position + _characterWindow.Length) - position;
-                amountToRead = Math.Max(amountToRead, 0);
-                if (amountToRead > 0)
-                {
-                    _text.CopyTo(position, _characterWindow, 0, amountToRead);
-                }
 
-                _lexemeStart = 0;
-                _offset = 0;
-                _basis = position;
-                _characterWindowCount = amountToRead;
-            }
+            ReadChunkAt(positionInText);
         }
 
-        private bool MoreChars()
+        private void ReadChunkAt(int positionInText)
         {
-            if (_offset >= _characterWindowCount)
+            var array = CharacterWindow.Array!;
+            var amountToRead = Math.Min(_text.Length - positionInText, array.Length);
+            if (amountToRead > 0)
+                _text.CopyTo(positionInText, array, 0, amountToRead);
+
+            CharacterWindow = new(array, 0, amountToRead);
+            _characterWindowStartPositionInText = positionInText;
+        }
+
+        public char CharAt(int positionInText)
+        {
+            // If it's not in the source text at all, return an invalid char.  This allows us to easily index without
+            // having to do length checks.
+            if (positionInText < 0 || positionInText >= _textEnd)
+                return InvalidCharacter;
+
+            // If the position is outside of the chunk we're currently pointing to, read in a chunk starting at the
+            // location we're trying to read at.
+            if (positionInText < CharacterWindowStartPositionInText ||
+                positionInText >= CharacterWindowEndPositionInText)
             {
-                if (this.Position >= _textEnd)
-                {
-                    return false;
-                }
-
-                // if lexeme scanning is sufficiently into the char buffer, 
-                // then refocus the window onto the lexeme
-                if (_lexemeStart > (_characterWindowCount / 4))
-                {
-                    Array.Copy(_characterWindow,
-                        _lexemeStart,
-                        _characterWindow,
-                        0,
-                        _characterWindowCount - _lexemeStart);
-                    _characterWindowCount -= _lexemeStart;
-                    _offset -= _lexemeStart;
-                    _basis += _lexemeStart;
-                    _lexemeStart = 0;
-                }
-
-                if (_characterWindowCount >= _characterWindow.Length)
-                {
-                    // grow char array, since we need more contiguous space
-                    char[] oldWindow = _characterWindow;
-                    char[] newWindow = new char[_characterWindow.Length * 2];
-                    Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
-                    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
-                    _characterWindow = newWindow;
-                }
-
-                int amountToRead = Math.Min(_textEnd - (_basis + _characterWindowCount),
-                    _characterWindow.Length - _characterWindowCount);
-                _text.CopyTo(_basis + _characterWindowCount,
-                    _characterWindow,
-                    _characterWindowCount,
-                    amountToRead);
-                _characterWindowCount += amountToRead;
-                return amountToRead > 0;
+                this.ReadChunkAt(positionInText);
             }
 
-            return true;
+            Debug.Assert(positionInText >= CharacterWindowStartPositionInText && positionInText < CharacterWindowEndPositionInText);
+            return this.CharacterWindow.Array![positionInText - this.CharacterWindowStartPositionInText];
         }
 
         /// <summary>
@@ -249,18 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <returns></returns>
         internal bool IsReallyAtEnd()
-        {
-            return _offset >= _characterWindowCount && Position >= _textEnd;
-        }
+            => this.PositionInText >= _textEnd;
 
         /// <summary>
         /// Advance the current position by one. No guarantee that this
         /// position is valid.
         /// </summary>
         public void AdvanceChar()
-        {
-            _offset++;
-        }
+            => _positionInText++;
 
         /// <summary>
         /// Advances the text window if it currently pointing at the <paramref name="c"/> character.  Returns <see
@@ -280,9 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// is valid.
         /// </summary>
         public void AdvanceChar(int n)
-        {
-            _offset += n;
-        }
+            => _positionInText += n;
 
         /// <summary>
         /// Moves past the newline that the text window is currently pointing at.  The text window must be pointing at a
@@ -290,9 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// window will only advance past a single character.
         /// </summary>
         public void AdvancePastNewLine()
-        {
-            AdvanceChar(GetNewLineWidth());
-        }
+            => AdvanceChar(GetNewLineWidth());
 
         /// <summary>
         /// Gets the length of the newline the text window must be pointing at here.  For <c>\r\n</c> this is <c>2</c>,
@@ -335,16 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar()
-        {
-            if (_offset >= _characterWindowCount
-                && !MoreChars())
-            {
-                return InvalidCharacter;
-            }
-
-            // N.B. MoreChars may update the offset.
-            return _characterWindow[_offset];
-        }
+            => this.CharAt(this.Position);
 
         /// <summary>
         /// Gets the character at the given offset to the current position if
@@ -354,25 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// The next character if any are available. InvalidCharacter otherwise.
         /// </returns>
         public char PeekChar(int delta)
-        {
-            int position = this.Position;
-            this.AdvanceChar(delta);
+            => this.CharAt(this.Position + delta);
 
-            char ch;
-            if (_offset >= _characterWindowCount
-                && !MoreChars())
-            {
-                ch = InvalidCharacter;
-            }
-            else
-            {
-                // N.B. MoreChars may update the offset.
-                ch = _characterWindow[_offset];
-            }
-
-            this.Reset(position);
-            return ch;
-        }
+        public char PreviousChar()
+            => this.PeekChar(-1);
 
         /// <summary>
         /// If the next characters in the window match the given string,
@@ -404,66 +294,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return _strings.Add(array, start, length);
         }
 
-        public string GetInternedText()
+        public string GetText(int startPosition, bool intern)
         {
-            return this.Intern(_characterWindow, _lexemeStart, this.Width);
-        }
-
-        public string GetText(bool intern)
-        {
-            return this.GetText(this.LexemeStartPosition, this.Width, intern);
+            return this.GetText(startPosition, this.Position - startPosition, intern);
         }
 
         public string GetText(int position, int length, bool intern)
         {
-            int offset = position - _basis;
+            var start = position;
+            var end = start + length;
 
             // PERF: Whether interning or not, there are some frequently occurring
             // easy cases we can pick off easily.
             switch (length)
             {
-                case 0:
-                    return string.Empty;
+                case 0: return string.Empty;
 
                 case 1:
-                    if (_characterWindow[offset] == ' ')
                     {
-                        return " ";
+                        var character = CharAt(position);
+                        if (character == ' ')
+                            return " ";
+
+                        if (character == '\n')
+                            return "\n";
                     }
-                    if (_characterWindow[offset] == '\n')
-                    {
-                        return "\n";
-                    }
+
                     break;
 
                 case 2:
-                    char firstChar = _characterWindow[offset];
-                    if (firstChar == '\r' && _characterWindow[offset + 1] == '\n')
-                    {
+                    var firstChar = CharAt(position);
+                    if (firstChar == '\r' && CharAt(position + 1) == '\n')
                         return "\r\n";
-                    }
-                    if (firstChar == '/' && _characterWindow[offset + 1] == '/')
-                    {
+
+                    if (firstChar == '/' && CharAt(position + 1) == '/')
                         return "//";
-                    }
+
                     break;
 
                 case 3:
-                    if (_characterWindow[offset] == '/' && _characterWindow[offset + 1] == '/' && _characterWindow[offset + 2] == ' ')
-                    {
+                    if (CharAt(position) == '/' && CharAt(position + 1) == '/' && CharAt(position + 2) == ' ')
                         return "// ";
-                    }
+
                     break;
             }
 
-            if (intern)
+            if (start >= this.CharacterWindowStartPositionInText && end <= this.CharacterWindowEndPositionInText)
             {
-                return this.Intern(_characterWindow, offset, length);
+                var offset = position - this.CharacterWindowStartPositionInText;
+                var array = this.CharacterWindow.Array!;
+                return intern
+                    ? this.Intern(array, offset, length)
+                    : new string(array, offset, length);
             }
-            else
-            {
-                return new string(_characterWindow, offset, length);
-            }
+
+            // Text crosses beyond what the character window directly holds.  Just go to the underlying source text.
+            return _text.ToString(new TextSpan(position, length));
         }
 
         internal static char GetCharsFromUtf32(uint codepoint, out char lowSurrogate)
@@ -480,5 +366,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (char)((codepoint - 0x00010000) / 0x0400 + 0xD800);
             }
         }
+
+        //public TestAccessor GetTestAccessor()
+        //    => new(this);
+
+        //public readonly struct TestAccessor(SlidingTextWindow window)
+        //{
+        //    private readonly SlidingTextWindow _window = window;
+
+        //    public void SetDefaultCharacterWindow()
+        //        => _window._characterWindow = new char[DefaultWindowLength];
+        //}
     }
 }

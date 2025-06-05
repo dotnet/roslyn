@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -89,7 +89,7 @@ public sealed class SyntaxTokenParser : IDisposable
     /// <summary>
     /// Skip forward in the input to the specified position. Current directive state is preserved during the skip.
     /// </summary>
-    /// <param name="position">The absolute location in the original text to move to.</param>
+    /// <param name="position">The absolute location in the original text to move to.</param>Add commentMore actions
     /// <exception cref="ArgumentOutOfRangeException">If the given position is less than the current position of the lexer.</exception>
     public void SkipForwardTo(int position)
     {
