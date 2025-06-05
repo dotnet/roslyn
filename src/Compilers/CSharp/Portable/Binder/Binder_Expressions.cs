@@ -8629,7 +8629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // 3. resolve properties
                 Debug.Assert(arity == 0 || lookupResult.Symbols.All(s => s.Kind != SymbolKind.Property));
 
-                // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
+                // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Regarding 'acceptOnlyMethods', consider if it would be better to add a special 'LookupOptions' value to filter out properties during lookup
                 OverloadResolutionResult<PropertySymbol>? propertyResult = arity != 0 || acceptOnlyMethods ? null : resolveProperties(left, lookupResult, binder, ref actualReceiverArguments, ref useSiteInfo);
 
                 // 4. determine member kind
