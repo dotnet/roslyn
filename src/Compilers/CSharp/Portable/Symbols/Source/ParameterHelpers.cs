@@ -8,7 +8,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;

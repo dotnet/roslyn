@@ -1975,6 +1975,7 @@ next:;
                     // The type 'Microsoft.CodeAnalysis.EmbeddedAttribute' must be non-generic, internal, sealed, non-static, have a parameterless constructor, inherit from System.Attribute, and be able to be applied to any type.
                     diagnostics.Add(ErrorCode.ERR_EmbeddedAttributeMustFollowPattern, GetFirstLocation());
                 }
+
             }
 
             if (IsExtension && ContainingType?.IsExtension != true)
@@ -1986,8 +1987,6 @@ next:;
                     diagnostics.Add(ErrorCode.ERR_BadExtensionContainingType, syntax.Keyword);
                 }
             }
-
-            return;
         }
     }
 }
