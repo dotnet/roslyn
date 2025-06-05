@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (_lazyExtensionInfo is null)
             {
-                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
             }
 
             if (_lazyExtensionInfo.LazyImplementationMap is null)
