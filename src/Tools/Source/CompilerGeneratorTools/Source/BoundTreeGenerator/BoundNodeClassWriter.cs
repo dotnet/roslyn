@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -275,7 +276,7 @@ namespace BoundTreeGenerator
 
         private void WriteTypes()
         {
-            foreach (var node in _tree.Types.Where(n => n is not PredefinedNode))
+            foreach (var node in _tree.Types.Where(n => n is AbstractNode))
             {
                 Blank();
                 WriteType(node);
@@ -903,8 +904,7 @@ namespace BoundTreeGenerator
 
         private void WriteType(TreeType node)
         {
-            if (node is not AbstractNode)
-                return;
+            Debug.Assert(node is AbstractNode);
             WriteClassHeader(node);
 
             bool unsealed = !CanBeSealed(node);

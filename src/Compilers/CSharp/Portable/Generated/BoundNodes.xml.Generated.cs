@@ -254,25 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WithExpression,
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     internal abstract partial class BoundInitializer : BoundNode
     {
         protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
