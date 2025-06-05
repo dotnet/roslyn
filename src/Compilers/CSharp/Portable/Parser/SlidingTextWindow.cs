@@ -496,14 +496,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        public TestAccessor GetTestAccessor()
+        internal TestAccessor GetTestAccessor()
             => new TestAccessor(this);
 
-        public readonly struct TestAccessor(SlidingTextWindow window)
+        internal readonly struct TestAccessor(SlidingTextWindow window)
         {
             private readonly SlidingTextWindow _window = window;
 
-            public void SetDefaultCharacterWindow()
+            internal void SetDefaultCharacterWindow()
                 => _window._characterWindow = new char[DefaultWindowLength];
         }
     }
