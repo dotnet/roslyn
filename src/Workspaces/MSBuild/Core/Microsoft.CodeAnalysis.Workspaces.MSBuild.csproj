@@ -97,7 +97,7 @@
     <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
-        <ContentFolderName>BuildHost-net472</ContentFolderName>
+        <ContentFolderName>BuildHost-net472</ContentFolderName> <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if this folder name changes. -->
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
@@ -105,7 +105,7 @@
     <ItemGroup>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>$(NetRoslynBuildHostNetCoreVersion)</TargetFramework>
-        <ContentFolderName>BuildHost-netcore</ContentFolderName>
+        <ContentFolderName>BuildHost-netcore</ContentFolderName> <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if this folder name changes. -->
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
@@ -118,6 +118,8 @@
       <!-- We're setting both TargetPath and PackagePath here, the former when this is used in a regular build to deploy and the latter for
            when this called during pack. By putting the PackagePath in any/any, we only have to deploy this once rather than per TFM.
            Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
+
+      <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if the PackagePath changes. -->
       <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
                Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
                TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
