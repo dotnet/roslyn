@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         public TestAccessor GetTestAccessor()
-            => new(this);
+            => new TestAccessor(this);
 
         public readonly struct TestAccessor(SlidingTextWindow window)
         {
