@@ -457,59 +457,5 @@ internal sealed partial class GraphBuilder
         return node;
     }
 
-    public void AddLink(GraphNode from, GraphCategory category, GraphNode to, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            Graph.Links.GetOrCreate(from, to).AddCategory(category);
-        }
-    }
-
-    public static SourceLocation? TryCreateSourceLocation(string path, LinePositionSpan span)
-    {
-        // SourceLocation's constructor attempts to create an absolute uri.  So if we can't do that
-        // bail out immediately.
-        if (!Uri.TryCreate(path, UriKind.Absolute, out var uri))
-            return null;
-
-        return new SourceLocation(
-            uri,
-            new Position(span.Start.Line, span.Start.Character),
-            new Position(span.End.Line, span.End.Character));
-    }
-
-    public void ApplyToGraph(Graph graph, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            using var graphTransaction = new GraphTransactionScope();
-            graph.Merge(this.Graph);
-
-            foreach (var deferredProperty in _deferredPropertySets)
-            {
-                var nodeToSet = graph.Nodes.Get(deferredProperty.Item1.Id);
-                nodeToSet.SetValue(deferredProperty.Item2, deferredProperty.Item3);
-            }
-
-            graphTransaction.Complete();
-        }
-    }
-
-    public void AddDeferredPropertySet(GraphNode node, GraphProperty property, object value, CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            _deferredPropertySets.Add(Tuple.Create(node, property, value));
-        }
-    }
-
     public Graph Graph { get; } = new();
-
-    public ImmutableArray<GraphNode> GetCreatedNodes(CancellationToken cancellationToken)
-    {
-        using (_gate.DisposableWait(cancellationToken))
-        {
-            return [.. _createdNodes];
-        }
-    }
 }
