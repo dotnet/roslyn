@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -46,8 +45,8 @@ public sealed class EmitSolutionUpdateResultsTests
             activeStatements: [],
             exceptionRegions: []);
 
-    private static ModuleUpdates CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
-        => new(ModuleUpdateStatus.Blocked, [.. projectIds.Select(CreateMockUpdate)]);
+    private static ImmutableArray<ManagedHotReloadUpdate> CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
+        => [.. projectIds.Select(CreateMockUpdate)];
 
     private static ImmutableArray<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
         => [.. blocking.Select(id => (id, kind: RudeEditKind.InternalError)).Concat(noEffect.Select(id => (id, kind: RudeEditKind.UpdateMightNotHaveAnyEffect)))
