@@ -97,7 +97,8 @@
     <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
-        <ContentFolderName>BuildHost-net472</ContentFolderName> <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if this folder name changes. -->
+        <!-- NOTE: Update the `BuildHostProcessManager.GetDotNetFrameworkBuildHostPath` method if ContentFolderName changes. -->
+        <ContentFolderName>BuildHost-net472</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
@@ -105,7 +106,8 @@
     <ItemGroup>
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\MSBuild\BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>$(NetRoslynBuildHostNetCoreVersion)</TargetFramework>
-        <ContentFolderName>BuildHost-netcore</ContentFolderName> <!-- NOTE: Update the `BuildHostProcessManager.GetBuildHostPath` method if this folder name changes. -->
+        <!-- NOTE: Update the `BuildHostProcessManager.GetNetCoreBuildHostPath` method if ContentFolderName changes. -->
+        <ContentFolderName>BuildHost-netcore</ContentFolderName>
       </_NetFrameworkBuildHostProjectReference>
     </ItemGroup>
 
