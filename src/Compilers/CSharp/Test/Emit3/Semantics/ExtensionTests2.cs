@@ -2671,5 +2671,27 @@ int.M();
             // int.M();
             Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("E.extension(int).M()").WithLocation(1, 5));
     }
+
+    [Fact]
+    public void TODO2()
+    {
+        var libSrc = """
+public static class E
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net80);
+
+        var src = """
+object.M();
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, references: [libComp.EmitToImageReference()]);
+        comp.VerifyEmitDiagnostics();
+        CompileAndVerify(comp, expectedOutput: "M 3").VerifyDiagnostics();
+    }
 }
 

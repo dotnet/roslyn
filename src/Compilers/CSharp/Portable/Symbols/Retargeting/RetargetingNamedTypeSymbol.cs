@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this method TODO2
+                throw new System.Exception("JCOUV3");
 
                 if (_lazyExtensionParameter is null)
                 {
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         public override MethodSymbol TryGetCorrespondingExtensionImplementationMethod(MethodSymbol method)
         {
             // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this method TODO2
-
+            throw new System.Exception("JCOUV2");
             Debug.Assert(this.IsExtension);
             Debug.Assert(method.IsDefinition);
             Debug.Assert(method.ContainingType == (object)this);
