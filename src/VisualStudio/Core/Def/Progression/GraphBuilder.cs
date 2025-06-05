@@ -23,16 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
-internal sealed partial class GraphBuilder
+internal static class GraphBuilder
 {
-    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
-#pragma warning disable RS0030 // Do not use banned APIs
-    private readonly SemaphoreSlim _gate = new(initialCount: 1);
-#pragma warning restore RS0030 // Do not use banned APIs
-
-    private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
-    private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = [];
-
     internal static async Task<GraphNode> GetOrCreateNodeAsync(Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         GraphNode node;
@@ -456,6 +448,4 @@ internal sealed partial class GraphBuilder
 
         return node;
     }
-
-    public Graph Graph { get; } = new();
 }
