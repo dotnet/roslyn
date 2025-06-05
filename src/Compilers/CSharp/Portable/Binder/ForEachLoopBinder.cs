@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
                     }
-                    else if (getEnumeratorMethod.GetIsNewExtensionMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref) // Tracked by https://github.com/dotnet/roslyn/issues/76130: add test coverage for 'ref readonly' and 'in' TODO2
+                    else if (getEnumeratorMethod.GetIsNewExtensionMember() && getEnumeratorMethod.ContainingType.ExtensionParameter.RefKind == RefKind.Ref)
                     {
                         Error(diagnostics, ErrorCode.ERR_RefLvalueExpected, collectionExpr.Syntax);
                         hasErrors = true;
