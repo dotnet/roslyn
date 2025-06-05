@@ -2458,8 +2458,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
-        <source>The extended type '{0}' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter '{1}' is not referenced.</source>
-        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter '{1}' is not referenced.</target>
+        <source>Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `{0}` is not referenced.</source>
+        <target state="new">Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `{0}` is not referenced.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">

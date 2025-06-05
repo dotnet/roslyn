@@ -8135,7 +8135,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'value': an automatically-generated parameter name conflicts with an extension type parameter name</value>
   </data>
   <data name="ERR_UnderspecifiedExtension" xml:space="preserve">
-    <value>The extended type '{0}' must reference all the type parameters declared by the extension, since the extension block contains a non-method member, but type parameter '{1}' is not referenced.</value>
+    <value>Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `{0}` is not referenced.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsExtensionPropertyAccess" xml:space="preserve">
     <value>An expression tree may not contain an extension property access</value>

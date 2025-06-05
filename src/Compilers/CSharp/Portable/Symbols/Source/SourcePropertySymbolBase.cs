@@ -1061,6 +1061,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
+
+            if (this.GetIsNewExtensionMember())
+            {
+                ParameterHelpers.CheckUnderspecifiedGenericExtension(this, Parameters, diagnostics);
+            }
         }
 
         private void CheckAccessibility(Location location, BindingDiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)

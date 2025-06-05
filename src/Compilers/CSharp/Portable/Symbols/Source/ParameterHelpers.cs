@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -516,6 +517,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+        }
+
+        internal static void CheckUnderspecifiedGenericExtension(Symbol extensionMember, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+
+            NamedTypeSymbol extension = extensionMember.ContainingType;
+            if (extension.ExtensionParameter is not { } extensionParameter)
+            {
+                return;
+            }
+
+            var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            extensionParameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+            foreach (var parameter in parameters)
+            {
+                parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+            }
+
+            foreach (var typeParameter in extension.TypeParameters)
+            {
+                if (!usedTypeParameters.Contains(typeParameter))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, extensionMember.GetFirstLocation(), typeParameter);
+                }
+            }
+
+            usedTypeParameters.Free();
+
+            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
+            {
+                if (type is TypeParameterSymbol typeParameter)
+                {
+                    typeParameters.Add(typeParameter);
+                }
+
+                return false;
             }
         }
 
