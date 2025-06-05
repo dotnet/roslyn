@@ -552,7 +552,7 @@ internal sealed class EditSession
         ArrayBuilder<Diagnostic> diagnostics,
         CancellationToken cancellationToken)
     {
-        using var _2 = ArrayBuilder<(Document? oldDocument, Document? newDocument)>.GetInstance(out var documents);
+        using var _ = ArrayBuilder<(Document? oldDocument, Document? newDocument)>.GetInstance(out var documents);
         var hasOutOfSyncDocument = false;
 
         foreach (var newDocument in documentDifferences.ChangedOrAdded)
@@ -833,7 +833,12 @@ internal sealed class EditSession
         addedSymbols = [.. addedSymbolsBuilder];
     }
 
-    public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(Solution solution, ActiveStatementSpanProvider solutionActiveStatementSpanProvider, UpdateId updateId, CancellationToken cancellationToken)
+    public async ValueTask<SolutionUpdate> EmitSolutionUpdateAsync(
+        Solution solution,
+        ActiveStatementSpanProvider solutionActiveStatementSpanProvider,
+        UpdateId updateId,
+        ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
+        CancellationToken cancellationToken)
     {
         var projectDiagnostics = ArrayBuilder<Diagnostic>.GetInstance();
 
@@ -875,8 +880,7 @@ internal sealed class EditSession
 
             var oldSolution = DebuggingSession.LastCommittedSolution;
 
-            var blockUpdates = false;
-            var hasEmitErrors = false;
+            var hasPersistentErrors = false;
             foreach (var newProject in solution.Projects)
             {
                 try
@@ -934,7 +938,6 @@ internal sealed class EditSession
                         projectDiagnostics.Add(mvidReadError);
 
                         Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
-                        blockUpdates = true;
                         continue;
                     }
 
@@ -963,15 +966,6 @@ internal sealed class EditSession
                     var (changedDocumentAnalyses, hasOutOfSyncChangedDocument) =
                         await AnalyzeDocumentsAsync(solution, documentDifferences, solutionActiveStatementSpanProvider, projectDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                    // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
-                    // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
-                    // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state,
-                    // and we consider any further changes to it for application.
-                    if (projectDiagnostics.Any(static d => d.IsDocumentReadError()))
-                    {
-                        blockUpdates = true;
-                    }
-
                     if (hasOutOfSyncChangedDocument)
                     {
                         // The project is considered stale as long as it has at least one document that is out-of-sync.
@@ -992,6 +986,7 @@ internal sealed class EditSession
                         {
                             // only remember the first syntax error we encounter:
                             syntaxError ??= changedDocumentAnalysis.SyntaxError;
+                            hasPersistentErrors = true;
 
                             Log.Write($"Changed document '{changedDocumentAnalysis.FilePath}' has syntax error: {changedDocumentAnalysis.SyntaxError}");
                         }
@@ -1015,17 +1010,6 @@ internal sealed class EditSession
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
                     var moduleBlockingDiagnosticId = await ReportModuleDiagnosticsAsync(mvid, oldProject, newProject, changedDocumentAnalyses, projectDiagnostics, cancellationToken).ConfigureAwait(false);
-                    var isModuleEncBlocked = moduleBlockingDiagnosticId != null;
-
-                    if (isModuleEncBlocked)
-                    {
-                        blockUpdates = true;
-                    }
-
-                    if (projectSummary is ProjectAnalysisSummary.SyntaxErrors or ProjectAnalysisSummary.RudeEdits)
-                    {
-                        blockUpdates = true;
-                    }
 
                     // Report rude edit diagnostics - these can be blocking (errors) or non-blocking (warnings):
                     foreach (var analysis in changedDocumentAnalyses)
@@ -1044,7 +1028,7 @@ internal sealed class EditSession
                         }
                     }
 
-                    if (isModuleEncBlocked || projectSummary != ProjectAnalysisSummary.ValidChanges)
+                    if (moduleBlockingDiagnosticId != null || projectSummary != ProjectAnalysisSummary.ValidChanges)
                     {
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
 
@@ -1062,7 +1046,6 @@ internal sealed class EditSession
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
                         Telemetry.LogProjectAnalysisSummary(projectSummary, newProject.State.ProjectInfo.Attributes.TelemetryId, projectDiagnostics);
 
-                        blockUpdates = true;
                         await LogDocumentChangesAsync(generation: null, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
@@ -1136,8 +1119,12 @@ internal sealed class EditSession
 
                         if (!emitResult.Success)
                         {
-                            // error
-                            blockUpdates = hasEmitErrors = true;
+                            hasPersistentErrors = true;
+
+                            // Stop emitting deltas, we will discard the updates emitted so far.
+                            // Persistent errors need to be fixed before we attempt rebuilding the projects.
+                            // The baseline solution snapshot will not be moved forward and next call to
+                            // EmitSolutionUpdatesAsync will calculate changes for all updated projects again.
                             break;
                         }
 
@@ -1147,8 +1134,7 @@ internal sealed class EditSession
                         if (unsupportedChangesDiagnostic is not null)
                         {
                             projectDiagnostics.Add(unsupportedChangesDiagnostic);
-                            blockUpdates = true;
-                            break;
+                            continue;
                         }
 
                         var updatedMethodTokens = emitResult.UpdatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
@@ -1236,30 +1222,36 @@ internal sealed class EditSession
                 }
             }
 
-            // log capabilities for edit sessions with changes or reported errors:
-            if (blockUpdates || deltas.Count > 0)
-            {
-                Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
-            }
-
             var diagnostics = diagnosticBuilders.SelectAsArray(entry => new ProjectDiagnostics(entry.Key, entry.Value.ToImmutableAndFree()));
 
-            var update = blockUpdates
-                ? SolutionUpdate.Empty(
-                    diagnostics,
-                    syntaxError,
-                    syntaxError != null || hasEmitErrors ? ModuleUpdateStatus.Blocked : ModuleUpdateStatus.RestartRequired)
-                : new SolutionUpdate(
-                    new ModuleUpdates(
-                        (deltas.Count > 0) ? ModuleUpdateStatus.Ready : ModuleUpdateStatus.None,
-                        deltas.ToImmutable()),
-                    projectsToStale.ToImmutable(),
-                    nonRemappableRegions.ToImmutable(),
-                    newProjectBaselines.ToImmutable(),
-                    diagnostics,
-                    syntaxError);
+            Telemetry.LogRuntimeCapabilities(await Capabilities.GetValueAsync(cancellationToken).ConfigureAwait(false));
 
-            return update;
+            if (hasPersistentErrors)
+            {
+                return SolutionUpdate.Empty(diagnostics, syntaxError, ModuleUpdateStatus.Blocked);
+            }
+
+            var updates = deltas.ToImmutable();
+
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                updates,
+                diagnostics,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
+
+            var moduleUpdates = new ModuleUpdates(deltas.IsEmpty && projectsToRebuild.IsEmpty ? ModuleUpdateStatus.None : ModuleUpdateStatus.Ready, updates);
+
+            return new SolutionUpdate(
+                moduleUpdates,
+                projectsToStale.ToImmutable(),
+                nonRemappableRegions.ToImmutable(),
+                newProjectBaselines.ToImmutable(),
+                diagnostics,
+                syntaxError,
+                projectsToRestart,
+                projectsToRebuild);
         }
         catch (Exception e) when (LogException(e) && FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

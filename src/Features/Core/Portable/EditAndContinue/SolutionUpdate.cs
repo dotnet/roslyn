@@ -15,7 +15,9 @@ internal readonly struct SolutionUpdate(
     ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
     ImmutableArray<ProjectBaseline> projectBaselines,
     ImmutableArray<ProjectDiagnostics> diagnostics,
-    Diagnostic? syntaxError)
+    Diagnostic? syntaxError,
+    ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
+    ImmutableArray<ProjectId> projectsToRebuild)
 {
     public readonly ModuleUpdates ModuleUpdates = moduleUpdates;
     public readonly ImmutableArray<ProjectId> ProjectsToStale = projectsToStale;
@@ -25,6 +27,8 @@ internal readonly struct SolutionUpdate(
     // Diagnostics for projects, unique entries per project.
     public readonly ImmutableArray<ProjectDiagnostics> Diagnostics = diagnostics;
     public readonly Diagnostic? SyntaxError = syntaxError;
+    public readonly ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> ProjectsToRestart = projectsToRestart;
+    public readonly ImmutableArray<ProjectId> ProjectsToRebuild = projectsToRebuild;
 
     public static SolutionUpdate Empty(
         ImmutableArray<ProjectDiagnostics> diagnostics,
@@ -36,7 +40,9 @@ internal readonly struct SolutionUpdate(
             nonRemappableRegions: [],
             projectBaselines: [],
             diagnostics,
-            syntaxError);
+            syntaxError,
+            projectsToRestart: ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty,
+            projectsToRebuild: []);
 
     internal void Log(TraceLog log, UpdateId updateId)
     {
