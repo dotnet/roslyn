@@ -557,11 +557,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var parameter in parameters)
                 {
                     parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
-                }
 
-                if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
-                {
-                    return;
+                    if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                    {
+                        return;
+                    }
                 }
 
                 foreach (var typeParameter in extension.TypeParameters)
