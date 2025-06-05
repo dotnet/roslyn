@@ -7,7 +7,6 @@ Microsoft.CodeAnalysis.CommandLineResource.IsLinked.get -> bool
 Microsoft.CodeAnalysis.CommandLineResource.IsPublic.get -> bool
 Microsoft.CodeAnalysis.CommandLineResource.LinkedResourceFileName.get -> string?
 Microsoft.CodeAnalysis.CommandLineResource.ResourceName.get -> string!
-Microsoft.CodeAnalysis.CommandLineResource.ToDescription() -> Microsoft.CodeAnalysis.ResourceDescription!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions options, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void

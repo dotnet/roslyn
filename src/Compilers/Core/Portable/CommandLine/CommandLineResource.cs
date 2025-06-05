@@ -62,7 +62,7 @@ public readonly struct CommandLineResource
     /// <summary>
     /// Creates <see cref="ResourceDescription"/> for this resource.
     /// </summary>
-    public ResourceDescription ToDescription()
+    internal ResourceDescription ToDescription()
     {
         // fail fast if the method is called on default(CommandLineResource)
         var fullPath = FullPath ?? throw new NullReferenceException();

@@ -308,18 +308,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public CultureInfo? PreferredUILang { get; internal set; }
 
+        // Cache the values so that underlying file streams are not created multiple times for the same files.
+        private readonly Lazy<ImmutableArray<ResourceDescription>> _lazyManifestResources;
+
         internal StrongNameProvider GetStrongNameProvider(StrongNameFileSystem fileSystem)
             => new DesktopStrongNameProvider(KeyFileSearchPaths, fileSystem);
 
         internal CommandLineArguments()
         {
+            _lazyManifestResources = new Lazy<ImmutableArray<ResourceDescription>>(
+                () => ManifestResourceArguments.SelectAsArray(static r => r.ToDescription()));
         }
 
         /// <summary>
         /// Resources specified as arguments to the compilation.
         /// </summary>
         public ImmutableArray<ResourceDescription> ManifestResources
-            => ManifestResourceArguments.SelectAsArray(static r => r.ToDescription());
+            => _lazyManifestResources.Value;
 
         /// <summary>
         /// Returns a full path of the file that the compiler will generate the assembly to if compilation succeeds.
