@@ -375,8 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.Position > 0);
             if (_offset > 0)
             {
-                // The allowed region of the window that can be read is from 0 to _characterWindowCount (which _offset)
-                // is in between.  So as long as _offset is greater than 0, we can read the previous character directly
+                // The allowed region of the window that can be read is from 0 to _characterWindowCount (which _offset
+                // is in between).  So as long as _offset is greater than 0, we can read the previous character directly
                 // from the current chunk of characters in the window.
                 return this.CharacterWindow[_offset - 1];
             }
