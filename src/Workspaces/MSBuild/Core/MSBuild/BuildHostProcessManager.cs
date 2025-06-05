@@ -186,28 +186,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     internal static string GetNetCoreBuildHostPath()
     {
-        // Possible BuildHost paths are relative to where the Workspaces.MSBuild assembly was loaded.
-        var msbuildWorkspaceDirectory = Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!;
-
-        // When Workspaces.MSBuild is deployed as part of an application the .NET Core build host is deployed as a content folder next to the application under the BuildHost-netcore path
-        var buildHostPath = Path.Combine(msbuildWorkspaceDirectory, "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
-        if (File.Exists(buildHostPath))
-        {
-            return buildHostPath;
-        }
-
-        // When Workspaces.MSBuild is loaded from the NuGet cache the .NET Core Build host is deployed under the contentFiles folder under the BuildHost-netcore path
-        // 
-        // Workspaces.MSBuild.dll Path - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/lib/{tfm}/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
-        // MSBuild.BuildHost.dll Path  - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/contentFiles/any/any/BuildHost-netcore/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
-
-        var fallbackBuildHostPath = Path.GetFullPath(Path.Combine(msbuildWorkspaceDirectory, "..", "..", "contentFiles", "any", "any", "BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll"));
-        if (File.Exists(fallbackBuildHostPath))
-        {
-            return fallbackBuildHostPath;
-        }
-
-        throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
+        return GetBuildHostPath("BuildHost-netcore", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll");
     }
 
     private ProcessStartInfo CreateDotNetFrameworkBuildHostStartInfo(string pipeName)
@@ -239,28 +218,33 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private static string GetDotNetFrameworkBuildHostPath()
     {
+        return GetBuildHostPath("BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
+    }
+
+    private static string GetBuildHostPath(string contentFolderName, string assemblyName)
+    {
         // Possible BuildHost paths are relative to where the Workspaces.MSBuild assembly was loaded.
         var msbuildWorkspaceDirectory = Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location)!;
 
-        // When Workspaces.MSBuild is deployed as part of an application the .NET Framework build host is deployed as a content folder next to the application into the BuildHost-net472 path
-        var netFrameworkBuildHost = Path.Combine(msbuildWorkspaceDirectory, "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe");
-        if (File.Exists(netFrameworkBuildHost))
+        // When Workspaces.MSBuild is deployed as part of an application the build host is deployed as a content folder next to the application
+        var buildHostPath = Path.Combine(msbuildWorkspaceDirectory, contentFolderName, assemblyName);
+        if (File.Exists(buildHostPath))
         {
-            return netFrameworkBuildHost;
+            return buildHostPath;
         }
 
-        // When Workspaces.MSBuild is loaded from the NuGet cache the .NET Core Build host is deployed under the contentFiles folder under the BuildHost-netcore path
+        // When Workspaces.MSBuild is loaded from the NuGet cache the Build host is deployed under the contentFiles folder inside the package
         // 
         // Workspaces.MSBuild.dll Path - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/lib/{tfm}/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
-        // MSBuild.BuildHost.exe Path  - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/contentFiles/any/any/BuildHost-net472/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe
+        // MSBuild.BuildHost.dll Path  - .nuget/packages/microsoft.codeanalysis.workspaces.msbuild/{version}/contentFiles/any/any/{contentFolderName}/{assemblyName}
 
-        var fallbackBuildHostPath = Path.GetFullPath(Path.Combine(msbuildWorkspaceDirectory, "..", "..", "contentFiles", "any", "any", "BuildHost-net472", "Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe"));
+        var fallbackBuildHostPath = Path.GetFullPath(Path.Combine(msbuildWorkspaceDirectory, "..", "..", "contentFiles", "any", "any", contentFolderName, assemblyName));
         if (File.Exists(fallbackBuildHostPath))
         {
             return fallbackBuildHostPath;
         }
 
-        throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, netFrameworkBuildHost));
+        throw new Exception(string.Format(WorkspaceMSBuildResources.The_build_host_could_not_be_found_at_0, buildHostPath));
     }
 
     private void AppendBuildHostCommandLineArgumentsConfigureProcess(ProcessStartInfo processStartInfo, string pipeName)
