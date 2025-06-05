@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                return null;
             }
 
             if (_lazyExtensionInfo is null)
