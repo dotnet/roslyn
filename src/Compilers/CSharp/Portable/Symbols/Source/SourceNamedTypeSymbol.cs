@@ -1413,6 +1413,11 @@ next:;
         {
             get
             {
+                if (this.IsExtension)
+                {
+                    return true;
+                }
+
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
