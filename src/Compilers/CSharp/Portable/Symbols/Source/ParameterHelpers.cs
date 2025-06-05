@@ -524,27 +524,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(extensionMember.GetIsNewExtensionMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
-            if (extension.ExtensionParameter is not { } extensionParameter)
+            if (extension.ExtensionParameter is not { } extensionParameter || extension.ContainingType.Arity != 0)
+            {
+                // error cases, already reported elsewhere
+                return;
+            }
+
+            if (extension.Arity == 0)
             {
                 return;
             }
 
             var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            extensionParameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
-            foreach (var parameter in parameters)
-            {
-                parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
-            }
-
-            foreach (var typeParameter in extension.TypeParameters)
-            {
-                if (!usedTypeParameters.Contains(typeParameter))
-                {
-                    diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, extensionMember.GetFirstLocation(), typeParameter);
-                }
-            }
+            reportUnusedExtensionTypeParameters(extensionMember, parameters, diagnostics, extension, extensionParameter, usedTypeParameters);
 
             usedTypeParameters.Free();
+            return;
+
+            static void reportUnusedExtensionTypeParameters(Symbol extensionMember, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics, NamedTypeSymbol extension, ParameterSymbol extensionParameter, PooledHashSet<TypeParameterSymbol> usedTypeParameters)
+            {
+                int extensionArity = extension.Arity;
+                int extensionMemberArity = extensionMember.GetMemberArity();
+                Debug.Assert(extensionMemberArity == 0); // we currently only apply the check for members which may not be generic
+
+                extensionParameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+
+                if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                {
+                    return;
+                }
+
+                foreach (var parameter in parameters)
+                {
+                    parameter.Type.VisitType(collectTypeParameters, arg: usedTypeParameters);
+                }
+
+                if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                {
+                    return;
+                }
+
+                foreach (var typeParameter in extension.TypeParameters)
+                {
+                    if (!usedTypeParameters.Contains(typeParameter))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, extensionMember.GetFirstLocation(), typeParameter);
+                    }
+                }
+            }
 
             static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
             {

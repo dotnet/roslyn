@@ -3030,6 +3030,25 @@ public static class E
     }
 
     [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_12()
+    {
+        var src = """
+public static class E<T>
+{
+    extension<U>(T t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<U>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+    }
+
+    [Fact]
     public void ReceiverParameter_TypeParameter_Missing_Local()
     {
         var src = """
