@@ -2947,6 +2947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandType = operand.Type;
                 Debug.Assert(operandType is not null);
                 Debug.Assert(!operandType.IsDynamic());
+                Debug.Assert(kind is (UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PrefixDecrement or UnaryOperatorKind.PostfixIncrement or UnaryOperatorKind.PostfixDecrement));
 
                 checkedName = null;
                 ordinaryName = null;
@@ -2970,7 +2971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                      (kind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PostfixIncrement ?
                                           WellKnownMemberNames.CheckedIncrementAssignmentOperatorName :
                                           WellKnownMemberNames.CheckedDecrementAssignmentOperatorName) :
-                                    null;
+                                     null;
                 ordinaryName = kind is UnaryOperatorKind.PrefixIncrement or UnaryOperatorKind.PostfixIncrement ?
                                       WellKnownMemberNames.IncrementAssignmentOperatorName :
                                       WellKnownMemberNames.DecrementAssignmentOperatorName;
@@ -3364,7 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return checkedMethods;
 
-            void lookupUserDefinedInstanceExtensionOperatorsInSingleScope(
+            static void lookupUserDefinedInstanceExtensionOperatorsInSingleScope(
                 ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
                 string name,
                 int parameterCount,

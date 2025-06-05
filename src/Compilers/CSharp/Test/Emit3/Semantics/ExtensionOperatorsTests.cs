@@ -6433,6 +6433,130 @@ class Program
 
         [Theory]
         [CombinatorialData]
+        public void Increment_070_Consumption_Postfix(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1++;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(S1).operator ++(S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         s1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_071_Consumption_Postfix(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1++;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         s1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Binary_001_Declaration([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
         {
             var src = $$$"""
@@ -12025,3 +12149,4 @@ struct S1
 
 // PROTOTYPE: Test unsafe and partial, IOperation/CFG , Linq expression tree, Nullable analysis
 //            Assert result of operator for basic consumption scenarios
+//            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
