@@ -318,7 +318,10 @@ class C
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-        AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Select(result => result.Location).WhereNotNull());
+        Assert.Equal(3, results.Length);
+        Assert.True(results[0].Location.DocumentUri.ToString().EndsWith("String.cs"));
+
+        AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Skip(1).Select(r => r.Location));
     }
 
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress)
