@@ -1535,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnRefKind: default,
                 returnType: null,
                 ref extensionUseSiteInfo,
-                acceptOnlyMethods: true); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test effect of acceptOnlyMethods value TODO2
+                acceptOnlyMethods: true);
 
             diagnostics.Add(syntax, extensionUseSiteInfo);
             diagnostics.AddRange(methodGroupResolutionResult.Diagnostics);
