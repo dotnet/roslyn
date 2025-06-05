@@ -80,7 +80,7 @@ internal abstract class AbstractUseCoalesceExpressionForNullableTernaryCondition
         syntaxFacts.GetPartsOfMemberAccessExpression(conditionMemberAccess, out var conditionExpression, out var conditionSimpleName);
         syntaxFacts.GetNameAndArityOfSimpleName(conditionSimpleName, out var conditionName, out _);
 
-        if (conditionName != nameof(Nullable<int>.HasValue))
+        if (conditionName != nameof(Nullable<>.HasValue))
             return;
 
         var whenPartToCheck = notHasValueExpression ? whenFalseNodeLow : whenTrueNodeLow;
@@ -90,7 +90,7 @@ internal abstract class AbstractUseCoalesceExpressionForNullableTernaryCondition
         syntaxFacts.GetPartsOfMemberAccessExpression(whenPartMemberAccess, out var whenPartExpression, out var whenPartSimpleName);
         syntaxFacts.GetNameAndArityOfSimpleName(whenPartSimpleName, out var whenPartName, out _);
 
-        if (whenPartName != nameof(Nullable<int>.Value))
+        if (whenPartName != nameof(Nullable<>.Value))
             return;
 
         if (!syntaxFacts.AreEquivalent(conditionExpression, whenPartExpression))
