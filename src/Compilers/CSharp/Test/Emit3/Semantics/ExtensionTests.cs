@@ -16832,7 +16832,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,38): error CS9286: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -19936,7 +19936,7 @@ interface I<T>
 interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider improving the symbols in this error message
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider improving the symbols in this error message
         comp.VerifyEmitDiagnostics(
             // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
             // I2.M();
@@ -24937,7 +24937,7 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : We might need to add a new warning if we don't want to refer to extension as a type in diagnostics
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we might need to add a new warning if we don't want to refer to extension as a type in diagnostics
 
         comp.VerifyEmitDiagnostics(
             // (11,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
@@ -26800,7 +26800,7 @@ static class Extensions
             //         public void M1() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(5, 21),
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
 
             // (19,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
             //         public void M3() {}
@@ -26928,7 +26928,7 @@ static class Extensions
             //         public void M1() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(7, 21),
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
 
             // (21,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
             //         public void M3() {}
@@ -27862,7 +27862,7 @@ public static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The "within a type" part of the message might be somewhat misleading
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the "within a type" part of the message might be somewhat misleading
         comp.VerifyDiagnostics(
             // (8,13): error CS9282: Extension declarations can include only methods or properties
             //         int this[T x] => default;
@@ -37134,7 +37134,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider reporting a better containing symbol
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
