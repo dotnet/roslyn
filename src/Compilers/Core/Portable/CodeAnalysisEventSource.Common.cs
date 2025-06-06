@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis
     {
         public static class Keywords
         {
-            public const EventKeywords Performance = (EventKeywords)1;
-            public const EventKeywords Correctness = (EventKeywords)2;
-            public const EventKeywords AnalyzerLoading = (EventKeywords)4;
+            public const EventKeywords Performance = (EventKeywords)0b001;
+            public const EventKeywords Correctness = (EventKeywords)0b010;
+            public const EventKeywords AnalyzerLoading = (EventKeywords)0b100;
         }
 
         public static class Tasks
