@@ -406,8 +406,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : do we want to tighten the flags check further? (require that type be sealed?) TODO2
-                    if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
+                    if (!methodSymbol.ContainingType.IsSealed ||
+                        methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
