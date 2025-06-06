@@ -230,6 +230,11 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
             if (_filePathToCollectionSources.TryGetValue(currentFilePath, out var sources))
             {
                 sources.Remove(source);
+
+                if (sources.Count == 0)
+                {
+                    _filePathToCollectionSources.Remove(currentFilePath);
+                }
             }
         }
     }
