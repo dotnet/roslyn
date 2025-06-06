@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis
         [Event(19, Message = "ALC for directory '{0}': Failed to resolve assembly '{1}' ", Keywords = Keywords.AnalyzerLoading, Level = EventLevel.Informational)]
         internal unsafe void ResolveAssemblyFailed(string directory, string assemblyName) => WriteEvent(19, directory, assemblyName);
 
-
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {
             fixed (char* ptr2 = value)
