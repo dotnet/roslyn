@@ -597,13 +597,12 @@ internal static partial class INamedTypeSymbolExtensions
                 if (member.IsImplicitlyDeclared)
                     continue;
 
-                var matches = result.Where(kvp =>
-                    comparer.Equals(member.Name, kvp.Key.Name) &&
-                    SignatureComparer.Instance.HaveSameSignature(member, kvp.Key, caseSensitive));
-
-                // realize the matches since we're mutating the collection we're querying.
-                foreach (var match in matches.ToImmutableArray())
-                    result.Remove(match.Key);
+                result.RemoveAll(static (symbol, value, arg) =>
+                    {
+                        return arg.comparer.Equals(arg.member.Name, symbol.Name) &&
+                               SignatureComparer.Instance.HaveSameSignature(arg.member, symbol, arg.caseSensitive);
+                    },
+                    (comparer, member, caseSensitive));
             }
         }
     }
