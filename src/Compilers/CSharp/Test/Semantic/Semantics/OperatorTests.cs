@@ -7383,7 +7383,8 @@ public class RubyTime
                 else
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, left, right, result, ref discardedUseSiteInfo);
+                    OverloadResolution.GetStaticUserDefinedBinaryOperatorMethodNames(kind, isChecked, out string name1, out string name2Opt);
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, isChecked, name1, name2Opt, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
