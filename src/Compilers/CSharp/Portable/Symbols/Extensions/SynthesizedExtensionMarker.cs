@@ -78,8 +78,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (parameter is { })
                 {
-                    checkUnderspecifiedGenericExtension(parameter, ContainingType.TypeParameters, diagnostics);
-
                     TypeSymbol parameterType = parameter.TypeWithAnnotations.Type;
                     RefKind parameterRefKind = parameter.RefKind;
                     SyntaxNode? parameterTypeSyntax = parameterList.Parameters[0].Type;
@@ -113,34 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return parameter;
             }
-
-            static void checkUnderspecifiedGenericExtension(ParameterSymbol parameter, ImmutableArray<TypeParameterSymbol> typeParameters, BindingDiagnosticBag diagnostics)
-            {
-                var underlyingType = parameter.Type;
-                var usedTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-                underlyingType.VisitType(collectTypeParameters, arg: usedTypeParameters);
-
-                foreach (var typeParameter in typeParameters)
-                {
-                    if (!usedTypeParameters.Contains(typeParameter))
-                    {
-                        diagnostics.Add(ErrorCode.ERR_UnderspecifiedExtension, parameter.GetFirstLocation(), underlyingType, typeParameter);
-                    }
-                }
-
-                usedTypeParameters.Free();
-            }
-
-            static bool collectTypeParameters(TypeSymbol type, PooledHashSet<TypeParameterSymbol> typeParameters, bool ignored)
-            {
-                if (type is TypeParameterSymbol typeParameter)
-                {
-                    typeParameters.Add(typeParameter);
-                }
-
-                return false;
-            }
-
         }
     }
 }

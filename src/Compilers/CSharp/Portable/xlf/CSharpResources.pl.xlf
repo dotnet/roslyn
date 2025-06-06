@@ -2458,8 +2458,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
-        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
-        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
+        <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
+        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
