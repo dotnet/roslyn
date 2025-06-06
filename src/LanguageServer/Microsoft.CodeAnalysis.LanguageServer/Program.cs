@@ -221,12 +221,6 @@ static CommandLineConfiguration CreateCommandLineParser()
         Required = false
     };
 
-    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
-    {
-        Description = "Full path to the Razor source generator (optional).",
-        Required = false
-    };
-
     var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
     {
         Description = "Full path to the Razor design time target path (optional).",
@@ -257,7 +251,6 @@ static CommandLineConfiguration CreateCommandLineParser()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
-        razorSourceGeneratorOption,
         razorDesignTimePathOption,
         extensionLogDirectoryOption,
         serverPipeNameOption,
@@ -273,7 +266,6 @@ static CommandLineConfiguration CreateCommandLineParser()
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
         var devKitDependencyPath = parseResult.GetValue(devKitDependencyPathOption);
-        var razorSourceGenerator = parseResult.GetValue(razorSourceGeneratorOption);
         var razorDesignTimePath = parseResult.GetValue(razorDesignTimePathOption);
         var extensionLogDirectory = parseResult.GetValue(extensionLogDirectoryOption)!;
         var serverPipeName = parseResult.GetValue(serverPipeNameOption);
@@ -287,7 +279,6 @@ static CommandLineConfiguration CreateCommandLineParser()
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
             DevKitDependencyPath: devKitDependencyPath,
-            RazorSourceGenerator: razorSourceGenerator,
             RazorDesignTimePath: razorDesignTimePath,
             ServerPipeName: serverPipeName,
             UseStdIo: useStdIo,
