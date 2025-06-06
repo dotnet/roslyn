@@ -471,7 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider comparing accessibility as well TODO2
+                    if (candidate.DeclaredAccessibility != @this.DeclaredAccessibility)
+                    {
+                        continue;
+                    }
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
