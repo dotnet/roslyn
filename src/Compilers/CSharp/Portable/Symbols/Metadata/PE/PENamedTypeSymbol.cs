@@ -534,10 +534,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return candidate;
                     }
 
-                    break; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                    break;
                 }
 
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                return null;
             }
         }
 
