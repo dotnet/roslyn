@@ -34,11 +34,13 @@ Usage:
 Commands:
   authenticate                       Stores the AzDO and GitHub tokens required for remote operations.
   pr-finder                          Find merged PRs between two commits
+  pr-tagger                          Tags PRs inserted in a given VS build.
   nuget-dependencies                 Lists dependencies that are missing or out of date for a folder of .nupkg files.
   nuget-prepare                      Prepares packages built from the Roslyn repo for validation.
   nuget-publish <roslyn|roslyn-sdk>  Publishes packages built from a Roslyn repo. [default: roslyn]
-  create-release-tags                Generates git tags for VS releases in the Roslyn repo.
+  create-release-tags                Generates git tags for VS releases in the repo.
   vsbranchinfo                       Provides information about the state of Roslyn in one or more branches of Visual Studio.
+  dart-test                          Runs the dartlab pipeline for a given PR number and SHA.
 ```
 
 For example you could run `dotnet roslyn-tools vsbranchinfo` to display information about the Roslyn package most recently inserted into Visual Studio's main branch.
