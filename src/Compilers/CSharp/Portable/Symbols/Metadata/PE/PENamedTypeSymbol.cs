@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (member is not MethodSymbol { IsStatic: true } candidate)
                     {
+                        throw new System.Exception("JCOUV2");
                         continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
                     }
 
@@ -474,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (candidate.Arity != @this.Arity + method.Arity)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        continue;
                     }
 
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
