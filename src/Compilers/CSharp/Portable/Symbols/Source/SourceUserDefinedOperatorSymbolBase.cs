@@ -394,8 +394,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter, _location, new FormattedSymbol(this, SymbolDisplayFormat.ShortFormat));
                 }
 
-                // PROTOTYPE: confirm the following rule
-
                 // Require receiver type to be known as a class or as a struct, and
                 // require:
                 //     - struct receiver to be a 'ref' 
@@ -905,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true; // An error scenario
                 }
 
-                return ExtensionOperatorParameterTypeMatchesExtendedType(type, checkStrippedType, extendedType);
+                return ExtensionOperatorParameterTypeMatchesExtendedType(type, extendedType);
             }
 
             if (checkStrippedType)
@@ -917,18 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    (IsInInterfaceAndAbstractOrVirtual() && IsSelfConstrainedTypeParameter(type));
         }
 
-        internal static bool ExtensionOperatorParameterTypeMatchesExtendedType(TypeSymbol type, bool checkStrippedType, TypeSymbol extendedType)
+        internal static bool ExtensionOperatorParameterTypeMatchesExtendedType(TypeSymbol type, TypeSymbol extendedType)
         {
-            if (checkStrippedType && type.IsNullableType())
-            {
-                if (type.Equals(extendedType, ComparisonForUserDefinedOperators))
-                {
-                    return true;
-                }
-
-                type = type.GetNullableUnderlyingType();
-            }
-
             return type.Equals(extendedType, ComparisonForUserDefinedOperators);
         }
 
