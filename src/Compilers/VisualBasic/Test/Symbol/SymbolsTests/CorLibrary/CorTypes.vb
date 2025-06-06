@@ -50,7 +50,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences({NetCoreApp.SystemRuntime})
             Dim msCorLibRef As MetadataOrSourceAssemblySymbol = DirectCast(assemblies(0), MetadataOrSourceAssemblySymbol)
 
-            Dim knownMissingTypes As HashSet(Of Integer) = New HashSet(Of Integer) From {SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute}
+            Const NumMissingInternalSpecialTypes = 2
+            Dim knownMissingTypes As New HashSet(Of Integer) From
+            {
+                SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutAttribute,
+                InternalSpecialType.System_Runtime_InteropServices_ExtendedLayoutKind
+            }
 
             For i As Integer = 1 To SpecialType.Count
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
@@ -106,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Next
             End While
 
-            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer))
+            Assert.Equal(count + knownMissingTypes.Count, CType(SpecialType.Count, Integer) + NumMissingInternalSpecialTypes)
             Assert.Equal(knownMissingTypes.Any(), msCorLibRef.KeepLookingForDeclaredSpecialTypes)
         End Sub
 

@@ -2613,7 +2613,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T1__Item1
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T1,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T1 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
 
@@ -2829,7 +2829,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T1__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_ValueTuple_T1,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T1 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type

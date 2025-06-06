@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Type__GetTypeFromHandle,
 
+        System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor,
+
         Count
     }
 }
