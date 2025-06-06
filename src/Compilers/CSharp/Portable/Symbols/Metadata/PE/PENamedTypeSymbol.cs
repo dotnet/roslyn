@@ -444,12 +444,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (this.ContainingType is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                throw ExceptionUtilities.Unreachable();
             }
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null;
+                throw ExceptionUtilities.Unreachable();
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -2043,7 +2043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (!foundMarkerMethod.IsNil)
                         {
-                            return default; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                            return default;
                         }
 
                         foundMarkerMethod = methodHandle;
