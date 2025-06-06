@@ -220,6 +220,78 @@ static class E
     }
 
     [Fact]
+    public void PositionalPattern_03()
+    {
+        // implicit span conversion
+        var src = """
+int[] i = new int[] { 1, 2 };
+if (i is var (x, y))
+    System.Console.Write((x, y));
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PositionalPattern_04()
+    {
+        // implicit tuple conversion
+        var src = """
+var t = (42, "ran");
+if (t is var (x, y))
+    System.Console.Write((x, y));
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, ran)")).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PositionalPattern_05()
+    {
+        // We check conversion during initial binding
+        var src = """
+int[] i = [];
+_ = i is var (x, y);
+
+static class E
+{
+    extension(System.ReadOnlySpan<int> r)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,14): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            // _ = i is var (x, y);
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(x, y)").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(2, 14));
+    }
+
+    [Fact]
     public void InvocationOnNull()
     {
         var src = """
