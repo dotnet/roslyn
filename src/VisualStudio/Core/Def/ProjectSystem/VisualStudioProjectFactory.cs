@@ -34,11 +34,8 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
-    private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
     private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _analyzerAssemblyRedirectors;
     private readonly IVsService<SVsBackgroundSolution, IVsBackgroundSolution> _solution;
-
-    private readonly JoinableTask<VisualStudioDiagnosticAnalyzerProvider> _initializationTask;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,35 +43,14 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         IThreadingContext threadingContext,
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
-        IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
         [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
         IVsService<SVsBackgroundSolution, IVsBackgroundSolution> solution)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
-        _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
         _analyzerAssemblyRedirectors = analyzerAssemblyRedirectors.AsImmutableOrEmpty();
         _solution = solution;
-
-        _initializationTask = _threadingContext.JoinableTaskFactory.RunAsync(
-            async () =>
-            {
-                var cancellationToken = _threadingContext.DisposalToken;
-
-                // HACK: Fetch this service to ensure it's still created on the UI thread; once this is
-                // moved off we'll need to fix up it's constructor to be free-threaded.
-
-                // yield if on the main thread, as the VisualStudioMetadataReferenceManager construction can be fairly expensive
-                // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
-
-                _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-                _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
-
-                return await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(true);
-            });
     }
 
     public Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, CancellationToken cancellationToken)
@@ -83,8 +59,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        var vsixAnalyzerProvider = await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-
         // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
         // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
         // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
@@ -102,7 +76,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
-        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, vsixAnalyzerProvider, _analyzerAssemblyRedirectors);
+        var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _analyzerAssemblyRedirectors);
         var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
