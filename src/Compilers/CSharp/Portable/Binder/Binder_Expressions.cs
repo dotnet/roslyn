@@ -8808,7 +8808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OverloadResolutionResult<PropertySymbol> overloadResolutionResult = OverloadResolutionResult<PropertySymbol>.GetInstance();
 
                 binder.OverloadResolution.PropertyOverloadResolution(properties, left, actualReceiverArguments, overloadResolutionResult,
-                    allowRefOmittedArguments: binder.AllowRefOmittedArguments(left), dynamicResolution: actualReceiverArguments.HasDynamicArgument, ref useSiteInfo);
+                    allowRefOmittedArguments: binder.AllowRefOmittedArguments(left), dynamicResolution: actualReceiverArguments.HasDynamicArgument,
+                    ignoreStaticInstanceMismatches: binder.IsInsideNameof, ref useSiteInfo);
 
                 properties.Free();
                 return overloadResolutionResult;
@@ -10127,6 +10128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.OverloadResolution.PropertyOverloadResolution(propertyGroup, receiver, analyzedArguments, overloadResolutionResult,
                 allowRefOmittedArguments: allowRefOmittedArguments,
                 dynamicResolution: analyzedArguments.HasDynamicArgument,
+                ignoreStaticInstanceMismatches: false,
                 ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
 
