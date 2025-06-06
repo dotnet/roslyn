@@ -2702,5 +2702,348 @@ object.M();
         Assert.IsType<RetargetingNamedTypeSymbol>(extension);
         AssertExtensionDeclaration(extension.GetPublicSymbol());
     }
+
+    [Theory]
+    [InlineData("public")]
+    [InlineData("assembly")]
+    [InlineData("family")]
+    public void PENamedTypeSymbol_01(string accessibility)
+    {
+        // Accessibility of extension marker is not private
+        var ilSrc = $$"""
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method {{accessibility}} hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+        var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "int.M()");
+        Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        Assert.Equal([], model.GetSymbolInfo(invocation).CandidateSymbols.ToTestDisplayStrings());
+        Assert.Equal([], model.GetMemberGroup(invocation).ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_02()
+    {
+        // Accessibility of extension marker is not private, instance extension method
+        var ilSrc = $$"""
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method public hidebysig specialname static void '<Extension>$' ( int32 i ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig instance void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M ( int32 i ) cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+42.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,4): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+            // 42.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 4));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_03()
+    {
+        // Extension marker method is generic
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$'<T> ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_04()
+    {
+        // Extension marker method is not static
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_05()
+    {
+        // Extension marker doesn't return void
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static int32 '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+            IL_0000: ldc.i4.0
+            IL_0001: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_06()
+    {
+        // Extension marker lacks its parameter
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' () cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_07()
+    {
+        // Extension marker has an extra parameter
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '', string s ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void PENamedTypeSymbol_Baseline_TODO2()
+    {
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed 
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed 
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+    .method public hidebysig static void M () cil managed 
+    {
+        IL_0000: nop
+        IL_0001: ret
+    }
+}
+""";
+        var src = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(src, ilSrc);
+        comp.VerifyEmitDiagnostics();
+    }
 }
 

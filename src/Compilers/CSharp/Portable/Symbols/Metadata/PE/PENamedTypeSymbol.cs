@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         !methodSymbol.ReturnsVoid ||
                         methodSymbol.ParameterCount != 1)
                     {
-                        return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        return null;
                     }
 
                     return new ReceiverParameterSymbol(@this, methodSymbol.Parameters[0]);
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                return null; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                return null;
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -463,8 +463,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             static MethodSymbol? findCorrespondingExtensionImplementationMethod(MethodSymbol method, PENamedTypeSymbol @this)
             {
-                Debug.Assert(@this.ExtensionParameter is not null);
-
                 foreach (var member in @this.ContainingType.GetMembers(method.Name))
                 {
                     if (member is not MethodSymbol { IsStatic: true } candidate)
@@ -502,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         !MemberSignatureComparer.HaveSameParameterType(
                             candidate.Parameters[0],
                             typeMap1: null,
-                            @this.ExtensionParameter,
+                            @this.ExtensionParameter!,
                             typeMap,
                             MemberSignatureComparer.RefKindCompareMode.ConsiderDifferences,
                             considerDefaultValues: false,
