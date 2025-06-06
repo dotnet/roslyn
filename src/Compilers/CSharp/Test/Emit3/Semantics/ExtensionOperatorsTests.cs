@@ -3042,6 +3042,3521 @@ struct S1
 
         [Theory]
         [CombinatorialData]
+        public void Increment_005_Consumption(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        ++s1;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(S1).operator ++(S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(6, 9)
+                );
+
+            var src3 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        Extensions1.op_Increment(s1);
+    }
+}
+""";
+            var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var src4 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.op_Increment();
+        S1.op_Increment(s1);
+    }
+}
+""";
+            var comp4 = CreateCompilation(src4, references: [comp1Ref]);
+            comp4.VerifyEmitDiagnostics(
+                // (6,12): error CS1061: 'S1' does not contain a definition for 'op_Increment' and no accessible extension method 'op_Increment' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         s1.op_Increment();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "op_Increment").WithArguments("S1", "op_Increment").WithLocation(6, 12),
+                // (7,12): error CS0117: 'S1' does not contain a definition for 'op_Increment'
+                //         S1.op_Increment(s1);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "op_Increment").WithArguments("S1", "op_Increment").WithLocation(7, 12)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_006_Consumption(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        _ = ++s1;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(6, 13)
+                );
+
+            var src3 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        Extensions1.op_IncrementAssignment(ref s1);
+    }
+}
+""";
+            var comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp3 = CreateCompilation(src3, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp3, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var src4 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.op_IncrementAssignment();
+        S1.op_IncrementAssignment(ref s1);
+    }
+}
+""";
+            var comp4 = CreateCompilation(src4, references: [comp1Ref]);
+            comp4.VerifyEmitDiagnostics(
+                // (6,12): error CS1061: 'S1' does not contain a definition for 'op_IncrementAssignment' and no accessible extension method 'op_IncrementAssignment' accepting a first argument of type 'S1' could be found (are you missing a using directive or an assembly reference?)
+                //         s1.op_IncrementAssignment();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "op_IncrementAssignment").WithArguments("S1", "op_IncrementAssignment").WithLocation(6, 12),
+                // (7,12): error CS0117: 'S1' does not contain a definition for 'op_IncrementAssignment'
+                //         S1.op_IncrementAssignment(ref s1);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "op_IncrementAssignment").WithArguments("S1", "op_IncrementAssignment").WithLocation(7, 12)
+                );
+        }
+
+        [Fact]
+        public void Increment_007_Consumption_PredefinedComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static implicit operator int(S2 x)
+    {
+        System.Console.Write("operator2");
+        return 0;
+    }
+    public static implicit operator S2(int x)
+    {
+        System.Console.Write("operator3");
+        return default;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        ++s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2operator3").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++(S2)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_008_Consumption_PredefinedComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S2
+{
+    public static implicit operator int(S2 x)
+    {
+        System.Console.Write("operator2");
+        return 0;
+    }
+    public static implicit operator S2(int x)
+    {
+        System.Console.Write("operator3");
+        return default;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2operator3").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++(S2)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_009_Consumption_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        System.Console.Write("operator2");
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++(S2)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_010_Consumption_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public struct S2
+{
+    public void operator ++()
+    {
+        System.Console.Write("operator2");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_011_Consumption_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        System.Console.Write("operator2");
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++(S2)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_012_Consumption_NonExtensionComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S2
+{
+    public void operator ++()
+    {
+        System.Console.Write("operator2");
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("S2.operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_013_Consumption_InstanceInTheSameScopeComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+
+        public static S2 operator ++(S2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_014_Consumption_InstanceInTheSameScopeComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+    }
+    extension(S2)
+    {
+        public static S2 operator ++(S2 y) => throw null;
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_015_Consumption_InstanceInTheSameScopeComesFirst()
+        {
+            var src = $$$"""
+public static class Extensions2
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 y) => throw null;
+    }
+}
+
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+    }
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S2).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S2", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_016_Consumption_StaticTriedAfterInapplicableInstanceInTheSameScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++() => throw null;
+    }
+    extension(S2)
+    {
+        public static S2 operator ++(S2 y)
+        {
+            System.Console.Write("operator2");
+            return y;
+        }
+    }
+}
+
+public struct S1
+{
+}
+
+public struct S2
+{
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s2 = new S2();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_017_Consumption_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(S1)
+        {
+            public static S1 operator ++(S1 x)
+            {
+                System.Console.Write("operator1");
+                return x;
+            }
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(S2)
+            {
+                public static S2 operator ++(S2 x) => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                _ = ++s1;
+            }
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("NS1.Extensions2.extension(S1).operator ++(S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_018_Consumption_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(S1)
+        {
+            public static S1 operator ++(S1 x)
+            {
+                System.Console.Write("operator1");
+                return x;
+            }
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(ref S2 x)
+            {
+                public void operator ++() => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                _ = ++s1;
+            }
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("NS1.Extensions2.extension(S1).operator ++(S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_019_Consumption_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(ref S1 x)
+        {
+            public void operator ++()
+            {
+                System.Console.Write("operator1");
+            }
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(ref S2 x)
+            {
+                public void operator ++() => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                _ = ++s1;
+            }
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("NS1.Extensions2.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_020_Consumption_ScopeByScope()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(ref S1 x)
+        {
+            public void operator ++()
+            {
+                System.Console.Write("operator1");
+            }
+        }
+    }
+
+    namespace NS2
+    {
+        public static class Extensions3
+        {
+            extension(S2)
+            {
+                public static S2 operator ++(S2 x) => throw null;
+            }
+        }
+
+        class Program
+        {
+            static void Main()
+            {
+                var s1 = new S1();
+                _ = ++s1;
+            }
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("NS1.Extensions2.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_021_Consumption_NonExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1
+{
+    public static I1 operator --(I1 x) => x;
+}
+
+public interface I3
+{
+    public static I3 operator --(I3 x) => x;
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+
+public static class Extensions1
+{
+    extension(I2 x)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 y) => y;
+    }
+}
+
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = --x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (33,17): error CS0035: Operator '--' is ambiguous on an operand of type 'I2'
+                //         var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--x").WithArguments("--", "I2").WithLocation(33, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("I1.operator --(I1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("I3.operator --(I3)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_022_Consumption_NonExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1
+{
+    public void operator --() {}
+}
+
+public interface I3
+{
+    public void operator --() {}
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+
+public static class Extensions1
+{
+    extension(I2 x)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 y) => y;
+    }
+}
+
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = --x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (33,17): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator --()' and 'I3.operator --()'
+                //         var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("I1.operator --()", "I3.operator --()").WithLocation(33, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("I1.operator --()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("I3.operator --()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_023_Consumption_NonExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1
+{
+    public void operator --() {}
+}
+
+public interface I3
+{
+    public void operator --() {}
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+    public static I2 operator --(I2 y) => y;
+}
+
+public static class Extensions1
+{
+    extension(I2 x)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 y) => y;
+    }
+}
+
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+#line 33
+        var y = --x;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (33,17): error CS0121: The call is ambiguous between the following methods or properties: 'I1.operator --()' and 'I3.operator --()'
+                //         var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("I1.operator --()", "I3.operator --()").WithLocation(33, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("I1.operator --()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("I3.operator --()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_024_Consumption_ExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1;
+public interface I3;
+public interface I4 : I1, I3;
+public interface I2 : I4;
+
+public static class Extensions1
+{
+    extension(I2 y)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 x) => x;
+    }
+}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(I1)
+        {
+            public static I1 operator --(I1 x) => x;
+        }
+
+        extension(I3)
+        {
+            public static I3 operator --(I3 x) => x;
+        }
+    }
+
+    class Test2 : I2
+    {
+        static void Main()
+        {
+            I2 x = new Test2();
+            var y = --x;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src);
+
+            // PROTOTYPE: We might want to include more information into the error. Like what methods conflict.
+            comp.VerifyEmitDiagnostics(
+                // (35,21): error CS0035: Operator '--' is ambiguous on an operand of type 'I2'
+                //             var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--x").WithArguments("--", "I2").WithLocation(35, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("NS1.Extensions2.extension(I1).operator --(I1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("NS1.Extensions2.extension(I3).operator --(I3)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_025_Consumption_ExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1;
+public interface I3;
+public interface I4 : I1, I3;
+public interface I2 : I4;
+
+public static class Extensions1
+{
+    extension(I2 y)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 x) => x;
+    }
+}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(I1 x)
+        {
+            public void operator --() {}
+        }
+
+        extension(I3 x)
+        {
+            public void operator --() {}
+        }
+    }
+
+    class Test2 : I2
+    {
+        static void Main()
+        {
+            I2 x = new Test2();
+            var y = --x;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyEmitDiagnostics(
+                // (35,21): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(I1).operator --()' and 'Extensions2.extension(I3).operator --()'
+                //             var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("NS1.Extensions2.extension(I1).operator --()", "NS1.Extensions2.extension(I3).operator --()").WithLocation(35, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("NS1.Extensions2.extension(I1).operator --()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("NS1.Extensions2.extension(I3).operator --()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_026_Consumption_ExtensionAmbiguity()
+        {
+            var src = $$$"""
+public interface I1;
+public interface I3;
+public interface I4 : I1, I3;
+public interface I2 : I4;
+
+public static class Extensions1
+{
+    extension(I2 y)
+    {
+        public void operator --() {}
+        public static I2 operator --(I2 x) => x;
+    }
+}
+
+namespace NS1
+{
+    public static class Extensions2
+    {
+        extension(I1 x)
+        {
+            public void operator --() {}
+        }
+
+        extension(I3 x)
+        {
+            public void operator --() {}
+        }
+
+        extension(I2)
+        {
+            public static I2 operator --(I2 x) => x;
+        }
+    }
+
+    class Test2 : I2
+    {
+        static void Main()
+        {
+            I2 x = new Test2();
+#line 35
+            var y = --x;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src);
+
+            comp.VerifyEmitDiagnostics(
+                // (35,21): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(I1).operator --()' and 'Extensions2.extension(I3).operator --()'
+                //             var y = --x;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("NS1.Extensions2.extension(I1).operator --()", "NS1.Extensions2.extension(I3).operator --()").WithLocation(35, 21)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("NS1.Extensions2.extension(I1).operator --()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("NS1.Extensions2.extension(I3).operator --()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+        }
+
+        [Fact]
+        public void Increment_027_Consumption_Lifted()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 y)
+    {
+        public void operator ++() => throw null;
+
+        public static S1 operator ++(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = ++s1;
+        System.Console.Write(":");
+        s1 = null;
+        _ = ++s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_028_Consumption_Lifted()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = ++s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (20,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1?").WithLocation(20, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_029_Consumption_LiftedIsWorse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x) => throw null;
+    }
+    extension(S1?)
+    {
+        public static S1? operator ++(S1? x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = ++s1;
+        System.Console.Write(":");
+        s1 = null;
+        _ = ++s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_030_Consumption_ExtendedTypeIsNullable()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1?)
+    {
+        public static S1? operator ++(S1? x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = ++s1;
+        Extensions1.op_Increment(s1);
+
+        S1? s2 = new S1();
+        _ = ++s2;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(21, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_031_Consumption_ExtendedTypeIsNullable()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1? x)
+    {
+        public void operator ++()
+        {
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = ++s1;
+        Extensions1.op_IncrementAssignment(s1);
+        Extensions1.op_IncrementAssignment(ref s1);
+
+        S1? s2 = new S1();
+        _ = ++s2;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (19,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(19, 13),
+                // (20,44): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Extensions1.op_IncrementAssignment(s1);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("1", "ref").WithLocation(20, 44),
+                // (21,48): error CS1503: Argument 1: cannot convert from 'ref S1' to 'ref S1?'
+                //         Extensions1.op_IncrementAssignment(ref s1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s1").WithArguments("1", "ref S1", "ref S1?").WithLocation(21, 48)
+                );
+        }
+
+        [Fact]
+        public void Increment_032_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S2)
+    {
+        public static S2 operator ++(S2 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = ++s1;
+        Extensions1.op_Increment(s1);
+
+        S1? s2 = new S1();
+        _ = ++s2;
+        Extensions1.op_Increment(s2);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(22, 13),
+                // (26,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                //         _ = ++s2;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s2").WithArguments("++", "S1?").WithLocation(26, 13),
+                // (27,34): error CS1503: Argument 1: cannot convert from 'S1?' to 'S2'
+                //         Extensions1.op_Increment(s2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s2").WithArguments("1", "S1?", "S2").WithLocation(27, 34)
+                );
+        }
+
+        [Fact]
+        public void Increment_033_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S2 x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S1
+{}
+
+public struct S2
+{
+    public static implicit operator S2(S1 x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = ++s1;
+        Extensions1.op_IncrementAssignment(ref s1);
+
+        S1? s2 = new S1();
+        _ = ++s2;
+        Extensions1.op_IncrementAssignment(ref s2);
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(22, 13),
+                // (23,48): error CS1503: Argument 1: cannot convert from 'ref S1' to 'ref S2'
+                //         Extensions1.op_IncrementAssignment(ref s1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s1").WithArguments("1", "ref S1", "ref S2").WithLocation(23, 48),
+                // (26,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                //         _ = ++s2;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s2").WithArguments("++", "S1?").WithLocation(26, 13),
+                // (27,48): error CS1503: Argument 1: cannot convert from 'ref S1?' to 'ref S2'
+                //         Extensions1.op_IncrementAssignment(ref s2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "s2").WithArguments("1", "ref S1?", "ref S2").WithLocation(27, 48)
+                );
+        }
+
+        [Fact]
+        public void Increment_034_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static S1 operator ++(object x)
+        {
+            System.Console.Write("operator1");
+            return default;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        s1 = ++s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_035_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1 s1 = new S1();
+        _ = ++s1;
+        Extensions1.op_IncrementAssignment(s1);
+
+        S1? s2 = new S1();
+        _ = ++s2;
+        Extensions1.op_IncrementAssignment(s2);
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(17, 13),
+                // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                //         _ = ++s2;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s2").WithArguments("++", "S1?").WithLocation(21, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_036_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static C1 operator ++(object x)
+        {
+            System.Console.Write("operator1");
+            return null;
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        c1 = ++c1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_037_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        ++c1;
+        c1 = ++c1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_038_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(dynamic x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        c1 = ++c1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (3,15): error CS1103: The receiver parameter of an extension cannot be of type 'dynamic'
+                //     extension(dynamic x)
+                Diagnostic(ErrorCode.ERR_BadTypeforThis, "dynamic").WithArguments("dynamic").WithLocation(3, 15)
+                );
+        }
+
+        [Fact]
+        public void Increment_039_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public class C1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Test(new C1());
+    }
+
+    static void Test<T>(T c1) where T : class
+    {
+        ++c1;
+        c1 = ++c1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_040_Consumption_ReceiverTypeMismatch()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref System.Span<int> x)
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        int[] a1 = null;
+#line 17
+        _ = ++a1;
+        Extensions1.op_IncrementAssignment(ref a1);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'int[]'
+                //         _ = ++a1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++a1").WithArguments("++", "int[]").WithLocation(17, 13),
+                // (18,48): error CS1503: Argument 1: cannot convert from 'ref int[]' to 'ref System.Span<int>'
+                //         Extensions1.op_IncrementAssignment(ref a1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "a1").WithArguments("1", "ref int[]", "ref System.Span<int>").WithLocation(18, 48)
+                );
+        }
+
+        [Fact]
+        public void Increment_041_Consumption_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : struct
+    {
+        public static S1<T> operator ++(S1<T> x)
+        {
+            System.Console.Write(typeof(T).ToString());
+            return x;
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        s1 = ++s1;
+        Extensions1.op_Increment(s1);
+
+        S1<int>? s2 = new S1<int>();
+        _ = (++s2).GetValueOrDefault();
+        s2 = null;
+        System.Console.Write(":");
+        _ = (++s2).GetValueOrDefault();
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "System.Int32System.Int32System.Int32:").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_042_Consumption_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(ref S1<T> x) where T : struct
+    {
+        public void operator ++()
+        {
+            System.Console.Write(typeof(T).ToString());
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        s1 = ++s1;
+        Extensions1.op_IncrementAssignment(ref s1);
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "System.Int32System.Int32").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_043_Consumption_Generic_Worse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>)
+    {
+        public static S1<T> operator ++(S1<T> x)
+        {
+            System.Console.Write("[S1<T>]");
+            return x;
+        }
+    }
+
+    extension<T>(S1<T>?)
+    {
+        public static S1<T>? operator ++(S1<T>? x)
+        {
+            System.Console.Write("[S1<T>?]");
+            return x;
+        }
+    }
+
+    extension(S1<int>)
+    {
+        public static S1<int> operator ++(S1<int> x)
+        {
+            System.Console.Write("[S1<int>]");
+            return x;
+        }
+    }
+
+    extension<T>(S2<T>)
+    {
+        public static S2<T> operator ++(in S2<T> x) => throw null;
+
+        public static S2<T> operator ++(S2<T> x)
+        {
+            System.Console.Write("[S2<T>]");
+            return x;
+        }
+    }
+
+    extension(S2<int>)
+    {
+        public static S2<int> operator ++(in S2<int> x)
+        {
+            System.Console.Write("[in S2<int>]");
+            return x;
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+public struct S2<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1<int>();
+        s11 = ++s11;
+        Extensions1.op_Increment(s11);
+
+        System.Console.WriteLine();
+
+        var s12 = new S1<byte>();
+        s12 = ++s12;
+        Extensions1.op_Increment(s12);
+
+        System.Console.WriteLine();
+
+        var s21 = new S2<int>();
+        s21 = ++s21;
+        Extensions1.op_Increment(s21);
+
+        System.Console.WriteLine();
+
+        var s22 = new S2<byte>();
+        s22 = ++s22;
+        Extensions1.op_Increment(s22);
+
+        System.Console.WriteLine();
+
+        S1<int>? s13 = new S1<int>();
+        s13 = ++s13;
+        s13 = null;
+        s13 = ++s13;
+
+        System.Console.WriteLine();
+
+        S1<byte>? s14 = new S1<byte>();
+        s14 = ++s14;
+        s14 = null;
+        s14 = ++s14;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"
+[S1<int>][S1<int>]
+[S1<T>][S1<T>]
+[in S2<int>][in S2<int>]
+[S2<T>][S2<T>]
+[S1<int>]
+[S1<T>?][S1<T>?]
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_044_Consumption_Generic_Worse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(ref S1<T> x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("[S1<T>]");
+        }
+    }
+
+    extension<T>(ref S1<T>? x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("[S1<T>?]");
+        }
+    }
+
+    extension(ref S1<int> x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("[S1<int>]");
+        }
+    }
+
+    extension(ref S1<int>? x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("[S1<int>?]");
+        }
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s11 = new S1<int>();
+        s11 = ++s11;
+        Extensions1.op_IncrementAssignment(ref s11);
+
+        System.Console.WriteLine();
+
+        var s12 = new S1<byte>();
+        s12 = ++s12;
+        Extensions1.op_IncrementAssignment(ref s12);
+
+        System.Console.WriteLine();
+
+        S1<int>? s13 = new S1<int>();
+        s13 = ++s13;
+        s13 = null;
+        s13 = ++s13;
+
+        System.Console.WriteLine();
+
+        S1<byte>? s14 = new S1<byte>();
+        s14 = ++s14;
+        s14 = null;
+        s14 = ++s14;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: @"
+[S1<int>][S1<int>]
+[S1<T>][S1<T>]
+[S1<int>?][S1<int>?]
+[S1<T>?][S1<T>?]
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_045_Consumption_Generic_ConstraintsViolation()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(S1<T>) where T : class
+    {
+        public static S1<T> operator ++(S1<T> x) => throw null;
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        _ = ++s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1<int>'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1<int>").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_046_Consumption_Generic_ConstraintsViolation()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T>(ref S1<T> x) where T : class
+    {
+        public void operator ++() => throw null;
+    }
+}
+
+public struct S1<T>
+{}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1<int>();
+        _ = ++s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1<int>'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1<int>").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_047_Consumption_OverloadResolutionPriority()
+        {
+            var src = $$$"""
+using System.Runtime.CompilerServices;
+
+public static class Extensions1
+{
+    extension(C1)
+    {
+        [OverloadResolutionPriority(1)]
+        public static C2 operator ++(C1 x)
+        {
+            System.Console.Write("C1");
+            return (C2)x;
+        }
+    }
+    extension(C2)
+    {
+        public static C2 operator ++(C2 x)
+        {
+            System.Console.Write("C2");
+            return x;
+        }
+    }
+    extension(C3)
+    {
+        public static C4 operator ++(C3 x)
+        {
+            System.Console.Write("C3");
+            return (C4)x;
+        }
+    }
+    extension(C4)
+    {
+        public static C4 operator ++(C4 x)
+        {
+            System.Console.Write("C4");
+            return x;
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+
+public class C3;
+public class C4 : C3;
+
+class Program
+{
+    static void Main()
+    {
+        var c2 = new C2();
+        _ = ++c2;
+        var c4 = new C4();
+        _ = ++c4;
+    }
+}
+""";
+
+            var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1C4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_048_Consumption_OverloadResolutionPriority()
+        {
+            var src = $$$"""
+using System.Runtime.CompilerServices;
+
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        [OverloadResolutionPriority(1)]
+        public void operator ++()
+        {
+            System.Console.Write("C1");
+        }
+    }
+    extension(C2 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("C2");
+        }
+    }
+    extension(C3 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("C3");
+        }
+    }
+    extension(C4 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("C4");
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+
+public class C3;
+public class C4 : C3;
+
+class Program
+{
+    static void Main()
+    {
+        var c2 = new C2();
+        _ = ++c2;
+        var c4 = new C4();
+        _ = ++c4;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition], options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1C4").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_049_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularregular").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_050_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("regular");
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularregular").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_051_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+        public static C1 operator checked --(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_052_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("regular");
+        }
+        public void operator checked --()
+        {
+            System.Console.Write("checked");
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_053_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension(C1)
+    {
+        public static C1 operator checked --(C1 x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_054_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("regular");
+        }
+    }
+    extension(C1 x)
+    {
+        public void operator checked --()
+        {
+            System.Console.Write("checked");
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_055_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            return x;
+        }
+
+        public static C1 operator checked --(C1 x)
+        {
+            return x;
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1)
+    {
+        public static C1 operator --(C1 x)
+        {
+            return x;
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (35,13): error CS0035: Operator '--' is ambiguous on an operand of type 'C1'
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--c1").WithArguments("--", "C1").WithLocation(35, 13),
+                // (39,17): error CS0035: Operator '--' is ambiguous on an operand of type 'C1'
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "--c1").WithArguments("--", "C1").WithLocation(39, 17)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().Last();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("Extensions1.extension(C1).operator checked --(C1)", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(C1).operator --(C1)", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_056_Consumption_Checked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+        }
+
+        public void operator checked --()
+        {
+        }
+    }
+}
+
+public static class Extensions2
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+        }
+    }
+}
+
+public class C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+#if DEBUG
+            comp.VerifyEmitDiagnostics(
+                // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions2.extension(C1).operator --()' and 'Extensions1.extension(C1).operator --()'
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions2.extension(C1).operator --()", "Extensions1.extension(C1).operator --()").WithLocation(32, 13),
+                // (36,17): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked --()' and 'Extensions2.extension(C1).operator --()'
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
+                );
+#else
+            // PROTOTYPE: Understand what is causing DEBUG/RELEASE behavor difference
+            comp.VerifyEmitDiagnostics(
+                // (32,13): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator --()' and 'Extensions2.extension(C1).operator --()'
+                //         _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator --()", "Extensions2.extension(C1).operator --()").WithLocation(32, 13),
+                // (36,17): error CS0121: The call is ambiguous between the following methods or properties: 'Extensions1.extension(C1).operator checked --()' and 'Extensions2.extension(C1).operator --()'
+                //             _ = --c1;
+                Diagnostic(ErrorCode.ERR_AmbigCall, "--").WithArguments("Extensions1.extension(C1).operator checked --()", "Extensions2.extension(C1).operator --()").WithLocation(36, 17)
+                );
+#endif
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PrefixUnaryExpressionSyntax>().Last();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal(2, symbolInfo.CandidateSymbols.Length);
+            AssertEx.Equal("Extensions1.extension(C1).operator checked --()", symbolInfo.CandidateSymbols[0].ToDisplayString());
+            AssertEx.Equal("Extensions2.extension(C1).operator --()", symbolInfo.CandidateSymbols[1].ToDisplayString());
+        }
+
+        [Fact]
+        public void Increment_057_Consumption_CheckedLiftedIsWorse()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator --(S1 x) => throw null;
+        public static S1 operator checked --(S1 x) => throw null;
+    }
+    extension(S1?)
+    {
+        public static S1? operator --(S1? x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = --s1;
+        System.Console.Write(":");
+
+        checked
+        {
+            _ = --s1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_058_Consumption_CheckedNoLiftedForm()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator --() => throw null;
+        public void operator checked --() => throw null;
+    }
+    extension(ref S1? x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+        _ = --s1;
+        System.Console.Write(":");
+
+        checked
+        {
+            _ = --s1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1:operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_059_Consumption_OverloadResolutionPlusRegularVsChecked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1)
+    {
+        public static C3 operator --(C1 x)
+        {
+            System.Console.Write("C1");
+            return (C3)x;
+        }
+        public static C3 operator checked --(C1 x)
+        {
+            System.Console.Write("checkedC1");
+            return (C3)x;
+        }
+    }
+    extension(C2)
+    {
+        public static C2 operator --(C2 x)
+        {
+            System.Console.Write("C2");
+            return x;
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+public class C3 : C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c3 = new C3();
+        _ = --c3;
+
+        checked
+        {
+            _ = --c3;
+        }
+
+        var c2 = new C2();
+        _ = --c2;
+
+        checked
+        {
+            _ = --c2;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_060_Consumption_OverloadResolutionPlusRegularVsChecked()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(C1 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("C1");
+        }
+        public void operator checked --()
+        {
+            System.Console.Write("checkedC1");
+        }
+    }
+    extension(C2 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("C2");
+        }
+    }
+}
+
+public class C1;
+public class C2 : C1;
+public class C3 : C1;
+
+class Program
+{
+    static void Main()
+    {
+        var c3 = new C3();
+        _ = --c3;
+
+        checked
+        {
+            _ = --c3;
+        }
+
+        var c2 = new C2();
+        _ = --c2;
+
+        checked
+        {
+            _ = --c2;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "C1checkedC1C2C2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_061_Consumption()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1? operator ++(S1? x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public static void M1(S1? x) {}
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        S1? s1 = new S1();
+#line 21
+        _ = ++s1;
+        S1 s2 = new S1();
+        _ = ++s2;
+
+        System.Nullable<S1>.M1(s1);
+        S1.M1(s1);
+        S1.M1(s2);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+
+            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
+            //            One can consume them only on the receiver type, not on nullable of receiver type.
+            //            Should we disallow declarations like that?
+            comp.VerifyEmitDiagnostics(
+                // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1?").WithLocation(21, 13),
+                // (23,13): error CS0266: Cannot implicitly convert type 'S1?' to 'S1'. An explicit conversion exists (are you missing a cast?)
+                //         _ = ++s2;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "++s2").WithArguments("S1?", "S1").WithLocation(23, 13),
+                // (25,9): error CS1929: 'S1?' does not contain a definition for 'M1' and the best extension method overload 'Extensions1.extension(S1).M1(S1?)' requires a receiver of type 'S1'
+                //         System.Nullable<S1>.M1(s1);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "System.Nullable<S1>").WithArguments("S1?", "M1", "Extensions1.extension(S1).M1(S1?)", "S1").WithLocation(25, 9)
+                );
+        }
+
+        [Fact]
+        public void Increment_062_Consumption_OnObject()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object)
+    {
+        public static object operator ++(object x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+        _ = ++s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_063_Consumption_OnObject()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+        _ = ++s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_064_Consumption_NotOnDynamic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object y)
+    {
+        public static object operator ++(object x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        dynamic s1 = new object();
+        try
+        {
+            _ = ++s1;
+        }
+        catch
+        {
+            System.Console.Write("exception");
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "exception").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_065_Consumption_BadOperand()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object y)
+    {
+        public static object operator ++(object x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+#line 19
+        _ = ++null;
+        _ = ++default;
+        _ = ++new();
+        _ = ++(() => 1);
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (19,15): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         _ = ++null;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "null").WithLocation(19, 15),
+                // (20,15): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         _ = ++default;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "default").WithLocation(20, 15),
+                // (21,15): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         _ = ++new();
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "new()").WithLocation(21, 15),
+                // (22,16): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         _ = ++(() => 1);
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "() => 1").WithLocation(22, 16)
+                );
+        }
+
+        [Fact]
+        public void Increment_066_Consumption_BadOperand()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(object y)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator2");
+        }
+    }
+}
+
+class Program
+{
+    static object P {get; set;}
+
+    static void Main()
+    {
+        _ = ++P;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (18,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
+                //         _ = ++P;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++P").WithArguments("++", "object").WithLocation(18, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_067_Consumption_BadReceiver()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension(__arglist)
+    {
+        public static object operator ++(object x)
+        {
+            return x;
+        }
+        public void operator ++()
+        {
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var s1 = new object();
+#line 17
+        _ = ++s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (3,15): error CS1669: __arglist is not valid in this context
+                //     extension(__arglist)
+                Diagnostic(ErrorCode.ERR_IllegalVarArgs, "__arglist").WithLocation(3, 15),
+                // (5,39): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                //         public static object operator ++(object x)
+                Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, "++").WithLocation(5, 39),
+                // (17,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
+                //         _ = ++s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "object").WithLocation(17, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_068_Consumption_Checked_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T1>(C1<T1>)
+    {
+        public static C1<T1> operator --(C1<T1> x)
+        {
+            System.Console.Write("regular");
+            return x;
+        }
+    }
+    extension<T2>(C1<T2>)
+    {
+        public static C1<T2> operator checked --(C1<T2> x)
+        {
+            System.Console.Write("checked");
+            return x;
+        }
+    }
+}
+
+public class C1<T>;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1<int>();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Increment_069_Consumption_Checked_Generic()
+        {
+            var src = $$$"""
+public static class Extensions1
+{
+    extension<T1>(C1<T1> x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("regular");
+        }
+    }
+    extension<T2>(C1<T2> x)
+    {
+        public void operator checked --()
+        {
+            System.Console.Write("checked");
+        }
+    }
+}
+
+public class C1<T>;
+
+class Program
+{
+    static void Main()
+    {
+        var c1 = new C1<int>();
+        _ = --c1;
+
+        checked
+        {
+            _ = --c1;
+        }
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_070_Consumption_Postfix(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+""";
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1++;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(S1).operator ++(S1)", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("S1", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         s1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Increment_071_Consumption_Postfix(bool fromMetadata)
+        {
+            var src1 = $$$"""
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator ++()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var src2 = $$$"""
+class Program
+{
+    static void Main()
+    {
+        var s1 = new S1();
+        s1++;
+    }
+}
+""";
+
+            var comp1 = CreateCompilation(src1);
+            var comp1Ref = fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference();
+
+            var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            var tree = comp2.SyntaxTrees.First();
+            var model = comp2.GetSemanticModel(tree);
+            var opNode = tree.GetRoot().DescendantNodes().OfType<Syntax.PostfixUnaryExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(opNode);
+
+            Assert.Equal("Extensions1.extension(ref S1).operator ++()", symbolInfo.Symbol.ToDisplayString());
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.Equal("System.Void", model.GetTypeInfo(opNode).Type.ToTestDisplayString());
+
+            var group = model.GetMemberGroup(opNode);
+            Assert.Empty(group);
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp2, expectedOutput: "operator1").VerifyDiagnostics();
+
+            comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp2.VerifyEmitDiagnostics(
+                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                //         s1++;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Binary_001_Declaration([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^")] string op)
         {
             var src = $$$"""
@@ -8633,3 +12148,5 @@ struct S1
 }
 
 // PROTOTYPE: Test unsafe and partial, IOperation/CFG , Linq expression tree, Nullable analysis
+//            Assert result of operator for basic consumption scenarios
+//            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators

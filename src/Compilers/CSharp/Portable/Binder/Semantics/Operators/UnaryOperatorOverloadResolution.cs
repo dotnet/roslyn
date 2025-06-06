@@ -21,7 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(type);
         }
 
-        public void UnaryOperatorOverloadResolution(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, UnaryOperatorOverloadResolutionResult result, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public void UnaryOperatorOverloadResolution(
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            UnaryOperatorOverloadResolutionResult result,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
             Debug.Assert(result.Results.Count == 0);
@@ -39,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate user-defined operators provided by X for the operation operator 
             // SPEC: op(x) is determined using the rules of 7.3.5.
 
-            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, isChecked, operand, result.Results, ref useSiteInfo);
+            bool hadUserDefinedCandidate = GetUserDefinedOperators(kind, isChecked, name1, name2Opt, operand, result.Results, ref useSiteInfo);
 
             // SPEC: If the set of candidate user-defined operators is not empty, then this becomes the 
             // SPEC: set of candidate operators for the operation. Otherwise, the predefined unary operator 
@@ -238,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private class PairedExtensionOperatorSignatureComparer : IEqualityComparer<MethodSymbol>
+        internal class PairedExtensionOperatorSignatureComparer : IEqualityComparer<MethodSymbol>
         {
             public static readonly PairedExtensionOperatorSignatureComparer Instance = new PairedExtensionOperatorSignatureComparer();
 
@@ -585,7 +592,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Returns true if there were any applicable candidates.
-        private bool GetUserDefinedOperators(UnaryOperatorKind kind, bool isChecked, BoundExpression operand, ArrayBuilder<UnaryOperatorAnalysisResult> results, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private bool GetUserDefinedOperators(
+            UnaryOperatorKind kind,
+            bool isChecked,
+            string name1,
+            string name2Opt,
+            BoundExpression operand,
+            ArrayBuilder<UnaryOperatorAnalysisResult> results,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(operand != null);
 
@@ -644,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 operators.Clear();
 
-                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, isChecked, operators);
+                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, name1, name2Opt, operators);
 
                 results.Clear();
                 if (CandidateOperators(isChecked, operators, operand, results, ref useSiteInfo))
@@ -689,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         operators.Clear();
                         resultsFromInterface.Clear();
-                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, isChecked, operators);
+                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, name1, name2Opt, operators);
                         if (CandidateOperators(isChecked, operators, operand, resultsFromInterface, ref useSiteInfo))
                         {
                             hadApplicableCandidates = true;
@@ -710,26 +724,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hadApplicableCandidates;
         }
 
+#nullable enable
+
+        internal static void GetStaticUserDefinedUnaryOperatorMethodNames(UnaryOperatorKind kind, bool isChecked, out string name1, out string? name2Opt)
+        {
+            name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
+
+            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+            {
+                name2Opt = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
+            }
+            else
+            {
+                name2Opt = null;
+            }
+        }
+
         private void GetUserDefinedUnaryOperatorsFromType(
             TypeSymbol constrainedToTypeOpt,
             NamedTypeSymbol type,
             UnaryOperatorKind kind,
-            bool isChecked,
+            string name1,
+            string? name2Opt,
             ArrayBuilder<UnaryOperatorSignature> operators)
         {
             Debug.Assert(operators.Count == 0);
 
-            string name1 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked);
-
             GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, type, kind, name1, operators);
 
-            if (isChecked && SyntaxFacts.IsCheckedOperator(name1))
+            if (name2Opt is not null)
             {
-                string name2 = OperatorFacts.UnaryOperatorNameFromOperatorKind(kind, isChecked: false);
                 var operators2 = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
 
                 // Add regular operators as well.
-                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, type, kind, name2, operators2);
+                GetDeclaredUserDefinedUnaryOperators(constrainedToTypeOpt, type, kind, name2Opt, operators2);
 
                 // Drop operators that have a match among the checked ones.
                 if (operators.Count != 0)
@@ -754,7 +782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddLiftedUserDefinedUnaryOperators(constrainedToTypeOpt, kind, operators);
         }
 
-        private static void GetDeclaredUserDefinedUnaryOperators(TypeSymbol constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
+        private static void GetDeclaredUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, NamedTypeSymbol type, UnaryOperatorKind kind, string name, ArrayBuilder<UnaryOperatorSignature> operators)
         {
             var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
             type.AddOperators(name, typeOperators);
@@ -776,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             typeOperators.Free();
         }
 
-        private void AddLiftedUserDefinedUnaryOperators(TypeSymbol constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
+        private void AddLiftedUserDefinedUnaryOperators(TypeSymbol? constrainedToTypeOpt, UnaryOperatorKind kind, ArrayBuilder<UnaryOperatorSignature> operators)
         {
             // SPEC: For the unary operators + ++ - -- ! ~ a lifted form of an operator exists
             // SPEC: if the operand and its result types are both non-nullable value types.

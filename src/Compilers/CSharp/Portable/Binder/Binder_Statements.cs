@@ -2719,7 +2719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // It was not. Does it implement operator true?
             expr = BindToNaturalType(expr, diagnostics);
-            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, allowExtensions: true, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
+            var best = this.UnaryOperatorOverloadResolution(UnaryOperatorKind.True, expr, node, diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators);
             if (!best.HasValue)
             {
                 // No. Give a "not convertible to bool" error.
