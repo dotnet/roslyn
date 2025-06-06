@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     int additionalParameterCount = method.IsStatic ? 0 : 1;
                     if (additionalParameterCount + method.ParameterCount != candidate.ParameterCount)
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        continue;
                     }
 
                     ImmutableArray<TypeParameterSymbol> combinedTypeParameters = @this.TypeParameters.Concat(method.TypeParameters);
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             typeMap,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        continue;
                     }
 
                     if (!method.IsStatic &&
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        continue;
                     }
 
                     if (!MemberSignatureComparer.HaveSameParameterTypes(
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             considerDefaultValues: false,
                             TypeCompareKind.CLRSignatureCompareOptions))
                     {
-                        continue; // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Test this code path TODO2
+                        continue;
                     }
 
                     if (MemberSignatureComparer.HaveSameConstraints(
