@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode;
 
@@ -13,10 +14,23 @@ internal static class RemoveUnreachableCodeHelpers
     public static ImmutableArray<ImmutableArray<StatementSyntax>> GetSubsequentUnreachableSections(StatementSyntax firstUnreachableStatement)
     {
         ImmutableArray<StatementSyntax> siblingStatements;
+        BlockSyntax? unreachableStatementContainingBlock = null;
         switch (firstUnreachableStatement.Parent)
         {
             case BlockSyntax block:
-                siblingStatements = [.. block.Statements];
+                var topmostConsecutiveBlockParent = block;
+                while (true)
+                {
+                    var topmostParent = topmostConsecutiveBlockParent.Parent;
+                    if (!topmostParent.IsKind(SyntaxKind.Block))
+                    {
+                        break;
+                    }
+                    topmostConsecutiveBlockParent = (BlockSyntax)topmostParent;
+                }
+
+                unreachableStatementContainingBlock = topmostConsecutiveBlockParent;
+                siblingStatements = [.. unreachableStatementContainingBlock.Statements];
                 break;
 
             case SwitchSectionSyntax switchSection:
@@ -55,37 +69,87 @@ internal static class RemoveUnreachableCodeHelpers
 
         var sections = ArrayBuilder<ImmutableArray<StatementSyntax>>.GetInstance();
 
-        var currentSection = ArrayBuilder<StatementSyntax>.GetInstance();
-        var firstUnreachableStatementIndex = siblingStatements.IndexOf(firstUnreachableStatement);
+        var firstStatementSpan = firstUnreachableStatement.Span;
 
-        for (int i = firstUnreachableStatementIndex + 1, n = siblingStatements.Length; i < n; i++)
+        var currentSection = ArrayBuilder<StatementSyntax>.GetInstance();
+        var firstUnreachableStatementIndex = siblingStatements.IndexOf(s => s.Span.Contains(firstStatementSpan));
+
+        // Since the first unreachable statement may be contained inside a nested block,
+        // we iterate from the first statement that contains the first unreachable statement,
+        // which could either be the unreachable statement itself, or any of its ancestor blocks.
+        // The unreachable statement itself and all the previous ones will not be included in any
+        // of the sections.
+        for (int i = firstUnreachableStatementIndex, n = siblingStatements.Length; i < n; i++)
         {
             var currentStatement = siblingStatements[i];
-            if (currentStatement.IsKind(SyntaxKind.LabeledStatement))
-            {
-                // In the case of a subsequent labeled statement, we don't want to consider it 
-                // unreachable as there may be a 'goto' somewhere else to that label.  If the 
-                // compiler actually thinks that label is unreachable, it will give an diagnostic 
-                // on that label itself  and we can use that diagnostic to handle it and any 
-                // subsequent sections.
-                break;
-            }
-
             if (currentStatement.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 // In the case of local functions, it is legal for a local function to be declared
                 // in code that is otherwise unreachable.  It can still be called elsewhere.  If
                 // the local function itself is not called, there will be a particular diagnostic
                 // for that ("The variable XXX is declared but never used") and the user can choose
-                // if they want to remove it or not. 
+                // if they want to remove it or not.
+                ConsumeCurrentSection();
+                continue;
+            }
+
+            if (i > firstUnreachableStatementIndex)
+            {
+                if (currentStatement.IsKind(SyntaxKind.LabeledStatement))
+                {
+                    // In the case of a subsequent labeled statement, we don't want to consider it 
+                    // unreachable as there may be a 'goto' somewhere else to that label.  If the 
+                    // compiler actually thinks that label is unreachable, it will give an diagnostic 
+                    // on that label itself  and we can use that diagnostic to handle it and any 
+                    // subsequent sections.
+                    break;
+                }
+
+                currentSection.Add(currentStatement);
+                continue;
+            }
+
+            if (currentStatement.IsKind(SyntaxKind.Block))
+            {
+                ProcessBlock((BlockSyntax)currentStatement);
+                continue;
+            }
+
+            void ProcessBlock(BlockSyntax block)
+            {
+                // In the case of raw blocks that are not part of other statements, like if, for, etc.
+                // we want to report all its contained statements as distinct unreachable segments, but
+                // only the statements that come after the first unreachable statement
+                ConsumeCurrentSection();
+
+                foreach (var statement in block.Statements)
+                {
+                    if (statement.IsKind(SyntaxKind.Block))
+                    {
+                        var innerBlock = (BlockSyntax)statement;
+                        if (innerBlock.SpanStart > firstStatementSpan.Start || innerBlock.Span.Contains(firstStatementSpan))
+                        {
+                            ProcessBlock(innerBlock);
+                        }
+                        continue;
+                    }
+
+                    if (statement.SpanStart > firstStatementSpan.Start)
+                    {
+                        currentSection.Add(statement);
+                    }
+                }
+
+                ConsumeCurrentSection();
+            }
+
+            void ConsumeCurrentSection()
+            {
                 var section = currentSection.ToImmutableAndFree();
                 AddIfNonEmpty(sections, section);
 
                 currentSection = ArrayBuilder<StatementSyntax>.GetInstance();
-                continue;
             }
-
-            currentSection.Add(currentStatement);
         }
 
         var lastSection = currentSection.ToImmutableAndFree();
