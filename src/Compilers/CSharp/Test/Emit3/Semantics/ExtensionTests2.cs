@@ -386,7 +386,7 @@ public static class E
         try
         {
             var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition]);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : assertion in NullableWalker
+            // Tracked by https://github.com/dotnet/roslyn/issues/78828 : assertion in NullableWalker
             CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
         catch (InvalidOperationException)
@@ -2248,7 +2248,7 @@ class C
     public object? P3 => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for property pattern with extension property (unexpected warning)
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for property pattern with extension property (unexpected warning)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
