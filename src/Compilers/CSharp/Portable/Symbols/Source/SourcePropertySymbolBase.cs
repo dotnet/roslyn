@@ -1725,7 +1725,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (this.GetIsNewExtensionMember() && SourceName != indexerName)
                 {
-                    // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Report more descriptive error
+                    // Tracked by https://github.com/dotnet/roslyn/issues/78829 : extension indexers, Report more descriptive error
                     // error CS8078: An expression is too long or complex to compile
                     diagnostics.Add(ErrorCode.ERR_InsufficientStack, node.ArgumentList.Arguments[0].Location);
                 }
