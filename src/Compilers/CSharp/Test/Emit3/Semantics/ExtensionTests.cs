@@ -2843,7 +2843,7 @@ public class C<T> { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public int P => 0; // 1
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 20));
     }
@@ -2866,13 +2866,13 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,27): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (5,27): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public static int P => 0; // 1
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 27),
-            // (9,27): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T1` is not referenced.
+            // (9,27): error CS9295: The type parameter `T1` is not referenced by either the extension parameter or a parameter of this member
             //         public static int P => 0; // 2, 3
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T1").WithLocation(9, 27),
-            // (9,27): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T2` is not referenced.
+            // (9,27): error CS9295: The type parameter `T2` is not referenced by either the extension parameter or a parameter of this member
             //         public static int P => 0; // 2, 3
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T2").WithLocation(9, 27));
     }
@@ -2892,7 +2892,7 @@ public static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public int P => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 20));
     }
@@ -2940,7 +2940,7 @@ public static class E
             // (6,36): error CS9282: Extension declarations can include only methods or properties
             //         public static int operator -(int i, int j) => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-").WithLocation(6, 36),
-            // (6,36): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (6,36): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public static int operator -(int i, int j) => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-").WithArguments("T").WithLocation(6, 36));
     }
@@ -2966,7 +2966,7 @@ public static class E
             // (6,30): error CS9282: Extension declarations can include only methods or properties
             //         public void operator -=(int j) { }
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-=").WithLocation(6, 30),
-            // (6,30): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (6,30): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public void operator -=(int j) { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-=").WithArguments("T").WithLocation(6, 30));
     }
@@ -2988,7 +2988,7 @@ public static class E
             // (5,41): error CS9282: Extension declarations can include only methods or properties
             //         public static implicit operator string() => "";
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "string").WithLocation(5, 41),
-            // (5,41): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (5,41): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public static implicit operator string() => "";
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "string").WithArguments("T").WithLocation(5, 41),
             // (5,47): error CS1019: Overloadable unary operator expected
@@ -3018,7 +3018,7 @@ public static class E
             // (5,20): error CS9282: Extension declarations can include only methods or properties
             //         public int this[int j] => 0;
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20),
-            // (5,20): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         public int this[int j] => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "this").WithArguments("T").WithLocation(5, 20),
             // (6,20): error CS9282: Extension declarations can include only methods or properties
@@ -3046,6 +3046,24 @@ public static class E<T>
             // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
             //     extension<U>(T t)
             Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_13()
+    {
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension<T>(T? t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -32640,10 +32658,10 @@ static class E
             // (1,11): error CS0117: 'C' does not contain a definition for 'P'
             // int i = C.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
-            // (9,20): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `T` is not referenced.
+            // (9,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
             //         static int P => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(9, 20),
-            // (9,20): error CS9295: Every type parameter from the extension block must be referenced by the extension parameter or a parameter of this member. But type parameter `U` is not referenced.
+            // (9,20): error CS9295: The type parameter `U` is not referenced by either the extension parameter or a parameter of this member
             //         static int P => 0;
             Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("U").WithLocation(9, 20));
     }

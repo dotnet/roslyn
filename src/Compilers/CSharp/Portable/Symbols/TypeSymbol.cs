@@ -561,6 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// For the type representing an extension declaration, returns the receiver parameter symbol.
+        /// It may be unnamed.
         /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
         /// </summary>
         internal abstract ParameterSymbol? ExtensionParameter { get; }
