@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis
                 try
                 {
                     context.Unload();
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory, ToString());
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory, context.ToString());
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString(), ToString());
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString(), context.ToString());
                 }
             }
 
