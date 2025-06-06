@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2673,7 +2674,7 @@ int.M();
     }
 
     [Fact]
-    public void TODO2()
+    public void Retargeting_01()
     {
         var libSrc = """
 public static class E
@@ -2683,15 +2684,23 @@ public static class E
         public static void M() { }
     }
 }
+
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : System.Attribute {}
+}
 """;
-        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Net80);
+        var libComp = CreateCompilation(libSrc, targetFramework: TargetFramework.Mscorlib40);
 
         var src = """
 object.M();
 """;
-        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90, references: [libComp.EmitToImageReference()]);
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib46, references: [libComp.ToMetadataReference()]);
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "M 3").VerifyDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single();
+        Assert.IsType<RetargetingNamedTypeSymbol>(extension);
+        AssertExtensionDeclaration(extension.GetPublicSymbol());
     }
 }
 
