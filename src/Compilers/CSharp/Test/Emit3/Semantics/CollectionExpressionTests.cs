@@ -15508,7 +15508,6 @@ partial class Program
                 """;
             var comp = CreateCompilationWithSpanAndMemoryExtensions(
                 new[] { sourceA, sourceB, s_collectionExtensions, CollectionBuilderAttributeDefinition },
-                targetFramework: TargetFramework.NetFramework,
                 options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics();
 

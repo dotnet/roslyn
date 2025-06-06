@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class UninitializedNonNullableFieldTests : CSharpTestBase
+    public class UninitializedNonNullableFieldTests() : CSharpTestBase(TargetFramework.NetStandard20)
     {
         [Fact]
         public void UninitializedEvents()

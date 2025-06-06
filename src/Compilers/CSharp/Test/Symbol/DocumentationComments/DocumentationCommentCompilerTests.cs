@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class DocumentationCommentCompilerTests : CSharpTestBase
     {
-        public static CSharpCompilation CreateCompilationUtil(
+        public CSharpCompilation CreateCompilationUtil(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,

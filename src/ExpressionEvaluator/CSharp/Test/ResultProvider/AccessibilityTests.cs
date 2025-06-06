@@ -84,11 +84,11 @@ class C
 }";
             // Derived class in assembly with PDB,
             // base class in assembly without PDB.
-            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.ReleaseDll);
+            var compilationA = CSharpTestBase.CreateCompilationWithNetLatest(sourceA, options: TestOptions.ReleaseDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilationWithNetLatest(sourceB, options: TestOptions.DebugDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);
@@ -245,11 +245,11 @@ class C
 }";
             // Base class in assembly with PDB,
             // derived class in assembly without PDB.
-            var compilationA = CSharpTestBase.CreateCompilation(sourceA, options: TestOptions.DebugDll);
+            var compilationA = CSharpTestBase.CreateCompilationWithNetLatest(sourceA, options: TestOptions.DebugDll);
             var bytesA = compilationA.EmitToArray();
             var referenceA = MetadataReference.CreateFromImage(bytesA);
 
-            var compilationB = CSharpTestBase.CreateCompilation(sourceB, options: TestOptions.ReleaseDll, references: new MetadataReference[] { referenceA });
+            var compilationB = CSharpTestBase.CreateCompilationWithNetLatest(sourceB, options: TestOptions.ReleaseDll, references: new MetadataReference[] { referenceA });
             var bytesB = compilationB.EmitToArray();
             var assemblyA = ReflectionUtilities.Load(bytesA);
             var assemblyB = ReflectionUtilities.Load(bytesB);

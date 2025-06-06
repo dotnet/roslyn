@@ -392,7 +392,7 @@ public class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "C.M()", length, 65504)).WithLocation(1, 1));
         }
 
-        private static EmitResult CompileWithMockedCustomMetadata(int length)
+        private EmitResult CompileWithMockedCustomMetadata(int length)
         {
             var comp = CreateCompilation("""
                 class C

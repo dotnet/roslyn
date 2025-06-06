@@ -531,7 +531,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib461(source, il, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -605,7 +605,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithILAndMscorlib461(source, il, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -864,7 +864,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"

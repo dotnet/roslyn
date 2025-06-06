@@ -88,7 +88,7 @@ namespace Roslyn.Test.Utilities
         Net60,
         Net70,
         Net80,
-        Net90,
+        Net90
     }
 
     /// <summary>
@@ -439,5 +439,41 @@ namespace Roslyn.Test.Utilities
                 throw new Exception(message, ex);
             }
         }
+
+        public static bool IsNetCore(TargetFramework targetFramework) =>
+            targetFramework switch
+            {
+                TargetFramework.Empty or
+                TargetFramework.DefaultVb or
+                TargetFramework.NetStandard20 or
+                TargetFramework.NetFramework or
+                TargetFramework.Standard or
+                TargetFramework.StandardAndCSharp or
+                TargetFramework.StandardAndVBRuntime or
+                TargetFramework.WinRT or
+                TargetFramework.Mscorlib40 or
+                TargetFramework.Mscorlib40Extended or
+                TargetFramework.Mscorlib40AndSystemCore or
+                TargetFramework.Mscorlib40AndVBRuntime or
+                TargetFramework.Mscorlib46 or
+                TargetFramework.Mscorlib46Extended or
+                TargetFramework.Mscorlib461 or
+                TargetFramework.Mscorlib461Extended or
+                TargetFramework.Mscorlib461AndCSharp or
+                TargetFramework.Mscorlib461AndVBRuntime or
+                TargetFramework.Minimal or
+                TargetFramework.MinimalAsync => false,
+
+                TargetFramework.NetCoreApp or
+                TargetFramework.Net50 or
+                TargetFramework.Net60 or
+                TargetFramework.Net70 or
+                TargetFramework.Net80 or
+                TargetFramework.Net90 => true,
+
+                TargetFramework.NetLatest => ExecutionConditionUtil.IsCoreClr,
+
+                _ => throw ExceptionUtilities.UnexpectedValue(targetFramework),
+            };
     }
 }

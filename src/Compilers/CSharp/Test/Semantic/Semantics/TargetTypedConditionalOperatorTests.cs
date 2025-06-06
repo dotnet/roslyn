@@ -273,12 +273,12 @@ B->C");
             }
         }
 
-        private static void TestConditional(string conditionalExpression, string targetType, string? naturalType, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestConditional(string conditionalExpression, string targetType, string? naturalType, params DiagnosticDescription[] expectedDiagnostics)
         {
             TestConditional(conditionalExpression, targetType, naturalType, null, expectedDiagnostics);
         }
 
-        private static void TestConditional(
+        private void TestConditional(
             string conditionalExpression,
             string targetType,
             string? naturalType,

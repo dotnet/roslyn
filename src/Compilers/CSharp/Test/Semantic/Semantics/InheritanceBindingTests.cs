@@ -8232,7 +8232,7 @@ class A<T> : global::T
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "global::T").WithArguments("A<T>", "T.T"));
         }
 
-        private static CSharpCompilation CompileAndVerifyDiagnostics(string text, ErrorDescription[] expectedErrors, params CSharpCompilation[] baseCompilations)
+        private CSharpCompilation CompileAndVerifyDiagnostics(string text, ErrorDescription[] expectedErrors, params CSharpCompilation[] baseCompilations)
         {
             var refs = new List<MetadataReference>(baseCompilations.Select(c => new CSharpCompilationReference(c)));
             var comp = CreateCompilation(text, refs);
@@ -8245,7 +8245,7 @@ class A<T> : global::T
             return comp;
         }
 
-        private static CSharpCompilation CompileAndVerifyDiagnostics(string text1, string text2, ErrorDescription[] expectedErrors1, ErrorDescription[] expectedErrors2)
+        private CSharpCompilation CompileAndVerifyDiagnostics(string text1, string text2, ErrorDescription[] expectedErrors1, ErrorDescription[] expectedErrors2)
         {
             var comp1 = CompileAndVerifyDiagnostics(text1, expectedErrors1);
             var comp2 = CompileAndVerifyDiagnostics(text2, expectedErrors2, comp1);
