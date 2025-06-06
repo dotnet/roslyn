@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (instrumentation.Epilogue != null)
             {
-                statements.Add(Try(Block(statement), ImmutableArray<BoundCatchBlock>.Empty, Block(instrumentation.Epilogue)));
+                statements.Add(Try(Block(statement), ImmutableArray<BoundCatchBlock>.Empty, AsyncTryFinallyEndReachable.Ignored, Block(instrumentation.Epilogue)));
             }
             else
             {
@@ -1611,10 +1611,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement Try(
             BoundBlock tryBlock,
             ImmutableArray<BoundCatchBlock> catchBlocks,
+            AsyncTryFinallyEndReachable endIsReachable,
             BoundBlock? finallyBlock = null,
             LabelSymbol? finallyLabel = null)
         {
-            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, finallyLabel) { WasCompilerGenerated = true };
+            return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, endIsReachable, finallyLabel) { WasCompilerGenerated = true };
         }
 
         internal ImmutableArray<BoundCatchBlock> CatchBlocks(
@@ -1638,9 +1639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterPrologueOpt: null, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
-        internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)
+        internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock, AsyncTryFinallyEndReachable endIsReachable)
         {
-            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, finallyLabelOpt: null, preferFaultHandler: true);
+            return new BoundTryStatement(Syntax, tryBlock, ImmutableArray<BoundCatchBlock>.Empty, faultBlock, finallyLabelOpt: null, preferFaultHandler: true, endIsReachable);
         }
 
         internal BoundExpression NullOrDefault(TypeSymbol typeSymbol)

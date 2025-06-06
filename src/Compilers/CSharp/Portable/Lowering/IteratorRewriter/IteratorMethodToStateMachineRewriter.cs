@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
 
                 var faultBlock = F.Block(F.ExpressionStatement(F.Call(F.This(), disposeMethod)));
-                newBody = F.Fault((BoundBlock)newBody, faultBlock);
+                newBody = F.Fault((BoundBlock)newBody, faultBlock, endIsReachable: AsyncTryFinallyEndReachable.Ignored);
             }
 
             newBody = F.Instrument(F.SequencePoint(body.Syntax, HandleReturn(newBody)), instrumentation);
@@ -285,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body = F.Try(
                     tryBlock,
                     ImmutableArray<BoundCatchBlock>.Empty,
+                    AsyncTryFinallyEndReachable.Ignored,
                     F.Block(F.ExpressionStatement(F.Call(F.This(), frame.handler))));
             }
 
@@ -379,7 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     VisitList(node.CatchBlocks),
                                     (BoundBlock)Visit(node.FinallyBlockOpt),
                                     node.FinallyLabelOpt,
-                                    node.PreferFaultHandler);
+                                    node.PreferFaultHandler,
+                                    node.EndIsReachable);
 
                 _tryNestingLevel--;
                 return result;

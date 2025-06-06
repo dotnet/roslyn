@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In the future it might be better to have a separate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
             if (isUsingDeclaration)
             {
-                return new BoundUsingLocalDeclarations(syntax, patternDisposeInfo, awaitOpt, declarationsOpt, hasErrors);
+                return new BoundUsingLocalDeclarations(syntax, patternDisposeInfo, awaitOpt, AsyncTryFinallyEndReachable.Unknown, declarationsOpt, hasErrors);
             }
             else
             {
@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundBody,
                     awaitOpt,
                     patternDisposeInfo,
+                    AsyncTryFinallyEndReachable.Unknown,
                     hasErrors);
             }
 

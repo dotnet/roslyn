@@ -1410,7 +1410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     awaitableInfo: null,
                     breakLabel,
                     continueLabel,
-                    rewrittenBody);
+                    rewrittenBody,
+                    endIsReachable: AsyncTryFinallyEndReachable.Reachable);
             }
 
             RemovePlaceholderReplacement(expressionPlaceholder);
