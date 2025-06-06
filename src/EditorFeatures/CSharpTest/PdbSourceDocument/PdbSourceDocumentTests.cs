@@ -1022,7 +1022,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
             var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
 
             var result = service.TryRemoveDocumentFromWorkspace(file.FilePath);
-            Assert.False(result);
+            Assert.True(result);
         });
     }
 
@@ -1057,7 +1057,7 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             // Opening should still throw (should never be called as we should be able to find the previously
             // opened document in the MAS workspace).
-            Assert.Throws<System.InvalidOperationException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
+            Assert.Throws<System.ArgumentException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
         });
     }
 }

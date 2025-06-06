@@ -2,26 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Security;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Features.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.MSBuild.BuildHostProcessManager;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
@@ -31,12 +23,10 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 {
     private readonly ILspServices _lspServices;
     private readonly ILogger<FileBasedProgramsProjectSystem> _logger;
-    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly VirtualProjectXmlProvider _projectXmlProvider;
 
     public FileBasedProgramsProjectSystem(
         ILspServices lspServices,
-        IMetadataAsSourceFileService metadataAsSourceFileService,
         VirtualProjectXmlProvider projectXmlProvider,
         LanguageServerWorkspaceFactory workspaceFactory,
         IFileChangeWatcher fileChangeWatcher,
@@ -60,7 +50,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     {
         _lspServices = lspServices;
         _logger = loggerFactory.CreateLogger<FileBasedProgramsProjectSystem>();
-        _metadataAsSourceFileService = metadataAsSourceFileService;
         _projectXmlProvider = projectXmlProvider;
     }
 
@@ -71,14 +60,6 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     public async ValueTask<TextDocument?> AddMiscellaneousDocumentAsync(DocumentUri uri, SourceText documentText, string languageId, ILspLogger logger)
     {
         var documentFilePath = GetDocumentFilePath(uri);
-
-        // https://github.com/dotnet/roslyn/issues/78421: MetadataAsSource should be its own workspace
-        if (_metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, documentText.Container, out var documentId))
-        {
-            var metadataWorkspace = _metadataAsSourceFileService.TryGetWorkspace();
-            Contract.ThrowIfNull(metadataWorkspace);
-            return metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
-        }
 
         var primordialDoc = AddPrimordialDocument(uri, documentText, languageId);
         Contract.ThrowIfNull(primordialDoc.FilePath);
@@ -118,14 +99,9 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
     }
 
-    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri, bool removeFromMetadataWorkspace)
+    public async ValueTask TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
     {
         var documentPath = GetDocumentFilePath(uri);
-        if (removeFromMetadataWorkspace && _metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentPath))
-        {
-            return;
-        }
-
         await UnloadProjectAsync(documentPath);
     }
 
