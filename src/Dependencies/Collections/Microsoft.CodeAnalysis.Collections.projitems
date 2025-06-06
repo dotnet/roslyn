@@ -71,6 +71,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IDictionaryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemoryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.Collection.cs" />
