@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
