@@ -4,7 +4,6 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks

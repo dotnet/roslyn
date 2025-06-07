@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -3030,13 +3029,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            inferDeclarationExpressionValEscape();
+            inferDeclarationExpressionValEscape(argsOpt, localScopeDepth, escapeValues);
 
             mixableArguments.Free();
             escapeValues.Free();
             return valid;
 
-            void inferDeclarationExpressionValEscape()
+            void inferDeclarationExpressionValEscape(ImmutableArray<BoundExpression> argsOpt, SafeContext localScopeDepth, ArrayBuilder<EscapeValue> escapeValues)
             {
                 // find the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.

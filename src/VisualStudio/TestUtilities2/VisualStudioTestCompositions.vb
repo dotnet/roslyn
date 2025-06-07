@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Notification
@@ -27,6 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
                 GetType(VisualStudioRemoteHostClientProvider.Factory), ' Do not use ServiceHub in VS unit tests, run services locally.
                 GetType(IStreamingFindUsagesPresenter),                ' TODO: should we be using the actual implementation (https://github.com/dotnet/roslyn/issues/46380)?
                 GetType(HACK_ThemeColorFixer),
-                GetType(Implementation.Notification.VSNotificationServiceFactory))
+                GetType(Implementation.Notification.VSNotificationServiceFactory),
+                GetType(Options.VisualStudioOptionPersisterProvider))
     End Class
 End Namespace

@@ -92,33 +92,4 @@ internal static class PooledBuilderExtensions
             builders.Free();
         }
     }
-
-    public static bool HasDuplicates<T>(this IReadOnlyList<T> builder)
-        => builder.HasDuplicates(static x => x);
-
-    public static bool HasDuplicates<T, U>(this IReadOnlyList<T> builder, Func<T, U> selector)
-    {
-        switch (builder.Count)
-        {
-            case 0:
-            case 1:
-                return false;
-
-            case 2:
-                return EqualityComparer<U>.Default.Equals(selector(builder[0]), selector(builder[1]));
-
-            default:
-                {
-                    using var _ = PooledHashSet<U>.GetInstance(out var set);
-
-                    foreach (var element in builder)
-                    {
-                        if (!set.Add(selector(element)))
-                            return true;
-                    }
-
-                    return false;
-                }
-        }
-    }
 }

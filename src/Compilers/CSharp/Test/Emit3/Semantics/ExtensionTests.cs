@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -97,7 +98,7 @@ public partial class ExtensionTests : CompilingTestBase
         Assert.Equal(Accessibility.Public, symbol.DeclaredAccessibility);
 
         var namedTypeSymbol = symbol.GetSymbol<NamedTypeSymbol>();
-        Assert.False(namedTypeSymbol.HasSpecialName);
+        Assert.True(namedTypeSymbol.HasSpecialName);
         Assert.False(namedTypeSymbol.IsImplicitlyDeclared);
     }
 
@@ -122,7 +123,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -212,7 +213,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
     {
         // Methods
@@ -292,7 +293,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<valuetype .ctor ([netstandard]System.ValueType) T>
         extends [netstandard]System.Object
     {
         // Methods
@@ -402,13 +403,7 @@ public static class Extensions
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
             // (3,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'T' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T").WithArguments("T", "T").WithLocation(3, 21));
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 21));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -436,12 +431,6 @@ class C<T> { }
             // (3,18): error CS0692: Duplicate type parameter 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(3, 18),
-            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(C<T>) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
-            // (3,21): error CS9295: The extended type 'C<T>' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(C<T>) { }
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C<T>").WithArguments("C<T>", "T").WithLocation(3, 21),
             // (3,23): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(C<T>) { }
             Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(3, 23));
@@ -578,7 +567,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [netstandard]System.Object
     {
         .custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
@@ -825,7 +814,7 @@ public static partial class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1121,7 +1110,7 @@ public static class Extensions
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1285,7 +1274,7 @@ public static class IntExt
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1450,7 +1439,7 @@ public static class IntExt
                     01 00 00 00
                 )
                 // Nested Types
-                .class nested public auto ansi sealed beforefieldinit '<>E__0'
+                .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
                     extends [netstandard]System.Object
                 {
                     // Methods
@@ -1740,7 +1729,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1846,7 +1835,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -1967,7 +1956,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -2136,7 +2125,7 @@ extends [netstandard]System.Object
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [netstandard]System.Object
     {
         // Methods
@@ -2770,11 +2759,12 @@ public static class Extensions
         Assert.True(parameter.Type.IsErrorType());
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78472")]
     public void ReceiverParameter_TypeParameter_Unreferenced_01()
     {
         var src = """
 int.M();
+int.M<string>();
 
 public static class Extensions
 {
@@ -2788,10 +2778,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,18): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T>(int)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "int").WithArguments("int", "T").WithLocation(5, 18));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
     [Fact]
@@ -2799,6 +2786,7 @@ public static class Extensions
     {
         var src = """
 int.M();
+int.M<int, string>();
 
 public static class Extensions
 {
@@ -2812,10 +2800,7 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
-            //     extension<T1, T2>(T1)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
     }
 
     [Fact]
@@ -2836,10 +2821,250 @@ public static class Extensions
         comp.VerifyEmitDiagnostics(
             // (1,5): error CS1061: 'int' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
             // int.M();
-            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5),
-            // (5,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'T2' is not referenced.
-            //     extension<T1, T2>(T1) where T1 : class
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "T2").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_04()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int P => 0; // 1
+    }
+
+    extension<T>(C<T> c)
+    {
+        public int P => 0;
+    }
+}
+public class C<T> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public int P => 0; // 1
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_05()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int)
+    {
+        public static int P => 0; // 1
+    }
+    extension<T1, T2>(int)
+    {
+        public static int P => 0; // 2, 3
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,27): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public static int P => 0; // 1
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 27),
+            // (9,27): error CS9295: The type parameter `T1` is not referenced by either the extension parameter or a parameter of this member
+            //         public static int P => 0; // 2, 3
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T1").WithLocation(9, 27),
+            // (9,27): error CS9295: The type parameter `T2` is not referenced by either the extension parameter or a parameter of this member
+            //         public static int P => 0; // 2, 3
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T2").WithLocation(9, 27));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_06()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int P => 0;
+        public void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public int P => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(5, 20));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_07()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public static void M() { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_08()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int)
+    {
+        public static int operator +(int i, T t) => 0;
+        public static int operator -(int i, int j) => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (5,36): error CS0563: One of the parameters of a binary operator must be the containing type
+            //         public static int operator +(int i, T t) => 0;
+            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(5, 36),
+            // (5,36): error CS9282: Extension declarations can include only methods or properties
+            //         public static int operator +(int i, T t) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+").WithLocation(5, 36),
+            // (6,36): error CS0563: One of the parameters of a binary operator must be the containing type
+            //         public static int operator -(int i, int j) => 0;
+            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "-").WithLocation(6, 36),
+            // (6,36): error CS9282: Extension declarations can include only methods or properties
+            //         public static int operator -(int i, int j) => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-").WithLocation(6, 36),
+            // (6,36): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public static int operator -(int i, int j) => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-").WithArguments("T").WithLocation(6, 36));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_09()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public void operator +=(T t) { }
+        public void operator -=(int j) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,30): error CS9282: Extension declarations can include only methods or properties
+            //         public void operator +=(T t) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "+=").WithLocation(5, 30),
+            // (6,30): error CS9282: Extension declarations can include only methods or properties
+            //         public void operator -=(int j) { }
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "-=").WithLocation(6, 30),
+            // (6,30): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public void operator -=(int j) { }
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "-=").WithArguments("T").WithLocation(6, 30));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_10()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public static implicit operator string() => "";
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,41): error CS9282: Extension declarations can include only methods or properties
+            //         public static implicit operator string() => "";
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "string").WithLocation(5, 41),
+            // (5,41): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public static implicit operator string() => "";
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "string").WithArguments("T").WithLocation(5, 41),
+            // (5,47): error CS1019: Overloadable unary operator expected
+            //         public static implicit operator string() => "";
+            Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "()").WithLocation(5, 47));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_11()
+    {
+        var src = """
+public static class E
+{
+    extension<T>(int i)
+    {
+        public int this[int j] => 0;
+        public int this[long l, T t] => 0;
+    }
+    extension<T>(T t)
+    {
+        public int this[string s] => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (5,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[int j] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(5, 20),
+            // (5,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         public int this[int j] => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "this").WithArguments("T").WithLocation(5, 20),
+            // (6,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[long l, T t] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(6, 20),
+            // (10,20): error CS9282: Extension declarations can include only methods or properties
+            //         public int this[string s] => 0;
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "this").WithLocation(10, 20));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_12()
+    {
+        var src = """
+public static class E<T>
+{
+    extension<U>(T t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+            //     extension<U>(T t)
+            Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void ReceiverParameter_TypeParameter_Unreferenced_13()
+    {
+        var src = """
+#nullable enable
+
+public static class E
+{
+    extension<T>(T? t)
+    {
+        public int P => 0;
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -2964,7 +3189,7 @@ public static class Extensions
         var model = comp.GetSemanticModel(tree);
         var type = tree.GetRoot().DescendantNodes().OfType<ExtensionBlockDeclarationSyntax>().Single();
         var symbol = model.GetDeclaredSymbol(type);
-        Assert.True(symbol.ExtensionParameter.HasExplicitDefaultValue); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider not recognizing the default value entirely
+        Assert.True(symbol.ExtensionParameter.HasExplicitDefaultValue);
     }
 
     [Fact]
@@ -4623,7 +4848,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -4742,7 +4967,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5111,7 +5336,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5291,7 +5516,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5479,7 +5704,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -5880,7 +6105,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6180,7 +6405,7 @@ public class C<T>(string v)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6421,7 +6646,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6696,7 +6921,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -6955,7 +7180,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -7344,7 +7569,7 @@ public class C<T>(string val)
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -7661,7 +7886,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8142,7 +8367,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8320,7 +8545,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8506,7 +8731,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -8871,7 +9096,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9161,7 +9386,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9450,7 +9675,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9661,7 +9886,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9810,7 +10035,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -9961,7 +10186,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10108,7 +10333,7 @@ class C1
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10248,7 +10473,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10390,7 +10615,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10539,7 +10764,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10732,7 +10957,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0`1'<T>
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0`1'<T>
         extends [mscorlib]System.Object
     {
         // Methods
@@ -10895,7 +11120,7 @@ public static class Extensions
         01 00 00 00
     )
     // Nested Types
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         // Methods
@@ -12824,7 +13049,7 @@ static class E
 """;
         try
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : assertion in NullableWalker
+            // Tracked by https://github.com/dotnet/roslyn/issues/78828 : assertion in NullableWalker
             var comp = CreateCompilation(src);
             CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
@@ -16831,7 +17056,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the diagnostic should describe what went wrong
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (1,38): error CS9286: 'object' does not contain a definition for 'f' and no accessible extension member 'f' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -19935,7 +20160,7 @@ interface I<T>
 interface I2 : I<int>, I<string> { }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider improving the symbols in this error message
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider improving the symbols in this error message
         comp.VerifyEmitDiagnostics(
             // (1,4): error CS0121: The call is ambiguous between the following methods or properties: 'I<T>.M()' and 'I<T>.M()'
             // I2.M();
@@ -20338,7 +20563,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion()
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_01()
     {
         var src = """
 var (x, y) = new C();
@@ -20356,6 +20581,91 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "(42, 43)").VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_02()
+    {
+        // array to Span
+        var src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) { i = 42; j = 43; }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
+        try
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("(42, 43)"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        Debug.Assert(false);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78682")]
+    public void ExtensionMemberLookup_PatternBased_Deconstruct_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var src = """
+var (x, y) = new int[] { 42 };
+System.Console.Write((x, y));
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public void Deconstruct(out int i, out int j) => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct Span<T>
+    {
+    }
+}
+""";
+#if RELEASE
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // var (x, y) = new int[] { 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "var (x, y) = new int[] { 42 }").WithArguments("System.Span<T>", "op_Implicit").WithLocation(1, 1),
+            // (8,22): warning CS0436: The type 'Span<T>' in '' conflicts with the imported type 'Span<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.Span<int> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Span<int>").WithArguments("", "System.Span<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Span<T>").WithLocation(8, 22));
+#endif
+
+#if DEBUG
+        // Tracked by https://github.com/dotnet/roslyn/issues/78682 : ref analysis fails with an implicit span conversion on receiver of a deconstruction
+        try
+        {
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics();
+        }
+        catch (InvalidOperationException)
+        {
+            return;
+        }
+
+        Debug.Assert(false);
+#endif
     }
 
     [Fact]
@@ -20499,7 +20809,6 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit pattern-based deconstruction
         comp.VerifyEmitDiagnostics(
             // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
             // var (x, y) = new C();
@@ -20520,6 +20829,26 @@ static class E
         var deconstruction = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().First();
 
         Assert.Null(model.GetDeconstructionInfo(deconstruction).Method);
+
+        src = """
+var (x, y) = new C();
+
+class C
+{
+    public dynamic Deconstruct => throw null;
+}
+""";
+        comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(1, 6),
+            // (1,9): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(1, 9),
+            // (1,14): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 2 out parameters and a void return type.
+            // var (x, y) = new C();
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(1, 14));
     }
 
     [Fact]
@@ -20851,7 +21180,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_PatternBased_Fixed_02_Conversion()
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_01()
     {
         var text = """
 unsafe class C
@@ -20877,6 +21206,77 @@ static class E
 """;
         var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
         CompileAndVerify(comp, expectedOutput: "pin 2", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_02()
+    {
+        var text = """
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = (0, ""))
+        {
+            System.Console.WriteLine(p[1]);
+        }
+    }
+}
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public ref int GetPinnableReference() { System.Console.Write("pin "); return ref (new int[] { 1, 2, 3 })[0]; }
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("pin 2"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_PatternBased_Fixed_Conversion_03()
+    {
+        // We check conversion during initial binding
+        var text = """
+unsafe class C
+{
+    public static void M()
+    {
+        System.ReadOnlySpan<string> x = default;
+        fixed (long* p = x)
+        {
+        }
+    }
+}
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public ref long GetPinnableReference() => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (5,16): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //         System.ReadOnlySpan<string> x = default;
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<string>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(5, 16),
+            // (6,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            //         fixed (long* p = x)
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(6, 26),
+            // (14,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<object> s)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<object>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(14, 22));
     }
 
     [Fact]
@@ -21691,7 +22091,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -21833,7 +22233,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -21949,7 +22349,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : revisit when implementing extension indexers
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : revisit when implementing extension indexers
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics(
             // (1,16): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
@@ -22119,7 +22519,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_Patterns_Conversion()
+    public void ExtensionMemberLookup_Patterns_Conversion_01()
     {
         var src = """
 var c = new C();
@@ -22140,6 +22540,382 @@ static class E
 """;
         var comp = CreateCompilation(src);
         CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_02()
+    {
+        // implicit span conversion: array to Span
+        var src = """
+int[] i = [42];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.Span<int> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (int[] V_0) //i
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     "int"
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  ldc.i4.s   42
+  IL_000a:  stelem.i4
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brfalse.s  IL_0020
+  IL_000f:  ldloc.0
+  IL_0010:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+  IL_0015:  call       "int E.get_Property(System.Span<int>)"
+  IL_001a:  ldc.i4.s   42
+  IL_001c:  ceq
+  IL_001e:  br.s       IL_0021
+  IL_0020:  ldc.i4.0
+  IL_0021:  pop
+  IL_0022:  ldloc.0
+  IL_0023:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+  IL_0028:  call       "void E.M(System.Span<int>)"
+  IL_002d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_03()
+    {
+        // implicit span conversion: array to Span
+        var src = """
+string[] i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.Span<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.Span<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS9286: 'string[]' does not contain a definition for 'Property' and no accessible extension member 'Property' for receiver of type 'string[]' could be found (are you missing a using directive or an assembly reference?)
+            // _ = i is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "Property").WithArguments("string[]", "Property").WithLocation(2, 12),
+            // (3,1): error CS1929: 'string[]' does not contain a definition for 'M' and the best extension method overload 'E.M(Span<object>)' requires a receiver of type 'System.Span<object>'
+            // i.M();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "i").WithArguments("string[]", "M", "E.M(System.Span<object>)", "System.Span<object>").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_04()
+    {
+        // implicit span conversion: Span to ReadOnlySpan
+        var src = """
+System.Span<string> i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  newobj     "System.Span<string>..ctor(ref string)"
+  IL_000d:  dup
+  IL_000e:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+  IL_0013:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0018:  call       "int E.get_Property(System.ReadOnlySpan<object>)"
+  IL_001d:  pop
+  IL_001e:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+  IL_0023:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0028:  call       "void E.M(System.ReadOnlySpan<object>)"
+  IL_002d:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_05()
+    {
+        // implicit span conversion: ReadOnlySpan to ReadOnlySpan
+        var src = """
+System.ReadOnlySpan<string> i = [""];
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<object> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (string V_0)
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
+  IL_000d:  dup
+  IL_000e:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_0013:  call       "int E.get_Property(System.ReadOnlySpan<object>)"
+  IL_0018:  pop
+  IL_0019:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+  IL_001e:  call       "void E.M(System.ReadOnlySpan<object>)"
+  IL_0023:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_06()
+    {
+        // implicit span conversion: string to ReadOnlySpan
+        var src = """
+string s = "";
+_ = s is { Property: 42 };
+s.M();
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<char> s)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this System.ReadOnlySpan<char> s) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (string V_0) //s
+  IL_0000:  ldstr      ""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  brfalse.s  IL_001a
+  IL_0009:  ldloc.0
+  IL_000a:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_000f:  call       "int E.get_Property(System.ReadOnlySpan<char>)"
+  IL_0014:  ldc.i4.s   42
+  IL_0016:  ceq
+  IL_0018:  br.s       IL_001b
+  IL_001a:  ldc.i4.0
+  IL_001b:  pop
+  IL_001c:  ldloc.0
+  IL_001d:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+  IL_0022:  call       "void E.M(System.ReadOnlySpan<char>)"
+  IL_0027:  ret
+}
+""");
+
+        var spanSrc = """
+namespace System;
+
+public readonly ref struct ReadOnlySpan<T>
+{
+}
+""";
+        comp = CreateCompilation([src, spanSrc]);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // _ = s is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Property").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 12),
+            // (3,1): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // s.M();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "s").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(3, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_07()
+    {
+        // boxing
+        var src = """
+int i = 42;
+_ = i is { Property: 42 };
+i.M();
+
+class C { }
+
+static class E
+{
+    extension(object o)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this object o) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src);
+        var verify = CompileAndVerify(comp, expectedOutput: "property method").VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  dup
+  IL_0003:  box        "int"
+  IL_0008:  call       "int E.get_Property(object)"
+  IL_000d:  pop
+  IL_000e:  box        "int"
+  IL_0013:  call       "void E.M(object)"
+  IL_0018:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_08()
+    {
+        // implicit tuple conversion
+        var src = """
+(int, string) t = (42, "");
+_ = t is { Property: 42 };
+t.M();
+
+class C { }
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public int Property
+        {
+            get { System.Console.Write("property "); return 42; }
+        }
+    }
+    public static void M(this (object, object) t) { System.Console.Write("method"); }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("property method"), verify: Verification.Skipped).VerifyDiagnostics();
+        verify.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, string> V_0)
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ldstr      ""
+  IL_0007:  newobj     "System.ValueTuple<int, string>..ctor(int, string)"
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      "int System.ValueTuple<int, string>.Item1"
+  IL_0014:  box        "int"
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      "string System.ValueTuple<int, string>.Item2"
+  IL_001f:  newobj     "System.ValueTuple<object, object>..ctor(object, object)"
+  IL_0024:  call       "int E.get_Property(System.ValueTuple<object, object>)"
+  IL_0029:  pop
+  IL_002a:  stloc.0
+  IL_002b:  ldloc.0
+  IL_002c:  ldfld      "int System.ValueTuple<int, string>.Item1"
+  IL_0031:  box        "int"
+  IL_0036:  ldloc.0
+  IL_0037:  ldfld      "string System.ValueTuple<int, string>.Item2"
+  IL_003c:  newobj     "System.ValueTuple<object, object>..ctor(object, object)"
+  IL_0041:  call       "void E.M(System.ValueTuple<object, object>)"
+  IL_0046:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_Patterns_Conversion_09()
+    {
+        // We check conversion during initial binding
+        var src = """
+int[] i = [];
+_ = i is { Property: 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<int> r)
+    {
+        public int Property => throw null;
+    }
+}
+
+namespace System
+{
+    public ref struct ReadOnlySpan<T>
+    {
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (2,12): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.op_Implicit'
+            // _ = i is { Property: 42 };
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Property").WithArguments("System.ReadOnlySpan<T>", "op_Implicit").WithLocation(2, 12),
+            // (6,22): warning CS0436: The type 'ReadOnlySpan<T>' in '' conflicts with the imported type 'ReadOnlySpan<T>' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+            //     extension(System.ReadOnlySpan<int> r)
+            Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "ReadOnlySpan<int>").WithArguments("", "System.ReadOnlySpan<T>", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.ReadOnlySpan<T>").WithLocation(6, 22));
     }
 
     [Fact]
@@ -22299,7 +23075,7 @@ static class E
     }
 
     [Fact]
-    public void ExtensionMemberLookup_ObjectInitializer_Conversion()
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_01()
     {
         var src = """
 _ = new C() { Property = 42 };
@@ -22320,12 +23096,105 @@ static class E
     }
 
     [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_02()
+    {
+        var src = """
+_ = new System.ReadOnlySpan<string>() { Property = 42 };
+
+new System.ReadOnlySpan<string>().Property = 43;
+
+class C { }
+
+static class E
+{
+    extension(System.ReadOnlySpan<object> s)
+    {
+        public int Property { set { } }
+    }
+}
+""";
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider adjusting receiver requirements for extension members
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,41): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.ReadOnlySpan<string>() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 41),
+            // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // new System.ReadOnlySpan<string>().Property = 43;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+
+        src = """
+new S().Property = 42;
+
+struct S
+{
+    public int Property { set { } }
+}
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // new S().Property = 42;
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().Property").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_03()
+    {
+        // implicit tuple conversion
+        var src = """
+_ = new System.ValueTuple<int, string>() { Property = 42 };
+
+static class E
+{
+    extension((object, object) t)
+    {
+        public int Property
+        {
+            set { System.Console.Write("property"); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (1,44): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.ValueTuple<int, string>() { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 44));
+    }
+
+    [Fact]
+    public void ExtensionMemberLookup_ObjectInitializer_Conversion_04()
+    {
+        // implicit span conversion from string
+        var src = """
+_ = new System.String('a', 10) { Property = 42 };
+
+static class E
+{
+    extension(System.ReadOnlySpan<char> s)
+    {
+        public int Property
+        {
+            set { System.Console.Write(value); }
+        }
+    }
+}
+""";
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        comp.VerifyDiagnostics(
+            // (1,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // _ = new System.String('a', 10) { Property = 42 };
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 34));
+    }
+
+    [Fact]
     public void ExtensionMemberLookup_With()
     {
         var src = """
-/*<bind>*/
 _ = new S() with { Property = 42 };
-/*</bind>*/
 
 struct S { }
 
@@ -23276,7 +24145,7 @@ static class E
         Assert.Equal("System.String E.<>E__0.Property { get; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
     }
 
-    [Fact(Skip = "Assertion in NullableWalker.AsMemberOfType")] // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Nullability analysis of properties
+    [Fact(Skip = "Assertion in NullableWalker.AsMemberOfType")] // Tracked by https://github.com/dotnet/roslyn/issues/78828 : Nullability analysis of properties
     public void Nameof_Instance_Property_Generic_01()
     {
         var src = """
@@ -24202,13 +25071,7 @@ static class Extensions
             Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(55, 18),
             // (55,21): error CS0229: Ambiguity between 'T' and 'T'
             //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21),
-            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25),
-            // (55,25): error CS9295: The extended type 'T[]' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, T>(T[] p)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "p").WithArguments("T[]", "T").WithLocation(55, 25)
+            Diagnostic(ErrorCode.ERR_AmbigMember, "T").WithArguments("T", "T").WithLocation(55, 21)
             );
     }
 
@@ -24311,7 +25174,7 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : We might need to add a new warning if we don't want to refer to extension as a type in diagnostics
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, we might need to add a new warning if we don't want to refer to extension as a type in diagnostics
 
         comp.VerifyEmitDiagnostics(
             // (11,21): warning CS0693: Type parameter 'T' has the same name as the type parameter from outer type 'Extensions.extension<T>(T[])'
@@ -26174,7 +27037,7 @@ static class Extensions
             //         public void M1() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(5, 21),
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
 
             // (19,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
             //         public void M3() {}
@@ -26302,7 +27165,7 @@ static class Extensions
             //         public void M1() {}
             Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions").WithLocation(7, 21),
 
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the error might be somewhat confusing in this scenario because there are no parameters and we complain about ref-ness of the receiver.
 
             // (21,21): error CS0663: 'Extensions' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
             //         public void M3() {}
@@ -27003,15 +27866,26 @@ public static class Extensions2
         static void M1(T2 x) {}
     }
 }
+
+
+public static class Extensions3
+{
+    extension<T3, U3>(T3)
+    {
+        static void M1(T3 x) {}
+    }
+
+    extension<T3>(T3)
+    {
+        static void M1<U3>(T3 x) {}
+    }
+}
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (8,23): error CS9295: The extended type 'T1' must reference all the type parameters declared by the extension, but type parameter 'U1' is not referenced.
-            //     extension<T1, U1>(T1)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T1").WithArguments("T1", "U1").WithLocation(8, 23),
-            // (16,23): error CS9295: The extended type 'T2' must reference all the type parameters declared by the extension, but type parameter 'U2' is not referenced.
-            //     extension<T2, U2>(T2)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "T2").WithArguments("T2", "U2").WithLocation(16, 23));
+            // (37,21): error CS0111: Type 'Extensions3' already defines a member called 'M1' with the same parameter types
+            //         static void M1<U3>(T3 x) {}
+            Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M1").WithArguments("M1", "Extensions3").WithLocation(37, 21));
     }
 
     [Fact]
@@ -27236,7 +28110,7 @@ public static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : The "within a type" part of the message might be somewhat misleading
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, the "within a type" part of the message might be somewhat misleading
         comp.VerifyDiagnostics(
             // (8,13): error CS9282: Extension declarations can include only methods or properties
             //         int this[T x] => default;
@@ -30570,7 +31444,7 @@ static class E
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends System.Object
     {
         // Methods
@@ -30641,7 +31515,7 @@ i.M(2);
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (
         01 00 00 00
     )
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32[] i ) cil managed
@@ -32429,12 +33303,12 @@ static class E
             // (1,11): error CS0117: 'C' does not contain a definition for 'P'
             // int i = C.P;
             Diagnostic(ErrorCode.ERR_NoSuchMember, "P").WithArguments("C", "P").WithLocation(1, 11),
-            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T, U>(C)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "T").WithLocation(7, 21),
-            // (7,21): error CS9295: The extended type 'C' must reference all the type parameters declared by the extension, but type parameter 'U' is not referenced.
-            //     extension<T, U>(C)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "C").WithArguments("C", "U").WithLocation(7, 21));
+            // (9,20): error CS9295: The type parameter `T` is not referenced by either the extension parameter or a parameter of this member
+            //         static int P => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("T").WithLocation(9, 20),
+            // (9,20): error CS9295: The type parameter `U` is not referenced by either the extension parameter or a parameter of this member
+            //         static int P => 0;
+            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("U").WithLocation(9, 20));
     }
 
     public partial class RegionAnalysisTests : FlowTestBase
@@ -33657,7 +34531,7 @@ public static class Extensions
         public C.Enumerator GetEnumerator(int x = 1) => new C.Enumerator(x);
     }
 }";
-        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // Tracked by https://github.com/dotnet/roslyn/issues/76130: Nullable analysis asserts
+        var verifier = CompileAndVerify(source, expectedOutput: "23", parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")); // Tracked by https://github.com/dotnet/roslyn/issues/78828: Nullable analysis asserts
 
         VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>((CSharpCompilation)verifier.Compilation,
 @"
@@ -35050,7 +35924,7 @@ ref struct RS { }
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
@@ -35607,14 +36481,34 @@ static class E
 }
 """;
         var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-        comp.VerifyEmitDiagnostics();
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130
-        // FindEntryPoint/NameSymbolSearcher skip "E" since it has not declaration named "Main"
-        // CompileAndVerify(comp, expectedOutput: "ran");
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
 
         comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
-        comp.VerifyEmitDiagnostics();
         CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_02()
+    {
+        string source = """
+static class E
+{
+    extension(int)
+    {
+        public static System.Action Main => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp.VerifyDiagnostics(
+            // (1,14): error CS1558: 'E' does not have a suitable static 'Main' method
+            // static class E
+            Diagnostic(ErrorCode.ERR_NoMainInClass, "E").WithArguments("E").WithLocation(1, 14));
     }
 
     [Fact]
@@ -35625,7 +36519,7 @@ static class E
 {
     extension(int i)
     {
-        public static void Main() { System.Console.Write("ran"); }
+        public static void Main() => throw null;
     }
 }
 """;
@@ -35633,6 +36527,11 @@ static class E
         comp.VerifyEmitDiagnostics(
             // error CS1555: Could not find 'E.<>E__0' specified for Main method
             Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("E.<>E__0").WithLocation(1, 1));
+
+        Assert.Equal("<>E__0", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionName);
+
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should find the unspeakable nested type
+        Assert.Null(comp.GetTypeByMetadataName("E+<>E__0"));
     }
 
     [Fact]
@@ -35647,13 +36546,97 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130
-        // FindEntryPoint should not attempt to find types with an empty name
         var comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E."));
         comp.VerifyEmitDiagnostics(
-            // (3,5): error CS1556: 'E.extension(int)' specified for Main method must be a non-generic class, record, struct, or interface
-            //     extension(int i)
-            Diagnostic(ErrorCode.ERR_MainClassNotClass, "extension").WithArguments("E.extension(int)").WithLocation(3, 5));
+            // error CS7088: Invalid 'MainTypeName' value: 'E.'.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "E.").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E.  "));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: 'E.  '.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "E.  ").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName(""));
+        comp.VerifyEmitDiagnostics(
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("  "));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: '  '.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", "  ").WithLocation(1, 1));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName(".A"));
+        comp.VerifyEmitDiagnostics(
+            // error CS7088: Invalid 'MainTypeName' value: '.A'.
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("MainTypeName", ".A").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_05()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public static async System.Threading.Tasks.Task<int> Main() { System.Console.Write("ran"); await System.Threading.Tasks.Task.Yield(); return 0; }
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_06()
+    {
+        string source = """
+static class E
+{
+    extension(string[] args)
+    {
+        public void Main() { System.Console.Write("ran"); }
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        CompileAndVerify(comp, expectedOutput: "ran").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Validation_EntryPoint_07()
+    {
+        string source = """
+static class E
+{
+    extension(int i)
+    {
+        public void Main() => throw null;
+    }
+}
+""";
+        var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+            Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
+
+        comp = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("E"));
+        comp.VerifyEmitDiagnostics(
+            // (1,14): error CS1558: 'E' does not have a suitable static 'Main' method
+            // static class E
+            Diagnostic(ErrorCode.ERR_NoMainInClass, "E").WithArguments("E").WithLocation(1, 14),
+            // (5,21): warning CS0028: 'E.Main(int)' has the wrong signature to be an entry point
+            //         public void Main() => throw null;
+            Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("E.Main(int)").WithLocation(5, 21));
     }
 
     [Fact]
@@ -36399,7 +37382,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider reporting a better containing symbol
+        // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality consider reporting a better containing symbol
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,1): warning CS8604: Possible null reference argument for parameter 'o' in 'extension(object)'.
@@ -39076,7 +40059,7 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing nullability diagnostic
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : missing nullability diagnostic
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
@@ -39157,7 +40140,7 @@ static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = 42");
@@ -39188,7 +40171,7 @@ static class E
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for object initializer scenario with extension property
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for object initializer scenario with extension property
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var assignment = GetSyntax<AssignmentExpressionSyntax>(tree, "Property = oNull");
@@ -39283,7 +40266,7 @@ static class E
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for with-expression with extension property (unexpected warning)
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for with-expression with extension property (unexpected warning)
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -39313,7 +40296,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : unexpected nullability warning
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : unexpected nullability warning
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -39600,7 +40583,7 @@ static class E
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig static void '<Extension>$' ( int32 '' ) cil managed
@@ -39663,7 +40646,7 @@ _ = 42.P;
 {
     .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 
-    .class nested public auto ansi sealed beforefieldinit '<>E__0'
+    .class nested public auto ansi sealed specialname beforefieldinit '<>E__0'
         extends [mscorlib]System.Object
     {
         .method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
@@ -39730,6 +40713,54 @@ _ = 42.P2;
 """;
         var comp = CreateCompilationWithIL(source, ilSrc);
         comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void SpecialName_03()
+    {
+        // extension(int)
+        // {
+        //    public void M() { }
+        // }
+        // but no specialname on skeleton type
+        var ilSrc = """
+.class public auto ansi abstract sealed beforefieldinit E
+	extends [mscorlib]System.Object
+{
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+	.class nested public auto ansi sealed beforefieldinit '<>E__0'
+		extends [mscorlib]System.Object
+	{
+		.method private hidebysig specialname static void '<Extension>$' ( int32 '' ) cil managed
+		{
+			.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+			IL_0000: ret
+		}
+
+		.method public hidebysig static void M () cil managed
+		{
+			IL_0000: ldnull
+			IL_0001: throw
+		}
+	}
+
+	.method public hidebysig static void M () cil managed
+	{
+		IL_0000: nop
+		IL_0001: ret
+	}
+}
+""";
+        string source = """
+int.M();
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (1,5): error CS0117: 'int' does not contain a definition for 'M'
+            // int.M();
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "M").WithArguments("int", "M").WithLocation(1, 5));
+
+        Assert.False(comp.GlobalNamespace.GetTypeMember("E").GetTypeMembers().Single().IsExtension);
     }
 
     [Fact]
@@ -40150,8 +41181,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingParamTag) about missing documentation for extension parameter
-        //   since one of the instance members has a <param> tag
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (8,26): warning CS1572: XML comment has a param tag for 'o', but there is no parameter by that name
@@ -40178,8 +41207,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingParamTag) about missing documentation for member parameter
-        //   since the extension parameter is documented
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
     }
@@ -40306,8 +41333,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingTypeParamTag) about missing documentation for extension type parameter
-        //   since one of the members has a <typeparam> tag
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (8,30): warning CS1711: XML comment has a typeparam tag for 'T', but there is no type parameter by that name
@@ -40334,8 +41359,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider warning (WRN_MissingTypeParamTag) about missing documentation for member type parameter
-        //   since the extension type parameter is documented
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics();
     }

@@ -709,6 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!this.GetIsNewExtensionMember());
+
                 if (this.IsPartialDefinition() &&
                     this.PartialImplementationPart is null)
                 {

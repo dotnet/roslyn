@@ -695,19 +695,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseIgnoredDirective(SyntaxToken hash, SyntaxToken colon, bool isActive, bool isFollowingToken)
         {
-            if (!lexer.Options.FileBasedProgram)
+            if (isActive)
             {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
-            }
+                if (!lexer.Options.FileBasedProgram)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram);
+                }
 
-            if (isFollowingToken)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
-            }
+                if (isFollowingToken)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsToken);
+                }
 
-            if (_context.SeenAnyIfDirectives)
-            {
-                colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                if (_context.SeenAnyIfDirectives)
+                {
+                    colon = this.AddError(colon, ErrorCode.ERR_PPIgnoredFollowsIf);
+                }
             }
 
             SyntaxToken endOfDirective = this.lexer.LexEndOfDirectiveWithOptionalContent(out SyntaxToken content);
