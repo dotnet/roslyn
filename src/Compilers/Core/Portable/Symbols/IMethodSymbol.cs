@@ -293,5 +293,10 @@ namespace Microsoft.CodeAnalysis
         /// Returns a flag indicating whether this symbol has at least one applied/inherited conditional attribute.
         /// </summary>
         bool IsConditional { get; }
+
+        /// <summary>
+        /// Returns <see langword="true"/> if this method is a source method implemented as an iterator (either sync or async)
+        /// </summary>
+        bool IsIterator { get; }
     }
 }

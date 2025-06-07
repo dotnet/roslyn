@@ -127,6 +127,8 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsConditional => _symbol.IsConditional;
 
+        public bool IsIterator => _symbol.IsIterator;
+
         public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
 
         public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;

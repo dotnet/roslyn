@@ -1241,6 +1241,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.get_IsConditional
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsExtensionMethod
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsGenericMethod
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsInitOnly
+Microsoft.CodeAnalysis.IMethodSymbol.get_IsIterator
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsPartialDefinition
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsReadOnly
 Microsoft.CodeAnalysis.IMethodSymbol.get_IsVararg
