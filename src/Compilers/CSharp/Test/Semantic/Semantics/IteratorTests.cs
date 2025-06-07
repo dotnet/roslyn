@@ -36,12 +36,16 @@ class Test
             var comp = CreateCompilation(text);
 
             var i = comp.GetMember<MethodSymbol>("Test.I");
+            var publicI = i.GetPublicSymbol();
+
             Assert.True(i.IsIterator);
+            Assert.True(publicI.IsIterator);
             Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
 
             comp.VerifyDiagnostics();
 
             Assert.True(i.IsIterator);
+            Assert.True(publicI.IsIterator);
             Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
         }
 
@@ -84,6 +88,7 @@ class Test
 
             var i = comp.GetMember<MethodSymbol>("Test.I");
             Assert.True(i.IsIterator);
+            Assert.True(i.GetPublicSymbol().IsIterator);
             Assert.Equal("System.Int32", i.IteratorElementTypeWithAnnotations.ToTestDisplayString());
         }
 
@@ -118,9 +123,11 @@ class Test
 
             var i1 = testType.GetMethod("I1");
             Assert.False(i1.IsIterator);
+            Assert.False(i1.GetPublicSymbol().IsIterator);
 
             var i2 = testType.GetMethod("I2");
             Assert.False(i2.IsIterator);
+            Assert.False(i2.GetPublicSymbol().IsIterator);
         }
 
         [Fact]
