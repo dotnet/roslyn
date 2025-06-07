@@ -209,6 +209,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarations)
                 {
+                    if (extensionDeclaration.ExtensionParameter is null)
+                    {
+                        continue;
+                    }
+
                     var candidates = name is null ? extensionDeclaration.GetMembers() : extensionDeclaration.GetMembers(name);
 
                     foreach (var candidate in candidates)
