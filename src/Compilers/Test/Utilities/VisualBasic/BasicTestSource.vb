@@ -2,8 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Xml.Linq
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
+Imports System.IO
 
 Public Structure BasicTestSource
 

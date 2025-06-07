@@ -5,7 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.BraceCompletion
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion

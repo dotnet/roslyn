@@ -6,6 +6,9 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SuppressAccessibilityChecksTests

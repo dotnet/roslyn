@@ -5,7 +5,6 @@
 Imports System
 Imports System.Collections.Generic
 Imports System.Collections.ObjectModel
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities

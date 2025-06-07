@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports EnvDTE
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 

@@ -4,7 +4,6 @@
 
 Imports System.Collections.ObjectModel
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.Text

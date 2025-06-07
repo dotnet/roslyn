@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
-Imports Basic.Reference.Assemblies
 Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
@@ -12,6 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace CompilationCreationTestHelpers
     Friend Module Helpers

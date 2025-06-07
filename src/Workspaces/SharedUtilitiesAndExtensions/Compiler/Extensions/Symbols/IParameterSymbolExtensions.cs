@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;

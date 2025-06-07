@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Globalization;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;

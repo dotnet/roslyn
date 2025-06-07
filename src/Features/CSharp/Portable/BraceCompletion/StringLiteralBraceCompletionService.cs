@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Linq;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;

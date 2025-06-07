@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Linq.Expressions
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Text

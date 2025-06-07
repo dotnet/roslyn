@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
 
-using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint? caretPosition, Microsoft.CodeAnalysis.Collections.OneOrMany<Microsoft.VisualStudio.Text.SnapshotSpan> spansToTag);
+using TaggerUIData = (bool isVisible, Microsoft.VisualStudio.Text.SnapshotPoint? caretPosition, Roslyn.Utilities.OneOrMany<Microsoft.VisualStudio.Text.SnapshotSpan> spansToTag);
 
 namespace Microsoft.CodeAnalysis.Editor.Tagging;
 
