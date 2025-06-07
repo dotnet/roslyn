@@ -57,6 +57,27 @@ End Class
             Assert.False(i.IsIterator)
         End Sub
 
+        <Fact>
+        Public Sub Method_NotIterator()
+            Dim compilation = CreateCompilation(
+                    <compilation>
+                        <file name="a.vb">
+                            <![CDATA[
+Imports System.Collections.Generic
+
+Class C
+    Public Function I As IEnumerable(Of Integer)
+        Return System.Array.Empty(of Integer)()
+    End Function
+End Class
+]]>
+                        </file>
+                    </compilation>).VerifyDiagnostics()
+
+            Dim i = compilation.GetMember(Of MethodSymbol)("C.I")
+            Assert.False(i.IsIterator)
+        End Sub
+
         <Fact()>
         Public Sub IteratorNoYields()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
@@ -1089,6 +1110,27 @@ End Class
             Dim cMetadataType = Assert.IsAssignableFrom(Of PENamedTypeSymbol)(userComp.GetTypeByMetadataName("C"))
 
             Dim [property] = cMetadataType.GetProperty("P")
+            Assert.False([property].GetMethod.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub Property_NotIterator()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+
+Class C
+    ReadOnly Property P As IEnumerable(Of Integer)
+        Get
+            Return System.Array.Empty(Of Integer)()
+        End Get
+    End Property
+End Class
+]]></file>
+</compilation>).VerifyDiagnostics()
+
+            Dim [property] = compilation.GetMember(Of PropertySymbol)("C.P")
             Assert.False([property].GetMethod.IsIterator)
         End Sub
 

@@ -131,6 +131,38 @@ class Test
         }
 
         [Fact]
+        public void MethodJustReturnsEnumerable_NotIterator()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class Test
+                {
+                    IEnumerable<int> I1()
+                    {
+                        return [];
+                    }
+
+                    IAsyncEnumerable<int> I2()
+                    {
+                        return default;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics();
+
+            var i1 = comp.GetMember<MethodSymbol>("Test.I1");
+            Assert.False(i1.IsIterator);
+            Assert.False(i1.GetPublicSymbol().IsIterator);
+
+            var i2 = comp.GetMember<MethodSymbol>("Test.I2");
+            Assert.False(i2.IsIterator);
+            Assert.False(i2.GetPublicSymbol().IsIterator);
+        }
+
+        [Fact]
         public void WrongYieldType()
         {
             var text =
