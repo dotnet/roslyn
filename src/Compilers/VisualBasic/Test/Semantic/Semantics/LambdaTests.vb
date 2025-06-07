@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -2491,5 +2492,58 @@ End Class
             CompileAndVerify(comp1, symbolValidator:=validate).VerifyDiagnostics()
         End Sub
 
+        <Fact>
+        Public Sub IteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Function() As IEnumerable(Of Integer)
+                         Return Iterator Function() As IEnumerable(Of Integer)
+                             Yield 1 
+                         End Function()
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
+            Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
+            Dim innerLambdaMethod = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
+            Assert.True(innerLambdaMethod.IsIterator)
+        End Sub
+
+        <Fact>
+        Public Sub NotIteratorLambda()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Imports System.Collections.Generic
+
+Class C
+    Sub M()
+        Dim lambda = Function() As IEnumerable(Of Integer)
+                         Return Function() As IEnumerable(Of Integer)
+                             Return Nothing
+                         End Function()
+                     End Function
+    End Sub
+End Class
+    </file>
+</compilation>).VerifyDiagnostics()
+
+            Dim syntaxTree = compilation.SyntaxTrees.Single()
+            Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
+            Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
+            Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
+            Dim innerLambdaMethod = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
+            Assert.False(innerLambdaMethod.IsIterator)
+        End Sub
     End Class
 End Namespace
