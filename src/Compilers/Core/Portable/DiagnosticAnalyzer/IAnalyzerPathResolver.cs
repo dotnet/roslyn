@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// This interface gives the host the ability to control the actaul path used to load an analyzer into the 
+    /// This interface gives the host the ability to control the actual path used to load an analyzer into the 
     /// compiler.
     ///
     /// Instances of these types are considered in the order they are added to the <see cref="AnalyzerAssemblyLoader"/>.
