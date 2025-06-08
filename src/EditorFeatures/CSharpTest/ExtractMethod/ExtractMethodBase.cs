@@ -32,7 +32,7 @@ public abstract class ExtractMethodBase
         ParseOptions parseOptions = null;
         if (features != null)
         {
-            var featuresMapped = features.Select(x => KeyValuePairUtil.Create(x, string.Empty));
+            var featuresMapped = features.Select(x => KeyValuePair.Create(x, string.Empty));
             parseOptions = new CSharpParseOptions().WithFeatures(featuresMapped);
         }
 

@@ -1573,7 +1573,7 @@ BC30059: Constant expression is required.
     <Fact>
     Public Sub ParseProjConstsCaseInsensitivity()
 
-        Dim psymbols = ImmutableArray.Create({Roslyn.Utilities.KeyValuePairUtil.Create("Blah", CObj(False)), Roslyn.Utilities.KeyValuePairUtil.Create("blah", CObj(True))})
+        Dim psymbols = ImmutableArray.Create({Roslyn.Utilities.KeyValuePair.Create("Blah", CObj(False)), Roslyn.Utilities.KeyValuePair.Create("blah", CObj(True))})
 
         Dim options As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithPreprocessorSymbols(psymbols)
 

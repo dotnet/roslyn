@@ -530,7 +530,7 @@ public sealed class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
             CompilationName,
             [tree],
             References,
-            TestOptions.ReleaseDll.WithSpecificDiagnosticOptions([KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress)]));
+            TestOptions.ReleaseDll.WithSpecificDiagnosticOptions([KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress)]));
     }
 
     protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)

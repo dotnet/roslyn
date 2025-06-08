@@ -756,7 +756,7 @@ class Class
             {
                 var solution = workspace.CurrentSolution;
                 var compilationOptions = solution.Projects.Single().CompilationOptions;
-                var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                var specificDiagnosticOptions = new[] { KeyValuePair.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                 compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                 var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
                 await workspace.ChangeSolutionAsync(updatedSolution);
@@ -998,7 +998,7 @@ class Class
             {
                 var solution = workspace.CurrentSolution;
                 var compilationOptions = solution.Projects.Single().CompilationOptions;
-                var specificDiagnosticOptions = new[] { KeyValuePairUtil.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
+                var specificDiagnosticOptions = new[] { KeyValuePair.Create(IDEDiagnosticIds.FormattingDiagnosticId, ReportDiagnostic.Warn) };
                 compilationOptions = compilationOptions.WithSpecificDiagnosticOptions(specificDiagnosticOptions);
                 var updatedSolution = solution.WithProjectCompilationOptions(solution.ProjectIds.Single(), compilationOptions);
                 await workspace.ChangeSolutionAsync(updatedSolution);
