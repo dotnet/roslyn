@@ -224,8 +224,8 @@ internal sealed class KeybindingResetDetector : IOleCommandTarget
 
         _globalOptions.SetGlobalOptions(
         [
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
-            KeyValuePairUtil.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.ReSharperStatus), (object)currentStatus),
+            KeyValuePair.Create(new OptionKey2(KeybindingResetOptionsStorage.NeedsReset), (object)needsReset),
         ]);
 
         if (needsReset)

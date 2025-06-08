@@ -28,9 +28,9 @@ internal sealed class MemberInsertionCompletionItem
             symbols: [symbol],
             contextPosition: descriptionPosition,
             properties: [
-                KeyValuePairUtil.Create("Line", line.ToString()),
-                KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
-                KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString())],
+                KeyValuePair.Create("Line", line.ToString()),
+                KeyValuePair.Create("Modifiers", modifiers.ToString()),
+                KeyValuePair.Create("TokenSpanEnd", token.Span.End.ToString())],
             rules: rules,
             isComplexTextEdit: true);
     }
