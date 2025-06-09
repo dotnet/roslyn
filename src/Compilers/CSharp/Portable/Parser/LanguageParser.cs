@@ -4686,7 +4686,7 @@ parse_member_name:;
                 allowTrailingSeparator: false,
                 requireOneElement: forExtension, // For extension declarations, we require at least one receiver parameter
                 allowSemicolonAsSeparator: false);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider suppressing parsing diagnostics on extension parameters beyond the first one
+            // Tracked by https://github.com/dotnet/roslyn/issues/78830 : diagnostic quality, consider suppressing parsing diagnostics on extension parameters beyond the first one
 
             _termState = saveTerm;
             close = this.EatToken(closeKind);
