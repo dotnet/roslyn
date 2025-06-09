@@ -117,7 +117,10 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         lock (_filePathToCollectionSources)
         {
             foreach (var filePath in updatedFilePaths)
-                sources.AddRange(_filePathToCollectionSources[filePath]);
+            {
+                if (_filePathToCollectionSources.TryGetValue(filePath, out var pathSources))
+                    sources.AddRange(pathSources);
+            }
         }
 
         // Update all the affected documents in parallel.
