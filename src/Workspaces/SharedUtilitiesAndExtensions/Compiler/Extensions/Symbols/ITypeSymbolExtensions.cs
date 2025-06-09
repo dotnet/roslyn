@@ -679,6 +679,14 @@ internal static partial class ITypeSymbolExtensions
                 return false;
 
             default:
+                if (type is INamedTypeSymbol namedType && 
+                    namedType.SpecialType == SpecialType.None && // Not a special type
+                    namedType.TypeKind == TypeKind.Struct &&
+                    namedType.ContainingNamespace?.Name == "System" &&
+                    namedType.Name == "Guid")
+                {
+                    return false;
+                }
                 break;
         }
 
