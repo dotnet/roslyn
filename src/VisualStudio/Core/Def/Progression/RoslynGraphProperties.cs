@@ -24,16 +24,6 @@ internal static class RoslynGraphProperties
     public static readonly GraphProperty Label;
 
     /// <summary>
-    /// A graph property to hold the formatted label we have generated for the node.
-    /// </summary>
-    public static readonly GraphProperty FormattedLabelWithoutContainingSymbol;
-
-    /// <summary>
-    /// A graph property to hold the formatted label that has the containing symbol name.
-    /// </summary>
-    public static readonly GraphProperty FormattedLabelWithContainingSymbol;
-
-    /// <summary>
     /// A graph property to hold the description we have generated for the node.
     /// </summary>
     public static readonly GraphProperty Description;
@@ -91,16 +81,6 @@ internal static class RoslynGraphProperties
 
         Label = Schema.Properties.AddNewProperty(
             id: "Label",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        FormattedLabelWithoutContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "FormattedLabelWithoutContainingSymbol",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        FormattedLabelWithContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "FormattedLabelWithContainingSymbol",
             dataType: typeof(string),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 

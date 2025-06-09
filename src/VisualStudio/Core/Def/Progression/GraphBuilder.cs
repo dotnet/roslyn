@@ -119,9 +119,6 @@ internal static class GraphBuilder
         {
             node[RoslynGraphProperties.Description] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: false);
             node[RoslynGraphProperties.DescriptionWithContainingSymbol] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: true);
-
-            node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: false);
-            node[RoslynGraphProperties.FormattedLabelWithContainingSymbol] = progressionLanguageService.GetLabelForSymbol(symbol, includeContainingSymbol: true);
         }
 
         switch (symbol.Kind)
@@ -130,9 +127,6 @@ internal static class GraphBuilder
                 var typeSymbol = (INamedTypeSymbol)symbol;
                 if (typeSymbol.IsGenericType)
                 {
-                    // Symbol.name does not contain type params for generic types, so we populate them here for some requiring cases like VS properties panel.
-                    node.Label = (string)node[RoslynGraphProperties.FormattedLabelWithoutContainingSymbol];
-
                     // Some consumers like CodeMap want to show types in an unified way for both C# and VB.
                     // Therefore, populate a common label property using only name and its type parameters.
                     // For example, VB's "Goo(Of T)" or C#'s "Goo<T>(): T" will be shown as "Goo<T>".
