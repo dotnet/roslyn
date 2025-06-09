@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<ParameterSymbol> GetParametersIncludingExtensionParameter(this Symbol symbol, bool skipExtensionIfStatic)
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider optimizing
+            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, consider optimizing
             if (!skipExtensionIfStatic || !symbol.IsStatic)
             {
                 if (symbol.GetIsNewExtensionMember() && symbol.ContainingType.ExtensionParameter is { } extensionParameter)

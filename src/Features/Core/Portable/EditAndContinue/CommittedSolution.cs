@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -458,9 +457,9 @@ internal sealed class CommittedSolution
         }
     }
 
-    public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, ImmutableArray<ProjectId> projectsToUnstale)
+    public void CommitChanges(Solution solution, ImmutableArray<ProjectId> projectsToStale, IReadOnlyCollection<ProjectId> projectsToUnstale)
     {
-        Contract.ThrowIfFalse(projectsToStale is [] || projectsToUnstale is []);
+        Debug.Assert(projectsToStale.Intersect(projectsToUnstale).IsEmpty());
 
         lock (_guard)
         {

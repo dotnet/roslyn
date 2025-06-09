@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -71,6 +70,27 @@ internal readonly struct EmitSolutionUpdateResults
             }
 
             return builder.ToImmutableAndClear();
+        }
+
+        public static Data CreateFromInternalError(Solution solution, string errorMessage, ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects)
+        {
+            ImmutableArray<DiagnosticData> diagnostics = [];
+            var firstProject = solution.GetProject(runningProjects.FirstOrDefault().Key) ?? solution.Projects.First();
+            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
+
+            var diagnostic = Diagnostic.Create(
+                descriptor,
+                Location.None,
+                string.Format(descriptor.MessageFormat.ToString(), "", errorMessage));
+
+            return new()
+            {
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
+                Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
+                SyntaxError = null,
+                ProjectsToRebuild = [.. runningProjects.Keys],
+                ProjectsToRestart = runningProjects.Keys.ToImmutableDictionary(keySelector: static p => p, elementSelector: static p => ImmutableArray.Create(p))
+            };
         }
     }
 
@@ -160,7 +180,7 @@ internal readonly struct EmitSolutionUpdateResults
     /// </param>
     internal static void GetProjectsToRebuildAndRestart(
         Solution solution,
-        ModuleUpdates moduleUpdates,
+        ImmutableArray<ManagedHotReloadUpdate> moduleUpdates,
         ImmutableArray<ProjectDiagnostics> diagnostics,
         ImmutableDictionary<ProjectId, RunningProjectInfo> runningProjects,
         out ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>> projectsToRestart,
@@ -173,7 +193,7 @@ internal readonly struct EmitSolutionUpdateResults
         Debug.Assert(diagnostics
             .Where(r => r.Diagnostics.Any(static d => d.Severity == DiagnosticSeverity.Error))
             .Select(r => r.ProjectId)
-            .Intersect(moduleUpdates.Updates.Select(u => u.ProjectId))
+            .Intersect(moduleUpdates.Select(u => u.ProjectId))
             .IsEmpty());
 
         var graph = solution.GetProjectDependencyGraph();
@@ -234,7 +254,7 @@ internal readonly struct EmitSolutionUpdateResults
             // Partial solution update not supported.
             if (projectsToRestartBuilder.Any())
             {
-                foreach (var update in moduleUpdates.Updates)
+                foreach (var update in moduleUpdates)
                 {
                     AddImpactedRunningProjects(impactedRunningProjects, update.ProjectId, isBlocking: true);
 
@@ -247,7 +267,7 @@ internal readonly struct EmitSolutionUpdateResults
                 }
             }
         }
-        else if (!moduleUpdates.Updates.IsEmpty && projectsToRestartBuilder.Count > 0)
+        else if (!moduleUpdates.IsEmpty && projectsToRestartBuilder.Count > 0)
         {
             // The set of updated projects is usually much smaller than the number of all projects in the solution.
             // We iterate over this set updating the reset set until no new project is added to the reset set.
@@ -261,7 +281,7 @@ internal readonly struct EmitSolutionUpdateResults
             using var _7 = ArrayBuilder<ProjectId>.GetInstance(out var updatedProjectsToRemove);
             using var _8 = PooledHashSet<ProjectId>.GetInstance(out var projectsThatCausedRestart);
 
-            updatedProjects.AddRange(moduleUpdates.Updates.Select(static u => u.ProjectId));
+            updatedProjects.AddRange(moduleUpdates.Select(static u => u.ProjectId));
 
             while (true)
             {

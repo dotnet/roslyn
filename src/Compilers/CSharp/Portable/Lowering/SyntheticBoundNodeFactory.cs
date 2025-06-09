@@ -10,11 +10,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -429,24 +429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
             return AssignmentExpression(Syntax, left, right, isRef: isRef, wasCompilerGenerated: true);
-        }
-
-        public BoundExpression ConvertReceiverForExtensionMemberIfNeeded(Symbol member, BoundExpression receiver)
-        {
-            if (member.GetIsNewExtensionMember())
-            {
-                Debug.Assert(!member.IsStatic);
-                ParameterSymbol? extensionParameter = member.ContainingType.ExtensionParameter;
-                Debug.Assert(extensionParameter is not null);
-#if DEBUG
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                Debug.Assert(Conversions.IsValidExtensionMethodThisArgConversion(this.Compilation.Conversions.ClassifyConversionFromType(receiver.Type, extensionParameter.Type, isChecked: false, ref discardedUseSiteInfo)));
-#endif
-
-                return this.Convert(extensionParameter.Type, receiver);
-            }
-
-            return receiver;
         }
 
         /// <summary>
