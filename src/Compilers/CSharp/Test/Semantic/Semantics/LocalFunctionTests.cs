@@ -10723,6 +10723,8 @@ class C(string p)
                 {
                     void M()
                     {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
                         IEnumerable<int> I1()
                         {
                             yield return 1;
@@ -10738,13 +10740,7 @@ class C(string p)
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
-            comp.VerifyDiagnostics(
-                // (8,26): warning CS8321: The local function 'I1' is declared but never used
-                //         IEnumerable<int> I1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "I1").WithArguments("I1").WithLocation(8, 26),
-                // (13,37): warning CS8321: The local function 'I2' is declared but never used
-                //         async IAsyncEnumerable<int> I2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "I2").WithArguments("I2").WithLocation(13, 37));
+            comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees.Single();
             var semanticModel = comp.GetSemanticModel(syntaxTree);
@@ -10769,6 +10765,8 @@ class C(string p)
                 {
                     void M()
                     {
+                #pragma warning disable 8321 // The local function 'X' is declared but never used
+
                         IEnumerable<int> I1()
                         {
                             return [];
@@ -10783,13 +10781,7 @@ class C(string p)
                 """;
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net60);
-            comp.VerifyDiagnostics(
-                // (7,26): warning CS8321: The local function 'I1' is declared but never used
-                //         IEnumerable<int> I1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "I1").WithArguments("I1").WithLocation(7, 26),
-                // (12,31): warning CS8321: The local function 'I2' is declared but never used
-                //         IAsyncEnumerable<int> I2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "I2").WithArguments("I2").WithLocation(12, 31));
+            comp.VerifyDiagnostics();
 
             var syntaxTree = comp.SyntaxTrees.Single();
             var semanticModel = comp.GetSemanticModel(syntaxTree);
