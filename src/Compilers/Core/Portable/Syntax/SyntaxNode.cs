@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public SourceText GetText(Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
-            var writer = SourceTextWriter.Create(encoding, checksumAlgorithm, this.Green.FullWidth);
+            using var writer = SourceTextWriter.Create(encoding, checksumAlgorithm, this.Green.FullWidth);
             this.WriteTo(writer);
             return writer.ToSourceText();
         }

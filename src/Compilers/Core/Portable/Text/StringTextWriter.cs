@@ -2,27 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Text
 {
     internal class StringTextWriter : SourceTextWriter
     {
         private readonly StringBuilder _builder;
+        private readonly PooledStringBuilder _pooledBuilder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
 
         public StringTextWriter(Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, int capacity)
         {
-            _builder = new StringBuilder(capacity);
+            _pooledBuilder = PooledStringBuilder.GetInstance();
+            _builder = _pooledBuilder.Builder;
+            _builder.EnsureCapacity(capacity);
             _encoding = encoding;
             _checksumAlgorithm = checksumAlgorithm;
         }
@@ -31,6 +27,17 @@ namespace Microsoft.CodeAnalysis.Text
         public override Encoding Encoding
         {
             get { return _encoding!; }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Release the pooled string builder back to the pool. At this point _builder should no longer be used.
+                _pooledBuilder.Free();
+            }
+
+            base.Dispose(disposing);
         }
 
         public override SourceText ToSourceText()
