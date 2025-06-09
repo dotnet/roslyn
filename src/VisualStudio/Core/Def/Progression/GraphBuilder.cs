@@ -3,28 +3,46 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.GraphModel;
-using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 using Microsoft.VisualStudio.Progression.CodeSchema;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal static class GraphBuilder
 {
+    private static string GetIconName(string groupName, string itemName)
+        => string.Format("Microsoft.VisualStudio.{0}.{1}", groupName, itemName);
+
+    private static string GetIconName(string groupName, Accessibility symbolAccessibility)
+    {
+        switch (symbolAccessibility)
+        {
+            case Accessibility.Private:
+                return GetIconName(groupName, "Private");
+
+            case Accessibility.Protected:
+            case Accessibility.ProtectedAndInternal:
+            case Accessibility.ProtectedOrInternal:
+                return GetIconName(groupName, "Protected");
+
+            case Accessibility.Internal:
+                return GetIconName(groupName, "Internal");
+
+            case Accessibility.Public:
+            case Accessibility.NotApplicable:
+                return GetIconName(groupName, "Public");
+
+            default:
+                throw new ArgumentException();
+        }
+    }
+
     internal static async Task<GraphNode> GetOrCreateNodeAsync(Graph graph, ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         GraphNode node;
@@ -365,7 +383,7 @@ internal static class GraphBuilder
                 throw ExceptionUtilities.UnexpectedValue(namedType.TypeKind);
         }
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);
+        node[DgmlNodeProperties.Icon] = GetIconName(iconGroupName, namedType.DeclaredAccessibility);
 
         return node;
     }
@@ -379,8 +397,8 @@ internal static class GraphBuilder
 
         var isOperator = method.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion;
         node[DgmlNodeProperties.Icon] = isOperator
-            ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
-            : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
+            ? GetIconName("Operator", method.DeclaredAccessibility)
+            : GetIconName("Method", method.DeclaredAccessibility);
 
         return node;
     }
@@ -394,11 +412,11 @@ internal static class GraphBuilder
 
         if (field.ContainingType.TypeKind == TypeKind.Enum)
         {
-            node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("EnumMember", field.DeclaredAccessibility);
+            node[DgmlNodeProperties.Icon] = GetIconName("EnumMember", field.DeclaredAccessibility);
         }
         else
         {
-            node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Field", field.DeclaredAccessibility);
+            node[DgmlNodeProperties.Icon] = GetIconName("Field", field.DeclaredAccessibility);
         }
 
         return node;
@@ -411,7 +429,7 @@ internal static class GraphBuilder
 
         node.AddCategory(CodeNodeCategories.Property);
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Property", property.DeclaredAccessibility);
+        node[DgmlNodeProperties.Icon] = GetIconName("Property", property.DeclaredAccessibility);
 
         return node;
     }
@@ -423,7 +441,7 @@ internal static class GraphBuilder
 
         node.AddCategory(CodeNodeCategories.Event);
 
-        node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Event", eventSymbol.DeclaredAccessibility);
+        node[DgmlNodeProperties.Icon] = GetIconName("Event", eventSymbol.DeclaredAccessibility);
 
         return node;
     }
