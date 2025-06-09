@@ -1054,6 +1054,7 @@ internal sealed partial class ProjectSystemProject
     public void AddAnalyzerReference(string fullPath)
     {
         CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestAddToProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1084,6 +1085,7 @@ internal sealed partial class ProjectSystemProject
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
                 // removing it once we apply the batch
                 _projectAnalyzerPaths.Add(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceAddedToProject(mappedFullPath, DisplayName);
 
                 if (!_analyzersRemovedInBatch.Remove(mappedFullPath))
                     _analyzersAddedInBatch.Add(mappedFullPath);
@@ -1097,6 +1099,8 @@ internal sealed partial class ProjectSystemProject
     {
         if (string.IsNullOrEmpty(fullPath))
             throw new ArgumentException("message", nameof(fullPath));
+
+        CodeAnalysisEventSource.Log.AnalyzerReferenceRequestRemoveFromProject(fullPath, DisplayName);
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
@@ -1125,6 +1129,7 @@ internal sealed partial class ProjectSystemProject
             foreach (var mappedFullPath in mappedPaths)
             {
                 _projectAnalyzerPaths.Remove(mappedFullPath);
+                CodeAnalysisEventSource.Log.AnalyzerReferenceRemovedFromProject(fullPath, DisplayName);
 
                 // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
                 // the first place.
@@ -1175,6 +1180,7 @@ internal sealed partial class ProjectSystemProject
                     if (redirectedPath == null)
                     {
                         redirectedPath = currentlyRedirectedPath;
+                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
                     }
                     else if (redirectedPath != currentlyRedirectedPath)
                     {
