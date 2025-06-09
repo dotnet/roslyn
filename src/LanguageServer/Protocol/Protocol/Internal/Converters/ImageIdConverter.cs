@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using Roslyn.Core.Imaging;
 
 namespace Roslyn.LanguageServer.Protocol;
+
 internal sealed class ImageIdConverter : JsonConverter<ImageId>
 {
     public static readonly ImageIdConverter Instance = new();
@@ -16,21 +17,53 @@ internal sealed class ImageIdConverter : JsonConverter<ImageId>
     {
         if (reader.TokenType == JsonTokenType.StartObject)
         {
-            using var document = JsonDocument.ParseValue(ref reader);
-            var root = document.RootElement;
-            if (root.TryGetProperty(ObjectContentConverter.TypeProperty, out var typeProperty) && typeProperty.GetString() != nameof(ImageId))
-            {
-                throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ImageId)}");
-            }
+            Guid? guid = null;
+            int? id = null;
 
-            var guid = root.GetProperty(nameof(ImageId.Guid)).GetString() ?? throw new JsonException();
-            var id = root.GetProperty(nameof(ImageId.Id)).GetInt32();
-            return new ImageId(new Guid(guid), id);
+            Span<char> scratchChars = stackalloc char[64];
+
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndObject)
+                {
+                    if (guid is null || id is null)
+                        throw new JsonException("Expected properties Guid and Id to be present");
+
+                    return new ImageId(guid.Value, id.Value);
+                }
+
+                if (reader.TokenType == JsonTokenType.PropertyName)
+                {
+                    var valueLength = reader.HasValueSequence ? reader.ValueSequence.Length : reader.ValueSpan.Length;
+
+                    var propertyNameLength = valueLength <= scratchChars.Length ? reader.CopyString(scratchChars) : -1;
+                    var propertyName = propertyNameLength >= 0 ? scratchChars[..propertyNameLength] : reader.GetString().AsSpan();
+
+                    reader.Read();
+                    switch (propertyName)
+                    {
+                        case nameof(ImageId.Guid):
+                            guid = reader.GetGuid();
+                            break;
+                        case nameof(ImageId.Id):
+                            id = reader.GetInt32();
+                            break;
+                        case ObjectContentConverter.TypeProperty:
+                            var typePropertyLength = valueLength <= scratchChars.Length ? reader.CopyString(scratchChars) : -1;
+                            var typeProperty = typePropertyLength >= 0 ? scratchChars[..typePropertyLength] : reader.GetString().AsSpan();
+
+                            if (!typeProperty.SequenceEqual(nameof(ImageId)))
+                                throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ImageId)}");
+                            break;
+                        default:
+                            reader.Skip();
+                            break;
+                    }
+                }
+            }
         }
-        else
-        {
-            throw new JsonException("Expected start object or null tokens");
-        }
+
+        throw new JsonException("Expected start object or null tokens");
     }
 
     public override void Write(Utf8JsonWriter writer, ImageId value, JsonSerializerOptions options)
