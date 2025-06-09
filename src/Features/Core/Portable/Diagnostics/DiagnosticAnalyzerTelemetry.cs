@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 #if NETSTANDARD2_0
 using Roslyn.Utilities;
+using System.Collections.Generic;
 #endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
