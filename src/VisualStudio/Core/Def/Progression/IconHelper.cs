@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Progression;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
