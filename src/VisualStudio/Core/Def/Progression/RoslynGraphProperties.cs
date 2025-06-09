@@ -14,11 +14,6 @@ internal static class RoslynGraphProperties
     public static readonly GraphSchema Schema;
 
     /// <summary>
-    /// A graph property that holds the SymbolId of the symbol.
-    /// </summary>
-    public static readonly GraphProperty SymbolId;
-
-    /// <summary>
     /// A graph property to hold the label we have generated for the node.
     /// </summary>
     public static readonly GraphProperty Label;
@@ -67,11 +62,6 @@ internal static class RoslynGraphProperties
         ExplicitInterfaceImplementations = Schema.Properties.AddNewProperty(
             id: "ExplicitInterfaceImplementations",
             dataType: typeof(IList<SymbolKey>),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        SymbolId = Schema.Properties.AddNewProperty(
-            id: "SymbolId",
-            dataType: typeof(SymbolKey?),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         Label = Schema.Properties.AddNewProperty(
