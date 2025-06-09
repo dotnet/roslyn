@@ -27,8 +27,6 @@ internal static class RoslynGraphProperties
     public static readonly GraphProperty TypeKind;
     public static readonly GraphProperty MethodKind;
     public static readonly GraphProperty DeclaredAccessibility;
-    public static readonly GraphProperty SymbolModifiers;
-    public static readonly GraphProperty ExplicitInterfaceImplementations;
 
     static RoslynGraphProperties()
     {
@@ -52,16 +50,6 @@ internal static class RoslynGraphProperties
         DeclaredAccessibility = Schema.Properties.AddNewProperty(
             id: "DeclaredAccessibility",
             dataType: typeof(Accessibility),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        SymbolModifiers = Schema.Properties.AddNewProperty(
-            id: "SymbolModifiers",
-            dataType: typeof(DeclarationModifiers),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        ExplicitInterfaceImplementations = Schema.Properties.AddNewProperty(
-            id: "ExplicitInterfaceImplementations",
-            dataType: typeof(IList<SymbolKey>),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         Label = Schema.Properties.AddNewProperty(
