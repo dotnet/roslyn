@@ -21,10 +21,8 @@ using Roslyn.Utilities;
 
 #if CODE_STYLE
 using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
-using Microsoft.CodeAnalysis.Collections;
 #else
 using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
-using Microsoft.CodeAnalysis.Collections;
 #endif
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
