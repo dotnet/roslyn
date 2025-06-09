@@ -392,6 +392,19 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase, IDisposable
         return moduleId;
     }
 
+    internal static MetadataReference EmitLibraryReference(string source, TargetFramework targetFramework = TargetFramework.NetStandard20, string name = "Lib")
+    {
+        var libCompilation = CSharpTestBase.CreateCompilation(
+            source,
+            options: TestOptions.DebugDll,
+            targetFramework: targetFramework,
+            assemblyName: name);
+
+        var (libImage, _) = libCompilation.EmitToArrays(new EmitOptions());
+
+        return MetadataReference.CreateFromImage(libImage);
+    }
+
     internal static SourceText CreateText(string source)
         => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default);
 

@@ -803,6 +803,84 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EndDebuggingSession(debuggingSession);
     }
 
+    // TODO: analyzer reference, project reference, source-generator reference
+    // TODO: aliases, embedded
+    // TODO: remove
+
+    [Theory]
+    [CombinatorialData]
+    public async Task Reference_Add(bool isMetadataRef)
+    {
+        var source1 = "class C { void F() { System.Console.WriteLine(1); } }";
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(source1, sourceFile1.Path).Project.Solution.
+            AddTestProject("other", out var otherProjectId).Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // add reference:
+        solution = isMetadataRef
+            ? solution.AddMetadataReference(projectId, EmitLibraryReference("class Lib;"))
+            : solution.AddProjectReference(projectId, new ProjectReference(otherProjectId));
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+        // just adding a reference produces no updates
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Empty(updates.Updates);
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public async Task Reference_AddAndUpdate(bool isMetadataRef)
+    {
+        var source1 = "class C { void F() { System.Console.WriteLine(1); } }";
+        var source2 = "class C { void F() { System.Console.WriteLine(typeof(Lib)); } }";
+
+        var sourceFile1 = Temp.CreateFile().WriteAllText(source1, Encoding.UTF8);
+
+        using var w = CreateWorkspace(out var solution, out var service);
+
+        solution = solution.
+            AddTestProject("test", out var projectId).
+            AddTestDocument(source1, sourceFile1.Path, out var documentId).Project.Solution.
+            AddTestProject("other", out var otherProjectId).Solution;
+
+        EmitAndLoadLibraryToDebuggee(solution.GetRequiredProject(projectId));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // add reference:
+        solution = isMetadataRef
+            ? solution.AddMetadataReference(projectId, EmitLibraryReference("class Lib;"))
+            : solution.AddProjectReference(projectId, new ProjectReference(otherProjectId));
+
+        // update source:
+        var sourceFile2 = Temp.CreateFile().WriteAllText(source2, Encoding.UTF8);
+        solution = solution.WithDocumentText(documentId, CreateText(source2));
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.NotEmpty(updates.Updates);
+
+        debuggingSession.DiscardSolutionUpdate();
+
+        EndDebuggingSession(debuggingSession);
+    }
+
     /// <summary>
     /// <code>
     ///                         F5   build
