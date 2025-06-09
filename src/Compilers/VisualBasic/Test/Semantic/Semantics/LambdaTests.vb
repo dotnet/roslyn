@@ -2515,7 +2515,7 @@ End Class
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
             Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
             Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
-            Dim innerLambdaMethod = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
+            Dim innerLambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
             Assert.True(innerLambdaMethod.IsIterator)
         End Sub
 
@@ -2542,7 +2542,7 @@ End Class
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
             Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
             Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
-            Dim innerLambdaMethod = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
+            Dim innerLambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
             Assert.False(innerLambdaMethod.IsIterator)
         End Sub
     End Class

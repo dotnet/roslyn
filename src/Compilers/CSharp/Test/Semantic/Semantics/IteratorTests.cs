@@ -36,7 +36,7 @@ class Test
             var comp = CreateCompilation(text);
 
             var i = comp.GetMember<MethodSymbol>("Test.I");
-            var publicI = i.GetPublicSymbol();
+            IMethodSymbol publicI = i.GetPublicSymbol();
 
             Assert.True(i.IsIterator);
             Assert.True(publicI.IsIterator);

@@ -10747,11 +10747,11 @@ class C(string p)
             var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
 
             var i1Syntax = localFunctionSyntaxes[0];
-            var i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
             Assert.True(i1Symbol.IsIterator);
 
             var i2Syntax = localFunctionSyntaxes[1];
-            var i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
             Assert.True(i2Symbol.IsIterator);
         }
 
@@ -10788,11 +10788,11 @@ class C(string p)
             var localFunctionSyntaxes = syntaxTree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
 
             var i1Syntax = localFunctionSyntaxes[0];
-            var i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
+            IMethodSymbol i1Symbol = semanticModel.GetDeclaredSymbol(i1Syntax);
             Assert.False(i1Symbol.IsIterator);
 
             var i2Syntax = localFunctionSyntaxes[1];
-            var i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
+            IMethodSymbol i2Symbol = semanticModel.GetDeclaredSymbol(i2Syntax);
             Assert.False(i2Symbol.IsIterator);
         }
     }
