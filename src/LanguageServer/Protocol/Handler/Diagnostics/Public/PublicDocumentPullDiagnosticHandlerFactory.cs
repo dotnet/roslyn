@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(PublicDocumentPullDiagnosticsHandler)), Shared]
 internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
 {
-    private readonly IDiagnosticAnalyzerService _analyzerService;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager;
     private readonly IDiagnosticsRefresher _diagnosticRefresher;
     private readonly IGlobalOptionService _globalOptions;
@@ -25,12 +24,10 @@ internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFa
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PublicDocumentPullDiagnosticHandlerFactory(
-        IDiagnosticAnalyzerService analyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
     {
-        _analyzerService = analyzerService;
         _diagnosticSourceManager = diagnosticSourceManager;
         _diagnosticRefresher = diagnosticRefresher;
         _globalOptions = globalOptions;
@@ -39,6 +36,6 @@ internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFa
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _analyzerService, _diagnosticSourceManager, _diagnosticRefresher, _globalOptions);
+        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _diagnosticSourceManager, _diagnosticRefresher, _globalOptions);
     }
 }
