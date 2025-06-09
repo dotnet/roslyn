@@ -152,7 +152,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             PropertySymbol property = p.Property;
                             var outputTemp = new BoundDagTemp(p.Syntax, property.Type, p);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            input = _factory.ConvertReceiverForExtensionMemberIfNeeded(property, input);
+                            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+                            input = _localRewriter.ConvertReceiverForExtensionMemberIfNeeded(property, input, markAsChecked: true);
                             return _factory.AssignmentExpression(output, _localRewriter.MakePropertyAccess(_factory.Syntax, input, property, LookupResultKind.Viable, property.Type, isLeftOfAssignment: false));
                         }
 
@@ -191,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 addArg(RefKind.Out, _tempAllocator.GetTemp(outputTemp));
                             }
 
-                            receiver = _factory.ConvertReceiverForExtensionMemberIfNeeded(method, receiver);
+                            // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider preserving the BoundConversion from initial binding instead of using markAsChecked here
+                            receiver = _localRewriter.ConvertReceiverForExtensionMemberIfNeeded(method, receiver, markAsChecked: true);
                             return _factory.Call(receiver, method, refKindBuilder.ToImmutableAndFree(), argBuilder.ToImmutableAndFree());
                         }
 

@@ -21,41 +21,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
         Public Sub New()
         End Sub
 
-        Public Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
-            ' TODO: Implement this lazily like in C#?
-            Dim nodes = New Stack(Of SyntaxNode)()
-
-            Dim result = New List(Of SyntaxNode)
-
-            nodes.Push(root)
-
-            While nodes.Count > 0
-                cancellationToken.ThrowIfCancellationRequested()
-
-                Dim node = nodes.Pop()
-
-                If node.Kind = SyntaxKind.ClassBlock OrElse
-                    node.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    node.Kind = SyntaxKind.DelegateSubStatement OrElse
-                    node.Kind = SyntaxKind.EnumBlock OrElse
-                    node.Kind = SyntaxKind.ModuleBlock OrElse
-                    node.Kind = SyntaxKind.InterfaceBlock OrElse
-                    node.Kind = SyntaxKind.StructureBlock OrElse
-                    node.Kind = SyntaxKind.FieldDeclaration OrElse
-                    node.Kind = SyntaxKind.SubBlock OrElse
-                    node.Kind = SyntaxKind.FunctionBlock OrElse
-                    node.Kind = SyntaxKind.PropertyBlock Then
-                    result.Add(node)
-                Else
-                    For Each child In node.ChildNodes()
-                        nodes.Push(child)
-                    Next
-                End If
-            End While
-
-            Return result
-        End Function
-
         Private Shared ReadOnly s_descriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
             globalNamespaceStyle:=SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
             typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,

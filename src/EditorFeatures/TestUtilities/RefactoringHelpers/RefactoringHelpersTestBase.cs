@@ -41,7 +41,7 @@ public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
     protected async Task TestUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
     {
         text = GetSelectionSpan(text, out var selection);
-        var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
+        var resultNode = await GetNodeForSelectionAsync(text, selection, Functions<TNode>.True).ConfigureAwait(false);
 
         Assert.NotNull(resultNode);
         Assert.True(CodeRefactoringHelpers.IsNodeUnderselected(resultNode, selection));
@@ -50,7 +50,7 @@ public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
     protected async Task TestNotUnderselectedAsync<TNode>(string text) where TNode : SyntaxNode
     {
         text = GetSelectionAndResultSpans(text, out var selection, out var result);
-        var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, Functions<TNode>.True).ConfigureAwait(false);
+        var resultNode = await GetNodeForSelectionAsync(text, selection, Functions<TNode>.True).ConfigureAwait(false);
 
         Assert.NotNull(resultNode);
         Assert.Equal(result, resultNode!.Span);
@@ -64,7 +64,7 @@ public abstract class RefactoringHelpersTestBase<TWorkspaceFixture> : TestBase
     {
         text = GetSelectionSpan(text, out var selection);
 
-        var resultNode = await GetNodeForSelectionAsync<TNode>(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
+        var resultNode = await GetNodeForSelectionAsync(text, selection, predicate, allowEmptyNodes).ConfigureAwait(false);
         Assert.Null(resultNode);
     }
 

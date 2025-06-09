@@ -57,7 +57,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         ProjectFactory.SolutionPath = solutionFilePath;
 
-        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, CancellationToken.None);
+        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
         foreach (var (path, guid) in projects)
         {
             await BeginLoadingProjectAsync(path, guid);
@@ -79,7 +79,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
-    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
+    protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
@@ -89,6 +89,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return (loadedFile, hasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult(loadedFile, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
     }
 }
