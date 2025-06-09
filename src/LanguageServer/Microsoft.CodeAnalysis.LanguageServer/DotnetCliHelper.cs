@@ -69,7 +69,7 @@ internal sealed class DotnetCliHelper
         return dotnetSdkFolderPath;
     }
 
-    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput, bool redirectStandardInput = false)
+    public Process Run(string[] arguments, string? workingDirectory, bool shouldLocalizeOutput)
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments {arguments}");
 
@@ -77,7 +77,7 @@ internal sealed class DotnetCliHelper
         {
             CreateNoWindow = true,
             UseShellExecute = false,
-            RedirectStandardInput = redirectStandardInput,
+            RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
