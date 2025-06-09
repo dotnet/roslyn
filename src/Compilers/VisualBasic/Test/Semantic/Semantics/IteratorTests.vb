@@ -33,6 +33,7 @@ End Class
 
             Dim i = compilation.GetMember(Of MethodSymbol)("C.I")
             Assert.True(i.IsIterator)
+            Assert.True(DirectCast(i, IMethodSymbol).IsIterator)
         End Sub
 
         <Fact>
@@ -57,6 +58,7 @@ End Class
 
             Dim i = cMetadataType.GetMethod("I")
             Assert.False(i.IsIterator)
+            Assert.False(DirectCast(i, IMethodSymbol).IsIterator)
         End Sub
 
         <Fact>
@@ -78,6 +80,7 @@ End Class
 
             Dim i = compilation.GetMember(Of MethodSymbol)("C.I")
             Assert.False(i.IsIterator)
+            Assert.False(DirectCast(i, IMethodSymbol).IsIterator)
         End Sub
 
         <Fact()>
@@ -1084,10 +1087,14 @@ End Class
             compilation.AssertTheseEmitDiagnostics(<expected/>)
             Dim [property] = compilation.GetMember(Of PropertySymbol)("A.P")
             Assert.True([property].GetMethod.IsIterator)
+            Assert.True(DirectCast([property].GetMethod, IMethodSymbol).IsIterator)
             Assert.False([property].SetMethod.IsIterator)
+            Assert.False(DirectCast([property].SetMethod, IMethodSymbol).IsIterator)
             [property] = compilation.GetMember(Of PropertySymbol)("B.P")
             Assert.True([property].GetMethod.IsIterator)
+            Assert.True(DirectCast([property].GetMethod, IMethodSymbol).IsIterator)
             Assert.False([property].SetMethod.IsIterator)
+            Assert.False(DirectCast([property].SetMethod, IMethodSymbol).IsIterator)
             CompileAndVerify(compilation, expectedOutput:="123")
         End Sub
 
@@ -1113,6 +1120,7 @@ End Class
 
             Dim [property] = cMetadataType.GetProperty("P")
             Assert.False([property].GetMethod.IsIterator)
+            Assert.False(DirectCast([property].GetMethod, IMethodSymbol).IsIterator)
         End Sub
 
         <Fact>
@@ -1134,6 +1142,7 @@ End Class
 
             Dim [property] = compilation.GetMember(Of PropertySymbol)("C.P")
             Assert.False([property].GetMethod.IsIterator)
+            Assert.False(DirectCast([property].GetMethod, IMethodSymbol).IsIterator)
         End Sub
 
         <Fact()>
