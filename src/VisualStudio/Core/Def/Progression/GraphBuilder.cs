@@ -112,14 +112,6 @@ internal static class GraphBuilder
 
     private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
     {
-        var progressionLanguageService = solution.Services.GetLanguageServices(symbol.Language).GetService<IProgressionLanguageService>();
-
-        // A call from unittest may not have a proper language service.
-        if (progressionLanguageService != null)
-        {
-            node[RoslynGraphProperties.Description] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: false);
-        }
-
         switch (symbol.Kind)
         {
             case SymbolKind.NamedType:
@@ -374,7 +366,6 @@ internal static class GraphBuilder
         }
 
         node[DgmlNodeProperties.Icon] = IconHelper.GetIconName(iconGroupName, namedType.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = namedType.TypeKind;
 
         return node;
     }
@@ -390,9 +381,6 @@ internal static class GraphBuilder
         node[DgmlNodeProperties.Icon] = isOperator
             ? IconHelper.GetIconName("Operator", method.DeclaredAccessibility)
             : IconHelper.GetIconName("Method", method.DeclaredAccessibility);
-
-        node[RoslynGraphProperties.TypeKind] = method.ContainingType.TypeKind;
-        node[RoslynGraphProperties.MethodKind] = method.MethodKind;
 
         return node;
     }
@@ -424,7 +412,6 @@ internal static class GraphBuilder
         node.AddCategory(CodeNodeCategories.Property);
 
         node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Property", property.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = property.ContainingType.TypeKind;
 
         return node;
     }
@@ -437,7 +424,6 @@ internal static class GraphBuilder
         node.AddCategory(CodeNodeCategories.Event);
 
         node[DgmlNodeProperties.Icon] = IconHelper.GetIconName("Event", eventSymbol.DeclaredAccessibility);
-        node[RoslynGraphProperties.TypeKind] = eventSymbol.ContainingType.TypeKind;
 
         return node;
     }
