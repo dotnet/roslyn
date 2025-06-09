@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
+
 using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;

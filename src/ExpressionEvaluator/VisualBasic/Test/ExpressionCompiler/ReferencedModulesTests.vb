@@ -8,7 +8,6 @@ Imports System.Reflection.PortableExecutable
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests

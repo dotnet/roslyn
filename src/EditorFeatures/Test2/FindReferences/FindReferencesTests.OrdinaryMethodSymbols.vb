@@ -4,7 +4,6 @@
 
 Imports System.Runtime.CompilerServices
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences

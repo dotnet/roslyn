@@ -2023,6 +2023,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private MethodDefinitionHandle TryGetExtensionMarkerMethod()
         {
+            if (!this.HasSpecialName)
+            {
+                return default;
+            }
+
             var moduleSymbol = this.ContainingPEModule;
             var module = moduleSymbol.Module;
 
