@@ -19,13 +19,6 @@ internal static class RoslynGraphProperties
     public static readonly GraphProperty SymbolId;
 
     /// <summary>
-    /// A graph property that holds the DocumentId where you can find the symbol. This is used
-    /// to distinguish between multiple locations for partial types. This will only exist
-    /// for symbols in source that have partial implementations.
-    /// </summary>
-    public static readonly GraphProperty ContextDocumentId;
-
-    /// <summary>
     /// A graph property to hold the label we have generated for the node.
     /// </summary>
     public static readonly GraphProperty Label;
@@ -94,11 +87,6 @@ internal static class RoslynGraphProperties
         SymbolId = Schema.Properties.AddNewProperty(
             id: "SymbolId",
             dataType: typeof(SymbolKey?),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        ContextDocumentId = Schema.Properties.AddNewProperty(
-            id: "ContextDocumentId",
-            dataType: typeof(DocumentId),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         Label = Schema.Properties.AddNewProperty(
