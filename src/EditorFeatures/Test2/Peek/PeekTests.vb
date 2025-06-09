@@ -234,13 +234,13 @@ public partial class D
         $$PartialMethod();
     }
 
-    partial void PartialMethod();
+    partial void {|Identifier:PartialMethod|}();
 }
                                                           ]]></Document>
                                                           <Document><![CDATA[
 public partial class D
 {
-    partial void {|Identifier:PartialMethod|}() { }
+    partial void PartialMethod() { }
 }
                                                           ]]></Document>
                                                       </Project>
