@@ -12638,5 +12638,77 @@ class C<T>
                 //         Prop.ToString(); // unexpected warning
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(14, 9));
         }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78592")]
+        [InlineData(""" = "a";""", "")]
+        [InlineData("", """ = "a";""")]
+        public void PartialProperty_AutoImplGetter_PropertyInitializer(string defInitializer, string implInitializer)
+        {
+            var source = $$"""
+                #nullable enable
+
+                partial class C
+                {
+                    public partial string Prop { get; set; }{{defInitializer}}
+                }
+
+                partial class C
+                {
+                    public partial string Prop { get; set => Set(ref field, value); }{{implInitializer}}
+
+                    private void Set(ref string dest, string value)
+                    {
+                        dest = value;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78592")]
+        public void Repro_78592()
+        {
+            var source1 = """
+                #nullable enable
+
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                namespace TestLibrary
+                {
+                    public partial class Class1
+                    {
+                        public partial int P1 { get; set; } = -1;
+
+                        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+                        {
+                            if (EqualityComparer<T>.Default.Equals(storage, value))
+                            {
+                                return false;
+                            }
+
+                            storage = value;
+
+                            return true;
+                        }
+                    }
+
+                }
+                """;
+
+            var source2 = """
+                namespace TestLibrary
+                {
+                    public partial class Class1
+                    {
+                        public partial int P1 { get; set => SetProperty(ref field, value); }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source1, source2]);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
