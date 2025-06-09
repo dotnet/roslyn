@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
