@@ -86,6 +86,9 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (6,36): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static S1? operator +(S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(6, 36),
                 // (15,35): error CS9551: The parameter of a unary operator must be the extended type.
                 //         public static S1 operator +(S2 x) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, op).WithLocation(15, 35),
@@ -179,6 +182,9 @@ static class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
+                // (6,36): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                //         public static S1? operator ++(S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, op).WithLocation(6, 36),
                 // (14,35): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //         public static S2 operator ++(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(14, 35),
@@ -313,6 +319,12 @@ static class C1
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
             comp.VerifyEmitDiagnostics(
+                // (102,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator true(S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(102, 37),
+                // (103,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator false(S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(103, 37),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator true(S1)' requires a matching operator 'false' to also be defined
                 //         public static bool operator true(S1 x) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("Extensions3.extension(S1).operator true(S1)", "false").WithLocation(400, 37),
@@ -1802,10 +1814,10 @@ public struct S2
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
-            //            One can consume them only on the receiver type, not on nullable of receiver type.
-            //            Should we disallow declarations like that?
             comp.VerifyEmitDiagnostics(
+                // (5,36): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static S1? operator +(S1? x)
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "+").WithLocation(5, 36),
                 // (21,13): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
                 //         _ = +s1;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(21, 13),
@@ -2488,10 +2500,13 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
-            //            One can consume them only on the receiver type, not on nullable of receiver type.
-            //            Should we disallow declarations like that?
             comp.VerifyEmitDiagnostics(
+                // (5,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator true(S1? x)
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(5, 37),
+                // (10,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator false(S1? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(10, 37),
                 // (22,13): error CS0029: Cannot implicitly convert type 'S1?' to 'bool'
                 //         if (s1)
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "bool").WithLocation(22, 13),
@@ -6094,10 +6109,10 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
-            //            One can consume them only on the receiver type, not on nullable of receiver type.
-            //            Should we disallow declarations like that?
             comp.VerifyEmitDiagnostics(
+                // (5,36): error CS9552: The parameter type for ++ or -- operator must be the extended type.
+                //         public static S1? operator ++(S1? x)
+                Diagnostic(ErrorCode.ERR_BadExtensionIncDecSignature, "++").WithLocation(5, 36),
                 // (21,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1?'
                 //         _ = ++s1;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1?").WithLocation(21, 13),
@@ -6626,6 +6641,12 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (6,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator +(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(6, 36),
+                // (8,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator +(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(8, 36),
                 // (16,35): error CS9553: One of the parameters of a binary operator must be the extended type.
                 //         public static S1 operator -(S2 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op).WithLocation(16, 35),
@@ -6717,6 +6738,9 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (6,36): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
+                //         public static S2? operator <<(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(6, 36),
                 // (14,35): error CS9554: The first operand of an overloaded shift operator must have the same type as the extended type
                 //         public static S1 operator <<(S2 x, S1 y) => default;
                 Diagnostic(ErrorCode.ERR_BadExtensionShiftOperatorSignature, op).WithLocation(14, 35),
@@ -6855,6 +6879,18 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator !=(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(102, 36),
+                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator ==(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(103, 36),
+                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator !=(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "!=").WithLocation(106, 36),
+                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator ==(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "==").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator !=(S1, S2)' requires a matching operator '==' to also be defined
                 //         public static bool operator !=(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "!=").WithArguments("Extensions3.extension(S1).operator !=(S1, S2)", "==").WithLocation(400, 37),
@@ -7011,6 +7047,18 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator >=(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(102, 36),
+                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator <=(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(103, 36),
+                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator >=(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">=").WithLocation(106, 36),
+                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator <=(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<=").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >=(S1, S2)' requires a matching operator '<=' to also be defined
                 //         public static bool operator >=(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">=").WithArguments("Extensions3.extension(S1).operator >=(S1, S2)", "<=").WithLocation(400, 37),
@@ -7167,6 +7215,18 @@ static class C1
 """;
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (102,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator >(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(102, 36),
+                // (103,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator <(S1? x, S2 y) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(103, 36),
+                // (106,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator >(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, ">").WithLocation(106, 36),
+                // (107,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator <(S2 y, S1? x) => default;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "<").WithLocation(107, 36),
                 // (400,37): error CS0216: The operator 'Extensions3.extension(S1).operator >(S1, S2)' requires a matching operator '<' to also be defined
                 //         public static bool operator >(S1 x, S2 y) => default;
                 Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, ">").WithArguments("Extensions3.extension(S1).operator >(S1, S2)", "<").WithLocation(400, 37),
@@ -8383,12 +8443,21 @@ class Program
 
             var comp3 = CreateCompilation(src3, options: TestOptions.DebugExe);
             comp3.VerifyEmitDiagnostics(
+                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator +(S2? x, S1? y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
                 //         _ = s1 + s1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
                 // (25,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S2'
                 //         _ = s1 + s2;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s2").WithArguments("+", "S1", "S2").WithLocation(25, 13)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s2").WithArguments("+", "S1", "S2").WithLocation(25, 13),
+                // (26,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S1'
+                //         _ = s2 + s1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s1").WithArguments("+", "S2", "S1").WithLocation(26, 13),
+                // (27,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S2'
+                //         _ = s2 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(27, 13)
                 );
 
             var src4 = $$$"""
@@ -8427,12 +8496,21 @@ class Program
 
             var comp4 = CreateCompilation(src4, options: TestOptions.DebugExe);
             comp4.VerifyEmitDiagnostics(
+                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S2? operator +(S1? x, S2? y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (24,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
                 //         _ = s1 + s1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(24, 13),
+                // (25,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S2'
+                //         _ = s1 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s2").WithArguments("+", "S1", "S2").WithLocation(25, 13),
                 // (26,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S1'
                 //         _ = s2 + s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s1").WithArguments("+", "S2", "S1").WithLocation(26, 13)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s1").WithArguments("+", "S2", "S1").WithLocation(26, 13),
+                // (27,13): error CS0019: Operator '+' cannot be applied to operands of type 'S2' and 'S2'
+                //         _ = s2 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s2").WithArguments("+", "S2", "S2").WithLocation(27, 13)
                 );
         }
 
@@ -9201,13 +9279,16 @@ public struct S2
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: It looks like declaring operators on nullable of receiver type is pretty useless.
-            //            One can consume them only on the receiver type, not on nullable of receiver type.
-            //            Should we disallow declarations like that?
             comp.VerifyEmitDiagnostics(
+                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S1? operator +(S1? x, S1? y)
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, "+").WithLocation(5, 36),
                 // (21,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1?' and 'S1?'
                 //         _ = s1 + s1;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1?", "S1?").WithLocation(21, 13),
+                // (23,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                //         _ = s2 + s2;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s2 + s2").WithArguments("+", "S1", "S1").WithLocation(23, 13),
                 // (25,9): error CS1929: 'S1?' does not contain a definition for 'M1' and the best extension method overload 'Extensions1.extension(S1).M1(S1?)' requires a receiver of type 'S1'
                 //         System.Nullable<S1>.M1(s1);
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "System.Nullable<S1>").WithArguments("S1?", "M1", "Extensions1.extension(S1).M1(S1?)", "S1").WithLocation(25, 9)
@@ -9717,7 +9798,6 @@ public static class Extensions2
 
             comp = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Should we move on to the next scope and finding Extensions2 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (28,17): error CS0217: In order to be applicable as a short circuit operator a user-defined logical operator ('Extensions1.extension(S1).operator &(S1, S2)') must have the same return type and parameter types
                 //             _ = s1 && s2;
@@ -9800,7 +9880,6 @@ public static class Extensions2
 
             comp = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Should we move on to the next scope and finding Extensions2 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (28,17): error CS0217: In order to be applicable as a short circuit operator a user-defined logical operator ('Extensions1.extension(S1).operator &(S1, S1)') must have the same return type and parameter types
                 //             _ = s1 && s2;
@@ -10028,7 +10107,6 @@ public static class Extensions2
 
             comp = CreateCompilation([src1, src2], options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Should we move on to the next scope and finding Extensions2 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (22,18): error CS0218: In order for 'NS.Extensions1.extension(C1).operator &(C1, C1)' to be applicable as a short circuit operator, its declaring type 'NS.Extensions1' must define operator true and operator false
                 //         c1 = c1 && c1;
@@ -10214,13 +10292,9 @@ public static class Extensions1
             return x;
         }
 
-        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
-        {
-            System.Console.Write("operator2");
-            return false;
-        }
+        public static bool operator true(S1? x) => throw null;
 
-        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
     }
 }
 
@@ -10238,7 +10312,14 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator2operator1").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator true(S1? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(11, 37),
+                // (13,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator false(S1? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(13, 37)
+                );
         }
 
         [Theory]
@@ -10306,21 +10387,13 @@ public static class Extensions1
 {
     extension(S1)
     {
-        public static S1? operator {{{op[0]}}}(S1? x, S1? y)
-        {
-            System.Console.Write("operator1");
-            return x;
-        }
+        public static S1? operator {{{op[0]}}}(S1? x, S1? y) => throw null;
     }
     extension(S1)
     {
-        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
-        {
-            System.Console.Write("operator2");
-            return false;
-        }
+        public static bool operator true(S1? x) => throw null;
 
-        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
 
         public static void M1(S1? x) {}
     }
@@ -10334,6 +10407,7 @@ class Program
     static void Main()
     {
         var s1 = new S1();
+#line 33
         s1 = s1 {{{op}}} s1;
 
         S1.M1(s1);
@@ -10344,9 +10418,18 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
-                // (33,14): error CS0218: In order for 'Extensions1.extension(S1).operator &(S1?, S1?)' to be applicable as a short circuit operator, its declaring type 'Extensions1' must define operator true and operator false
+                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S1? operator &(S1? x, S1? y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op[..1]).WithLocation(5, 36),
+                // (9,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator true(S1? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "true").WithLocation(9, 37),
+                // (11,37): error CS9551: The parameter of a unary operator must be the extended type.
+                //         public static bool operator false(S1? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadExtensionUnaryOperatorSignature, "false").WithLocation(11, 37),
+                // (33,14): error CS0019: Operator '&&' cannot be applied to operands of type 'S1' and 'S1'
                 //         s1 = s1 && s1;
-                Diagnostic(ErrorCode.ERR_MustHaveOpTF, "s1 " + op + " s1").WithArguments("Extensions1.extension(S1).operator " + op[0] + "(S1?, S1?)", "Extensions1").WithLocation(33, 14),
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 " + op + " s1").WithArguments(op, "S1", "S1").WithLocation(33, 14),
                 // (36,9): error CS1929: 'S1?' does not contain a definition for 'M1' and the best extension method overload 'Extensions1.extension(S1).M1(S1?)' requires a receiver of type 'S1'
                 //         System.Nullable<S1>.M1(s1);
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "System.Nullable<S1>").WithArguments("S1?", "M1", "Extensions1.extension(S1).M1(S1?)", "S1").WithLocation(36, 9)
@@ -10394,7 +10477,14 @@ class Program
 """;
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "operator2operator1").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (5,36): error CS9553: One of the parameters of a binary operator must be the extended type.
+                //         public static S1? operator &(S1? x, S1? y)
+                Diagnostic(ErrorCode.ERR_BadExtensionBinaryOperatorSignature, op[..1]).WithLocation(5, 36),
+                // (31,15): error CS0019: Operator '&&' cannot be applied to operands of type 'S1' and 'S1'
+                //         s1 = (s1 && s1).GetValueOrDefault();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 " + op + " s1").WithArguments(op, "S1", "S1").WithLocation(31, 15)
+                );
         }
 
         [Theory]
@@ -10708,7 +10798,6 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Should we move on to the extensions and finding Extensions1 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (30,13): error CS0217: In order to be applicable as a short circuit operator a user-defined logical operator ('S2.operator &(S2, S1)') must have the same return type and parameter types
                 //         _ = s2 && s1;
@@ -10750,7 +10839,6 @@ class Program
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
 
-            // PROTOTYPE: Should we move on to the extensions and finding Extensions1 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (24,13): error CS0218: In order for 'S2.operator &(S2, S2)' to be applicable as a short circuit operator, its declaring type 'S2' must define operator true and operator false
                 //         _ = s2 && s2;
@@ -10952,7 +11040,6 @@ class Test2 : I2
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
 
-            // PROTOTYPE: Since neither candidate has matching true/false, should we move on to the extensions and finding Extensions1 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (34,17): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
                 //         var y = x && x;
@@ -11080,7 +11167,6 @@ namespace NS1
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: Since neither candidate has matching true/false, should we move on to the next scope and finding Extensions2 instead of failing?
             comp.VerifyEmitDiagnostics(
                 // (36,21): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
                 //             var y = x && x;
@@ -11124,7 +11210,6 @@ class Test2 : I2
 
             var comp = CreateCompilation(src);
 
-            // PROTOTYPE: Since I3 candidate has no matching true/false, should we be succeeding with I1 extension instead?
             comp.VerifyEmitDiagnostics(
                 // (26,17): error CS0034: Operator '&&' is ambiguous on operands of type 'I2' and 'I2'
                 //         var y = x && x;

@@ -1604,7 +1604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var extensionParameter = method.ContainingType.ExtensionParameter;
                 Debug.Assert(extensionParameter is not null);
 
-                return SourceUserDefinedOperatorSymbolBase.ExtensionOperatorParameterTypeMatchesExtendedType(method.Parameters[paramIndex].Type, checkStrippedType: true, extensionParameter.Type);
+                return SourceUserDefinedOperatorSymbolBase.ExtensionOperatorParameterTypeMatchesExtendedType(method.Parameters[paramIndex].Type, extensionParameter.Type);
             }
 
             bool isOperandApplicableToReceiver(in BinaryOperatorSignature candidate, BoundExpression operand, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
