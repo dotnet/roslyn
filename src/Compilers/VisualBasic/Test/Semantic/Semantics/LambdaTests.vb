@@ -2501,10 +2501,8 @@ Imports System.Collections.Generic
 
 Class C
     Sub M()
-        Dim lambda = Function() As IEnumerable(Of Integer)
-                         Return Iterator Function() As IEnumerable(Of Integer)
-                             Yield 1 
-                         End Function()
+        Dim lambda = Iterator Function() As IEnumerable(Of Integer)
+                         Yield 1
                      End Function
     End Sub
 End Class
@@ -2513,10 +2511,10 @@ End Class
 
             Dim syntaxTree = compilation.SyntaxTrees.Single()
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
-            Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
-            Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
-            Dim innerLambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
-            Assert.True(innerLambdaMethod.IsIterator)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.True(lambdaMethod.IsIterator)
         End Sub
 
         <Fact>
@@ -2529,9 +2527,7 @@ Imports System.Collections.Generic
 Class C
     Sub M()
         Dim lambda = Function() As IEnumerable(Of Integer)
-                         Return Function() As IEnumerable(Of Integer)
-                             Return Nothing
-                         End Function()
+                         Return Nothing
                      End Function
     End Sub
 End Class
@@ -2540,10 +2536,10 @@ End Class
 
             Dim syntaxTree = compilation.SyntaxTrees.Single()
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree)
-            Dim innerLambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Skip(1).Take(1).Single()
-            Dim innerLambdaSymbolInfo = semanticModel.GetSymbolInfo(innerLambdaSyntax)
-            Dim innerLambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(innerLambdaSymbolInfo.Symbol)
-            Assert.False(innerLambdaMethod.IsIterator)
+            Dim lambdaSyntax = syntaxTree.GetRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
+            Dim lambdaSymbolInfo = semanticModel.GetSymbolInfo(lambdaSyntax)
+            Dim lambdaMethod As IMethodSymbol = Assert.IsAssignableFrom(Of IMethodSymbol)(lambdaSymbolInfo.Symbol)
+            Assert.False(lambdaMethod.IsIterator)
         End Sub
     End Class
 End Namespace
