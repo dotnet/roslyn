@@ -1050,6 +1050,28 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub SimpleIteratorProperty()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System.Collections.Generic
+
+Class C
+    Iterator ReadOnly Property P As IEnumerable(Of Integer)
+        Get
+            Yield 1
+        End Get
+    End Property
+End Class
+]]></file>
+</compilation>).VerifyDiagnostics()
+
+            Dim [property] = compilation.GetMember(Of PropertySymbol)("C.P")
+            Assert.True([property].GetMethod.IsIterator)
+            Assert.True(DirectCast([property].GetMethod, IMethodSymbol).IsIterator)
+        End Sub
+
+        <Fact>
         <WorkItem(11531, "https://github.com/dotnet/roslyn/issues/11531")>
         <WorkItem(220696, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=220696")>
         Public Sub WritableIteratorProperty()
