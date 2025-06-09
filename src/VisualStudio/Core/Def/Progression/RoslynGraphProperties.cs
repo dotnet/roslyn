@@ -28,11 +28,6 @@ internal static class RoslynGraphProperties
     /// </summary>
     public static readonly GraphProperty Description;
 
-    /// <summary>
-    /// A graph property to hold the description that has the containing symbol name.
-    /// </summary>
-    public static readonly GraphProperty DescriptionWithContainingSymbol;
-
     public static readonly GraphProperty SymbolKind;
     public static readonly GraphProperty TypeKind;
     public static readonly GraphProperty MethodKind;
@@ -86,11 +81,6 @@ internal static class RoslynGraphProperties
 
         Description = Schema.Properties.AddNewProperty(
             id: "Description",
-            dataType: typeof(string),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        DescriptionWithContainingSymbol = Schema.Properties.AddNewProperty(
-            id: "DescriptionWithContainingSymbol",
             dataType: typeof(string),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
     }

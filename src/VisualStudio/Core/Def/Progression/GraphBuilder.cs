@@ -118,7 +118,6 @@ internal static class GraphBuilder
         if (progressionLanguageService != null)
         {
             node[RoslynGraphProperties.Description] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: false);
-            node[RoslynGraphProperties.DescriptionWithContainingSymbol] = progressionLanguageService.GetDescriptionForSymbol(symbol, includeContainingSymbol: true);
         }
 
         switch (symbol.Kind)
