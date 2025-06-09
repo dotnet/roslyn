@@ -23,18 +23,12 @@ internal static class RoslynGraphProperties
     /// </summary>
     public static readonly GraphProperty Description;
 
-    public static readonly GraphProperty SymbolKind;
     public static readonly GraphProperty TypeKind;
     public static readonly GraphProperty MethodKind;
 
     static RoslynGraphProperties()
     {
         Schema = new GraphSchema("Roslyn");
-
-        SymbolKind = Schema.Properties.AddNewProperty(
-            id: "SymbolKind",
-            dataType: typeof(SymbolKind),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         TypeKind = Schema.Properties.AddNewProperty(
             id: "TypeKind",
