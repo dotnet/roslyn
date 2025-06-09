@@ -19,13 +19,6 @@ internal static class RoslynGraphProperties
     public static readonly GraphProperty SymbolId;
 
     /// <summary>
-    /// A graph property that holds the ProjectId where you can find the symbol. Note this is
-    /// not strictly the project that defines the symbol in the case the symbol is from metadata.
-    /// It's simply a project that has a compilation which you can use to get to the symbol.
-    /// </summary>
-    public static readonly GraphProperty ContextProjectId;
-
-    /// <summary>
     /// A graph property that holds the DocumentId where you can find the symbol. This is used
     /// to distinguish between multiple locations for partial types. This will only exist
     /// for symbols in source that have partial implementations.
@@ -101,11 +94,6 @@ internal static class RoslynGraphProperties
         SymbolId = Schema.Properties.AddNewProperty(
             id: "SymbolId",
             dataType: typeof(SymbolKey?),
-            callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
-
-        ContextProjectId = Schema.Properties.AddNewProperty(
-            id: "ContextProjectId",
-            dataType: typeof(ProjectId),
             callback: () => new GraphMetadata(options: GraphMetadataOptions.Sharable | GraphMetadataOptions.Removable));
 
         ContextDocumentId = Schema.Properties.AddNewProperty(
