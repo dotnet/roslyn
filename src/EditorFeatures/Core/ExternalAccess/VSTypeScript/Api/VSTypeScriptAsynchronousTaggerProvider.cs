@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -39,10 +40,10 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider2<TTag> : Asynchro
 
     protected sealed override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
-        var list = new List<SnapshotSpan>();
-        if (TryAddSpansToTagImpl(textView, subjectBuffer, list))
+        using var _ = ArrayBuilder<SnapshotSpan>.GetInstance(out var builder);
+        if (TryAddSpansToTagImpl(textView, subjectBuffer, builder))
         {
-            foreach (var item in list)
+            foreach (var item in builder)
             {
                 result.Add(item);
             }
@@ -53,5 +54,5 @@ internal abstract class VSTypeScriptAsynchronousTaggerProvider2<TTag> : Asynchro
         return false;
     }
 
-    protected abstract bool TryAddSpansToTagImpl(ITextView? textView, ITextBuffer subjectBuffer, List<SnapshotSpan> result);
+    protected abstract bool TryAddSpansToTagImpl(ITextView? textView, ITextBuffer subjectBuffer, ICollection<SnapshotSpan> result);
 }
