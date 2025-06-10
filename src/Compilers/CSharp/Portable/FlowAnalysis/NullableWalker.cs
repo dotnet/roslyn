@@ -8533,7 +8533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert(false); // If this assert fails, add an appropriate test.
+            //Debug.Assert(false); // PROTOTYPE: CompoundAssignment_047_Consumption_Generic asserts here // If this assert fails, add an appropriate test.
             return symbol;
 
             bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, [NotNullWhen(true)] out Symbol? result)

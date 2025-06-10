@@ -145,13 +145,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the conversion, and second, because that is more convenient for the "d += lambda" case.
             // We want to have the converted (bound) lambda in the bound tree, not the unconverted unbound lambda.
 
-            // PROTOTYPE: Handle extensions
-
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
 
             OverloadResolution.GetStaticUserDefinedBinaryOperatorMethodNames(kind, checkOverflowAtRuntime, out string staticOperatorName1, out string? staticOperatorName2Opt);
             BinaryOperatorAnalysisResult best = BinaryOperatorNonExtensionOverloadResolution(kind, isChecked: checkOverflowAtRuntime, staticOperatorName1, staticOperatorName2Opt, left, right, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+
+            if (!best.HasValue && resultKind != LookupResultKind.Ambiguous)
+            {
+                LookupResultKind staticExtensionResultKind;
+                ImmutableArray<MethodSymbol> staticExtensionOriginalUserDefinedOperators;
+                BinaryOperatorAnalysisResult? staticExtensionBest;
+                BoundCompoundAssignmentOperator? instanceExtensionResult = tryApplyUserDefinedExtensionOperator(
+                    node, kind, tryInstance, checkOverflowAtRuntime,
+                    staticOperatorName1, staticOperatorName2Opt,
+                    checkedInstanceOperatorName, ordinaryInstanceOperatorName,
+                    left, right, diagnostics,
+                    out staticExtensionBest, out staticExtensionResultKind, out staticExtensionOriginalUserDefinedOperators);
+
+                if (instanceExtensionResult is not null)
+                {
+                    // PROTOTYPE: If this result is bad, we might want to stick with bad non-extension result as we do for static extensions below.
+                    return instanceExtensionResult;
+                }
+
+                // PROTOTYPE: Add test coverage for the choice between two bad results 
+                if (staticExtensionBest.HasValue && (staticExtensionBest.GetValueOrDefault().HasValue || (originalUserDefinedOperators.IsEmpty && !staticExtensionOriginalUserDefinedOperators.IsEmpty)))
+                {
+                    best = staticExtensionBest.GetValueOrDefault();
+                    resultKind = staticExtensionResultKind;
+                    originalUserDefinedOperators = staticExtensionOriginalUserDefinedOperators;
+                }
+            }
 
             if (!best.HasValue)
             {
@@ -368,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 AnalyzedArguments? analyzedArguments = null;
 
-                BoundCompoundAssignmentOperator? inPlaceResult = tryInstanceOperatorOverloadResolutionAndFreeMethods(node, kind, checkOverflowAtRuntime, left, right, ref analyzedArguments, methods, diagnostics);
+                BoundCompoundAssignmentOperator? inPlaceResult = tryInstanceOperatorOverloadResolutionAndFreeMethods(node, kind, checkOverflowAtRuntime, isExtension: false, left, right, ref analyzedArguments, methods, diagnostics);
 
                 Debug.Assert(analyzedArguments is not null);
                 analyzedArguments.Free();
@@ -380,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentExpressionSyntax node,
                 BinaryOperatorKind kind,
                 bool checkOverflowAtRuntime,
+                bool isExtension,
                 BoundExpression left,
                 BoundExpression right,
                 ref AnalyzedArguments? analyzedArguments,
@@ -390,9 +416,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 var typeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                analyzedArguments = AnalyzedArguments.GetInstance();
+                var leftType = left.Type;
+                Debug.Assert(leftType is not null);
 
-                analyzedArguments.Arguments.Add(right);
+
+                if (analyzedArguments == null)
+                {
+                    analyzedArguments = AnalyzedArguments.GetInstance();
+
+                    if (isExtension)
+                    {
+                        // Create a set of arguments for overload resolution including the receiver.
+                        CombineExtensionMethodArguments(left, originalArguments: null, analyzedArguments);
+
+                        if (leftType.IsValueType)
+                        {
+                            Debug.Assert(analyzedArguments.RefKinds.Count == 0);
+                            analyzedArguments.RefKinds.Add(RefKind.Ref);
+                            analyzedArguments.RefKinds.Add(RefKind.None);
+                        }
+                    }
+
+                    analyzedArguments.Arguments.Add(right);
+                }
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -403,23 +449,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     analyzedArguments,
                     overloadResolutionResult,
                     ref useSiteInfo,
-                    OverloadResolution.Options.DisallowExpandedForm);
+                    OverloadResolution.Options.DisallowExpandedForm | (isExtension ? OverloadResolution.Options.IsExtensionMethodResolution : OverloadResolution.Options.None));
 
                 typeArguments.Free();
                 diagnostics.Add(node, useSiteInfo);
 
                 BoundCompoundAssignmentOperator? inPlaceResult;
-                var leftType = left.Type;
-                Debug.Assert(leftType is not null);
-
                 if (overloadResolutionResult.Succeeded)
                 {
                     var method = overloadResolutionResult.ValidResult.Member;
 
-                    BoundExpression rightConverted = CreateConversion(right, overloadResolutionResult.ValidResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+                    BoundExpression rightConverted = CreateConversion(right, overloadResolutionResult.ValidResult.Result.ConversionForArg(isExtension ? 1 : 0), method.Parameters[0].Type, diagnostics);
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
+
+                    BoundValuePlaceholder? leftPlaceholder = null;
+                    BoundExpression? leftConversion = null;
+
+                    if (isExtension)
+                    {
+                        Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+                        Conversion conversion = overloadResolutionResult.ValidResult.Result.ConversionForArg(0);
+
+                        if (conversion.Kind is not ConversionKind.Identity)
+                        {
+                            Debug.Assert(conversion.Kind is ConversionKind.ImplicitReference);
+                            Debug.Assert(leftType.IsReferenceType);
+
+                            leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
+                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                        }
+                    }
 
                     inPlaceResult = new BoundCompoundAssignmentOperator(
                         node,
@@ -432,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             constrainedToTypeOpt: null),
                         left: left,
                         right: rightConverted,
-                        leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null,
+                        leftPlaceholder: leftPlaceholder, leftConversion: leftConversion, finalPlaceholder: null, finalConversion: null,
                         resultKind: LookupResultKind.Viable,
                         originalUserDefinedOperatorsOpt: ImmutableArray<MethodSymbol>.Empty,
                         getResultType(node, leftType, diagnostics));
@@ -452,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         BinaryOperatorSignature.Error,
                         left,
-                        right,
+                        BindToTypeForErrorRecovery(right),
                         leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null,
                         resultKind: LookupResultKind.OverloadResolutionFailure,
                         originalUserDefinedOperatorsOpt: methodsArray,
@@ -471,6 +532,105 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol getResultType(ExpressionSyntax node, TypeSymbol leftType, BindingDiagnosticBag diagnostics)
             {
                 return ResultIsUsed(node) ? leftType : GetSpecialType(SpecialType.System_Void, diagnostics, node);
+            }
+
+            // This method returns result in two ways:
+            // - If it has a result due to instance extensions, it returns ready to use BoundCompoundAssignmentOperator 
+            // - If it has static extensions result, it returns information via out parameters (staticBest, staticResultKind, staticOriginalUserDefinedOperators). 
+            BoundCompoundAssignmentOperator? tryApplyUserDefinedExtensionOperator(
+                AssignmentExpressionSyntax node,
+                BinaryOperatorKind kind,
+                bool tryInstance,
+                bool checkOverflowAtRuntime,
+                string staticOperatorName1,
+                string? staticOperatorName2Opt,
+                string? checkedInstanceOperatorName,
+                string? ordinaryInstanceOperatorName,
+                BoundExpression left,
+                BoundExpression right,
+                BindingDiagnosticBag diagnostics,
+                out BinaryOperatorAnalysisResult? staticBest,
+                out LookupResultKind staticResultKind,
+                out ImmutableArray<MethodSymbol> staticOriginalUserDefinedOperators)
+            {
+                staticBest = null;
+                staticResultKind = LookupResultKind.Empty;
+                staticOriginalUserDefinedOperators = [];
+
+                if (!this.Compilation.LanguageVersion.AllowNewExtensions())
+                {
+                    return null;
+                }
+
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var extensionDeclarationsInSingleScope = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                BoundCompoundAssignmentOperator? inPlaceResult = null;
+                AnalyzedArguments? analyzedArguments = null;
+
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    extensionDeclarationsInSingleScope.Clear();
+                    scope.Binder.GetExtensionDeclarations(extensionDeclarationsInSingleScope, this);
+
+                    // Try an in-place user-defined operator
+                    if (tryInstance)
+                    {
+                        Debug.Assert(ordinaryInstanceOperatorName is not null);
+
+                        inPlaceResult = tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
+                            node, extensionDeclarationsInSingleScope, kind, checkOverflowAtRuntime,
+                            checkedInstanceOperatorName, ordinaryInstanceOperatorName,
+                            left, right, ref analyzedArguments, diagnostics);
+                        if (inPlaceResult is not null)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (this.OverloadResolution.BinaryOperatorExtensionOverloadResolutionInSingleScope(
+                        extensionDeclarationsInSingleScope, kind, checkOverflowAtRuntime,
+                        staticOperatorName1, staticOperatorName2Opt,
+                        left, right, result, ref useSiteInfo))
+                    {
+                        staticBest = BinaryOperatorAnalyzeOverloadResolutionResult(result, out staticResultKind, out staticOriginalUserDefinedOperators);
+                        break;
+                    }
+                }
+
+                diagnostics.Add(node, useSiteInfo);
+
+                analyzedArguments?.Free();
+                extensionDeclarationsInSingleScope.Free();
+                result.Free();
+                return inPlaceResult;
+            }
+
+            BoundCompoundAssignmentOperator? tryApplyUserDefinedInstanceExtensionOperatorInSingleScope(
+                AssignmentExpressionSyntax node,
+                ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+                BinaryOperatorKind kind,
+                bool checkOverflowAtRuntime,
+                string? checkedName,
+                string ordinaryName,
+                BoundExpression left,
+                BoundExpression right,
+                ref AnalyzedArguments? analyzedArguments,
+                BindingDiagnosticBag diagnostics)
+            {
+                ArrayBuilder<MethodSymbol>? methods = LookupUserDefinedInstanceExtensionOperatorsInSingleScope(
+                    extensionDeclarationsInSingleScope,
+                    checkedName: checkedName,
+                    ordinaryName: ordinaryName,
+                    parameterCount: 1);
+
+                if (methods?.IsEmpty != false)
+                {
+                    methods?.Free();
+                    return null;
+                }
+
+                return tryInstanceOperatorOverloadResolutionAndFreeMethods(node, kind, checkOverflowAtRuntime, isExtension: true, left, right, ref analyzedArguments, methods, diagnostics);
             }
         }
 
@@ -3017,7 +3177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+            var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
             var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
 
             return new BoundIncrementOperator(
@@ -3148,6 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (operandType.IsValueType)
                         {
+                            Debug.Assert(analyzedArguments.RefKinds.Count == 0);
                             analyzedArguments.RefKinds.Add(RefKind.Ref);
                         }
                     }
@@ -3189,7 +3350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(conversion.Kind is ConversionKind.ImplicitReference);
                             Debug.Assert(operandType.IsReferenceType);
 
-                            operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
+                            operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
                             operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, method.ContainingType.ExtensionParameter.Type, diagnostics);
                         }
                     }
