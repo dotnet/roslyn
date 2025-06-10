@@ -2307,6 +2307,7 @@ static class E
     }
 }
 """;
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, confirm that extension members cannot be referred to without some qualifier
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (10,24): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
@@ -3792,7 +3793,6 @@ static class E
     [Fact]
     public void Cref_47()
     {
-        // TODO2 error in Ioperation 
         // Xml doc APIs on PE symbols
         var src = """
 static class E
@@ -3945,42 +3945,69 @@ static class E
     {
         // unqualified reference
         var src = """
+/// <see cref="extension(int).Method"/>
+/// <see cref="extension(int).Property"/>
 static class E
 {
     extension(int)
     {
-        /// <see cref="extension(int).M2"/>
-        public static void M() { }
+        /// <see cref="extension(int).Method"/>
+        /// <see cref="extension(int).Property"/>
+        public static void M1() { }
 
-        /// <see cref="extension(int).M"/>
-        public static void M2() { }
+        public static void Method() { }
+        public static int Property => 42;
     }
+
+    /// <see cref="extension(int).M2"/>
+    /// <see cref="extension(int).Property"/>
+    public static void M2() { }
 }
 """;
         // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
-            // (5,24): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
-            //         /// <see cref="extension(int).M2"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(5, 24),
-            // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
-            //         /// <see cref="extension(int).M"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M").WithArguments("extension(int).M").WithLocation(8, 24));
+            // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            // /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(1, 16),
+            // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            // /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(2, 16),
+            // (7,24): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            //         /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(7, 24),
+            // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //         /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(8, 24),
+            // (15,20): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
+            //     /// <see cref="extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(15, 20),
+            // (16,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //     /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(16, 20));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
-        AssertEx.Equal(["(extension(int).M2, null)", "(extension(int).M, null)"], PrintXmlCrefSymbols(tree, model));
+        AssertEx.Equal([
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
+            "(extension(int).M2, null)",
+            "(extension(int).Property, null)"],
+            PrintXmlCrefSymbols(tree, model));
 
         src = """
+/// <see cref="Nested.Method"/>
 static class E
 {
+    /// <see cref="Nested.Method"/>
     static class Nested
     {
-        /// <see cref="Nested.M2"/>
+        /// <see cref="Nested.Method"/>
         public static void M() { }
 
-        /// <see cref="Nested.M"/>
-        public static void M2() { }
+        public static void Method() { }
     }
 }
 """;
