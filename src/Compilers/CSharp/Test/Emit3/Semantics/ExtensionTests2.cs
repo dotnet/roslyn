@@ -2307,7 +2307,6 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, confirm that extension members cannot be referred to without some qualifier
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (10,24): warning CS1574: XML comment has cref attribute 'M(string)' that could not be resolved
