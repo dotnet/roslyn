@@ -52,7 +52,7 @@ internal sealed class ImageIdConverter : JsonConverter<ImageId>
                             var typePropertyLength = valueLength <= scratchChars.Length ? reader.CopyString(scratchChars) : -1;
                             var typeProperty = typePropertyLength >= 0 ? scratchChars[..typePropertyLength] : reader.GetString().AsSpan();
 
-                            if (!typeProperty.SequenceEqual(nameof(ImageId)))
+                            if (!typeProperty.SequenceEqual(nameof(ImageId).AsSpan()))
                                 throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ImageId)}");
                             break;
                         default:

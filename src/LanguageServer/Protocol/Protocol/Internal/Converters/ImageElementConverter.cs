@@ -51,7 +51,7 @@ internal sealed class ImageElementConverter : JsonConverter<ImageElement>
                             var typePropertyLength = valueLength <= scratchChars.Length ? reader.CopyString(scratchChars) : -1;
                             var typeProperty = typePropertyLength >= 0 ? scratchChars[..typePropertyLength] : reader.GetString().AsSpan();
 
-                            if (!typeProperty.SequenceEqual(nameof(ImageElement)))
+                            if (!typeProperty.SequenceEqual(nameof(ImageElement).AsSpan()))
                                 throw new JsonException($"Expected {ObjectContentConverter.TypeProperty} property value {nameof(ImageElement)}");
                             break;
                         default:
