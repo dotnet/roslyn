@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Text
                         var encoding = segments[i].Encoding;
                         var algorithm = segments[i].ChecksumAlgorithm;
 
-                        using var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
+                        var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
 
                         for (int j = i; j < i + count; j++)
                             segments[j].Write(writer);
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var encoding = segments[0].Encoding;
                 var algorithm = segments[0].ChecksumAlgorithm;
 
-                using var writer = SourceTextWriter.Create(encoding, algorithm, length);
+                var writer = SourceTextWriter.Create(encoding, algorithm, length);
                 foreach (var segment in segments)
                 {
                     segment.Write(writer);

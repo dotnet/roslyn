@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal class StringTextWriter : SourceTextWriter
     {
-        private readonly StringBuilder _builder;
+        private StringBuilder _builder;
         private readonly PooledStringBuilder _pooledBuilder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
@@ -29,20 +29,16 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _encoding!; }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                // Release the pooled string builder back to the pool. At this point _builder should no longer be used.
-                _pooledBuilder.Free();
-            }
-
-            base.Dispose(disposing);
-        }
-
         public override SourceText ToSourceText()
         {
-            return new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
+            var sourceText = new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
+
+            // Release the pooled string builder back to the pool. At this point, callers are no
+            // longer allowed to write to this object.
+            _builder = null!;
+            _pooledBuilder.Free();
+
+            return sourceText;
         }
 
         public override void Write(char value)
