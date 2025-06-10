@@ -74,9 +74,6 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
     {
-        if (buffer is null)
-            return null;
-
         var tagger = CreateTagger<T>(buffer);
         if (tagger is not ITagger<T> genericTagger)
         {
