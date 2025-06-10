@@ -13,6 +13,7 @@ using System.Threading;
 using System.Text;
 
 namespace PrepareTests;
+
 internal class TestDiscovery
 {
     private static readonly object s_lock = new();
