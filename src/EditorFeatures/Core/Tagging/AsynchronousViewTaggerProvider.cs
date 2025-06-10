@@ -19,10 +19,10 @@ internal abstract class AsynchronousViewTaggerProvider<TTag>(TaggerHost taggerHo
     where TTag : ITag
 {
 #pragma warning disable CS8765 // Nullability of type of 'textView' doesn't match overridden member (derivations of this type will never receive null in this call)
-    protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer);
+    protected abstract override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
 #pragma warning restore
 
-    public EfficientTagger<TTag>? CreateTagger(ITextView textView, ITextBuffer2 subjectBuffer)
+    public EfficientTagger<TTag>? CreateTagger(ITextView textView, ITextBuffer subjectBuffer)
     {
         if (textView == null)
             throw new ArgumentNullException(nameof(subjectBuffer));
@@ -35,10 +35,7 @@ internal abstract class AsynchronousViewTaggerProvider<TTag>(TaggerHost taggerHo
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
-        if (buffer is not ITextBuffer2 buffer2)
-            return null;
-
-        var tagger = CreateTagger(textView, buffer2);
+        var tagger = CreateTagger(textView, buffer);
         if (tagger is null)
             return null;
 

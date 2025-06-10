@@ -41,7 +41,7 @@ internal sealed partial class InlineHintsDataTaggerProvider<TAdditionalInformati
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         return TaggerEventSources.Compose(
             TaggerEventSources.OnViewSpanChanged(this.ThreadingContext, textView),

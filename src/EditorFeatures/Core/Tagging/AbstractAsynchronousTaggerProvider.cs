@@ -143,7 +143,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
 #endif
     }
 
-    protected EfficientTagger<TTag>? CreateEfficientTagger(ITextView? textView, ITextBuffer2 subjectBuffer)
+    protected EfficientTagger<TTag>? CreateEfficientTagger(ITextView? textView, ITextBuffer subjectBuffer)
     {
         if (!GlobalOptions.GetOption(EditorComponentOnOffOptions.Tagger))
             return null;
@@ -154,7 +154,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
         return tagger;
     }
 
-    private TagSource GetOrCreateTagSource(ITextView? textView, ITextBuffer2 subjectBuffer)
+    private TagSource GetOrCreateTagSource(ITextView? textView, ITextBuffer subjectBuffer)
     {
         if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
         {
@@ -235,7 +235,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/>
     /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
     /// </summary>
-    protected abstract ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer);
+    protected abstract ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer);
 
     /// <summary>
     /// Produce tags for the given context.

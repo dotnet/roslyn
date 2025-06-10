@@ -12,7 +12,7 @@ internal abstract class AsynchronousTaggerProvider<TTag>(TaggerHost taggerHost, 
     : AbstractAsynchronousTaggerProvider<TTag>(taggerHost, featureName), ITaggerProvider
     where TTag : ITag
 {
-    public EfficientTagger<TTag>? CreateTagger(ITextBuffer2 subjectBuffer)
+    public EfficientTagger<TTag>? CreateTagger(ITextBuffer subjectBuffer)
     {
         if (subjectBuffer == null)
             throw new ArgumentNullException(nameof(subjectBuffer));
@@ -22,10 +22,7 @@ internal abstract class AsynchronousTaggerProvider<TTag>(TaggerHost taggerHost, 
 
     ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
     {
-        if (buffer is not ITextBuffer2 buffer2)
-            return null;
-
-        var tagger = CreateTagger(buffer2);
+        var tagger = CreateTagger(buffer);
         if (tagger is null)
             return null;
 

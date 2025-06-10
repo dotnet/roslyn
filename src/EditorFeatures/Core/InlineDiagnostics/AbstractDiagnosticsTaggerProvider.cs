@@ -74,10 +74,10 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
 
     ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
     {
-        if (buffer is not ITextBuffer2 buffer2)
+        if (buffer is null)
             return null;
 
-        var tagger = CreateTagger<T>(buffer2);
+        var tagger = CreateTagger<T>(buffer);
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
@@ -87,7 +87,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag> : ITagge
         return genericTagger;
     }
 
-    public SimpleAggregateTagger<TTag> CreateTagger<T>(ITextBuffer2 buffer) where T : ITag
+    public SimpleAggregateTagger<TTag> CreateTagger<T>(ITextBuffer buffer) where T : ITag
     {
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _diagnosticsTaggerProviders)

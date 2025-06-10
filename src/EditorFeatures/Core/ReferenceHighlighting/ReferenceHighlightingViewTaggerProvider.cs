@@ -53,7 +53,7 @@ internal sealed partial class ReferenceHighlightingViewTaggerProvider(TaggerHost
     /// </summary>
     protected override bool SupportsFrozenPartialSemantics => true;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         // Note: we don't listen for OnTextChanged.  Text changes to this buffer will get
         // reported by OnSemanticChanged.

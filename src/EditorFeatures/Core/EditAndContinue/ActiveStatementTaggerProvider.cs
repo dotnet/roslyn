@@ -33,7 +33,7 @@ internal sealed partial class ActiveStatementTaggerProvider(TaggerHost taggerHos
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
 

@@ -92,7 +92,7 @@ internal sealed partial class NavigationBarController : IDisposable
     public NavigationBarController(
         IThreadingContext threadingContext,
         INavigationBarPresenter presenter,
-        ITextBuffer2 subjectBuffer,
+        ITextBuffer subjectBuffer,
         ITextBufferVisibilityTracker? visibilityTracker,
         IUIThreadOperationExecutor uiThreadOperationExecutor,
         IAsynchronousOperationListener asyncListener)

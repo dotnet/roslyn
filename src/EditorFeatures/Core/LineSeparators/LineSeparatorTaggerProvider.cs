@@ -65,7 +65,7 @@ internal sealed partial class LineSeparatorTaggerProvider : AsynchronousTaggerPr
         }
     }
 
-    protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
         => TaggerEventSources.Compose(
             new EditorFormatMapChangedEventSource(_editorFormatMap),
             TaggerEventSources.OnTextChanged(subjectBuffer));

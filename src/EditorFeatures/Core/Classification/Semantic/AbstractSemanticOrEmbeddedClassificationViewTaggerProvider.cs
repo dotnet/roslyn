@@ -66,7 +66,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
     protected override bool TagEquals(IClassificationTag tag1, IClassificationTag tag2)
         => tag1.ClassificationType.Classification == tag2.ClassificationType.Classification;
 
-    protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
+    protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
 

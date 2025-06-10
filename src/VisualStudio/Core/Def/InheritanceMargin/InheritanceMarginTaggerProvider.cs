@@ -54,7 +54,7 @@ internal sealed class InheritanceMarginTaggerProvider(TaggerHost taggerHost)
         return document != null;
     }
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
     {
         // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
         // because we want to refresh the glyphs in indicator margin.

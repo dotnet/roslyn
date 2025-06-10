@@ -42,7 +42,7 @@ internal partial class SyntacticClassificationTaggerProvider
         private static readonly object s_uniqueKey = new();
 
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
-        private readonly ITextBuffer2 _subjectBuffer;
+        private readonly ITextBuffer _subjectBuffer;
         private readonly ITaggerEventSource _taggerEventSource;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
@@ -87,7 +87,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         public TagComputer(
             SyntacticClassificationTaggerProvider taggerProvider,
-            ITextBuffer2 subjectBuffer,
+            ITextBuffer subjectBuffer,
             TimeSpan diffTimeout)
         {
             _taggerProvider = taggerProvider;

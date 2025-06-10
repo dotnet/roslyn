@@ -27,7 +27,7 @@ internal static partial class TaggerEventSources
     public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer)
         => new CaretPositionChangedEventSource(textView, subjectBuffer);
 
-    public static ITaggerEventSource OnTextChanged(ITextBuffer2 subjectBuffer)
+    public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer)
         => new TextChangedEventSource(subjectBuffer);
 
     /// <summary>

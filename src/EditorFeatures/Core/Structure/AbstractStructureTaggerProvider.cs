@@ -139,7 +139,7 @@ internal abstract partial class AbstractStructureTaggerProvider(
         }
     }
 
-    protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer)
+    protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
     {
         // We listen to the following events:
         // 1) Text changes.  These can obviously affect outlining, so we need to recompute when

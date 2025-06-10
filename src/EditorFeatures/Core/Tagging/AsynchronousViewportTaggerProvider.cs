@@ -86,7 +86,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.CreateEventSource"/>
-    protected abstract ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer);
+    protected abstract ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.EventChangeDelay"/>
     protected abstract TaggerDelay EventChangeDelay { get; }
@@ -113,13 +113,10 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
-        if (buffer is not ITextBuffer2 buffer2)
-            return null;
-
         if (!CanCreateTagger(textView, buffer))
             return null;
 
-        var tagger = CreateTagger(textView, buffer2);
+        var tagger = CreateTagger(textView, buffer);
         if (tagger is not ITagger<T> genericTagger)
         {
             tagger.Dispose();
@@ -129,7 +126,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
         return genericTagger;
     }
 
-    public EfficientTagger<TTag> CreateTagger(ITextView textView, ITextBuffer2 buffer)
+    public EfficientTagger<TTag> CreateTagger(ITextView textView, ITextBuffer buffer)
     {
         using var taggers = TemporaryArray<EfficientTagger<TTag>>.Empty;
         foreach (var taggerProvider in _viewportTaggerProviders)

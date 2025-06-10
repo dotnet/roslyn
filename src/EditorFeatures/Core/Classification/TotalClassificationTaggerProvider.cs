@@ -36,10 +36,7 @@ internal sealed class TotalClassificationTaggerProvider(TaggerHost taggerHost, C
 
     ITagger<T>? IViewTaggerProvider.CreateTagger<T>(ITextView textView, ITextBuffer buffer)
     {
-        if (buffer is not ITextBuffer2 buffer2)
-            return null;
-
-        var tagger = CreateTagger(textView, buffer2);
+        var tagger = CreateTagger(textView, buffer);
         if (tagger is not ITagger<T> typedTagger)
         {
             tagger?.Dispose();
@@ -49,7 +46,7 @@ internal sealed class TotalClassificationTaggerProvider(TaggerHost taggerHost, C
         return typedTagger;
     }
 
-    public TotalClassificationAggregateTagger? CreateTagger(ITextView textView, ITextBuffer2 buffer)
+    public TotalClassificationAggregateTagger? CreateTagger(ITextView textView, ITextBuffer buffer)
     {
         var syntacticTagger = _syntacticTaggerProvider.CreateTagger(buffer);
         var semanticTagger = _semanticTaggerProvider.CreateTagger(textView, buffer);

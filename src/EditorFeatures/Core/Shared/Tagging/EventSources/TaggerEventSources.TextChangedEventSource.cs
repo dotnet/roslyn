@@ -10,19 +10,29 @@ internal partial class TaggerEventSources
 {
     private sealed class TextChangedEventSource : AbstractTaggerEventSource
     {
-        private readonly ITextBuffer2 _subjectBuffer;
+        private readonly ITextBuffer _subjectBuffer;
 
-        public TextChangedEventSource(ITextBuffer2 subjectBuffer)
+        public TextChangedEventSource(ITextBuffer subjectBuffer)
         {
             Contract.ThrowIfNull(subjectBuffer);
             _subjectBuffer = subjectBuffer;
         }
 
         public override void Connect()
-            => _subjectBuffer.ChangedOnBackground += OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground += OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed += OnTextBufferChanged;
+        }
 
         public override void Disconnect()
-            => _subjectBuffer.ChangedOnBackground -= OnTextBufferChanged;
+        {
+            if (_subjectBuffer is ITextBuffer2 buffer2)
+                buffer2.ChangedOnBackground -= OnTextBufferChanged;
+            else
+                _subjectBuffer.Changed -= OnTextBufferChanged;
+        }
 
         private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
         {

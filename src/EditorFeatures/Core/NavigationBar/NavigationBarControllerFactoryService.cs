@@ -27,7 +27,7 @@ internal sealed class NavigationBarControllerFactoryService(
     private readonly IUIThreadOperationExecutor _uIThreadOperationExecutor = uIThreadOperationExecutor;
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.NavigationBar);
 
-    public IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer2 textBuffer)
+    public IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer)
     {
         return new NavigationBarController(
             _threadingContext,
