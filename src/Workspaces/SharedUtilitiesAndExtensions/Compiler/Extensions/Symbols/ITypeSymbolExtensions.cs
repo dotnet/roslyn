@@ -679,11 +679,17 @@ internal static partial class ITypeSymbolExtensions
                 return false;
 
             default:
-                if (type is INamedTypeSymbol namedType && 
-                    namedType.SpecialType == SpecialType.None && // Not a special type
-                    namedType.TypeKind == TypeKind.Struct &&
-                    namedType.ContainingNamespace?.Name == "System" &&
-                    namedType.Name == "Guid")
+                // Special case: System.Guid is a widely used struct that is designed to be immutable,
+                // even though it does not have a unique SpecialType. We explicitly treat it as immutable here
+                // rather than relying solely on field inspection, as a safeguard against any future changes
+                // or incomplete metadata (e.g., in reference assemblies).
+                if (type is INamedTypeSymbol
+                    {
+                        Name: nameof(Guid),
+                        TypeKind: TypeKind.Struct,
+                        SpecialType: SpecialType.None,
+                        ContainingNamespace.Name: nameof(System)
+                    })
                 {
                     return false;
                 }
