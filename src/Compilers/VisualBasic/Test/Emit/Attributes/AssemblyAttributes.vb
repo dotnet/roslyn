@@ -5,10 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection
-Imports System.Reflection.Emit
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit

@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.Syntax
-Imports Basic.Reference.Assemblies
 
 Public Class ParserRegressionTests : Inherits BasicTestBase
 

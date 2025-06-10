@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.FindSymbols
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces

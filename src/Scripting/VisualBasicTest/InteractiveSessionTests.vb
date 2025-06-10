@@ -4,6 +4,7 @@
 
 Imports System.Reflection
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.Scripting.TestUtilities

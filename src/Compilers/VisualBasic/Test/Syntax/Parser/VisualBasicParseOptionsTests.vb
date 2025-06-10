@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
-Imports System.Linq
 Imports Roslyn.Test.Utilities
 
 Public Class VisualBasicParseOptionsTests
