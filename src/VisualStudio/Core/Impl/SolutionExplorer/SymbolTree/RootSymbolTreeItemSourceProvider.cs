@@ -24,6 +24,7 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -170,7 +171,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
         var source = new RootSymbolTreeItemCollectionSource(this, item);
         lock (_filePathToCollectionSources)
         {
-            AddToDictionary(currentFilePath, source);
+            _filePathToCollectionSources.MultiAdd(currentFilePath, source);
         }
 
         // Register to hear about if this hierarchy is disposed. We'll stop watching it if so.
@@ -186,7 +187,7 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                 // event for the IsDisposed property. When this fires, we remove the filePath->sourcce mapping we're holding.
                 lock (_filePathToCollectionSources)
                 {
-                    RemoveFromDictionary(currentFilePath, source);
+                    _filePathToCollectionSources.MultiRemove(currentFilePath, source);
                 }
 
                 item.PropertyChanged -= OnItemPropertyChanged;
@@ -200,8 +201,8 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     {
 
                         // Unlink the oldPath->source mapping, and add a new line for the newPath->source.
-                        RemoveFromDictionary(currentFilePath, source);
-                        AddToDictionary(newPath, source);
+                        _filePathToCollectionSources.MultiRemove(currentFilePath, source);
+                        _filePathToCollectionSources.MultiAdd(newPath, source);
 
                         // Keep track of the 'newPath'.
                         currentFilePath = newPath;
@@ -213,30 +214,6 @@ internal sealed partial class RootSymbolTreeItemSourceProvider : AttachedCollect
                     // no longer valid (like .cs to .txt), or vice versa.
                     source.Reset();
                     _updateSourcesQueue.AddWork(newPath);
-                }
-            }
-        }
-
-        void AddToDictionary(string currentFilePath, RootSymbolTreeItemCollectionSource source)
-        {
-            if (!_filePathToCollectionSources.TryGetValue(currentFilePath, out var sources))
-            {
-                sources = [];
-                _filePathToCollectionSources[currentFilePath] = sources;
-            }
-
-            sources.Add(source);
-        }
-
-        void RemoveFromDictionary(string currentFilePath, RootSymbolTreeItemCollectionSource source)
-        {
-            if (_filePathToCollectionSources.TryGetValue(currentFilePath, out var sources))
-            {
-                sources.Remove(source);
-
-                if (sources.Count == 0)
-                {
-                    _filePathToCollectionSources.Remove(currentFilePath);
                 }
             }
         }
