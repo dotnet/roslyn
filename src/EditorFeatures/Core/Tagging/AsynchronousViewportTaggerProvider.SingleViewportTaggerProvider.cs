@@ -46,7 +46,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
         protected override bool SupportsFrozenPartialSemantics
             => _callback.SupportsFrozenPartialSemantics;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
             => _callback.CreateEventSource(textView, subjectBuffer);
 
         protected override TaggerDelay EventChangeDelay

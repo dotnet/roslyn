@@ -103,6 +103,7 @@ internal partial class SyntacticClassificationTaggerProvider
             _lineCache = new ClassifiedLineCache(taggerProvider.ThreadingContext);
 
             _taggerEventSource = TaggerEventSources.Compose(
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, taggerProvider._listener),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnTextChanged(subjectBuffer),

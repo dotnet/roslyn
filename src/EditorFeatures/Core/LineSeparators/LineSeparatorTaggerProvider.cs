@@ -65,13 +65,10 @@ internal sealed partial class LineSeparatorTaggerProvider : AsynchronousTaggerPr
         }
     }
 
-    protected override ITaggerEventSource CreateEventSource(
-        ITextView? textView, ITextBuffer subjectBuffer)
-    {
-        return TaggerEventSources.Compose(
+    protected override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer)
+        => TaggerEventSources.Compose(
             new EditorFormatMapChangedEventSource(_editorFormatMap),
             TaggerEventSources.OnTextChanged(subjectBuffer));
-    }
 
     protected override async Task ProduceTagsAsync(
         TaggerContext<LineSeparatorTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)

@@ -70,11 +70,14 @@ internal sealed partial class InlineHintsTaggerProvider(
         if (textView.IsNotSurfaceBufferOfTextView(subjectBuffer))
             return null;
 
-        if (textView is not IWpfTextView wpfTextView)
+        if (textView is not IWpfTextView wpfTextView ||
+            subjectBuffer is not ITextBuffer2 subjectBuffer2)
+        {
             return null;
+        }
 
         var tagger = new InlineHintsTagger(
-            this, wpfTextView, subjectBuffer, _dataTaggerProvider.CreateTagger(textView, subjectBuffer));
+            this, wpfTextView, subjectBuffer, _dataTaggerProvider.CreateTagger(textView, subjectBuffer2));
         if (tagger is not ITagger<T> typedTagger)
         {
             tagger.Dispose();

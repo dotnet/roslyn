@@ -35,7 +35,7 @@ internal sealed class BraceHighlightingViewTaggerProvider(TaggerHost taggerHost,
 
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
     {
         return TaggerEventSources.Compose(
             TaggerEventSources.OnTextChanged(subjectBuffer),

@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Editor;
 
 internal interface INavigationBarControllerFactoryService
 {
-    IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer textBuffer);
+    IDisposable CreateController(INavigationBarPresenter presenter, ITextBuffer2 textBuffer);
 }

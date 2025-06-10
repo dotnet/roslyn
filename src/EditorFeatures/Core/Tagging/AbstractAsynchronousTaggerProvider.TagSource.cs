@@ -108,7 +108,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly CancellationTokenSource _disposalTokenSource = new();
 
         private readonly ITextView? _textView;
-        private readonly ITextBuffer _subjectBuffer;
+        private readonly ITextBuffer2 _subjectBuffer;
 
         /// <summary>
         /// Callback to us when the visibility of our <see cref="_subjectBuffer"/> changes.
@@ -142,7 +142,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
         public TagSource(
             ITextView? textView,
-            ITextBuffer subjectBuffer,
+            ITextBuffer2 subjectBuffer,
             AbstractAsynchronousTaggerProvider<TTag> dataSource)
         {
             dataSource.ThreadingContext.ThrowIfNotOnUIThread();

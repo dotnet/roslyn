@@ -37,7 +37,7 @@ internal sealed class CopilotTaggerProvider(TaggerHost taggerHost)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdleWithLongDelay;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer2 subjectBuffer)
     {
         // We want to cancel existing Copilot background analysis with change in caret position,
         // scrolling the active document or text changes to the active document.

@@ -73,7 +73,7 @@ internal abstract partial class AbstractDiagnosticsTaggerProvider<TTag>
         protected sealed override bool TagEquals(TTag tag1, TTag tag2)
             => _callback.TagEquals(tag1, tag2);
 
-        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView? textView, ITextBuffer2 subjectBuffer)
         {
             // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
             // executed on content which was produced by a source generator but is not yet reflected in an open text
