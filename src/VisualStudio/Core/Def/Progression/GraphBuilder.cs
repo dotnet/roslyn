@@ -92,7 +92,7 @@ internal static class GraphBuilder
         }
 
         UpdatePropertiesForNode(symbol, node);
-        UpdateLabelsForNode(symbol, solution, node);
+        UpdateLabelsForNode(symbol, node);
 
         return node;
     }
@@ -128,7 +128,7 @@ internal static class GraphBuilder
         return node;
     }
 
-    private static void UpdateLabelsForNode(ISymbol symbol, Solution solution, GraphNode node)
+    private static void UpdateLabelsForNode(ISymbol symbol, GraphNode node)
     {
         switch (symbol.Kind)
         {
