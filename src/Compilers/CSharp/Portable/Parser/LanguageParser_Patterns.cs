@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     type = null;
                     return false;
-            };
+            }
         }
 
         private PatternSyntax ParsePattern(Precedence precedence, bool afterIs = false, bool inSwitchArmPattern = false)
