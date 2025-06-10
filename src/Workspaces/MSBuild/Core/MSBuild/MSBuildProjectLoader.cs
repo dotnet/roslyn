@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
-using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -193,7 +192,6 @@ public partial class MSBuildProjectLoader
             projectPaths,
             // TryGetAbsoluteSolutionPath should not return an invalid path
             baseDirectory: Path.GetDirectoryName(absoluteSolutionPath)!,
-            Properties,
             projectMap: null,
             progress,
             requestedProjectOptions: reportingOptions,
@@ -254,7 +252,6 @@ public partial class MSBuildProjectLoader
             buildHostProcessManager,
             requestedProjectPaths: [projectFilePath],
             baseDirectory: Directory.GetCurrentDirectory(),
-            globalProperties: Properties,
             projectMap,
             progress,
             requestedProjectOptions,
