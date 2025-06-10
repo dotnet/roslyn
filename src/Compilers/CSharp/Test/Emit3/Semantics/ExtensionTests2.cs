@@ -3438,8 +3438,7 @@ static class E
     [Fact]
     public void Cref_36()
     {
-        // method named "extension"
-        // Note: one cannot refer to extension block
+        // can refer to method named "extension", but cannot refer to extension block
         var src = """
 /// <see cref="E.extension()"/>
 /// <see cref="E.extension(int)"/>
@@ -3456,6 +3455,10 @@ static class E2
     extension(int)
     {
     }
+
+    /// <see cref="extension()"/>
+    /// <see cref="extension(int)"/>
+    static void M() { }
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
@@ -3465,7 +3468,13 @@ static class E2
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension()").WithArguments("extension()").WithLocation(9, 16),
             // (10,16): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
             // /// <see cref="E2.extension(int)"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension(int)").WithArguments("extension(int)").WithLocation(10, 16));
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E2.extension(int)").WithArguments("extension(int)").WithLocation(10, 16),
+            // (17,20): warning CS1574: XML comment has cref attribute 'extension()' that could not be resolved
+            //     /// <see cref="extension()"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension()").WithArguments("extension()").WithLocation(17, 20),
+            // (18,20): warning CS1574: XML comment has cref attribute 'extension(int)' that could not be resolved
+            //     /// <see cref="extension(int)"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int)").WithArguments("extension(int)").WithLocation(18, 20));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -3473,7 +3482,9 @@ static class E2
             "(E.extension(), void E.extension())",
             "(E.extension(int), void E.extension(System.Int32 i))",
             "(E2.extension(), null)",
-            "(E2.extension(int), null)"],
+            "(E2.extension(int), null)",
+            "(extension(), null)",
+            "(extension(int), null)"],
             PrintXmlCrefSymbols(tree, model));
     }
 
@@ -3946,7 +3957,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider allowing unqualified references in CREF
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (5,24): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
