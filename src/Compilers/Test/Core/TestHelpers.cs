@@ -33,7 +33,7 @@ namespace Roslyn.Test.Utilities
             => ImmutableDictionary.CreateRange(comparer, entries.Select(t => KeyValuePair.Create(t.key, t.value)));
 
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K key, V value)[] entries)
-            => ImmutableDictionary.CreateRange(entries.Select(t => KeyValuePair.Create(t.key, t.value)));
+            => ImmutableDictionary.CreateRange(entries.Select(static t => KeyValuePair.Create(t.key, t.value)));
 
         public static IEnumerable<Type> GetAllTypesWithStaticFieldsImplementingType(Assembly assembly, Type type)
         {
