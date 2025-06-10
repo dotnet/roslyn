@@ -105,7 +105,7 @@ internal sealed class CSharpInlineTypeHintsService() : AbstractInlineTypeHintsSe
                 if (IsValidType(type))
                 {
                     var span = new TextSpan(collectionExpression.OpenBracketToken.SpanStart, 0);
-                    return new(type, span, new TextChange(span, GetTypeDisplayString(type)), leadingSpace: true);
+                    return new(type, span, textChange: null, leadingSpace: true);
                 }
             }
         }
