@@ -59,7 +59,8 @@ internal sealed partial class StringIndentationTaggerProvider(
     /// </summary>
     protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeInclusive;
 
-    protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+    protected override ITaggerEventSource CreateEventSource(
+        ITextView textView, ITextBuffer subjectBuffer)
     {
         // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing. 
         return TaggerEventSources.Compose(
