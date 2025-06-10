@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -218,7 +217,9 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
+        <WpfFact>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/900438")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialMethod() As Task
             Dim workspace =
 <Workspace>
@@ -226,7 +227,7 @@ class Program
         <Document>
             partial class Test
             {
-                partial void M();
+                partial void [|M|]();
             }
         </Document>
         <Document>
@@ -238,7 +239,7 @@ class Program
                     t.M$$();
                 }
 
-                partial void [|M|]()
+                partial void M()
                 {
                     throw new NotImplementedException();
                 }
@@ -250,7 +251,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionExtendedPartialMethod() As Task
             Dim workspace =
 <Workspace>
@@ -258,7 +259,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial void M();
+                public partial void [|M|]();
             }
         </Document>
         <Document>
@@ -270,7 +271,7 @@ class Program
                     t.M$$();
                 }
 
-                public partial void [|M|]()
+                public partial void M()
                 {
                     throw new NotImplementedException();
                 }
@@ -282,7 +283,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialProperty() As Task
             Dim workspace =
 <Workspace>
@@ -290,7 +291,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial int Prop { get; set; }
+                public partial int [|Prop|] { get; set; }
             }
         </Document>
         <Document>
@@ -302,7 +303,7 @@ class Program
                     int i = t.Prop$$;
                 }
 
-                public partial void [|Prop|]
+                public partial void Prop
                 {
                     get => throw new NotImplementedException();
                     set => throw new NotImplementedException();
@@ -315,7 +316,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialEvent() As Task
             Dim workspace =
 <Workspace>
@@ -323,7 +324,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial event System.Action E;
+                public partial event System.Action [|E|];
             }
         </Document>
         <Document>
@@ -335,7 +336,7 @@ class Program
                     int i = t.E$$;
                 }
 
-                public partial event System.Action [|E|]
+                public partial event System.Action E
                 {
                     add { }
                     remove { }
@@ -348,7 +349,7 @@ class Program
             Await TestAsync(workspace)
         End Function
 
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/77916")>
         Public Async Function TestCSharpGotoDefinitionPartialConstructor() As Task
             Dim workspace =
 <Workspace>
@@ -356,7 +357,7 @@ class Program
         <Document>
             partial class Test
             {
-                public partial Test();
+                public partial [|Test|]();
             }
         </Document>
         <Document>
@@ -367,7 +368,7 @@ class Program
                     var t = new Te$$st();
                 }
 
-                public partial [|Test|]()
+                public partial Test()
                 {
                 }
             }

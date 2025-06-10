@@ -5,8 +5,8 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
+
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.IntroduceParameter.VisualBasicIntroduceParameterCodeRefactoringProvider)
 

@@ -386,7 +386,7 @@ public static class E
         try
         {
             var comp = CreateCompilation([src, OverloadResolutionPriorityAttributeDefinition]);
-            // Tracked by https://github.com/dotnet/roslyn/issues/76130 : assertion in NullableWalker
+            // Tracked by https://github.com/dotnet/roslyn/issues/78828 : assertion in NullableWalker
             CompileAndVerify(comp, expectedOutput: "42").VerifyDiagnostics();
         }
         catch (InvalidOperationException)
@@ -2248,7 +2248,7 @@ class C
     public object? P3 => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : incorrect nullability analysis for property pattern with extension property (unexpected warning)
+        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : incorrect nullability analysis for property pattern with extension property (unexpected warning)
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (4,5): warning CS8602: Dereference of a possibly null reference.
@@ -2356,6 +2356,77 @@ public static class E
             // (8,10): error CS9101: UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.
             //         [System.Diagnostics.CodeAnalysis.UnscopedRef]
             Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, "System.Diagnostics.CodeAnalysis.UnscopedRef").WithLocation(8, 10));
+    }
+
+    [Fact]
+    public void Ambiguity_01()
+    {
+        var src = """
+var x = object.M; // 1
+x();
+
+System.Action y = object.M; // 2
+
+static class E1
+{
+    extension(object)
+    {
+        public static void M() { }
+    }
+}
+
+static class E2
+{
+    extension(object)
+    {
+        public static int M => 0;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : the diagnostic should describe what went wrong
+        comp.VerifyEmitDiagnostics(
+            // (1,9): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // var x = object.M; // 1
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(1, 9),
+            // (4,19): error CS9286: 'object' does not contain a definition for 'M' and no accessible extension member 'M' for receiver of type 'object' could be found (are you missing a using directive or an assembly reference?)
+            // System.Action y = object.M; // 2
+            Diagnostic(ErrorCode.ERR_ExtensionResolutionFailed, "object.M").WithArguments("object", "M").WithLocation(4, 19));
+
+        src = """
+var x = I.M; // binds to I1.M (method)
+x();
+
+System.Action y = I.M; // binds to I1.M (method)
+y();
+
+interface I1 { static void M() { System.Console.Write("I1.M() "); } }
+interface I2 { static int M => 0;   }
+interface I3 { static int M = 0;   }
+interface I : I1, I2, I3 { }
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped).VerifyDiagnostics();
+
+        src = """
+I i = new C();
+var x = i.M; // binds to I1.M (method)
+x();
+
+System.Action y = i.M; // binds to I1.M (method)
+y();
+
+interface I1 { void M() { System.Console.Write("I1.M() "); } }
+interface I2 { int M => 0;   }
+interface I : I1, I2 { }
+
+class C : I { }
+""";
+
+        comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("I1.M() I1.M()"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 }
 

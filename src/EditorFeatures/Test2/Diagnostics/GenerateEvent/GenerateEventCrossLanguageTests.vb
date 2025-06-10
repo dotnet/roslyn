@@ -4,7 +4,6 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent

@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Collections
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.GoToDefinition)>
@@ -217,7 +216,7 @@ End Class
     <Project Language="Visual Basic" CommonReferences="true">
         <Document>
             Partial Class Customer
-                Private Sub [|OnNameChanged|]()
+                Private Sub OnNameChanged()
 
                 End Sub
             End Class
@@ -228,7 +227,7 @@ End Class
                     Dim x As New Customer()
                     x.OnNameChanged$$()
                 End Sub
-                Partial Private Sub OnNameChanged()
+                Partial Private Sub [|OnNameChanged|]()
 
                 End Sub
             End Class
