@@ -1242,7 +1242,7 @@ dotnet_diagnostic.cs000.severity = none", "Z:\\.editorconfig"));
                 else
                 {
                     AssertEx.SetEqual(
-                        expected[i].Select(t => KeyValuePair.Create(t.key, t.value)),
+                        expected[i].Select(static t => KeyValuePair.Create(t.key, t.value)),
                         options[i].AnalyzerOptions);
                 }
             }
