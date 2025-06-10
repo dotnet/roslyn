@@ -49,6 +49,8 @@ internal sealed class ImageIdConverter : JsonConverter<ImageId>
                             id = reader.GetInt32();
                             break;
                         case ObjectContentConverter.TypeProperty:
+                            valueLength = reader.HasValueSequence ? reader.ValueSequence.Length : reader.ValueSpan.Length;
+
                             var typePropertyLength = valueLength <= scratchChars.Length ? reader.CopyString(scratchChars) : -1;
                             var typeProperty = typePropertyLength >= 0 ? scratchChars[..typePropertyLength] : reader.GetString().AsSpan();
 
