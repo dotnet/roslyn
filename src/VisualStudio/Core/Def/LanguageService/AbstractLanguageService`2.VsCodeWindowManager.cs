@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -152,15 +151,14 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         private void AddDropdownBar(IVsDropdownBarManager dropdownManager)
         {
             if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
+            {
                 return;
+            }
 
             var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace);
-            if (_languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer) is not ITextBuffer textBuffer)
-                return;
-
+            var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
             var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
-
-            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer);
+            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer!);
             var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);
 
             if (ErrorHandler.Failed(hr))
