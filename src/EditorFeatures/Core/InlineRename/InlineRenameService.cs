@@ -114,7 +114,6 @@ internal sealed class InlineRenameService(
             _textBufferFactoryService,
             _textBufferCloneService,
             _featureServiceFactory,
-            _refactorNotifyServices,
             _asyncListener);
 
         return new InlineRenameSessionInfo(ActiveSession);
