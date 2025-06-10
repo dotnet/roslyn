@@ -30,7 +30,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(
             IEqualityComparer<K> comparer,
             params (K key, V value)[] entries)
-            => ImmutableDictionary.CreateRange(comparer, entries.Select(t => KeyValuePair.Create(t.key, t.value)));
+            => ImmutableDictionary.CreateRange(comparer, entries.Select(static t => KeyValuePair.Create(t.key, t.value)));
 
         public static ImmutableDictionary<K, V> CreateImmutableDictionary<K, V>(params (K key, V value)[] entries)
             => ImmutableDictionary.CreateRange(entries.Select(static t => KeyValuePair.Create(t.key, t.value)));
