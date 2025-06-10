@@ -936,7 +936,7 @@ class C
         End Function
 
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/48941")>
-        Public Async Function TestNoDoubeClickWithCollectionExpression() As Task
+        Public Async Function TestNoDoubleClickWithCollectionExpression() As Task
             Dim input =
             <Workspace>
                 <Project Language="C#" CommonReferences="true">
