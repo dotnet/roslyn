@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             using (var writer = new LargeTextWriter(encoding, checksumAlgorithm, source.Length))
             {
                 writer.Write(source);
-                return writer.ToSourceText();
+                return writer.ToSourceTextAndFree();
             }
         }
 

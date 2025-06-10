@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Text
                         for (int j = i; j < i + count; j++)
                             segments[j].Write(writer);
 
-                        var newText = writer.ToSourceText();
+                        var newText = writer.ToSourceTextAndFree();
 
                         segments.RemoveRange(i, count);
                         segments.Insert(i, newText);
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 segments.Clear();
-                segments.Add(writer.ToSourceText());
+                segments.Add(writer.ToSourceTextAndFree());
             }
         }
 

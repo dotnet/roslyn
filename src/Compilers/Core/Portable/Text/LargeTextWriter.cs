@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
-        private readonly ArrayBuilder<char[]> _chunks;
 
+        private ArrayBuilder<char[]>? _chunks;
         private readonly int _bufferSize;
         private char[]? _buffer;
         private int _currentUsed;
@@ -27,10 +28,18 @@ namespace Microsoft.CodeAnalysis.Text
             _bufferSize = Math.Min(LargeText.ChunkSize, length);
         }
 
-        public override SourceText ToSourceText()
+        public override SourceText ToSourceTextAndFree()
         {
             this.Flush();
-            return new LargeText(_chunks.ToImmutableAndFree(), _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
+
+            var chunks = _chunks != null ? _chunks.ToImmutableAndFree() : ImmutableArray<char[]>.Empty;
+
+            var sourceText = new LargeText(chunks, _encoding, default(ImmutableArray<byte>), _checksumAlgorithm, default(ImmutableArray<byte>));
+
+            // _buffer was nulled out in the Flush call above
+            _chunks = null;
+
+            return sourceText;
         }
 
         // https://github.com/dotnet/roslyn/issues/40830
@@ -128,6 +137,8 @@ namespace Microsoft.CodeAnalysis.Text
             else
             {
                 this.Flush();
+
+                EnsureChunks();
                 _chunks.Add(chunk);
             }
         }
@@ -141,6 +152,7 @@ namespace Microsoft.CodeAnalysis.Text
                     Array.Resize(ref _buffer, _currentUsed);
                 }
 
+                EnsureChunks();
                 _chunks.Add(_buffer);
                 _buffer = null;
                 _currentUsed = 0;
@@ -152,6 +164,15 @@ namespace Microsoft.CodeAnalysis.Text
             if (_buffer == null)
             {
                 _buffer = new char[_bufferSize];
+            }
+        }
+
+        [MemberNotNull(nameof(_chunks))]
+        private void EnsureChunks()
+        {
+            if (_chunks == null)
+            {
+                _chunks = ArrayBuilder<char[]>.GetInstance();
             }
         }
     }

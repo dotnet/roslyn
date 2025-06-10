@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -9,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Text
 {
     internal class StringTextWriter : SourceTextWriter
     {
-        private StringBuilder _builder;
-        private readonly PooledStringBuilder _pooledBuilder;
+        private StringBuilder? _builder;
+        private PooledStringBuilder? _pooledBuilder;
         private readonly Encoding? _encoding;
         private readonly SourceHashAlgorithm _checksumAlgorithm;
 
@@ -29,31 +30,50 @@ namespace Microsoft.CodeAnalysis.Text
             get { return _encoding!; }
         }
 
-        public override SourceText ToSourceText()
+        public override SourceText ToSourceTextAndFree()
         {
+            EnsureBuilder();
+
             var sourceText = new StringText(_builder.ToString(), _encoding, checksumAlgorithm: _checksumAlgorithm);
 
-            // Release the pooled string builder back to the pool. At this point, callers are no
-            // longer allowed to write to this object.
-            _builder = null!;
+            // Release the pooled string builder back to the pool.
+            _builder = null;
             _pooledBuilder.Free();
+            _pooledBuilder = null;
 
             return sourceText;
         }
 
         public override void Write(char value)
         {
+            EnsureBuilder();
+
             _builder.Append(value);
         }
 
         public override void Write(string? value)
         {
+            EnsureBuilder();
+
             _builder.Append(value);
         }
 
         public override void Write(char[] buffer, int index, int count)
         {
+            EnsureBuilder();
+
             _builder.Append(buffer, index, count);
+        }
+
+        [MemberNotNull(nameof(_builder))]
+        [MemberNotNull(nameof(_pooledBuilder))]
+        private void EnsureBuilder()
+        {
+            if (_builder == null || _pooledBuilder == null)
+            {
+                _pooledBuilder = PooledStringBuilder.GetInstance();
+                _builder = _pooledBuilder.Builder;
+            }
         }
     }
 }

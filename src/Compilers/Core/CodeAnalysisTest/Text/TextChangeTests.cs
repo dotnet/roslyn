@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, 10);
             largeText.Write(writer);
 
-            var newText = (LargeText)writer.ToSourceText();
+            var newText = (LargeText)writer.ToSourceTextAndFree();
             Assert.NotSame(largeText, newText);
 
             Assert.Equal(1, GetChunks(newText).Length);
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // large text fits within the remaining buffer
             largeText.Write(writer);
 
-            var newText = (LargeText)writer.ToSourceText();
+            var newText = (LargeText)writer.ToSourceTextAndFree();
             Assert.NotSame(largeText, newText);
             Assert.Equal(text.Length + largeText.Length, newText.Length);
 

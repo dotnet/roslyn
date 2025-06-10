@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis
         {
             var writer = SourceTextWriter.Create(encoding, checksumAlgorithm, this.Green.FullWidth);
             this.WriteTo(writer);
-            return writer.ToSourceText();
+            return writer.ToSourceTextAndFree();
         }
 
         /// <summary>
