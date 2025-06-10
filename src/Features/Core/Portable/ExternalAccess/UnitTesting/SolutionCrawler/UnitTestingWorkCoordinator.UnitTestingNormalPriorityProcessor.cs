@@ -16,7 +16,6 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 
-
 #if DEBUG
 using System.Diagnostics;
 #endif
