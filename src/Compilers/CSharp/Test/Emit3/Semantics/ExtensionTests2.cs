@@ -3105,10 +3105,7 @@ static class E
         comp.VerifyEmitDiagnostics(
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).M' that could not be resolved
             // /// <see cref="E.extension(int).M"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(1, 16),
-            // (4,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T>(int i)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(4, 22));
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).M").WithArguments("extension(int).M").WithLocation(1, 16));
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
@@ -3170,10 +3167,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
-        comp.VerifyEmitDiagnostics(
-            // (4,22): error CS9295: The extended type 'int' must reference all the type parameters declared by the extension, but type parameter 'T' is not referenced.
-            //     extension<T>(int i)
-            Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "i").WithArguments("int", "T").WithLocation(4, 22));
+        comp.VerifyEmitDiagnostics();
 
         var e = comp.GetMember<NamedTypeSymbol>("E");
         AssertEx.Equal("""
@@ -4101,6 +4095,12 @@ static class E
         public static int Property => 42;
     }
 
+    /// <see cref="extension(int).Method"/>
+    /// <see cref="extension(int).Property"/>
+    extension(object)
+    {
+    }
+
     /// <see cref="extension(int).M2"/>
     /// <see cref="extension(int).Property"/>
     public static void M2() { }
@@ -4121,16 +4121,24 @@ static class E
             // (8,24): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
             //         /// <see cref="extension(int).Property"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(8, 24),
-            // (15,20): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
-            //     /// <see cref="extension(int).M2"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(15, 20),
+            // (15,20): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
+            //     /// <see cref="extension(int).Method"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Method").WithArguments("extension(int).Method").WithLocation(15, 20),
             // (16,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
             //     /// <see cref="extension(int).Property"/>
-            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(16, 20));
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(16, 20),
+            // (21,20): warning CS1574: XML comment has cref attribute 'extension(int).M2' that could not be resolved
+            //     /// <see cref="extension(int).M2"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).M2").WithArguments("extension(int).M2").WithLocation(21, 20),
+            // (22,20): warning CS1574: XML comment has cref attribute 'extension(int).Property' that could not be resolved
+            //     /// <see cref="extension(int).Property"/>
+            Diagnostic(ErrorCode.WRN_BadXMLRef, "extension(int).Property").WithArguments("extension(int).Property").WithLocation(22, 20));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         AssertEx.Equal([
+            "(extension(int).Method, null)",
+            "(extension(int).Property, null)",
             "(extension(int).Method, null)",
             "(extension(int).Property, null)",
             "(extension(int).Method, null)",
