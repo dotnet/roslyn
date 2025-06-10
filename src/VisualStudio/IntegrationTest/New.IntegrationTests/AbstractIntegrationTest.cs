@@ -162,8 +162,6 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
         await TestServices.Workarounds.RemoveConflictingKeyBindingsAsync(HangMitigatingCancellationToken);
         await TestServices.StateReset.ResetGlobalOptionsAsync(HangMitigatingCancellationToken);
         await TestServices.StateReset.ResetHostSettingsAsync(HangMitigatingCancellationToken);
-
-        await TestServices.Workarounds.WaitForGitHubCoPilotAsync(HangMitigatingCancellationToken);
     }
 
     public override async Task DisposeAsync()

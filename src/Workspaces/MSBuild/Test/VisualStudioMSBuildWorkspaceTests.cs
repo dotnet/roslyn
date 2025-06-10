@@ -1002,13 +1002,11 @@ class C1
     public async Task TestOpenSolution_WithInvalidProjectPath_SkipTrue_SucceedsWithFailureEvent()
     {
         // when skipped we should see a diagnostic for the invalid project
-
-        CreateFiles(GetSimpleCSharpSolutionFiles()
-            .WithFile(@"TestSolution.sln", Resources.SolutionFiles.InvalidProjectPath));
-
         var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
+        CreateFiles(GetSimpleCSharpProjectFiles()
+            .WithFile(solutionFilePath, Resources.SolutionFiles.InvalidProjectPath));
 
-        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
         Assert.Single(workspace.Diagnostics);
     }
@@ -1050,7 +1048,7 @@ class C1
             .WithFile(@"TestSolution.sln", Resources.SolutionFiles.NonExistentProject));
         var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+        using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
         Assert.Single(workspace.Diagnostics);
@@ -2653,11 +2651,12 @@ class C1
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531543")]
     public async Task TestOpenSolution_SolutionFileHasEmptyLineBetweenProjectBlock()
     {
-        var files = new FileSet(
-            (@"TestSolution.sln", Resources.SolutionFiles.EmptyLineBetweenProjectBlock));
+        var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+        var files = GetSimpleCSharpProjectFiles()
+            .Concat(GetSimpleVisualBasicProjectFiles())
+            .Concat([(solutionFilePath, Resources.SolutionFiles.EmptyLineBetweenProjectBlock)]);
 
         CreateFiles(files);
-        var solutionFilePath = GetSolutionFileName("TestSolution.sln");
 
         using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
         var solution = await workspace.OpenSolutionAsync(solutionFilePath);

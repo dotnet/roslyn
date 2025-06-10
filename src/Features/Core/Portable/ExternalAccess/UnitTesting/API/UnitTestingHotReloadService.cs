@@ -98,7 +98,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
             .EmitSolutionUpdateAsync(sessionId, solution, runningProjects: ImmutableDictionary<ProjectId, RunningProjectInfo>.Empty, s_solutionActiveStatementSpanProvider, cancellationToken)
             .ConfigureAwait(false);
 
-        if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
+        if (!results.ModuleUpdates.Updates.IsEmpty)
         {
             if (commitUpdates)
             {

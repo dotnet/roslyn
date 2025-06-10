@@ -48,43 +48,6 @@ internal sealed partial class CSharpProgressionLanguageService : IProgressionLan
     {
     }
 
-    public IEnumerable<SyntaxNode> GetTopLevelNodesFromDocument(SyntaxNode root, CancellationToken cancellationToken)
-    {
-        // We implement this method lazily so we are able to abort as soon as we need to.
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodes);
-            nodes.Push(root);
-
-            while (nodes.TryPop(out var node))
-            {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    if (node.Kind() is SyntaxKind.ClassDeclaration or
-                        SyntaxKind.RecordDeclaration or
-                        SyntaxKind.RecordStructDeclaration or
-                        SyntaxKind.DelegateDeclaration or
-                        SyntaxKind.EnumDeclaration or
-                        SyntaxKind.InterfaceDeclaration or
-                        SyntaxKind.StructDeclaration or
-                        SyntaxKind.VariableDeclarator or
-                        SyntaxKind.MethodDeclaration or
-                        SyntaxKind.PropertyDeclaration)
-                    {
-                        yield return node;
-                    }
-                    else
-                    {
-                        foreach (var child in node.ChildNodes())
-                        {
-                            nodes.Push(child);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     public string GetDescriptionForSymbol(ISymbol symbol, bool includeContainingSymbol)
         => GetSymbolText(symbol, includeContainingSymbol, s_descriptionFormat);
 
