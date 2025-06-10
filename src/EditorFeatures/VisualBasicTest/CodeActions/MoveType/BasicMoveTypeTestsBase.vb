@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.MoveType
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
