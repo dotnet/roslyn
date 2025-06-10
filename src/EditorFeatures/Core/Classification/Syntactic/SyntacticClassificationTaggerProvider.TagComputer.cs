@@ -43,6 +43,7 @@ internal partial class SyntacticClassificationTaggerProvider
 
         private readonly SyntacticClassificationTaggerProvider _taggerProvider;
         private readonly ITextBuffer2 _subjectBuffer;
+        private readonly ITaggerEventSource _taggerEventSource;
 
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
@@ -57,8 +58,6 @@ internal partial class SyntacticClassificationTaggerProvider
         /// Timeout before we cancel the work to diff and return whatever we have.
         /// </summary>
         private readonly TimeSpan _diffTimeout;
-
-        private readonly ITaggerEventSource _taggerEventSource;
 
         /// <summary>
         /// Cached values for the last services we computed for a particular <see cref="Workspace"/> and <see
