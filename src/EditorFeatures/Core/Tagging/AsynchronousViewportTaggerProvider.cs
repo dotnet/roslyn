@@ -85,7 +85,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> : IView
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.TextChangeBehavior"/>
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
-    /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.CreateEventSource"/>
+    /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.CreateEventSource(ITextView?, ITextBuffer)"/>
     protected abstract ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer);
 
     /// <inheritdoc cref="AbstractAsynchronousTaggerProvider{TTag}.EventChangeDelay"/>
