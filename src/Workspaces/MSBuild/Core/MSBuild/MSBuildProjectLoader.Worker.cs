@@ -37,11 +37,6 @@ public partial class MSBuildProjectLoader
         private readonly ImmutableArray<string> _requestedProjectPaths;
 
         /// <summary>
-        /// Global MSBuild properties to set when loading projects.
-        /// </summary>
-        private readonly ImmutableDictionary<string, string> _globalProperties;
-
-        /// <summary>
         /// Map of <see cref="ProjectId"/>s, project paths, and output file paths.
         /// </summary>
         private readonly ProjectMap _projectMap;
@@ -78,7 +73,6 @@ public partial class MSBuildProjectLoader
             BuildHostProcessManager buildHostProcessManager,
             ImmutableArray<string> requestedProjectPaths,
             string baseDirectory,
-            ImmutableDictionary<string, string> globalProperties,
             ProjectMap? projectMap,
             IProgress<ProjectLoadProgress>? progress,
             DiagnosticReportingOptions requestedProjectOptions,
@@ -92,7 +86,6 @@ public partial class MSBuildProjectLoader
             _buildHostProcessManager = buildHostProcessManager;
             _baseDirectory = baseDirectory;
             _requestedProjectPaths = requestedProjectPaths;
-            _globalProperties = globalProperties;
             _projectMap = projectMap ?? ProjectMap.Create();
             _progress = progress;
             _requestedProjectOptions = requestedProjectOptions;

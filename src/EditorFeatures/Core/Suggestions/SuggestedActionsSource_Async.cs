@@ -73,18 +73,16 @@ internal sealed partial class SuggestedActionsSourceProvider
             if (state is null)
                 return;
 
-            var workspace = state.Target.Workspace;
-            if (workspace is null)
+            var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
+            if (document is null)
                 return;
 
             var selection = TryGetCodeRefactoringSelection(state, range);
-            await workspace.Services.GetRequiredService<IWorkspaceStatusService>().WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            await document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>()
+                .WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
             using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActionsAsync, cancellationToken))
             {
-                var document = range.Snapshot.GetOpenTextDocumentInCurrentContextWithChanges();
-                if (document is null)
-                    return;
 
                 // Create a single keep-alive session as we process each lightbulb priority group.  We want to
                 // ensure that all calls to OOP will reuse the same solution-snapshot on the oop side (including

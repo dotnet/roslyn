@@ -454,13 +454,13 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
                 if (attributes.Count == 1)
                 {
                     // Remove the entire attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, (SyntaxTrivia t) => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
+                    ComputePositionAndTriviaForRemoveAttributeList(attributeList, t => t.IsKind(SyntaxKind.EndOfLineTrivia), out positionOfRemovedNode, out trivia);
                     newAttributeLists = attributeLists.Where(aList => aList != attributeList);
                 }
                 else
                 {
                     // Remove just the given attribute from the attribute list.
-                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, (SyntaxToken t) => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
+                    ComputePositionAndTriviaForRemoveAttributeFromAttributeList(attributeToRemove, t => t.IsKind(SyntaxKind.CommaToken), out positionOfRemovedNode, out trivia);
                     var newAttributes = SeparatedList(attributes.Where(a => a != attributeToRemove));
                     var newAttributeList = attributeList.WithAttributes(newAttributes);
                     newAttributeLists = attributeLists.Select(attrList => attrList == attributeList ? newAttributeList : attrList);

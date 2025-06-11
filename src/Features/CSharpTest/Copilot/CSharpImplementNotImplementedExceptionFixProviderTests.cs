@@ -176,7 +176,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         }
         .WithMockCopilotService(copilotService =>
         {
-            copilotService.SetupFixAll = (Document document, ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> memberReferences, CancellationToken cancellationToken) =>
+            copilotService.SetupFixAll = (document, memberReferences, cancellationToken) =>
             {
                 // Create a map of method/property implementations
                 var implementationMap = new Dictionary<string, string>
