@@ -23,7 +23,7 @@ public class CSharpF1Help : AbstractEditorTest
     }
 
     [IdeFact]
-    private async Task F1Help()
+    public async Task F1Help()
     {
         var text = @"
 using System;
