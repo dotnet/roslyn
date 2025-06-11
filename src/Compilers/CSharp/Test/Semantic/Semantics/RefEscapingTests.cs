@@ -11302,9 +11302,9 @@ public struct Vec4
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
-        [InlineData("public readonly void UseSpan(Span<int> span)")]
-        [InlineData("void I.UseSpan(Span<int> span)")]
-        public void RefStructInterface_ScopedDifference(string implSignature)
+        [InlineData("public void UseSpan(Span<int> span)", 17)]
+        [InlineData("void I.UseSpan(Span<int> span)", 12)]
+        public void RefStructInterface_ScopedDifference(string implSignature, int column)
         {
             // This is a case where interface methods need to be treated specially in scoped variance checks.
             // Because a ref struct can implement the interface, we need to compare the signatures as if the interface has a receiver parameter which is ref-to-ref-struct.
@@ -11319,9 +11319,9 @@ public struct Vec4
                 ref struct RS : I
                 {
                     public Span<int> Span { get; set; }
-                    public RS(Span<int> span) => Span = span; // 1
+                    public RS(Span<int> span) => Span = span;
 
-                    {{implSignature}}
+                    {{implSignature}} // 1
                     {
                         this.Span = span;
                     }
@@ -11332,12 +11332,12 @@ public struct Vec4
             comp.VerifyEmitDiagnostics(
                 // (13,17): error CS8987: The 'scoped' modifier of parameter 'span' doesn't match overridden or implemented member.
                 //     public void UseSpan(Span<int> span)
-                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(13, 17));
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(13, column));
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
         [InlineData("public readonly void UseSpan(Span<int> span)")]
-        [InlineData("void I.UseSpan(Span<int> span)")]
+        [InlineData("readonly void I.UseSpan(Span<int> span)")]
         public void RefStructInterface_ScopedDifference_ReadonlyImplementation(string implSignature)
         {
             var source = $$"""
