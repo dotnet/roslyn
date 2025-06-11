@@ -176,7 +176,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         }
 
         // There are no linked files in the MetadataAsSource workspace, so we can just use the first document id
-        documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+        documentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).SingleOrDefault();
         if (documentId is null)
         {
             return false;
