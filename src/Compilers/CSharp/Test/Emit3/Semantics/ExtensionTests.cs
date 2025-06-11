@@ -40061,9 +40061,16 @@ public class MyCollection : IEnumerable<object>
 """;
         // Tracked by https://github.com/dotnet/roslyn/issues/78828 : missing nullability diagnostic
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (7,19): warning CS8601: Possible null reference assignment.
+            // MyCollection c = [oNull, oNotNull];
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(7, 19));
+    }
 
-        src = """
+    [Fact]
+    public void Nullability_CollectionExpression_Add_01_Classic()
+    {
+        var src = """
 #nullable enable
 using System.Collections;
 using System.Collections.Generic;
@@ -40083,15 +40090,11 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78452 : assertion hit during nullability analysis
-        try
-        {
-            comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics();
-        }
-        catch (InvalidOperationException)
-        {
-        }
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (7,19): warning CS8601: Possible null reference assignment.
+            // MyCollection c = [oNull, oNotNull];
+            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(7, 19));
     }
 
     [Fact]

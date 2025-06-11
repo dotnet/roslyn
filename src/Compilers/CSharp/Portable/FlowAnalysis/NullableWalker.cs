@@ -3853,6 +3853,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
             foreach (var element in node.Elements)
             {
+                visitElement(element);
+                resultBuilder.Add(_visitResult);
+            }
+
+            void visitElement(BoundNode element)
+            {
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
@@ -3862,7 +3868,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnknownResultNullability(initializer);
                         Debug.Assert(node.Placeholder is { });
                         SetUnknownResultNullability(node.Placeholder);
-                        VisitRvalue(initializer.Arguments[0]);
+
+                        Debug.Assert(!initializer.AddMethod.IsExtensionMethod || (object)initializer.Arguments[0] == node.Placeholder);
+                        var addArgument = initializer.Arguments[initializer.AddMethod.IsExtensionMethod ? 1 : 0];
+                        var completion = VisitOptionalImplicitConversion(addArgument, targetElementType, // TODO: when Add's parameter type is a params array/collection we do the wrong thing here
+                            useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+                        Debug.Assert(completion is not null);
+                        elementConversionCompletions.Add(completion);
+
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
                         Visit(spread);
@@ -3873,10 +3886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
                             var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
                             AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
-                            var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
-                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
+                            visitElement(iteratorBody);
                             RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
@@ -3888,16 +3898,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
+                            var completion1 = VisitOptionalImplicitConversion(elementExpr, targetElementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
 
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
+                            Debug.Assert(completion1 is not null);
+                            elementConversionCompletions.Add(completion1);
                         }
                         break;
                 }
-
-                resultBuilder.Add(_visitResult);
             }
 
             if (node.WasTargetTyped)
@@ -3974,6 +3982,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var foundIterationType = _binder.TryGetCollectionIterationType((ExpressionSyntax)node.Syntax, collectionType, out targetElementType);
                         Debug.Assert(foundIterationType);
                     }
+                }
+                else if (collectionKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
+                {
+                    Debug.Assert(!targetElementType.HasType);
+                    _binder.TryGetCollectionIterationType(node.Syntax, collectionType, out targetElementType);
                 }
 
                 return (collectionKind, targetElementType);

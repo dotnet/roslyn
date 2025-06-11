@@ -14046,13 +14046,17 @@ namespace System
                 }
                 """;
 
-            // We should check conversion to the iteration type
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(8, 9),
+                // (9,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         List<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 27),
+                // (11,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 17));
         }
 
         [Fact]
@@ -32084,11 +32088,15 @@ partial class Program
                 }
                 """;
 
-            // Should we also produce W-warnings on `M(CreateAnnotated(notNull), [maybeNull])` and `M(CreateUnannotated(notNull), [maybeNull])`?
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            // note that the nullability of the Add parameter doesn't matter at all for collection expr analysis.
+            // We simply infer an element type and then convert the elements to it.
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,30): warning CS8601: Possible null reference assignment.
+                // M(CreateAnnotated(notNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(11, 30),
+                // (17,32): warning CS8601: Possible null reference assignment.
+                // M(CreateUnannotated(notNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32160,10 +32168,13 @@ partial class Program
                 }
                 """;
 
-            // We should produce W-warnings on `c1` and `c5` for implicit conversion from the element to the iteration type.
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (8,26): warning CS8601: Possible null reference assignment.
+                // CAnnotated<object> c1 = [maybeNull]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(8, 26),
+                // (14,28): warning CS8601: Possible null reference assignment.
+                // CUnannotated<object> c5 = [maybeNull]; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(14, 28));
         }
 
         [Fact]
@@ -32180,13 +32191,13 @@ partial class Program
                 M(CreateAnnotated(maybeNull), [maybeNull]);
                 M(CreateAnnotated(maybeNull), [notNull]);
 
-                M(CreateAnnotated(notNull), [maybeNull]);
+                M(CreateAnnotated(notNull), [maybeNull]); // 1
                 M(CreateAnnotated(notNull), [notNull]);
 
                 M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [maybeNull]); // 2
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32209,8 +32220,13 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (11,30): warning CS8601: Possible null reference assignment.
+                // M(CreateAnnotated(notNull), [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(11, 30),
+                // (17,32): warning CS8601: Possible null reference assignment.
+                // M(CreateUnannotated(notNull), [maybeNull]); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32473,9 +32489,10 @@ partial class Program
                 }
                 """;
 
-            // We should check conversion to the iteration type
-            // Tracked by https://github.com/dotnet/roslyn/issues/68786
-            var comp = CreateCompilation(src).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src).VerifyEmitDiagnostics(
+                // (6,26): warning CS8619: Nullability of reference types in value of type 'Container<string?>' doesn't match target type 'Container<string>'.
+                // var collection = IdList([element1, element2]); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "element1").WithArguments("Container<string?>", "Container<string>").WithLocation(6, 26));
 
             var tree = comp.SyntaxTrees.First();
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");
