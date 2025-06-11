@@ -5,12 +5,14 @@
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Serialization
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Serialization
-    Public Class OptionsSerializationTests
+    <UseExportProvider>
+    Public NotInheritable Class OptionsSerializationTests
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2325692")>
         Public Sub TestNullGlobalImport()
             Dim options = New VisualBasicCompilationOptions(
