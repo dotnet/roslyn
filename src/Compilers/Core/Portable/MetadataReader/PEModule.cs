@@ -2338,19 +2338,6 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private static bool CrackBoolAndBoolInAttributeValue(out (bool, bool) value, ref BlobReader sig)
-        {
-            if (CrackBooleanInAttributeValue(out bool item1, ref sig) &&
-                CrackBooleanInAttributeValue(out bool item2, ref sig))
-            {
-                value = (item1, item2);
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
         private static bool CrackBooleanInAttributeValue(out bool value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)
