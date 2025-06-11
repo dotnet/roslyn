@@ -11301,12 +11301,14 @@ public struct Vec4
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
-        public void RefStructInterface_ScopedDifference()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public readonly void UseSpan(Span<int> span)")]
+        [InlineData("void I.UseSpan(Span<int> span)")]
+        public void RefStructInterface_ScopedDifference(string implSignature)
         {
             // This is a case where interface methods need to be treated specially in scoped variance checks.
             // Because a ref struct can implement the interface, we need to compare the signatures as if the interface has a receiver parameter which is ref-to-ref-struct.
-            var source = """
+            var source = $$"""
                 using System;
 
                 interface I
@@ -11319,7 +11321,7 @@ public struct Vec4
                     public Span<int> Span { get; set; }
                     public RS(Span<int> span) => Span = span; // 1
 
-                    public void UseSpan(Span<int> span)
+                    {{implSignature}}
                     {
                         this.Span = span;
                     }
@@ -11333,10 +11335,12 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation, "UseSpan").WithArguments("span").WithLocation(13, 17));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
-        public void RefStructInterface_ScopedDifference_ReadonlyImplementation()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78711")]
+        [InlineData("public readonly void UseSpan(Span<int> span)")]
+        [InlineData("void I.UseSpan(Span<int> span)")]
+        public void RefStructInterface_ScopedDifference_ReadonlyImplementation(string implSignature)
         {
-            var source = """
+            var source = $$"""
                 using System;
 
                 interface I
@@ -11349,7 +11353,7 @@ public struct Vec4
                     public Span<int> Span { get; set; }
                     public RS(Span<int> span) => Span = span;
 
-                    public readonly void UseSpan(Span<int> span)
+                    {{implSignature}}
                     {
                         Span = span; // 1
                     }
