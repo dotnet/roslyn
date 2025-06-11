@@ -143,7 +143,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         // EnterBreakStateAsync
 
-        mockEncService.BreakStateOrCapabilitiesChangedImpl = (bool? inBreakState) =>
+        mockEncService.BreakStateOrCapabilitiesChangedImpl = inBreakState =>
         {
             Assert.True(inBreakState);
         };

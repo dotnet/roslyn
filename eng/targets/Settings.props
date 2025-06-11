@@ -15,7 +15,7 @@
     <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
 
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
-    <NoWarn>$(NoWarn);NU1507</NoWarn>
+    <NoWarn>$(NoWarn);NU1507;NU1510</NoWarn>
 
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
