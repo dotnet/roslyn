@@ -97,10 +97,7 @@ internal sealed partial class SignatureHelpPresenter
                 Contract.ThrowIfNull(_signatureMap);
 
                 var defaultValue = _signatureMap.GetValueOrDefault(_selectedItem);
-                if (_editorSessionOpt != null)
-                {
-                    _editorSessionOpt.SelectedSignature = defaultValue;
-                }
+                _editorSessionOpt?.SelectedSignature = defaultValue;
             }
             finally
             {
