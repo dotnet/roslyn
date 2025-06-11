@@ -419,7 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftType = left.Type;
                 Debug.Assert(leftType is not null);
 
-
                 if (analyzedArguments == null)
                 {
                     analyzedArguments = AnalyzedArguments.GetInstance();
