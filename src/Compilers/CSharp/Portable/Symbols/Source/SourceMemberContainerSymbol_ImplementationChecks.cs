@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol overridingMethod,
                 BindingDiagnosticBag diagnostics)
             {
-                if (RequiresValidScopedOverrideForRefSafety(overriddenMethod, isImplementedByRefStruct: false))
+                if (RequiresValidScopedOverrideForRefSafety(overriddenMethod, overridingMethod.TryGetThisParameter(out var thisParam) ? thisParam : null))
                 {
                     CheckValidScopedOverride(
                         overriddenMethod,
@@ -1378,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the method signature must match, with respect to scoped for ref safety,
         /// in overrides, interface implementations, or delegate conversions.
         /// </summary>
-        internal static bool RequiresValidScopedOverrideForRefSafety(MethodSymbol? method, bool isImplementedByRefStruct)
+        internal static bool RequiresValidScopedOverrideForRefSafety(MethodSymbol? method, ParameterSymbol? overrideThisParameter)
         {
             if (method is null)
             {
@@ -1404,8 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //   - The method returns a `ref struct` or returns a `ref` or `ref readonly`, or the method has a `ref` or `out` parameter of `ref struct` type, and
             //   ...
             int nRefParametersRequired;
-            if (// Since ref struct can implement an interface, we need to view the 'this' parameter of the interface method as if it is a ref to ref struct.
-                isImplementedByRefStruct ||
+            if ((overrideThisParameter is { RefKind: RefKind.Ref or RefKind.Out } && overrideThisParameter.Type.IsRefLikeOrAllowsRefLikeType()) ||
                 method.ReturnType.IsRefLikeOrAllowsRefLikeType() ||
                 (method.RefKind is RefKind.Ref or RefKind.RefReadOnly))
             {
