@@ -11,5 +11,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename;
 
 internal interface IXamlTypeRenameService : ILanguageService
 {
-    public Task<XamlTypeRenameResult> GetTypeRenameAsync(TextDocument document, int position, CancellationToken cancellationToken);
+    Task<XamlTypeRenameResult> GetTypeRenameAsync(TextDocument document, int position, CancellationToken cancellationToken);
 }

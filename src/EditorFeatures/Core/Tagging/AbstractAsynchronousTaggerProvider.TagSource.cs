@@ -56,11 +56,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
         /// <summary>
-        /// Information about what workspace the buffer we're tagging is associated with.
-        /// </summary>
-        private readonly WorkspaceRegistration _workspaceRegistration;
-
-        /// <summary>
         /// Work queue that collects high priority requests to call TagsChanged with.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
@@ -155,7 +150,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
             _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
 
-            _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
+            Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
 
             // PERF: Use AsyncBatchingWorkQueue<_, VoidResult> instead of AsyncBatchingWorkQueue<_> because the latter
             // has an async state machine that rethrows a very common cancellation exception.
