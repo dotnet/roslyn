@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal interface ITemporaryStorageStreamHandle
 {
-    public TemporaryStorageIdentifier Identifier { get; }
+    TemporaryStorageIdentifier Identifier { get; }
 
     /// <summary>
     /// Reads the data indicated to by this handle into a stream.  This stream can be created in a different process

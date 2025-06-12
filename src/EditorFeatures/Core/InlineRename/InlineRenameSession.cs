@@ -45,7 +45,6 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
 
     private readonly IFeatureService _featureService;
     private readonly IFeatureDisableToken _completionDisabledToken;
-    private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
     private readonly IAsynchronousOperationListener _asyncListener;
     private readonly Solution _baseSolution;
     private readonly ITextView _triggerView;
@@ -146,7 +145,6 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         ITextBufferFactoryService textBufferFactoryService,
         ITextBufferCloneService textBufferCloneService,
         IFeatureServiceFactory featureServiceFactory,
-        IEnumerable<IRefactorNotifyService> refactorNotifyServices,
         IAsynchronousOperationListener asyncListener)
     {
         // This should always be touching a symbol since we verified that upon invocation
@@ -177,7 +175,6 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
         _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
         RenameService = renameService;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _refactorNotifyServices = refactorNotifyServices;
         _asyncListener = asyncListener;
         _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
             textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
