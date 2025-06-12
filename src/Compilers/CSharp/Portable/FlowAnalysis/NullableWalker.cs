@@ -3862,19 +3862,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
-                        // We don't visit the Add methods
-                        // But we should check conversion to the iteration type
-                        // Tracked by https://github.com/dotnet/roslyn/issues/68786
                         SetUnknownResultNullability(initializer);
                         Debug.Assert(node.Placeholder is { });
                         SetUnknownResultNullability(node.Placeholder);
 
-                        Debug.Assert(!initializer.AddMethod.IsExtensionMethod || (object)initializer.Arguments[0] == node.Placeholder);
-                        var addArgument = initializer.Arguments[initializer.AddMethod.IsExtensionMethod ? 1 : 0];
-                        var completion = VisitOptionalImplicitConversion(addArgument, targetElementType, // TODO: when Add's parameter type is a params array/collection we do the wrong thing here
-                            useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                        Debug.Assert(completion is not null);
-                        elementConversionCompletions.Add(completion);
+                        var addArgument = Binder.GetUnderlyingCollectionExpressionElement(node, initializer, throwOnErrors: false);
+                        var addArgumentOrdinal = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
+                        var addParamOrdinal = !initializer.ArgsToParamsOpt.IsDefaultOrEmpty ? initializer.ArgsToParamsOpt[addArgumentOrdinal] : addArgumentOrdinal;
+                        var addParam = initializer.AddMethod.Parameters[addParamOrdinal];
+                        if (addParam.IsParams && !initializer.Expanded)
+                        {
+                            // Corner case: the collection element is calling `Add(params CollectionType coll)` in non-expanded form.
+                            // The challenge here is that there's a need to dig thru the 'addArgument' to find zero or more "user-authored" elements and try to convert them.
+                            // See 'CollectionExpressionTests.Add_ParamsArray_07'.
+                            Debug.Assert(addParam.IsParams);
+                            VisitRvalue(addArgument);
+                        }
+                        else
+                        {
+                            Debug.Assert(!initializer.AddMethod.IsExtensionMethod
+                                || (object)initializer.Arguments[0] == node.Placeholder
+                                || (object?)(initializer.Arguments[0] as BoundConversion)?.Operand == node.Placeholder);
+                            var completion = VisitOptionalImplicitConversion(addArgument, targetElementType,
+                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+                            Debug.Assert(completion is not null);
+                            elementConversionCompletions.Add(completion);
+                        }
 
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
@@ -3885,6 +3898,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
                             var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
+
+                            // Consider a collection expression like List<TElem> x = [y, ..z]
+                            // Lowering is comparable to the following:
+                            // List<TElem> __tmp = new(...);
+                            // __tmp.Add(y);
+                            // foreach (var z1 in z)
+                            //     __tmp.Add(z1);
+                            //
+                            // In other words, the spread contains a BoundCollectionElementInitializer which needs to be further deconstructed and 'z1' converted to 'TElem'.
                             AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
                             visitElement(iteratorBody);
                             RemovePlaceholderReplacement(elementPlaceholder);
