@@ -201,7 +201,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             operation.Syntax,
                             operation.Constructor,
                             propertySetInstance,
-                            abstractValue => hazardousUsageEvaluator.InvocationEvaluator!(
+                            (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.InvocationEvaluator!(
                                 operation.Constructor,
                                 abstractValue));
                     }
@@ -466,7 +466,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                                 visitedArgument.Value.Syntax,
                                 null,
                                 visitedArgument.Value,
-                                abstractValue => argumentHazardousUsageEvaluator.ValueEvaluator!(abstractValue));
+                                (PropertySetAbstractValue abstractValue) => argumentHazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                         }
                     }
                 }
@@ -490,7 +490,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         originalOperation.Syntax,
                         method,
                         propertySetInstance,
-                        abstractValue => hazardousUsageEvaluator!.InvocationEvaluator!(method, abstractValue));
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator!.InvocationEvaluator!(method, abstractValue));
                 }
                 else
                 {
@@ -659,7 +659,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         returnValue.Syntax,
                         null,
                         returnValue,
-                        abstractValue => hazardousUsageEvaluator.ValueEvaluator!(abstractValue));
+                        (PropertySetAbstractValue abstractValue) => hazardousUsageEvaluator.ValueEvaluator!(abstractValue));
                 }
             }
 
