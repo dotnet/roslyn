@@ -56,6 +56,7 @@ internal sealed class NavigateToSearcher
     private NavigateToSearcher(
         INavigateToSearcherHost host,
         Solution solution,
+        Document? activeDocument,
         INavigateToSearchCallback callback,
         string searchPattern,
         IImmutableSet<string> kinds)
@@ -76,7 +77,7 @@ internal sealed class NavigateToSearcher
         // If the workspace is tracking documents, use that to prioritize our search
         // order.  That way we provide results for the documents the user is working
         // on faster than the rest of the solution.
-        _activeDocument = docTrackingService.GetActiveDocument(_solution);
+        _activeDocument = activeDocument ?? docTrackingService.GetActiveDocument(solution);
         _visibleDocuments = docTrackingService.GetVisibleDocuments(_solution)
                                               .WhereAsArray(d => d != _activeDocument);
     }
@@ -91,6 +92,7 @@ internal sealed class NavigateToSearcher
     public static NavigateToSearcher Create(
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
         Solution solution,
+        Document? activeDocument,
         IAsynchronousOperationListener asyncListener,
         INavigateToSearchCallback callback,
         string searchPattern,
@@ -98,17 +100,18 @@ internal sealed class NavigateToSearcher
         CancellationToken disposalToken)
     {
         var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-        return Create(solution, callback, searchPattern, kinds, host);
+        return Create(solution, activeDocument, callback, searchPattern, kinds, host);
     }
 
     public static NavigateToSearcher Create(
         Solution solution,
+        Document? activeDocument,
         INavigateToSearchCallback callback,
         string searchPattern,
         IImmutableSet<string> kinds,
         INavigateToSearcherHost host)
     {
-        return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
+        return new NavigateToSearcher(host, solution, activeDocument, callback, searchPattern, kinds);
     }
 
     private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)

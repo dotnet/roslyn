@@ -59,6 +59,7 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
 
         var searcher = NavigateToSearcher.Create(
             solution,
+            activeDocument: null,
             _asyncListener,
             new LSPNavigateToCallback(context, progress),
             request.Query,
