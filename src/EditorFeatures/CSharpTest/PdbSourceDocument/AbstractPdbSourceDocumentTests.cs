@@ -40,7 +40,8 @@ public abstract class AbstractPdbSourceDocumentTests
         Func<Compilation, ISymbol> symbolMatcher,
         string[]? preprocessorSymbols = null,
         bool buildReferenceAssembly = false,
-        bool expectNullResult = false)
+        bool expectNullResult = false,
+        bool useVirtualFiles = false)
     {
         return RunTestAsync(path => TestAsync(
             path,
@@ -50,7 +51,8 @@ public abstract class AbstractPdbSourceDocumentTests
             symbolMatcher,
             preprocessorSymbols,
             buildReferenceAssembly,
-            expectNullResult));
+            expectNullResult,
+            useVirtualFiles));
     }
 
     protected static async Task RunTestAsync(Func<string, Task> testRunner)
@@ -80,7 +82,8 @@ public abstract class AbstractPdbSourceDocumentTests
         Func<Compilation, ISymbol> symbolMatcher,
         string[]? preprocessorSymbols,
         bool buildReferenceAssembly,
-        bool expectNullResult)
+        bool expectNullResult,
+        bool useVirtualFiles)
     {
         MarkupTestFile.GetSpan(metadataSource, out var source, out var expectedSpan);
 
@@ -94,7 +97,7 @@ public abstract class AbstractPdbSourceDocumentTests
             buildReferenceAssembly,
             windowsPdb: false);
 
-        await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult);
+        await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult, useVirtualFiles);
     }
 
     protected static async Task GenerateFileAndVerifyAsync(
@@ -103,9 +106,10 @@ public abstract class AbstractPdbSourceDocumentTests
         Location sourceLocation,
         string expected,
         Text.TextSpan expectedSpan,
-        bool expectNullResult)
+        bool expectNullResult,
+        bool useVirtualFiles)
     {
-        var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult);
+        var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult, useVirtualFiles);
 
         if (actual is null)
             return;
@@ -121,15 +125,20 @@ public abstract class AbstractPdbSourceDocumentTests
         Project project,
         ISymbol symbol,
         Location sourceLocation,
-        bool expectNullResult)
+        bool expectNullResult,
+        bool useVirtualFiles)
     {
         using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
 
         var service = workspace.GetService<IMetadataAsSourceFileService>();
         try
         {
-            // Using default settings here because none of the tests exercise any of the settings
-            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None).ConfigureAwait(false);
+            // Other than virtual files, use default settings here because none of the tests exercise any other settings
+            var options = MetadataAsSourceOptions.Default with
+            {
+                NavigateToVirtualFile = useVirtualFiles,
+            };
+            var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
             if (expectNullResult)
             {
@@ -166,6 +175,18 @@ public abstract class AbstractPdbSourceDocumentTests
             Assert.Equal(project.Id, mappedProject!.Id);
 
             var actual = await document.GetTextAsync();
+
+            if (useVirtualFiles)
+            {
+                Assert.True(document.FilePath!.StartsWith(WorkspaceMetadataDocumentPersister.VirtualFileScheme));
+                Assert.False(File.Exists(document.FilePath!));
+            }
+            else
+            {
+                Assert.True(File.Exists(document.FilePath!));
+                Assert.Equal(File.ReadAllText(document.FilePath!, actual.Encoding), actual.ToString());
+            }
+
             var actualSpan = file!.IdentifierLocation.SourceSpan;
 
             return (actual, actualSpan);
@@ -208,12 +229,15 @@ public abstract class AbstractPdbSourceDocumentTests
             """
             : "";
 
-        var workspace = EditorTestWorkspace.Create($"""
+        var composition = GetTestComposition();
+
+        var workspace = EditorTestWorkspace.Create(
+            $"""
             <Workspace>
                 <Project Language="{LanguageNames.CSharp}" CommonReferences="true" ReferencesOnDisk="true" {preprocessorSymbolsAttribute}>
                 </Project>
             </Workspace>
-            """, composition: GetTestComposition());
+            """, composition: composition);
 
         var project = workspace.CurrentSolution.Projects.First();
 
@@ -235,9 +259,10 @@ public abstract class AbstractPdbSourceDocumentTests
         // We construct our own composition here because we only want the decompilation metadata as source provider
         // to be available.
 
-        return EditorTestCompositions.EditorFeatures
+        var composition = EditorTestCompositions.EditorFeatures
             .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
             .AddParts(typeof(PdbSourceDocumentMetadataAsSourceFileProvider), typeof(NullResultMetadataAsSourceFileProvider));
+        return composition;
     }
 
     protected static void CompileTestSource(string path, SourceText source, Project project, Location pdbLocation, Location sourceLocation, bool buildReferenceAssembly, bool windowsPdb, Encoding? fallbackEncoding = null)
@@ -332,16 +357,5 @@ public abstract class AbstractPdbSourceDocumentTests
     protected static string GetPdbPath(string path)
     {
         return Path.Combine(path, "reference.pdb");
-    }
-
-    protected sealed class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
-    {
-        public override SourceText CurrentText => sourceText;
-
-        public override event EventHandler<TextChangeEventArgs> TextChanged
-        {
-            add { }
-            remove { }
-        }
     }
 }

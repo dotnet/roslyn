@@ -366,7 +366,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         // By default, workspace event listeners are disabled in tests.  Explicitly enable the LSP workspace registration event listener
         // to ensure that the lsp workspace registration service sees all workspaces.
-        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is LspWorkspaceRegistrationEventListener).Value;
+        var lspWorkspaceRegistrationListener = (LspWorkspaceRegistrationEventListener)workspace.ExportProvider.GetExportedValues<IEventListener>().Single(e => e is LspWorkspaceRegistrationEventListener);
         var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
         listenerProvider.EventListeners = [lspWorkspaceRegistrationListener];
 

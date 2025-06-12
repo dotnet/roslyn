@@ -112,18 +112,4 @@ internal sealed class LspMiscellaneousFilesWorkspaceProvider(ILspServices lspSer
         this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
         return ValueTaskFactory.CompletedTask;
     }
-
-    private sealed class StaticSourceTextContainer(SourceText text) : SourceTextContainer
-    {
-        public override SourceText CurrentText => text;
-
-        /// <summary>
-        /// Text changes are handled by LSP forking the document, we don't need to actually update anything here.
-        /// </summary>
-        public override event EventHandler<TextChangeEventArgs> TextChanged
-        {
-            add { }
-            remove { }
-        }
-    }
 }

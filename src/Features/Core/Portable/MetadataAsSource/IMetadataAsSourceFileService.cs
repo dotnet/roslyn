@@ -31,18 +31,6 @@ internal interface IMetadataAsSourceFileService
         MetadataAsSourceOptions options,
         CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Checks if the given file path is a metadata as source file and adds to the metadata workspace if it is.
-    /// Callers must ensure this is only called serially.
-    /// </summary>
-    bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId);
-
-    /// <summary>
-    /// Checks if the given file path is a metadata as source file and removes from the metadata workspace if it is.
-    /// Callers must ensure this is only called serially.
-    /// </summary>
-    bool TryRemoveDocumentFromWorkspace(string filePath);
-
     bool IsNavigableMetadataSymbol(ISymbol symbol);
 
     Workspace? TryGetWorkspace();

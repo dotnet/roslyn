@@ -57,8 +57,8 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        string tempPath,
         TelemetryMessage? telemetryMessage,
+        IMetadataDocumentPersister persister,
         CancellationToken cancellationToken)
     {
         // Use the current fallback analyzer config options from the source workspace.
@@ -94,12 +94,15 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         var infoKey = await GetUniqueDocumentKeyAsync(sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler, cancellationToken).ConfigureAwait(false);
 
         var fileInfo = _keyToInformation.GetOrAdd(infoKey,
-            _ => new MetadataAsSourceGeneratedFileInfo(tempPath, sourceWorkspace, sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler));
+            _ => new MetadataAsSourceGeneratedFileInfo(sourceWorkspace, sourceProject, topLevelNamedType, signaturesOnly: !useDecompiler, persister));
 
         DocumentId generatedDocumentId;
         Location navigateLocation;
         if (!_generatedFilenameToInformation.TryGetValue(fileInfo.TemporaryFilePath, out var existingDocumentId))
         {
+            var sourceText = await persister.TryGetExistingTextAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, MetadataAsSourceGeneratedFileInfo.ChecksumAlgorithm,
+                verifyExistingDocument: text => true, cancellationToken).ConfigureAwait(false);
+
             // We don't have this file in the workspace.  We need to create a project to put it in.
             var (temporaryProjectInfo, temporaryDocumentId) = GenerateProjectAndDocumentInfo(fileInfo, metadataWorkspace.CurrentSolution.Services, sourceProject, topLevelNamedType);
             metadataWorkspace.OnProjectAdded(temporaryProjectInfo);
@@ -107,7 +110,7 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
                 .GetRequiredDocument(temporaryDocumentId);
 
             // Generate the file if it doesn't exist (we may still have it if there was a previous request for it that was then closed).
-            if (!File.Exists(fileInfo.TemporaryFilePath))
+            if (sourceText is null)
             {
                 if (useDecompiler)
                 {
@@ -149,58 +152,20 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
                 }
 
                 // We have the content, so write it out to disk
-                var text = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                sourceText = await temporaryDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-                // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
-                // to retry this a few times.
-                //
-                // If we still can't create the folder after 5 seconds, assume we will not be able to create it and
-                // continue without actually writing the text to disk.
-                var directoryToCreate = Path.GetDirectoryName(fileInfo.TemporaryFilePath)!;
-                var stopwatch = SharedStopwatch.StartNew();
-                var timeout = TimeSpan.FromSeconds(5);
-                var firstAttempt = true;
-                var skipWritingFile = false;
-
-                while (!IOUtilities.PerformIO(() => Directory.Exists(directoryToCreate)))
-                {
-                    if (stopwatch.Elapsed > timeout)
-                    {
-                        // If we still can't create the folder after 5 seconds, assume we will not be able to create it.
-                        skipWritingFile = true;
-                        break;
-                    }
-
-                    if (firstAttempt)
-                    {
-                        firstAttempt = false;
-                    }
-                    else
-                    {
-                        await Task.Delay(DelayTimeSpan.Short, cancellationToken).ConfigureAwait(false);
-                    }
-
-                    IOUtilities.PerformIO(() => Directory.CreateDirectory(directoryToCreate));
-                }
-
-                if (!skipWritingFile && !File.Exists(fileInfo.TemporaryFilePath))
-                {
-                    using (var textWriter = new StreamWriter(fileInfo.TemporaryFilePath, append: false, encoding: MetadataAsSourceGeneratedFileInfo.Encoding))
-                    {
-                        text.Write(textWriter, cancellationToken);
-                    }
-
-                    // Mark read-only
-                    new FileInfo(fileInfo.TemporaryFilePath).IsReadOnly = true;
-                }
+                await persister.WriteMetadataFileAsync(fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding, sourceText,
+                    logFailure: e => { }, cancellationToken).ConfigureAwait(false);
             }
 
             // Retrieve the navigable location for the symbol using the generated syntax.  
             navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
 
-            // Update the workspace to pull the text from the document.
-            var newLoader = new WorkspaceFileTextLoader(temporaryDocument.Project.Solution.Services, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding);
-            metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, newLoader);
+            // Update the workspace to pull the text we just generated.
+            var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, fileInfo.TemporaryFilePath);
+            var textLoader = TextLoader.From(textAndVersion);
+
+            metadataWorkspace.OnDocumentTextLoaderChanged(temporaryDocumentId, textLoader);
             _generatedFilenameToInformation.Add(fileInfo.TemporaryFilePath, (fileInfo, temporaryDocument.Id));
             generatedDocumentId = temporaryDocument.Id;
         }
@@ -269,7 +234,6 @@ internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationA
         // Serial access is guaranteed by the caller.
         if (_generatedFilenameToInformation.TryRemove(fileInfo.TemporaryFilePath, out var documentIdInfo))
         {
-            workspace.OnDocumentClosed(documentIdInfo.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, fileInfo.TemporaryFilePath, MetadataAsSourceGeneratedFileInfo.Encoding));
             workspace.OnProjectRemoved(documentIdInfo.DocumentId.ProjectId);
 
             return true;
