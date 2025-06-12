@@ -98,22 +98,22 @@
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.9.7-beta" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.13.44" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.13.44" />
-    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Editor" Version="18.0.255-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.1299-preview.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.255-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.0.12-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.15.10-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.18" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.231-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.255-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.255-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.15.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.15.3-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
