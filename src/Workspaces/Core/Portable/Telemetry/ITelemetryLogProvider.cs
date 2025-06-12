@@ -12,7 +12,7 @@ internal interface ITelemetryLogProvider
     /// Returns an <see cref="ITelemetryLog"/> for logging telemetry.
     /// </summary>
     /// <param name="functionId">FunctionId representing the telemetry operation</param>
-    ITelemetryBlockLog? GetLog(FunctionId functionId);
+    public ITelemetryBlockLog? GetLog(FunctionId functionId);
 
     /// <summary>
     /// Returns an aggregating <see cref="ITelemetryLog"/> for logging histogram based telemetry.
@@ -20,16 +20,16 @@ internal interface ITelemetryLogProvider
     /// <param name="functionId">FunctionId representing the telemetry operation</param>
     /// <param name="bucketBoundaries">Optional values indicating bucket boundaries in milliseconds. If not specified, 
     /// all aggregating events created will use a default configuration</param>
-    ITelemetryBlockLog? GetHistogramLog(FunctionId functionId, double[]? bucketBoundaries = null);
+    public ITelemetryBlockLog? GetHistogramLog(FunctionId functionId, double[]? bucketBoundaries = null);
 
     /// <summary>
     /// Returns an aggregating <see cref="ITelemetryLog"/> for logging counter telemetry.
     /// </summary>
     /// <param name="functionId">FunctionId representing the telemetry operation</param>
-    ITelemetryLog? GetCounterLog(FunctionId functionId);
+    public ITelemetryLog? GetCounterLog(FunctionId functionId);
 
     /// <summary>
     /// Flushes all telemetry logs
     /// </summary>
-    void Flush();
+    public void Flush();
 }

@@ -495,7 +495,6 @@ public sealed class ObjectSerializationTests
             writer.WriteInt64((long)ELong.Value);
             writer.WriteInt64((long)EULong.Value);
         }
-
         writer.WriteScalarValue(_testNow);
     }
 
@@ -639,6 +638,11 @@ public sealed class ObjectSerializationTests
     private static void TestRoundTripStringCharacter(ushort code)
     {
         TestRoundTripString(new String((char)code, 1));
+    }
+
+    private static void TestRoundTripArray<T>(T[] values)
+    {
+        TestRoundTripValue(values);
     }
 
     public static IEnumerable<object[]> GetEncodingTestCases()

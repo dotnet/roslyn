@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis;
-
 internal sealed class SnippetUtilities
 {
     public static bool TryGetWordOnLeft(int position, SourceText currentText, ISyntaxFactsService syntaxFactsService, [NotNullWhen(true)] out TextSpan? wordSpan)
