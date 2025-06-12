@@ -807,7 +807,7 @@ internal sealed partial class ProjectSystemProject
 
         var project = solution.GetRequiredProject(projectId);
 
-        using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(out var initialReferenceList);
+        using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var initialReferenceList);
 
         // Keep around all the project's analyzers that were not removed.
         foreach (var analyzerReference in project.AnalyzerReferences)
@@ -841,7 +841,7 @@ internal sealed partial class ProjectSystemProject
         // analyzers/generators from them if they changed on disk.
         var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
             useAsync: false,
-            ImmutableArray<AnalyzerReference>.CastUp(initialReferenceList.ToImmutableAndClear()),
+            initialReferenceList.ToImmutableAndClear(),
             solution.Services,
             CancellationToken.None).VerifyCompleted();
 
@@ -1464,10 +1464,10 @@ internal sealed partial class ProjectSystemProject
         Contract.ThrowIfNull(originalAnalyzerReferences);
 
         foreach (var reference in originalMetadataReferences.OfType<PortableExecutableReference>())
-            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!);
 
         foreach (var reference in originalAnalyzerReferences)
-            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
+            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)
