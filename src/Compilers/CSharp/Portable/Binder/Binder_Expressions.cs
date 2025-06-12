@@ -8016,7 +8016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(typeArgumentsOpt.IsDefault);
                 if (!receiver.HasErrors)
                 {
-                    diagnostics.AddRange(resolution.Diagnostics); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : test dependencies/diagnostics
+                    diagnostics.AddRange(resolution.Diagnostics);
                 }
 
                 resolution.Free();
