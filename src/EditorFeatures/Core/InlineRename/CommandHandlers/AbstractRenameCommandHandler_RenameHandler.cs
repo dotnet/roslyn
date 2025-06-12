@@ -44,11 +44,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         }
 
         var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
-        _ = ExecuteCommandAsync(args, context.OperationContext).CompletesAsyncOperation(token);
+        _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
         return true;
     }
 
-    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
+    private async Task ExecuteCommandAsync(RenameCommandArgs args)
     {
         threadingContext.ThrowIfNotOnUIThread();
 

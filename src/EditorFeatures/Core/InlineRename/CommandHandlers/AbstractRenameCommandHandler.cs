@@ -6,7 +6,6 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal abstract partial class AbstractRenameCommandHandler(
     IThreadingContext threadingContext,
     InlineRenameService renameService,
-    IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener)
 {
     public string DisplayName => EditorFeaturesResources.Rename;
@@ -84,12 +82,6 @@ internal abstract partial class AbstractRenameCommandHandler(
             nextHandler();
             return;
         }
-    }
-
-    private void Commit(IUIThreadOperationContext operationContext)
-    {
-        RoslynDebug.AssertNotNull(renameService.ActiveSession);
-        renameService.ActiveSession.Commit(previewChanges: false, operationContext);
     }
 
     private bool IsRenameCommitInProgress()
