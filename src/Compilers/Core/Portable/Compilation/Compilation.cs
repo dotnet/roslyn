@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;

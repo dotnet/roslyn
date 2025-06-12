@@ -2,20 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.IO
+Imports System.Reflection
+Imports System.Reflection.Metadata
+Imports Basic.Reference.Assemblies
+Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
-Imports System.IO
-Imports System.Reflection
-Imports System.Xml.Linq
-Imports Xunit
-Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Emit
-Imports System.Collections.Immutable
-Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 

@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp

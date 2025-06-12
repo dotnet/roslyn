@@ -28,7 +28,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXml
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Partial Friend Class VisualBasicCodeModelService

@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeStyle
-
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
     Microsoft.CodeAnalysis.VisualBasic.NewLines.ConsecutiveStatementPlacement.VisualBasicConsecutiveStatementPlacementDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement.ConsecutiveStatementPlacementCodeFixProvider)

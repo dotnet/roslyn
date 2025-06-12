@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
