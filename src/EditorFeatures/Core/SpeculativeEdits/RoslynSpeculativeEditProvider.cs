@@ -36,7 +36,7 @@ internal sealed class RoslynSpeculativeEditProvider(
         var documentId = document.Id;
 
         // Clone the existing text into a new editor snapshot/buffer that we can fork independently of the original.
-        var clonedSnapshotBeforeEdits = this.CloneWithEdits(options, options.DocumentContentType);
+        var clonedSnapshotBeforeEdits = this.CloneWithEdits(options);
 
         // Grab the ITextSnapshot of this cloned buffer before making any changes.  The SpeculativeEdit api needs it
         // as part of the returned set of values.
