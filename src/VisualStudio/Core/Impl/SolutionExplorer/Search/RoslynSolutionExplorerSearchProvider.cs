@@ -56,7 +56,6 @@ internal sealed class RoslynSolutionExplorerSearchProvider(
                 var solution = _workspace.CurrentSolution;
                 var searcher = NavigateToSearcher.Create(
                     solution,
-                    activeDocument: null,
                     new SolutionExplorerNavigateToSearchCallback(this, resultAccumulator),
                     parameters.SearchQuery.SearchString.Trim(),
                     NavigateToUtilities.GetKindsProvided(solution),
