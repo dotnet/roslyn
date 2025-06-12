@@ -59,7 +59,6 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
 
         var searcher = NavigateToSearcher.Create(
             solution,
-            activeDocument: null,
             _asyncListener,
             new LSPNavigateToCallback(context, progress),
             request.Query,
@@ -75,7 +74,8 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
         BufferedProgress<SymbolInformation[]> progress)
         : INavigateToSearchCallback
     {
-        public async Task AddResultsAsync(ImmutableArray<INavigateToSearchResult> results, CancellationToken cancellationToken)
+        public async Task AddResultsAsync(
+            ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
             var solution = context.Solution;

@@ -93,18 +93,10 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             // callback passed to us.
 
             var solution = provider._workspace.CurrentSolution;
-            var docTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
-
-            // If the workspace is tracking documents, use that to prioritize our search
-            // order.  That way we provide results for the documents the user is working
-            // on faster than the rest of the solution.
-            var activeDocument = docTrackingService.GetActiveDocument(solution);
-
             var searcher = NavigateToSearcher.Create(
                 solution,
-                activeDocument,
                 provider._asyncListener,
-                new RoslynNavigateToSearchCallback(solution, activeDocument?.Id, provider, searchCallback),
+                new RoslynNavigateToSearchCallback(solution, provider, searchCallback),
                 searchValue,
                 kinds,
                 provider._threadingContext.DisposalToken);
