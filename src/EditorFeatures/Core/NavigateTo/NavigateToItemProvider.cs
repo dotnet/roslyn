@@ -113,6 +113,7 @@ internal sealed partial class NavigateToItemProvider : INavigateToItemProvider2
         var roslynCallback = new NavigateToItemProviderCallback(solution, _displayFactory, callback);
         var searcher = NavigateToSearcher.Create(
             solution,
+            activeDocument: null,
             _asyncListener,
             roslynCallback,
             searchValue,

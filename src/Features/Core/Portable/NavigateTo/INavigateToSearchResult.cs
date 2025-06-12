@@ -21,7 +21,6 @@ internal interface INavigateToSearchResult
     string? Summary { get; }
 
     INavigableItem NavigableItem { get; }
-    bool IsActiveDocument { get; }
     ImmutableArray<PatternMatch> Matches { get; }
 }
 

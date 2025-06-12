@@ -22,15 +22,18 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     private sealed class RoslynNavigateToSearchCallback : INavigateToSearchCallback
     {
         private readonly Solution _solution;
+        private readonly DocumentId? _activeDocumentId;
         private readonly RoslynSearchItemsSourceProvider _provider;
         private readonly ISearchCallback _searchCallback;
 
         public RoslynNavigateToSearchCallback(
             Solution solution,
+            DocumentId? activeDocumentId,
             RoslynSearchItemsSourceProvider provider,
             ISearchCallback searchCallback)
         {
             _solution = solution;
+            _activeDocumentId = activeDocumentId;
             _provider = provider;
             _searchCallback = searchCallback;
         }
@@ -81,7 +84,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                     result.NavigableItem.Document.FilePath,
                     perProviderItemPriority,
                     project.Language,
-                    result.IsActiveDocument));
+                    isActiveDocument: _activeDocumentId == result.NavigableItem.Document.Id));
             }
 
             return Task.CompletedTask;

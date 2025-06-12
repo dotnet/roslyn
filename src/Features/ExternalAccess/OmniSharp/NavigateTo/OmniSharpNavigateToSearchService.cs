@@ -25,6 +25,7 @@ internal static class OmniSharpNavigateToSearcher
     {
         var searcher = NavigateToSearcher.Create(
             solution,
+            activeDocument: null,
             AsynchronousOperationListenerProvider.NullListener,
             new OmniSharpNavigateToCallbackImpl(solution, callback),
             searchPattern,
