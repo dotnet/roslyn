@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 [Export(typeof(IMetadataAsSourceFileService)), Shared]
 internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 {
-    private const string MetadataAsSource = nameof(MetadataAsSource);
+    internal const string MetadataAsSource = nameof(MetadataAsSource);
 
     /// <summary>
     /// Set of providers that can be used to generate source for a symbol (for example, by decompiling, or by
@@ -44,12 +44,11 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
-    /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
-    /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
+    /// Stores the original text loader for documents that have been opened in the workspace.
+    /// When the document is closed, we set the text loader back to the original loader.
+    /// Concurrent access is guaranteed by callers on the UI thread.
     /// </summary>
-    private readonly Mutex _mutex;
-    private readonly string _rootTemporaryPathWithGuid;
-    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
+    private readonly Dictionary<DocumentId, TextLoader> _openedDocumentReloaders = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -57,14 +56,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         [ImportMany] IEnumerable<Lazy<IMetadataAsSourceFileProvider, MetadataAsSourceFileProviderMetadata>> providers)
     {
         _providers = new(() => [.. ExtensionOrderer.Order(providers)]);
-
-        var guidString = Guid.NewGuid().ToString("N");
-        _rootTemporaryPathWithGuid = Path.Combine(_rootTemporaryPath, guidString);
-        _mutex = new Mutex(initiallyOwned: true, name: CreateMutexName(guidString));
     }
-
-    private static string CreateMutexName(string directoryName)
-        => $"{MetadataAsSource}-{directoryName}";
 
     public async Task<MetadataAsSourceFile> GetGeneratedFileAsync(
         Workspace sourceWorkspace,
@@ -87,13 +79,19 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
+            IMetadataDocumentPersister persister;
             if (_workspace is null)
             {
                 _workspace = new MetadataAsSourceWorkspace(this, sourceWorkspace.Services.HostServices);
 
+                persister = _workspace.Services.GetRequiredService<IMetadataDocumentPersister>();
                 // We're being initialized the first time.  Use this time to clean up any stale metadata-as-source files
                 // from previous VS sessions.
-                CleanupGeneratedFiles(_rootTemporaryPath);
+                persister.CleanupGeneratedDocuments();
+            }
+            else
+            {
+                persister = _workspace.Services.GetRequiredService<IMetadataDocumentPersister>();
             }
 
             Contract.ThrowIfNull(_workspace);
@@ -101,11 +99,16 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
             // We don't want to track telemetry for signatures only requests, only where we try to show source
             using var telemetryMessage = signaturesOnly ? null : new TelemetryMessage(cancellationToken);
 
+            // todo - path.  we have first root path (metadatassource folder), then a top guid (created by this provider).
+            // sub providers create their own subfolders under this guid with another guid. pdb uses projectid, decompiler uses new guid.
+            // maybe have persister take in the parts to create either uri for temp path?  but somehow need this to be able to clean it up.
+            // but seems possible - path is only accessed inthis method (in local cleanup).
+            // Maybe persister should implement cleanup generated files???? Nice.
+
             foreach (var lazyProvider in _providers.Value)
             {
                 var provider = lazyProvider.Value;
-                var providerTempPath = Path.Combine(_rootTemporaryPathWithGuid, provider.GetType().Name);
-                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, providerTempPath, telemetryMessage, cancellationToken).ConfigureAwait(false);
+                var result = await provider.GetGeneratedFileAsync(_workspace, sourceWorkspace, sourceProject, symbol, signaturesOnly, options, telemetryMessage, persister, cancellationToken).ConfigureAwait(false);
                 if (result is not null)
                     return result;
             }
@@ -113,48 +116,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
 
         // The decompilation provider can always return something
         throw ExceptionUtilities.Unreachable();
-
-        static void CleanupGeneratedFiles(string rootDirectory)
-        {
-            try
-            {
-                if (Directory.Exists(rootDirectory))
-                {
-                    // Let's look through directories to delete.
-                    foreach (var directoryInfo in new DirectoryInfo(rootDirectory).EnumerateDirectories())
-                    {
-                        // Is there a mutex for this one?  If so, that means it's a folder open in another VS instance.
-                        // We should leave it alone.  If not, then it's a folder from a previous VS run.  Delete that
-                        // now.
-                        if (Mutex.TryOpenExisting(CreateMutexName(directoryInfo.Name), out var acquiredMutex))
-                        {
-                            acquiredMutex.Dispose();
-                        }
-                        else
-                        {
-                            TryDeleteFolderWhichContainsReadOnlyFiles(directoryInfo.FullName);
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        static void TryDeleteFolderWhichContainsReadOnlyFiles(string directoryPath)
-        {
-            try
-            {
-                foreach (var fileInfo in new DirectoryInfo(directoryPath).EnumerateFiles("*", SearchOption.AllDirectories))
-                    IOUtilities.PerformIO(() => fileInfo.IsReadOnly = false);
-
-                IOUtilities.PerformIO(() => Directory.Delete(directoryPath, recursive: true));
-            }
-            catch (Exception)
-            {
-            }
-        }
     }
 
     private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
@@ -181,6 +142,15 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         {
             return false;
         }
+
+        // Store a text loader for this document.  We'll need this when we close the document to avoid losing the text.
+        // todo - loader not stored.  can we just use the current source text?
+        // todo - should the workspace virtual text persister store this itself?
+        // persister can write text and persist to workspace at same time.  virtual can persis only to workspace
+        // todo - or have open / close be implemented by persister - do nothing for virtual.
+        // todo - test verifies workspace text after close.
+        var loader = TextLoader.From(TextAndVersion.Create(sourceTextContainer.CurrentText, VersionStamp.Default));
+        _openedDocumentReloaders.Add(documentId, loader);
 
         workspace.OnDocumentOpened(documentId, sourceTextContainer);
         return true;
@@ -211,7 +181,8 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         // However TryRemoveDocumentFromWorkspace is always called on close.
         if (workspace.GetOpenDocumentIds().Contains(documentId))
         {
-            workspace.OnDocumentClosed(documentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, defaultEncoding: null));
+            var loader = _openedDocumentReloaders[documentId];
+            workspace.OnDocumentClosed(documentId, loader);
         }
 
         return true;

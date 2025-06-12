@@ -18,7 +18,7 @@ public sealed partial class MetadataAsSourceTests
     public class VisualBasic : AbstractMetadataAsSourceTests
     {
         [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530123")]
-        public async Task TestGenerateTypeInModule(bool signaturesOnly)
+        public async Task TestGenerateTypeInModule(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = @"
 Module M
@@ -64,11 +64,11 @@ internal sealed class M
 #endif",
             };
 
-            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, useVirtualFiles, signaturesOnly: signaturesOnly);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/60253")]
-        public async Task TestReferenceAssembly(bool signaturesOnly)
+        public async Task TestReferenceAssembly(bool signaturesOnly, bool useVirtualFiles)
         {
             var metadataSource = @"
 <Assembly: System.Runtime.CompilerServices.ReferenceAssembly>
@@ -87,15 +87,17 @@ Friend Module M
     End Class
 End Module";
 
-            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, signaturesOnly: signaturesOnly);
+            await GenerateAndVerifySourceAsync(metadataSource, "M+D", LanguageNames.VisualBasic, expected, useVirtualFiles, signaturesOnly: signaturesOnly);
         }
 
         // This test depends on the version of mscorlib used by the TestWorkspace and may 
         // change in the future
         [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530526")]
-        [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
-        [InlineData(true)]
-        public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly)
+        [InlineData(false, false, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
+        [InlineData(true, false)]
+        [InlineData(false, true, Skip = "https://github.com/dotnet/roslyn/issues/52415")]
+        [InlineData(true, true)]
+        public async Task BracketedIdentifierSimplificationTest(bool signaturesOnly, bool useVirtualFiles)
         {
             var expected = signaturesOnly switch
             {
@@ -173,7 +175,7 @@ public sealed class [|ObsoleteAttribute|] : Attribute
 #endif",
             };
 
-            using var context = TestContext.Create(LanguageNames.VisualBasic);
+            using var context = TestContext.Create(useVirtualFiles, LanguageNames.VisualBasic);
             await context.GenerateAndVerifySourceAsync("System.ObsoleteAttribute", expected, signaturesOnly: signaturesOnly);
         }
 
@@ -194,9 +196,9 @@ public sealed class [|ObsoleteAttribute|] : Attribute
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
-        public async Task TestValueTuple(bool signaturesOnly)
+        public async Task TestValueTuple(bool signaturesOnly, bool useVirtualFiles)
         {
-            using var context = TestContext.Create(LanguageNames.VisualBasic);
+            using var context = TestContext.Create(useVirtualFiles, LanguageNames.VisualBasic);
 
             var expected = signaturesOnly switch
             {

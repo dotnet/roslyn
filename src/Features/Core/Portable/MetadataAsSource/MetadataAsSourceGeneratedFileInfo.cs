@@ -21,7 +21,7 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
     public static Encoding Encoding => Encoding.UTF8;
     public static SourceHashAlgorithm ChecksumAlgorithm => SourceHashAlgorithms.Default;
 
-    public MetadataAsSourceGeneratedFileInfo(string rootPath, Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly)
+    public MetadataAsSourceGeneratedFileInfo(Workspace sourceWorkspace, Project sourceProject, INamedTypeSymbol topLevelNamedType, bool signaturesOnly, IMetadataDocumentPersister persister)
     {
         this.SourceProjectId = sourceProject.Id;
         this.Workspace = sourceWorkspace;
@@ -30,7 +30,7 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
 
         this.Extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
 
-        var directoryName = Guid.NewGuid().ToString("N");
-        this.TemporaryFilePath = Path.Combine(rootPath, directoryName, topLevelNamedType.Name + Extension);
+        var directoryName = Guid.NewGuid();
+        this.TemporaryFilePath = persister.GenerateDocumentPath(directoryName, DecompilationMetadataAsSourceFileProvider.ProviderName, topLevelNamedType.Name + Extension);
     }
 }

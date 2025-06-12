@@ -33,7 +33,10 @@ public abstract partial class AbstractMetadataAsSourceTests
         public readonly EditorTestWorkspace Workspace;
         private readonly IMetadataAsSourceFileService _metadataAsSourceService;
 
+        public bool UseVirtualFiles { get; }
+
         public static TestContext Create(
+            bool useVirtualFiles,
             string? projectLanguage = null,
             IEnumerable<string>? metadataSources = null,
             bool includeXmlDocComments = false,
@@ -51,7 +54,7 @@ public abstract partial class AbstractMetadataAsSourceTests
                 : metadataSources;
 
             var workspace = CreateWorkspace(
-                projectLanguage, metadataSources, includeXmlDocComments,
+                projectLanguage, metadataSources, includeXmlDocComments, useVirtualFiles,
                 sourceWithSymbolReference, languageVersion,
                 metadataLanguageVersion, metadataCommonReferences, commonReferencesValue);
 
@@ -63,13 +66,14 @@ public abstract partial class AbstractMetadataAsSourceTests
                 });
             }
 
-            return new TestContext(workspace);
+            return new TestContext(workspace, useVirtualFiles);
         }
 
-        public TestContext(EditorTestWorkspace workspace)
+        public TestContext(EditorTestWorkspace workspace, bool useVirtualFiles)
         {
             Workspace = workspace;
             _metadataAsSourceService = Workspace.GetService<IMetadataAsSourceFileService>();
+            UseVirtualFiles = useVirtualFiles;
         }
 
         public Solution CurrentSolution
@@ -80,6 +84,16 @@ public abstract partial class AbstractMetadataAsSourceTests
         public Project DefaultProject
         {
             get { return this.CurrentSolution.Projects.First(); }
+        }
+
+        public Workspace MetadataAsSourceWorkspace
+        {
+            get
+            {
+                var workspace = _metadataAsSourceService.TryGetWorkspace();
+                Contract.ThrowIfNull(workspace, "MetadataAsSourceWorkspace is not available. Ensure that a MetadataAsSource file has been generated at least once");
+                return workspace;
+            }
         }
 
         public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project? project = null, bool signaturesOnly = true)
@@ -134,9 +148,20 @@ public abstract partial class AbstractMetadataAsSourceTests
             return result;
         }
 
-        public static void VerifyResult(MetadataAsSourceFile file, string expected)
+        public void VerifyResult(MetadataAsSourceFile file, string expected)
         {
-            var actual = File.ReadAllText(file.FilePath).Trim();
+            string actual;
+            if (this.UseVirtualFiles)
+            {
+                var documentId = this.MetadataAsSourceWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
+                var document = this.MetadataAsSourceWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+                actual = document.GetTextSynchronously(CancellationToken.None).ToString();
+            }
+            else
+            {
+                actual = File.ReadAllText(file.FilePath).Trim();
+            }
+
             var actualSpan = file.IdentifierLocation.SourceSpan;
 
             // Compare exact texts and verify that the location returned is exactly that
@@ -245,6 +270,7 @@ public abstract partial class AbstractMetadataAsSourceTests
             string projectLanguage,
             IEnumerable<string>? metadataSources,
             bool includeXmlDocComments,
+            bool useVirtualFiles,
             string? sourceWithSymbolReference,
             string? languageVersion,
             string? metadataLanguageVersion,
@@ -296,13 +322,28 @@ public abstract partial class AbstractMetadataAsSourceTests
                 .WithExcludedPartTypes([typeof(IMetadataAsSourceFileProvider)])
                 .AddParts(typeof(DecompilationMetadataAsSourceFileProvider));
 
+            if (useVirtualFiles)
+            {
+                composition = composition.AddParts(typeof(TestWorkspaceMetadataDocumentPersisterFactory));
+            }
+
             return EditorTestWorkspace.Create(xmlString, composition: composition);
         }
 
         internal Document GetDocument(MetadataAsSourceFile file)
         {
-            using var reader = File.OpenRead(file.FilePath);
-            var stringText = EncodedStringText.Create(reader);
+            SourceText stringText;
+            if (this.UseVirtualFiles)
+            {
+                var documentId = this.MetadataAsSourceWorkspace.CurrentSolution.GetDocumentIdsWithFilePath(file.FilePath).Single();
+                var document = this.MetadataAsSourceWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+                stringText = document.GetTextSynchronously(CancellationToken.None);
+            }
+            else
+            {
+                using var reader = File.OpenRead(file.FilePath);
+                stringText = EncodedStringText.Create(reader);
+            }
 
             Assert.True(_metadataAsSourceService.TryAddDocumentToWorkspace(file.FilePath, stringText.Container, out var _));
 

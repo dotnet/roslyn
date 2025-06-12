@@ -37,7 +37,7 @@ internal sealed class NullResultMetadataAsSourceFileProvider : IMetadataAsSource
     {
     }
 
-    public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, string tempPath, TelemetryMessage? telemetry, CancellationToken cancellationToken)
+    public Task<MetadataAsSourceFile?> GetGeneratedFileAsync(MetadataAsSourceWorkspace metadataWorkspace, Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, TelemetryMessage? telemetry, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
         return Task.FromResult<MetadataAsSourceFile?>(NullResult);
     }

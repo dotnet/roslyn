@@ -72,8 +72,8 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        string tempPath,
         TelemetryMessage? telemetryMessage,
+        IMetadataDocumentPersister persister,
         CancellationToken cancellationToken)
     {
         // Check if the user wants to look for PDB source documents at all
@@ -224,28 +224,11 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             _assemblyToProjectMap.Add(assemblyName, projectId);
         }
 
-        var tempFilePath = Path.Combine(tempPath, projectId.Id.ToString());
-
-        // Create the directory. It's possible a parallel deletion is happening in another process, so we may have
-        // to retry this a few times.
-        var loopCount = 0;
-        while (!Directory.Exists(tempFilePath))
-        {
-            // Protect against infinite loops.
-            if (loopCount++ > 10)
-            {
-                _logger?.Log(FeaturesResources.Unable_to_create_0, tempFilePath);
-                return null;
-            }
-
-            IOUtilities.PerformIO(() => Directory.CreateDirectory(tempFilePath));
-        }
-
         // Get text loaders for our documents. We do this here because if we can't load any of the files, then
         // we can't provide any results, so there is no point adding a project to the workspace etc.
         var useExtendedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
         var encoding = defaultEncoding ?? Encoding.UTF8;
-        var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetryMessage, useExtendedTimeout, cancellationToken)).ToArray();
+        var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(sd, encoding, telemetryMessage, useExtendedTimeout, projectId, persister, cancellationToken)).ToArray();
         var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
         if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
             return null;
@@ -343,10 +326,14 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
 
             var documentId = DocumentId.CreateNewId(projectId);
 
+            // Update the workspace to pull the text we just generated.
+            var textAndVersion = TextAndVersion.Create(info.SourceText, VersionStamp.Default, info.FilePath);
+            var textLoader = TextLoader.From(textAndVersion);
+
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 name: Path.GetFileName(info.FilePath),
-                loader: info.Loader,
+                loader: textLoader,
                 filePath: info.FilePath,
                 isGenerated: true)
                 .WithDesignTimeOnly(true);

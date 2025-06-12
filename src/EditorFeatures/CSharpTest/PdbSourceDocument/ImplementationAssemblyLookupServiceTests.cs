@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument;
 
 public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSourceDocumentTests
 {
-    [Fact]
-    public async Task Net6SdkLayout_InvalidXml()
+    [Theory, CombinatorialData]
+    public async Task Net6SdkLayout_InvalidXml(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -41,7 +41,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Create reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly
             CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -58,8 +58,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task Net6SdkLayout()
+    [Theory, CombinatorialData]
+    public async Task Net6SdkLayout(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -79,7 +79,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly
             CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -98,8 +98,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task Net6SdkLayout_PacksInPath()
+    [Theory, CombinatorialData]
+    public async Task Net6SdkLayout_PacksInPath(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -121,7 +121,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly
             CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -140,8 +140,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -159,13 +159,13 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
             MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
 
             var sourceText = SourceText.From(metadataSource, Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             var workspace = EditorTestWorkspace.Create(@$"
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
 
@@ -191,8 +191,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_Namespace()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_Namespace(bool useVirtualFiles)
     {
         var source = """
             namespace A
@@ -220,7 +220,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -232,7 +232,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -252,8 +252,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_Generics()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_Generics(bool useVirtualFiles)
     {
         var source = """
             namespace A
@@ -281,7 +281,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("A.B.C.D.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -293,7 +293,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -313,8 +313,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_NestedType()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_NestedType(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -336,7 +336,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.D.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.D.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -348,7 +348,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -367,8 +367,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_Cache()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_Cache(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -387,7 +387,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -399,7 +399,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -425,8 +425,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_MultipleTypes_Cache()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_MultipleTypes_Cache(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -452,7 +452,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -464,7 +464,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
@@ -490,8 +490,8 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
         });
     }
 
-    [Fact]
-    public async Task FollowTypeForwards_MultipleHops_Cache()
+    [Theory, CombinatorialData]
+    public async Task FollowTypeForwards_MultipleHops_Cache(bool useVirtualFiles)
     {
         var source = """
             public class C
@@ -510,7 +510,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 
             // Compile reference assembly
             var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
-            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true, useVirtualFiles: useVirtualFiles);
 
             // Compile implementation assembly to a different DLL
             var dllFilePath = Path.Combine(path, "implementation.dll");
@@ -522,7 +522,7 @@ public sealed class ImplementationAssemblyLookupServiceTests : AbstractPdbSource
 <Workspace>
     <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
     </Project>
-</Workspace>", composition: GetTestComposition());
+</Workspace>", composition: GetTestComposition(useVirtualFiles));
 
             var implProject = workspace.CurrentSolution.Projects.First();
             CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
