@@ -111,6 +111,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.14.18" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Text.Internal" Version="18.0.255-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="18.0.231-preview" />
