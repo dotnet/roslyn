@@ -22,7 +22,7 @@ internal static class UseNullPropagationHelpers
     public static bool IsSystemNullableValueProperty([NotNullWhen(true)] ISymbol? symbol)
         => symbol is
         {
-            Name: nameof(Nullable<>.Value),
+            Name: nameof(Nullable<int>.Value),
             ContainingType.OriginalDefinition.SpecialType: SpecialType.System_Nullable_T,
         };
 }

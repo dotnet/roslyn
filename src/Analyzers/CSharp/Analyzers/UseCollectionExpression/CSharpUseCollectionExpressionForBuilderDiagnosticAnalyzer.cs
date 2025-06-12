@@ -27,7 +27,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         EnforceOnBuildValues.UseCollectionExpressionForBuilder)
 {
     private const string CreateBuilderName = nameof(ImmutableArray.CreateBuilder);
-    private const string GetInstanceName = nameof(ArrayBuilder<>.GetInstance);
+    private const string GetInstanceName = nameof(ArrayBuilder<int>.GetInstance);
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
@@ -117,7 +117,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             return null;
 
         if (memberAccessExpression.Name.Identifier.ValueText == GetInstanceName &&
-            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<>) })
+            memberAccessExpression.Expression is not GenericNameSyntax { Identifier.ValueText: nameof(ArrayBuilder<int>) })
         {
             return null;
         }
@@ -217,12 +217,12 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                     memberAccess.Expression == identifierName &&
                     memberAccess.Parent is InvocationExpressionSyntax { ArgumentList.Arguments.Count: 0 } invocationExpression &&
                     memberAccess.Name.Identifier.ValueText
-                        is nameof(ImmutableArray<>.Builder.ToImmutable)
-                        or nameof(ImmutableArray<>.Builder.MoveToImmutable)
-                        or nameof(ImmutableArray<>.Builder.ToArray)
-                        or nameof(ArrayBuilder<>.ToImmutableAndClear)
-                        or nameof(ArrayBuilder<>.ToImmutableAndFree)
-                        or nameof(ArrayBuilder<>.ToArrayAndFree)
+                        is nameof(ImmutableArray<int>.Builder.ToImmutable)
+                        or nameof(ImmutableArray<int>.Builder.MoveToImmutable)
+                        or nameof(ImmutableArray<int>.Builder.ToArray)
+                        or nameof(ArrayBuilder<int>.ToImmutableAndClear)
+                        or nameof(ArrayBuilder<int>.ToImmutableAndFree)
+                        or nameof(ArrayBuilder<int>.ToArrayAndFree)
                         or nameof(Enumerable.ToList))
                 {
                     return invocationExpression;

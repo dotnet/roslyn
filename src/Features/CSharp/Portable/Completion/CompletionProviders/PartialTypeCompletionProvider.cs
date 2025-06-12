@@ -37,6 +37,9 @@ internal sealed partial class PartialTypeCompletionProvider : AbstractPartialTyp
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+    private static readonly SymbolDisplayFormat _symbolFormatWithoutGenerics =
+        _symbolFormatWithGenerics.WithGenericsOptions(SymbolDisplayGenericsOptions.None);
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PartialTypeCompletionProvider()

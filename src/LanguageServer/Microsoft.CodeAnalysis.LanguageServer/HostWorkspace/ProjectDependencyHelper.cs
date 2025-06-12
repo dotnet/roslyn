@@ -13,7 +13,6 @@ using NuGet.Versioning;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
-
 internal static class ProjectDependencyHelper
 {
     internal const string ProjectNeedsRestoreName = "workspace/_roslyn_projectNeedsRestore";

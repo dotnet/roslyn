@@ -25,7 +25,7 @@ internal interface IRemoteNavigateToSearchService
 
     ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken);
 
-    interface ICallback
+    public interface ICallback
     {
         ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items);
         ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);

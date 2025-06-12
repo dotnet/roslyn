@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
-
 internal abstract partial class AbstractInitializeParameterCodeRefactoringProvider<
     TTypeDeclarationSyntax,
     TParameterSyntax,

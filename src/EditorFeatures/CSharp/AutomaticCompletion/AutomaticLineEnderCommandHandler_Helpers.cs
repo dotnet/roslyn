@@ -835,6 +835,9 @@ internal sealed partial class AutomaticLineEnderCommandHandler
 
     #region AddBrace
 
+    private static AccessorListSyntax GetAccessorListNode(SyntaxFormattingOptions formattingOptions)
+        => AccessorList().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
+
     private static InitializerExpressionSyntax GetInitializerExpressionNode(SyntaxFormattingOptions formattingOptions)
         => InitializerExpression(SyntaxKind.ObjectInitializerExpression)
             .WithOpenBraceToken(GetOpenBrace(formattingOptions));

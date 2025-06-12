@@ -69,7 +69,10 @@ public sealed class GenerateEqualsAndGetHashCodeFromMembersTests
     internal static void EnableOption(ImmutableArray<PickMembersOption> options, string id)
     {
         var option = options.FirstOrDefault(o => o.Id == id);
-        option?.Value = true;
+        if (option != null)
+        {
+            option.Value = true;
+        }
     }
 
     [Fact]

@@ -14,7 +14,7 @@ internal interface IPythiaDeclarationNameRecommenderImplementation
     /// <summary>
     /// Order of returned recommendation decides the order of those items in completion list
     /// </summary>
-    Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
+    public Task<ImmutableArray<string>> ProvideRecommendationsAsync(PythiaDeclarationNameContext context, CancellationToken cancellationToken);
 }
 
 internal readonly struct PythiaDeclarationNameContext(CSharpSyntaxContext context)

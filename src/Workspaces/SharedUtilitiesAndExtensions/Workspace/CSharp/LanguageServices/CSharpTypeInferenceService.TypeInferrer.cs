@@ -1723,13 +1723,13 @@ internal partial class CSharpTypeInferenceService
             // then we can figure out what 'goo' should be based on teh await
             // context.
             var name = memberAccessExpression.Name.Identifier.Value;
-            if (name.Equals(nameof(Task<>.ConfigureAwait)) &&
+            if (name.Equals(nameof(Task<int>.ConfigureAwait)) &&
                 memberAccessExpression?.Parent is InvocationExpressionSyntax invocation &&
                 memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
             {
                 return InferTypes(invocation);
             }
-            else if (name.Equals(nameof(Task<>.ContinueWith)))
+            else if (name.Equals(nameof(Task<int>.ContinueWith)))
             {
                 // goo.ContinueWith(...)
                 // We want to infer Task<T>.  For now, we'll just do Task<object>,
