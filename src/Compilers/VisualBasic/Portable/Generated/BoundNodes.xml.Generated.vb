@@ -194,22 +194,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Interpolation
     End Enum
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     Partial Friend MustInherit Class BoundExpression
         Inherits BoundNode
 

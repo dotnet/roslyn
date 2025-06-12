@@ -1016,18 +1016,14 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         var document = this.CurrentSolution.GetTextDocument(documentId);
         if (document != null)
         {
-            var hierarchy = this.GetHierarchy(documentId.ProjectId);
-            Contract.ThrowIfNull(hierarchy, "Removing files from projects without hierarchies are not supported.");
-
-            var text = document.GetTextSynchronously(CancellationToken.None);
-
-            Contract.ThrowIfNull(document.FilePath, "Removing files from projects that don't have file names are not supported.");
-            var itemId = hierarchy.TryGetItemId(document.FilePath);
-            if (itemId == (uint)VSConstants.VSITEMID.Nil)
+            if (!VisualStudioWorkspaceUtilities.TryGetVsHierarchyAndItemId(
+                    document, out var hierarchy, out var itemId))
             {
                 // it is no longer part of the solution
                 return;
             }
+
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var project = (IVsProject3)hierarchy;
             project.RemoveItem(0, itemId, out _);

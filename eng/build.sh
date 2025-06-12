@@ -39,6 +39,7 @@ usage()
   echo "  --warnAsError              Treat all warnings as errors"
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
+  echo "  --fromVMR                  Build the repository in product-build mode."
   echo "  --solution                 Solution to build (default is Compilers.slnf)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
@@ -79,9 +80,10 @@ run_analyzers=false
 skip_documentation=false
 prepare_machine=false
 warn_as_error=false
-properties=""
+properties=()
 source_build=false
 product_build=false
+from_vmr=false
 solution_to_build="Compilers.slnf"
 
 args=""
@@ -182,13 +184,16 @@ while [[ $# > 0 ]]; do
     --productbuild|--product-build|-pb)
       product_build=true
       ;;
+    --fromvmr|--from-vmr)
+      from_vmr=true
+      ;;
     --solution)
       solution_to_build=$2
       args="$args $1"
       shift
       ;;
     /p:*)
-      properties="$properties $1"
+      properties+=("$1")
       ;;
     *)
       echo "Invalid argument: $1"
@@ -291,6 +296,8 @@ function BuildSolution {
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
   # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
   # Warnings reported from other msbuild tasks are not treated as errors for now.
+
+  # TODO: Remove DotNetBuildRepo property when roslyn is on Arcade 10
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -310,11 +317,13 @@ function BuildSolution {
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
     /p:DotNetBuildRepo=$product_build \
+    /p:DotNetBuild=$product_build \
+    /p:DotNetBuildFromVMR=$from_vmr \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
     $roslyn_use_hard_links \
-    $properties
+    ${properties[@]+"${properties[@]}"}
 }
 
 function GetCompilerTestAssembliesIncludePaths {
@@ -342,9 +351,8 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-# Check the dev switch --source-build as well as ensure that source only switches were not passed in via extra properties
 # Source only builds would not have 'dotnet' ambiently available.
-if [[ "$restore" == true && "$source_build" != true && $properties != *"DotNetBuildSourceOnly=true"* ]]; then
+if [[ "$restore" == true && "$source_build" != true ]]; then
   dotnet tool restore
 fi
 

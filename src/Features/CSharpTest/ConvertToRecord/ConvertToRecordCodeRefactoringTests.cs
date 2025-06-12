@@ -4515,6 +4515,55 @@ public sealed class ConvertToRecordCodeRefactoringTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
+    public async Task TestDoesNotCrashOnAbstractMethod()
+    {
+        var initialMarkup = """
+            namespace N
+            {
+                public abstract class [|C|]
+                {
+                    public string? S { get; set; }
+
+                    public abstract System.Guid F();
+                }
+            }
+            """;
+        var changedMarkup = """
+            namespace N
+            {
+                public abstract record C(string? S)
+                {
+                    public abstract System.Guid F();
+                }
+            }
+            """;
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
+    public async Task TestDoesNotCrashOnAbstractCloneMethod()
+    {
+        var initialMarkup = """
+            namespace N
+            {
+                public abstract class [|C|]
+                {
+                    public string? S { get; set; }
+
+                    public abstract object Clone();
+                }
+            }
+            """;
+        var changedMarkup = """
+            namespace N
+            {
+                public abstract record C(string? S);
+            }
+            """;
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
+    }
+
 #pragma warning disable RS1042 // Do not implement
     private sealed class ConvertToRecordTestGenerator : ISourceGenerator
 #pragma warning restore RS1042 // Do not implement

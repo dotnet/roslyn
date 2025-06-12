@@ -57,19 +57,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         ProjectFactory.SolutionPath = solutionFilePath;
 
-        // We'll load solutions out-of-proc, since it's possible we might be running on a runtime that doesn't have a matching SDK installed,
-        // and we don't want any MSBuild registration to set environment variables in our process that might impact child processes.
-        await using var buildHostProcessManager = new BuildHostProcessManager(globalMSBuildProperties: AdditionalProperties, loggerFactory: LoggerFactory);
-        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-
-        // If we don't have a .NET Core SDK on this machine at all, try .NET Framework
-        if (!await buildHost.HasUsableMSBuildAsync(solutionFilePath, CancellationToken.None))
-        {
-            var kind = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? BuildHostProcessKind.NetFramework : BuildHostProcessKind.Mono;
-            buildHost = await buildHostProcessManager.GetBuildHostAsync(kind, CancellationToken.None);
-        }
-
-        var projects = await buildHost.GetProjectsInSolutionAsync(solutionFilePath, CancellationToken.None);
+        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
         foreach (var (path, guid) in projects)
         {
             await BeginLoadingProjectAsync(path, guid);
@@ -91,7 +79,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
     }
 
-    protected override async Task<(RemoteProjectFile projectFile, bool hasAllInformation, BuildHostProcessKind preferred, BuildHostProcessKind actual)?> TryLoadProjectInMSBuildHostAsync(
+    protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
@@ -101,6 +89,6 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        return (loadedFile, hasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
+        return new RemoteProjectLoadResult(loadedFile, HasAllInformation: true, preferredBuildHostKind, actualBuildHostKind);
     }
 }

@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
 
             Dim vbOptions = DirectCast(options, VisualBasicCompilationOptions)
 
-            writer.WriteArray(vbOptions.GlobalImports.SelectAsArray(Function(g) g.Name), Sub(w, n) w.WriteString(n))
+            writer.WriteArray(vbOptions.GlobalImports.NullToEmpty().SelectAsArray(Function(g) g?.Name), Sub(w, n) w.WriteString(n))
             writer.WriteString(vbOptions.RootNamespace)
             writer.WriteInt32(vbOptions.OptionStrict)
             writer.WriteBoolean(vbOptions.OptionInfer)
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Serialization
             Dim assemblyIdentityComparer = tuple.assemblyIdentityComparer
             Dim strongNameProvider = tuple.strongNameProvider
 
-            Dim globalImports = GlobalImport.Parse(reader.ReadArray(Function(r) r.ReadString()))
+            Dim globalImports = GlobalImport.Parse(reader.ReadArray(Function(r) r.ReadString()).WhereNotNull())
             Dim rootNamespace = reader.ReadString()
             Dim optionStrict = CType(reader.ReadInt32(), OptionStrict)
             Dim optionInfer = reader.ReadBoolean()
