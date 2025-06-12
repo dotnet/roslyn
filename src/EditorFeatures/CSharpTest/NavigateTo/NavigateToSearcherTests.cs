@@ -143,7 +143,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -184,7 +183,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -222,7 +220,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -260,7 +257,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -292,7 +288,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -351,7 +346,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callbackMock.Object,
             pattern,
             kinds: ImmutableHashSet<string>.Empty,
@@ -403,7 +397,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callback,
             "Goo",
             kinds: searchService.KindsProvided,
@@ -464,7 +457,6 @@ public sealed class NavigateToSearcherTests
 
         var searcher = NavigateToSearcher.Create(
             workspace.CurrentSolution,
-            activeDocument: null,
             callback,
             "Goo",
             kinds: searchService.KindsProvided,

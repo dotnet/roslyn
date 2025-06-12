@@ -82,6 +82,17 @@ internal sealed class NavigateToSearcher
                                               .WhereAsArray(d => d != _activeDocument);
     }
 
+    public static NavigateToSearcher Create(
+        Solution solution,
+        IAsynchronousOperationListener asyncListener,
+        INavigateToSearchCallback callback,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        CancellationToken disposalToken)
+    {
+        return Create(solution, activeDocument: null, asyncListener, callback, searchPattern, kinds, disposalToken);
+    }
+
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Creates a searcher using the default host.
@@ -101,6 +112,16 @@ internal sealed class NavigateToSearcher
     {
         var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
         return Create(solution, activeDocument, callback, searchPattern, kinds, host);
+    }
+
+    public static NavigateToSearcher Create(
+        Solution solution,
+        INavigateToSearchCallback callback,
+        string searchPattern,
+        IImmutableSet<string> kinds,
+        INavigateToSearcherHost host)
+    {
+        return Create(solution, activeDocument: null, callback, searchPattern, kinds, host);
     }
 
     public static NavigateToSearcher Create(
