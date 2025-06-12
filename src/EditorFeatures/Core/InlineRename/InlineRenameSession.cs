@@ -806,9 +806,12 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
 
         previewChanges = previewChanges || PreviewChanges;
 
-        // Prevent Editor's typing responsiveness auto canceling the rename operation.
-        // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
-        editorUIOperationContext?.TakeOwnership();
+        if (editorUIOperationContext is not null)
+        {
+            // Prevent Editor's typing responsiveness auto canceling the rename operation.
+            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+            editorUIOperationContext.TakeOwnership();
+        }
 
         try
         {

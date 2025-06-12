@@ -102,7 +102,10 @@ internal sealed partial class GenerateOverridesCodeRefactoringProvider
             public override void Apply(Workspace workspace, CancellationToken cancellationToken)
             {
                 var service = workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-                service?.GenerateOverrides = _selectedAll;
+                if (service != null)
+                {
+                    service.GenerateOverrides = _selectedAll;
+                }
             }
         }
     }
