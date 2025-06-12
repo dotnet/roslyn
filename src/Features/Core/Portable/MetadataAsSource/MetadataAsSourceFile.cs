@@ -19,3 +19,5 @@ internal sealed class MetadataAsSourceFile
     public string DocumentTitle { get; }
     public string DocumentTooltip { get; }
 }
+
+internal record struct MetadataAsSourceFileMetadata(bool SignaturesOnly, Workspace SourceWorkspace, ProjectId SourceProjectId);

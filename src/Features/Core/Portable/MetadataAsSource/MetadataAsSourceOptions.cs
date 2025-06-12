@@ -34,4 +34,11 @@ internal readonly record struct MetadataAsSourceOptions()
     /// </summary>
     [DataMember]
     public bool NavigateToSourceLinkAndEmbeddedSources { get; init; } = true;
+
+    /// <summary>
+    /// Whether the generated metadata documents be generated to disk (<see langword="false"/>) or
+    /// if they will be generated as in memory workspace documents only (<see langword="true"/>).
+    /// </summary>
+    [DataMember]
+    public bool NavigateToVirtualFile { get; init; } = false;
 }

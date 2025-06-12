@@ -34,30 +34,34 @@ internal sealed class PdbSourceDocumentLoaderService(
     private readonly Lazy<ISourceLinkService>? _sourceLinkService = sourceLinkService;
     private readonly IPdbSourceDocumentLogger? _logger = logger;
 
-    public async Task<SourceFileInfo?> LoadSourceDocumentAsync(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
+    public async Task<SourceFileInfo?> LoadSourceDocumentAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, ProjectId projectId, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
         // First we try getting "local" files, either from embedded source or a local file on disk
         // and if they don't work we call the debugger to download a file from SourceLink info
-        return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry) ??
-            TryGetOriginalFile(sourceDocument, encoding, telemetry) ??
-            await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useExtendedTimeout, cancellationToken).ConfigureAwait(false);
+        return (await TryGetEmbeddedSourceFileAsync(projectId, sourceDocument, encoding, telemetry, persister, cancellationToken).ConfigureAwait(false)) ??
+            TryGetOriginalFile(sourceDocument, encoding, telemetry, projectId, persister) ??
+            await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, useExtendedTimeout, projectId, persister, cancellationToken).ConfigureAwait(false);
     }
 
-    private SourceFileInfo? TryGetEmbeddedSourceFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
+    private async Task<SourceFileInfo?> TryGetEmbeddedSourceFileAsync(ProjectId projectId, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
         if (sourceDocument.EmbeddedTextBytes is null)
             return null;
 
-        var filePath = Path.Combine(tempFilePath, Path.GetFileName(sourceDocument.FilePath));
+        var fileName = Path.GetFileName(sourceDocument.FilePath);
+        var documentPath = persister.GenerateDocumentPath(projectId.Id, PdbSourceDocumentMetadataAsSourceFileProvider.ProviderName, fileName);
 
         // We might have already navigated to this file before, so it might exist, but
         // we still need to re-validate the checksum and make sure its not the wrong file
-        if (File.Exists(filePath) &&
-            LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, fromRemoteLocation: false) is { } existing)
+        var existingSourceText = await persister
+            .TryGetExistingTextAsync(documentPath, encoding, sourceDocument.ChecksumAlgorithm, (sourceText) => VerifySourceText(sourceText, sourceDocument), cancellationToken)
+            .ConfigureAwait(false);
+
+        if (existingSourceText is not null)
         {
             telemetry.SetSourceFileSource("embedded");
             _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_cached_source_file, sourceDocument.FilePath);
-            return existing;
+            return new SourceFileInfo(documentPath, FeaturesResources.embedded, existingSourceText, sourceDocument.ChecksumAlgorithm, FromRemoteLocation: false);
         }
 
         var embeddedTextBytes = sourceDocument.EmbeddedTextBytes;
@@ -85,43 +89,38 @@ internal sealed class PdbSourceDocumentLoaderService(
         {
             // Even though Roslyn supports loading SourceTexts from a stream, Visual Studio requires
             // a file to exist on disk so we have to write embedded source to a temp file.
+            SourceText sourceText;
             using (stream)
             {
-                try
-                {
-                    stream.Position = 0;
-                    using (var file = File.OpenWrite(filePath))
-                    {
-                        stream.CopyTo(file);
-                    }
+                sourceText = SourceText.From(stream, encoding, sourceDocument.ChecksumAlgorithm, throwIfBinaryDetected: true);
 
-                    new FileInfo(filePath).IsReadOnly = true;
-                }
-                catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+                var didWrite = await persister.WriteMetadataDocumentAsync(documentPath, encoding, sourceText,
+                    logFailure: (ex) => _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message),
+                    cancellationToken).ConfigureAwait(false);
+                if (!didWrite)
                 {
-                    _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_could_not_write_file_1, sourceDocument.FilePath, ex.Message);
                     return null;
                 }
             }
 
-            var result = LoadSourceFile(filePath, sourceDocument, encoding, FeaturesResources.embedded, ignoreChecksum: false, fromRemoteLocation: false);
-            if (result is not null)
+            var checksumMatches = VerifySourceText(sourceText, sourceDocument);
+            if (checksumMatches)
             {
                 telemetry.SetSourceFileSource("embedded");
                 _logger?.Log(FeaturesResources._0_found_in_embedded_PDB, sourceDocument.FilePath);
+                return new SourceFileInfo(documentPath, FeaturesResources.embedded, sourceText, sourceDocument.ChecksumAlgorithm, FromRemoteLocation: false);
             }
             else
             {
                 _logger?.Log(FeaturesResources._0_found_in_embedded_PDB_but_checksum_failed, sourceDocument.FilePath);
+                return null;
             }
-
-            return result;
         }
 
         return null;
     }
 
-    private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, CancellationToken cancellationToken)
+    private async Task<SourceFileInfo?> TryGetSourceLinkFileAsync(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, bool useExtendedTimeout, ProjectId projectId, IMetadataDocumentPersister persister, CancellationToken cancellationToken)
     {
         if (sourceDocument.SourceLinkUrl is null || _sourceLinkService is null)
             return null;
@@ -142,18 +141,21 @@ internal sealed class PdbSourceDocumentLoaderService(
             if (sourceFile is not null)
             {
                 // TODO: Don't ignore the checksum here: https://github.com/dotnet/roslyn/issues/55834
-                var result = LoadSourceFile(sourceFile.SourceFilePath, sourceDocument, encoding, "SourceLink", ignoreChecksum: true, fromRemoteLocation: true);
-                if (result is not null)
+                // The source link file is always persisted to disk by the debugger service, so we always need to load it from there.
+                var sourceText = LoadSourceFileFromDisk(sourceFile.SourceFilePath, sourceDocument, encoding, ignoreChecksum: true);
+                if (sourceText is not null)
                 {
+                    // Get the persister's view of the file path. If using virtual documents, this will be different from the original file path.
+                    var documentPath = persister.ConvertFilePathToDocumentPath(projectId.Id, PdbSourceDocumentMetadataAsSourceFileProvider.ProviderName, sourceFile.SourceFilePath);
                     telemetry.SetSourceFileSource("sourcelink");
                     _logger?.Log(FeaturesResources._0_found_via_SourceLink, sourceDocument.FilePath);
+                    return new SourceFileInfo(documentPath, "SourceLink", sourceText, sourceDocument.ChecksumAlgorithm, FromRemoteLocation: true);
                 }
                 else
                 {
                     _logger?.Log(FeaturesResources._0_found_via_SourceLink_but_couldnt_read_file, sourceDocument.FilePath);
+                    return null;
                 }
-
-                return result;
             }
             else
             {
@@ -165,28 +167,27 @@ internal sealed class PdbSourceDocumentLoaderService(
         return null;
     }
 
-    private SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
+    private SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry, ProjectId projectId, IMetadataDocumentPersister persister)
     {
+        // Always attempt to load this path from disk as it comes from the PDB.
         if (File.Exists(sourceDocument.FilePath))
         {
-            var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false, fromRemoteLocation: false);
-            if (result is not null)
+            var existingSourceText = LoadSourceFileFromDisk(sourceDocument.FilePath, sourceDocument, encoding, ignoreChecksum: false);
+            if (existingSourceText is not null)
             {
+                // Get the persister's view of the file path.  If using virtual documents, this will be different from the original file path.
+                var documentPath = persister.ConvertFilePathToDocumentPath(projectId.Id, PdbSourceDocumentMetadataAsSourceFileProvider.ProviderName, sourceDocument.FilePath);
+
                 telemetry.SetSourceFileSource("ondisk");
                 _logger?.Log(FeaturesResources._0_found_in_original_location, sourceDocument.FilePath);
+                return new SourceFileInfo(documentPath, FeaturesResources.external, existingSourceText, sourceDocument.ChecksumAlgorithm, FromRemoteLocation: false);
             }
-            else
-            {
-                _logger?.Log(FeaturesResources._0_found_in_original_location_but_checksum_failed, sourceDocument.FilePath);
-            }
-
-            return result;
         }
 
         return null;
     }
 
-    private static SourceFileInfo? LoadSourceFile(string filePath, SourceDocument sourceDocument, Encoding encoding, string sourceDescription, bool ignoreChecksum, bool fromRemoteLocation)
+    private static SourceText? LoadSourceFileFromDisk(string filePath, SourceDocument sourceDocument, Encoding encoding, bool ignoreChecksum)
     {
         return IOUtilities.PerformIO(() =>
         {
@@ -194,15 +195,18 @@ internal sealed class PdbSourceDocumentLoaderService(
 
             var sourceText = SourceText.From(stream, encoding, sourceDocument.ChecksumAlgorithm, throwIfBinaryDetected: true);
 
-            var fileChecksum = sourceText.GetChecksum();
-            if (ignoreChecksum || fileChecksum.SequenceEqual(sourceDocument.Checksum))
+            if (ignoreChecksum || VerifySourceText(sourceText, sourceDocument))
             {
-                var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default, filePath);
-                var textLoader = TextLoader.From(textAndVersion);
-                return new SourceFileInfo(filePath, sourceDescription, textLoader, sourceDocument.ChecksumAlgorithm, fromRemoteLocation);
+                return sourceText;
             }
 
             return null;
         });
+    }
+
+    private static bool VerifySourceText(SourceText sourceText, SourceDocument sourceDocument)
+    {
+        var sourceTextChecksum = sourceText.GetChecksum();
+        return sourceTextChecksum.SequenceEqual(sourceDocument.Checksum);
     }
 }
