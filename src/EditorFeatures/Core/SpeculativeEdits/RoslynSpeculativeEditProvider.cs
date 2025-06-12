@@ -33,8 +33,6 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
         ITextDocumentFactoryService textDocumentFactoryService,
         ITextBufferCloneService textBufferCloneService)
     {
-        this.TextBufferFactoryService = textBufferFactoryService;
-        _threadingContext = threadingContext;
         _textDocumentFactoryService = textDocumentFactoryService;
         _textBufferCloneService = textBufferCloneService;
     }
