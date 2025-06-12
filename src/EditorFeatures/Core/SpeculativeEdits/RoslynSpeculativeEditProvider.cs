@@ -21,22 +21,11 @@ namespace Microsoft.CodeAnalysis.SpeculativeEdits;
 [Obsolete("This is a preview api and subject to change")]
 [Export(typeof(SpeculativeEditProvider))]
 [ContentType(ContentTypeNames.RoslynContentType)]
-internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RoslynSpeculativeEditProvider(
+    ITextBufferFactoryService3 textBufferFactoryService) : SpeculativeEditProvider(textBufferFactoryService)
 {
-    private readonly ITextDocumentFactoryService _textDocumentFactoryService;
-    private readonly ITextBufferCloneService _textBufferCloneService;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RoslynSpeculativeEditProvider(
-        ITextBufferFactoryService3 textBufferFactoryService,
-        ITextDocumentFactoryService textDocumentFactoryService,
-        ITextBufferCloneService textBufferCloneService)
-    {
-        _textDocumentFactoryService = textDocumentFactoryService;
-        _textBufferCloneService = textBufferCloneService;
-    }
-
     public override ISpeculativeEditSession? TryStartSpeculativeEditSession(SpeculativeEditOptions options)
     {
         var oldTextSnapshot = options.SourceSnapshot;
@@ -68,7 +57,6 @@ internal sealed class RoslynSpeculativeEditProvider : SpeculativeEditProvider
         // Wrap everything we need into a final ISpeculativeEditSession for the caller.  It owns the lifetime of the data
         // and will dispose it when done. At that point, we can release the allocated preview workspace new 
         return new RoslynSpeculativeEditSession(
-            this,
             options,
             clonedSnapshotBeforeEdits,
             previewWorkspace);
