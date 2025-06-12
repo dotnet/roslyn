@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
-
 internal static class DiagnosticDataExtensions
 {
     internal static bool TryGetUnnecessaryDataLocations(this DiagnosticData diagnosticData, [NotNullWhen(true)] out ImmutableArray<DiagnosticDataLocation>? unnecessaryLocations)

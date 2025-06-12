@@ -69,7 +69,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                     Assert.Equal(0, m.OverloadResolutionPriority);
                 }
             }
-        }
+        };
     }
 
     [Theory, CombinatorialData]

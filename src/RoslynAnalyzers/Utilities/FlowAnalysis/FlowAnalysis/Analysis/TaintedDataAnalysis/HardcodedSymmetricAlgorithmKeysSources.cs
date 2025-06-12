@@ -38,7 +38,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                             (argumentPointsTos, argumentValueContents) =>
                                 argumentValueContents.Length == 1
                                 && argumentValueContents[0].LiteralValues.Any(
-                                    v => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4))
+                                    (object? v) => v is string s && s.Length % 4 == 0 && IsLegalKeySize(s.Length * 3 / 4))
                         }
                     ),
                 });

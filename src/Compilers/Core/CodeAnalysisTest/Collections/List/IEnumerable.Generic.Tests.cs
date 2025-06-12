@@ -155,37 +155,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             RepeatTest((e, i, it) => testCode(e, i), iters);
         }
 
-        private void VerifyModifiedEnumerator(
-            IEnumerator<T> enumerator,
-            object expectedCurrent,
-            bool expectCurrentThrow,
-            bool atEnd)
-        {
-            if (expectCurrentThrow)
-            {
-                Assert.Throws<InvalidOperationException>(
-                    () => enumerator.Current);
-            }
-            else
-            {
-                object? current = enumerator.Current;
-                for (int i = 0; i < 3; i++)
-                {
-                    Assert.Equal(expectedCurrent, current);
-                    current = enumerator.Current;
-                }
-            }
-
-            Assert.Throws<InvalidOperationException>(
-                () => enumerator.MoveNext());
-
-            if (!!ResetImplemented)
-            {
-                Assert.Throws<InvalidOperationException>(
-                    () => enumerator.Reset());
-            }
-        }
-
         private void VerifyEnumerator(
             IEnumerator<T> enumerator,
             T[] expectedItems)

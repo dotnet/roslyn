@@ -34,7 +34,10 @@ internal static class InheritanceMarginLogger
             static m =>
             {
                 var histogramLogAggregator = s_histogramLogAggregator.GetValue(ActionInfo.GetInheritanceMarginMembers);
-                histogramLogAggregator?.WriteTelemetryPropertiesTo(m, nameof(ActionInfo.GetInheritanceMarginMembers) + ".");
+                if (histogramLogAggregator != null)
+                {
+                    histogramLogAggregator.WriteTelemetryPropertiesTo(m, nameof(ActionInfo.GetInheritanceMarginMembers) + ".");
+                }
             }));
     }
 }

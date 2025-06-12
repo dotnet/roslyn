@@ -193,11 +193,11 @@ internal static class UseCollectionExpressionHelpers
             var convertedType = originalTypeInfo.ConvertedType;
 
             var convertedToReadOnlySpan =
-                convertedType.Name == nameof(ReadOnlySpan<>) &&
+                convertedType.Name == nameof(ReadOnlySpan<int>) &&
                 convertedType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType());
 
             var convertedToSpan =
-                convertedType.Name == nameof(Span<>) &&
+                convertedType.Name == nameof(Span<int>) &&
                 convertedType.OriginalDefinition.Equals(compilation.SpanOfTType());
 
             // ReadOnlySpan<X> x = stackalloc[] ...
@@ -206,7 +206,7 @@ internal static class UseCollectionExpressionHelpers
             // restrictive than Span<X>
             var isSpanToReadOnlySpan =
                 convertedToReadOnlySpan &&
-                type.Name == nameof(Span<>) &&
+                type.Name == nameof(Span<int>) &&
                 type.OriginalDefinition.Equals(compilation.SpanOfTType()) &&
                 convertedType.GetTypeArguments()[0].Equals(type.GetTypeArguments()[0]);
             if (isSpanToReadOnlySpan)
@@ -264,7 +264,7 @@ internal static class UseCollectionExpressionHelpers
                 // disallow converting those types to ensure semantics are preserved.  We do this even though
                 // allowSemanticsChange is true because this will basically be certain to break semantics, as opposed to
                 // the more common case where semantics may change slightly, but likely not in a way that breaks code.
-                if (type.Name is nameof(ObservableCollection<>) or nameof(ReadOnlyObservableCollection<>))
+                if (type.Name is nameof(ObservableCollection<int>) or nameof(ReadOnlyObservableCollection<int>))
                     return false;
 
                 // If the original expression was creating a set, but is being assigned to one of the well known
@@ -933,7 +933,7 @@ internal static class UseCollectionExpressionHelpers
                     {
                         Type: INamedTypeSymbol
                         {
-                            Name: nameof(IEnumerable<>),
+                            Name: nameof(IEnumerable<int>),
                             TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
                         } enumerableType
                     }] &&
@@ -980,7 +980,7 @@ internal static class UseCollectionExpressionHelpers
                     {
                         Type: INamedTypeSymbol
                         {
-                            Name: nameof(Span<>) or nameof(ReadOnlySpan<>),
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
                             TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
                         } spanType
                     }])

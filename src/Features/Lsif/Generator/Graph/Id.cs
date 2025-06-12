@@ -13,7 +13,7 @@ internal readonly record struct Id<T>(int NumericId) : ISerializableId where T :
 
 internal interface ISerializableId
 {
-    int NumericId { get; }
+    public int NumericId { get; }
 }
 
 internal static class IdExtensions
