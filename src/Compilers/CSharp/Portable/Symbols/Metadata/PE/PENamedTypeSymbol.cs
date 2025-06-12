@@ -406,8 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     var methodSymbol = getMarkerMethodSymbol(@this, uncommon);
 
-                    if (!methodSymbol.ContainingType.IsSealed ||
-                        methodSymbol.DeclaredAccessibility != Accessibility.Private ||
+                    if (methodSymbol.DeclaredAccessibility != Accessibility.Private ||
                         methodSymbol.IsGenericMethod ||
                         !methodSymbol.IsStatic ||
                         !methodSymbol.ReturnsVoid ||
@@ -449,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (!method.IsStatic && ExtensionParameter is null)
             {
-                throw ExceptionUtilities.Unreachable();
+                return null;
             }
 
             var uncommon = GetUncommonProperties().lazyExtensionInfo;
@@ -1992,7 +1991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                                     }
                                     break;
 
-                                default:
+                                case SpecialType.System_Object:
                                     if (TryGetExtensionMarkerMethod() is { IsNil: false } markerHandle)
                                     {
                                         // Extension
@@ -2024,7 +2023,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private MethodDefinitionHandle TryGetExtensionMarkerMethod()
         {
-            if (!this.HasSpecialName)
+            if (!this.HasSpecialName ||
+                !this.IsSealed ||
+                this.DeclaredAccessibility != Accessibility.Public ||
+                !this.InterfacesNoUseSiteDiagnostics().IsEmpty)
             {
                 return default;
             }
