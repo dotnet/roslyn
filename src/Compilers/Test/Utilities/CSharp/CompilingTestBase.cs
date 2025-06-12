@@ -15,12 +15,12 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     // Some utility functions for compiling and checking errors.
-    public abstract class CompilingTestBase : CSharpTestBase
+    public abstract class CompilingTestBase(TargetFramework? targetFramework = null) : CSharpTestBase(targetFramework)
     {
         private const string DefaultTypeName = "C";
         private const string DefaultMethodName = "M";
 
-        internal static BoundBlock ParseAndBindMethodBody(string program, string typeName = DefaultTypeName, string methodName = DefaultMethodName)
+        internal BoundBlock ParseAndBindMethodBody(string program, string typeName = DefaultTypeName, string methodName = DefaultMethodName)
         {
             var compilation = CreateCompilation(program);
             var method = (MethodSymbol)compilation.GlobalNamespace.GetTypeMembers(typeName).Single().GetMembers(methodName).Single();

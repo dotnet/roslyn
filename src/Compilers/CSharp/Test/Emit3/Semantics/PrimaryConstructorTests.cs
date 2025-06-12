@@ -7779,7 +7779,7 @@ class Attr1 : System.Attribute
             AssertParameterScope(keyword, shadow, isRecord, flags, source);
         }
 
-        private static void AssertParameterScope(string keyword, bool shadow, bool isRecord, TestFlags flags, string source)
+        private void AssertParameterScope(string keyword, bool shadow, bool isRecord, TestFlags flags, string source)
         {
             bool isCaptured = !shadow && (flags & TestFlags.Captured) != 0;
 

@@ -394,7 +394,7 @@ namespace N
 
     #region extern aliases
 
-    private static CSharpCompilation CreateCompilationWithExternAlias(CSharpTestSource source, params string[] aliases)
+    private CSharpCompilation CreateCompilationWithExternAlias(CSharpTestSource source, params string[] aliases)
     {
         if (aliases.Length == 0)
             aliases = new[] { "CORE" };

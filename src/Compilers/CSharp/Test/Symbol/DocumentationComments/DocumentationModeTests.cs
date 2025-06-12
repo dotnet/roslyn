@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             });
         }
 
-        private static void TestInline(string xml, string expectedText, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestInline(string xml, string expectedText, params DiagnosticDescription[] expectedDiagnostics)
         {
             var sourceTemplate = @"
 /**
