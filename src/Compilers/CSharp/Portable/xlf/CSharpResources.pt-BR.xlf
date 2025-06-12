@@ -788,8 +788,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsMember">
-        <source>Extension declarations can include only methods or properties</source>
-        <target state="new">Extension declarations can include only methods or properties</target>
+        <source>This member is not allowed in an extension block</source>
+        <target state="new">This member is not allowed in an extension block</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionDisallowsName">
@@ -1475,6 +1475,11 @@
       <trans-unit id="ERR_MethFuncPtrMismatch">
         <source>No overload for '{0}' matches function pointer '{1}'</source>
         <target state="translated">Nenhuma sobrecarga de '{0}' corresponde ao ponteiro de função '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedExtension">
+        <source>An extension member syntax is disallowed in nested position within an extension member syntax</source>
+        <target state="new">An extension member syntax is disallowed in nested position within an extension member syntax</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
@@ -2468,8 +2473,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnderspecifiedExtension">
-        <source>The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</source>
-        <target state="new">The extended type '{0}' must reference all the type parameters declared by the extension, but type parameter '{1}' is not referenced.</target>
+        <source>The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</source>
+        <target state="new">The type parameter `{0}` is not referenced by either the extension parameter or a parameter of this member</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">

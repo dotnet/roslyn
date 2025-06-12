@@ -3226,4 +3226,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Add_0_check" xml:space="preserve">
     <value>Add '{0}' check</value>
   </data>
+  <data name="Add_negative_value_check" xml:space="preserve">
+    <value>Add negative value check</value>
+  </data>
+  <data name="Add_negative_value_or_zero_check" xml:space="preserve">
+    <value>Add negative value or zero check</value>
+  </data>
+  <data name="_0_cannot_be_negative" xml:space="preserve">
+    <value>'{0}' cannot be negative</value>
+  </data>
+  <data name="_0_cannot_be_negative_or_zero" xml:space="preserve">
+    <value>'{0}' cannot be negative or zero</value>
+  </data>
 </root>

@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -46,10 +45,10 @@ public sealed class EmitSolutionUpdateResultsTests
             activeStatements: [],
             exceptionRegions: []);
 
-    private static ModuleUpdates CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
-        => new(ModuleUpdateStatus.Blocked, [.. projectIds.Select(CreateMockUpdate)]);
+    private static ImmutableArray<ManagedHotReloadUpdate> CreateValidUpdates(params IEnumerable<ProjectId> projectIds)
+        => [.. projectIds.Select(CreateMockUpdate)];
 
-    private static ArrayBuilder<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
+    private static ImmutableArray<ProjectDiagnostics> CreateProjectRudeEdits(IEnumerable<ProjectId> blocking, IEnumerable<ProjectId> noEffect)
         => [.. blocking.Select(id => (id, kind: RudeEditKind.InternalError)).Concat(noEffect.Select(id => (id, kind: RudeEditKind.UpdateMightNotHaveAnyEffect)))
             .GroupBy(e => e.id)
             .OrderBy(g => g.Key)
@@ -139,8 +138,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var data = new EmitSolutionUpdateResults.Data()
         {
-            Diagnostics = diagnostics,
-            RudeEdits = rudeEdits,
+            Diagnostics = [.. diagnostics, .. rudeEdits],
             SyntaxError = syntaxError,
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),
             ProjectsToRebuild = [],
@@ -149,7 +147,7 @@ public sealed class EmitSolutionUpdateResultsTests
 
         var actual = data.GetAllDiagnostics();
 
-        AssertEx.Equal(
+        AssertEx.SetEqual(
         [
             $@"Warning CS0001: {razorPath1} (10,10)-(10,15): warning",
             $@"Error CS0012: {razorPath2} (10,10)-(10,15): error",

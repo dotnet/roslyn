@@ -167,19 +167,19 @@ public partial class MSBuildProjectLoader
             throw new ArgumentNullException(nameof(solutionFilePath));
         }
 
-        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, cancellationToken).ConfigureAwait(false);
+        var reportingMode = GetReportingModeForUnrecognizedProjects();
+
+        var reportingOptions = new DiagnosticReportingOptions(
+            onPathFailure: reportingMode,
+            onLoaderFailure: reportingMode);
+
+        var (absoluteSolutionPath, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, _pathResolver, reportingMode, cancellationToken).ConfigureAwait(false);
         var projectPaths = projects.SelectAsArray(p => p.ProjectPath);
 
         using (_dataGuard.DisposableWait(cancellationToken))
         {
             SetSolutionProperties(absoluteSolutionPath);
         }
-
-        var reportingMode = GetReportingModeForUnrecognizedProjects();
-
-        var reportingOptions = new DiagnosticReportingOptions(
-            onPathFailure: reportingMode,
-            onLoaderFailure: reportingMode);
 
         var buildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loggerFactory);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);

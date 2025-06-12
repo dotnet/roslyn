@@ -741,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ArrowExpressionClause:
                         return false;
-                };
+                }
 
                 return true;
             }
@@ -796,7 +796,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+        }
 
+        internal void AddSynthesizedReturnTypeFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
