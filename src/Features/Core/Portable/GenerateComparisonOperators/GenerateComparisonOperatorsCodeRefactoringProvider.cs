@@ -119,7 +119,7 @@ internal sealed class GenerateComparisonOperatorsCodeRefactoringProvider : CodeR
 
     private static IMethodSymbol? TryGetCompareMethodImpl(INamedTypeSymbol containingType, ITypeSymbol comparableType)
     {
-        foreach (var member in comparableType.GetMembers(nameof(IComparable<>.CompareTo)))
+        foreach (var member in comparableType.GetMembers(nameof(IComparable<int>.CompareTo)))
         {
             if (member is IMethodSymbol method)
                 return (IMethodSymbol?)containingType.FindImplementationForInterfaceMember(method);

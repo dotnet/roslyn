@@ -27,7 +27,7 @@ internal abstract class ExtensionHandlerWrapper<TArgument>
         ExtensionIdentifier = extensionIdentifier;
 
         _executeAsyncMethod = customMessageHandlerInterface.GetMethod(nameof(ExecuteAsync));
-        _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<>.Result));
+        _responseTaskResultProperty = typeof(Task<>).MakeGenericType(ResponseType).GetProperty(nameof(Task<int>.Result));
     }
 
     public Type MessageType { get; }

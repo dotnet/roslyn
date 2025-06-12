@@ -8,7 +8,6 @@
 using System;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
-
 internal sealed class RequestShutdownEventArgs : EventArgs
 {
     public string Message { get; }

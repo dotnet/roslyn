@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     defaultPointsToAnalysisKind),
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, owningSymbol, wellKnownTypeProvider.Compilation,
                     defaultValue: performCopyAnalysisIfNotUserConfigured),
-                isDisposableTypeNotRequiringToBeDisposed: typeSymbol => disposeAnalysisHelper?.IsDisposableTypeNotRequiringToBeDisposed(typeSymbol) == true
+                isDisposableTypeNotRequiringToBeDisposed: (ITypeSymbol typeSymbol) =>
+                    disposeAnalysisHelper?.IsDisposableTypeNotRequiringToBeDisposed(typeSymbol) == true
                     || analyzerOptions.IsConfiguredToSkipAnalysis(rule, typeSymbol, owningSymbol, wellKnownTypeProvider.Compilation),
                 out pointsToAnalysisResult);
         }

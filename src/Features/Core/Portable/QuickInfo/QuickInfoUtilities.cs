@@ -77,7 +77,10 @@ internal static class QuickInfoUtilities
         if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
         {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
-            onTheFlyDocsInfo?.HasComments = true;
+            if (onTheFlyDocsInfo != null)
+            {
+                onTheFlyDocsInfo.HasComments = true;
+            }
         }
 
         if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&

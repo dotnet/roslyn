@@ -5752,7 +5752,7 @@ class A
 
                 Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(method.GetAttributes()));
                 Assert.True(method.RequiresSecurityObject);
-            }
+            };
 
             var verifier = CompileAndVerify(
                 source,

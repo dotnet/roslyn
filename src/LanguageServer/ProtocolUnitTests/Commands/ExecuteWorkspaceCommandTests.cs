@@ -18,7 +18,6 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Commands;
-
 public sealed class ExecuteWorkspaceCommandTests : AbstractLanguageServerProtocolTests
 {
     protected override TestComposition Composition => base.Composition.AddParts(

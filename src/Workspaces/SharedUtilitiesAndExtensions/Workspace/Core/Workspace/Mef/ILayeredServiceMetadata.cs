@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef;
 
 internal interface ILayeredServiceMetadata
 {
-    IReadOnlyList<string> WorkspaceKinds { get; }
-    string Layer { get; }
-    string ServiceType { get; }
+    public IReadOnlyList<string> WorkspaceKinds { get; }
+    public string Layer { get; }
+    public string ServiceType { get; }
 }
