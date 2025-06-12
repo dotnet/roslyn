@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Editor;
 
 internal interface IContainedDocument
 {
-    ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes);
+    public ITextSnapshot ApplyChanges(IEnumerable<TextChange> changes);
 }

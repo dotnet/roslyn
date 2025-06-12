@@ -47,9 +47,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     /// We create a mutex so other processes can see if our directory is still alive.  As long as we own the mutex, no
     /// other VS instance will try to delete our _rootTemporaryPathWithGuid folder.
     /// </summary>
-#pragma warning disable IDE0052 // Remove unread private members.  Used to communicate with other VS instances.
     private readonly Mutex _mutex;
-#pragma warning restore IDE0052 // Remove unread private members
     private readonly string _rootTemporaryPathWithGuid;
     private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
 

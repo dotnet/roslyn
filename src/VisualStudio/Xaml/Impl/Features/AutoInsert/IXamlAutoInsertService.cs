@@ -13,5 +13,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.AutoInsert;
 
 internal interface IXamlAutoInsertService : ILanguageService
 {
-    Task<XamlAutoInsertResult> GetAutoInsertAsync(TextDocument document, char typedChar, int position, CancellationToken cancellationToken);
+    public Task<XamlAutoInsertResult> GetAutoInsertAsync(TextDocument document, char typedChar, int position, CancellationToken cancellationToken);
 }

@@ -61,7 +61,7 @@ public abstract class AbstractFileCodeElementTests : IDisposable
 
     protected CodeElement GetCodeElement(params object[] path)
     {
-        WpfTestRunner.RequireWpfFact($"Tests create {nameof(CodeElement)}s which use the affinitized {nameof(CleanableWeakComHandleTable<,>)}");
+        WpfTestRunner.RequireWpfFact($"Tests create {nameof(CodeElement)}s which use the affinitized {nameof(CleanableWeakComHandleTable<SyntaxNodeKey, CodeElement>)}");
 
         if (path.Length == 0)
         {

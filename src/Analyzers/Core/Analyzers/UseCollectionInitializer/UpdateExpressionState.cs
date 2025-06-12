@@ -26,7 +26,7 @@ internal readonly struct UpdateExpressionState<
 {
     private static readonly ImmutableArray<(string name, bool isLinq)> s_multiAddNames =
     [
-        (nameof(List<>.AddRange), isLinq: false),
+        (nameof(List<int>.AddRange), isLinq: false),
         (nameof(Enumerable.Concat), isLinq: true),
         (nameof(Enumerable.Append), isLinq: true),
     ];

@@ -24,7 +24,7 @@ internal interface ISingleValuedOption : IOption2
     /// </list>
     /// Note that this property is not (and should not be) used for computing option values or storing options.
     /// </remarks>
-    string? LanguageName { get; }
+    public string? LanguageName { get; }
 }
 
 /// <inheritdoc cref="ISingleValuedOption"/>

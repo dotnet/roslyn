@@ -115,7 +115,7 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
     /// it returns after any code invokes <see cref="Dispose"/>.</para>
     /// </remarks>
     /// <value>The target object.</value>
-    public T Target => _instance ?? throw new ObjectDisposedException(nameof(ReferenceCountedDisposable<>));
+    public T Target => _instance ?? throw new ObjectDisposedException(nameof(ReferenceCountedDisposable<T>));
 
     /// <summary>
     /// Increments the reference count for the disposable object, and returns a new disposable reference to it.

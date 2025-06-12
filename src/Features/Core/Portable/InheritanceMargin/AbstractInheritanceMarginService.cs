@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
-
 internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
 {
     /// <summary>

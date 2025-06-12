@@ -152,7 +152,10 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                pdbStreamOpt?.Position = 0;
+                if (pdbStreamOpt != null)
+                {
+                    pdbStreamOpt.Position = 0;
+                }
 
                 var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStreamOpt);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly);
