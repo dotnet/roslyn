@@ -140,7 +140,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -206,7 +206,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -296,7 +296,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -386,7 +386,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -432,7 +432,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -491,7 +491,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -550,7 +550,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -604,7 +604,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -667,7 +667,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -768,7 +768,7 @@ class extension
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "extension");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -855,7 +855,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -898,7 +898,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -948,7 +948,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1008,7 +1008,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1062,7 +1062,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1117,7 +1117,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1179,7 +1179,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1241,7 +1241,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1299,7 +1299,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1367,7 +1367,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1413,7 +1413,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1472,7 +1472,7 @@ extension(object) { }
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.ExtensionDeclaration);
+            N(SyntaxKind.ExtensionBlockDeclaration);
             {
                 N(SyntaxKind.ExtensionKeyword);
                 N(SyntaxKind.ParameterList);
@@ -1527,7 +1527,7 @@ static class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "Nested");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1582,7 +1582,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -1598,7 +1598,7 @@ static class C
                         N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.ExtensionDeclaration);
+                    N(SyntaxKind.ExtensionBlockDeclaration);
                     {
                         N(SyntaxKind.ExtensionKeyword);
                         N(SyntaxKind.ParameterList);
@@ -1644,7 +1644,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -1711,7 +1711,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.ExtensionKeyword);
@@ -2103,7 +2103,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(expected);
                     N(SyntaxKind.ExtensionKeyword);
@@ -2157,7 +2157,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2240,7 +2240,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2331,7 +2331,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2415,7 +2415,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2503,7 +2503,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2597,7 +2597,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2660,7 +2660,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2731,7 +2731,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2799,7 +2799,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2871,7 +2871,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -2934,7 +2934,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3029,7 +3029,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3124,7 +3124,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3270,7 +3270,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3325,7 +3325,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3369,7 +3369,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3414,7 +3414,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3464,7 +3464,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3515,7 +3515,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3571,7 +3571,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3627,7 +3627,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -3695,7 +3695,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     M(SyntaxKind.ParameterList);
@@ -3745,7 +3745,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -3822,7 +3822,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -3874,7 +3874,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -3949,7 +3949,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -4027,7 +4027,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -4098,7 +4098,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -4187,7 +4187,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.TypeParameterList);
@@ -4253,7 +4253,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4317,7 +4317,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4363,7 +4363,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4447,7 +4447,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4574,7 +4574,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4776,7 +4776,7 @@ static class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4828,7 +4828,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);
@@ -4887,7 +4887,7 @@ class C
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ExtensionDeclaration);
+                N(SyntaxKind.ExtensionBlockDeclaration);
                 {
                     N(SyntaxKind.ExtensionKeyword);
                     N(SyntaxKind.ParameterList);

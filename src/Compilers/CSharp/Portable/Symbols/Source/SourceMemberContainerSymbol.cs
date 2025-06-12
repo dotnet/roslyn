@@ -3843,7 +3843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedTypeMembersIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
                     AddSynthesizedConstructorsIfNecessary(builder, declaredMembersAndInitializers, diagnostics);
 
-                    if (TypeKind == TypeKind.Class) // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Consider tightening this check to only top-level non-generic static classes, however optimizing for error scenarios is usually not a goal.
+                    if (TypeKind == TypeKind.Class) // Tracked by https://github.com/dotnet/roslyn/issues/78827 : MQ, Consider tightening this check to only top-level non-generic static classes, however optimizing for error scenarios is usually not a goal.
                     {
                         AddSynthesizedExtensionImplementationsIfNecessary(builder, declaredMembersAndInitializers);
                     }
@@ -3937,7 +3937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.RecordStructDeclaration:
-                    case SyntaxKind.ExtensionDeclaration:
+                    case SyntaxKind.ExtensionBlockDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         noteTypeParameters(typeDecl, builder, diagnostics);
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
@@ -4675,8 +4675,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SymbolKind.Property:
-                        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : add full support for indexers or disallow them
-                        return;
+                        if (!((PropertySymbol)member).IsIndexer)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            break;
+                        }
 
                     case SymbolKind.Field:
                     case SymbolKind.Event:

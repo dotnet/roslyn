@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt is object);
             var diagnostics = (BindingDiagnosticBag)arguments.Diagnostics;
 
-            if (MethodKind != MethodKind.Ordinary)
+            if (MethodKind != MethodKind.Ordinary || this.GetIsNewExtensionMember())
             {
                 diagnostics.Add(ErrorCode.ERR_ModuleInitializerMethodMustBeOrdinary, arguments.AttributeSyntaxOpt.Location);
                 return;

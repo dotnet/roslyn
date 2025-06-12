@@ -81,6 +81,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
 
+    public static INamedTypeSymbol? ArgumentOutOfRangeExceptionType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName!);
+
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
 

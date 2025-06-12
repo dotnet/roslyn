@@ -265,7 +265,10 @@ public class FSharpGlyphTests
                 {
                     return FSharpGlyph.OpenFolder;
                 }
-            case Microsoft.CodeAnalysis.Glyph.Operator:
+            case Microsoft.CodeAnalysis.Glyph.OperatorPublic:
+            case Microsoft.CodeAnalysis.Glyph.OperatorProtected:
+            case Microsoft.CodeAnalysis.Glyph.OperatorPrivate:
+            case Microsoft.CodeAnalysis.Glyph.OperatorInternal:
                 {
                     return FSharpGlyph.Operator;
                 }
@@ -582,7 +585,7 @@ public class FSharpGlyphTests
                 }
             case FSharpGlyph.Operator:
                 {
-                    return Microsoft.CodeAnalysis.Glyph.Operator;
+                    return Microsoft.CodeAnalysis.Glyph.OperatorPublic;
                 }
             case FSharpGlyph.Parameter:
                 {

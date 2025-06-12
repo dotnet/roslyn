@@ -629,7 +629,7 @@ internal static partial class ProtocolConversions
             case LSP.SymbolKind.Event:
                 return Glyph.EventPublic;
             case LSP.SymbolKind.Operator:
-                return Glyph.Operator;
+                return Glyph.OperatorPublic;
             case LSP.SymbolKind.TypeParameter:
                 return Glyph.TypeParameter;
             default:
@@ -732,7 +732,7 @@ internal static partial class ProtocolConversions
             case LSP.CompletionItemKind.Event:
                 return Glyph.EventPublic;
             case LSP.CompletionItemKind.Operator:
-                return Glyph.Operator;
+                return Glyph.OperatorPublic;
             case LSP.CompletionItemKind.TypeParameter:
                 return Glyph.TypeParameter;
             default:
@@ -910,6 +910,7 @@ internal static partial class ProtocolConversions
                         codeFence = InlineCodeFence;
                         markdownBuilder.Append(codeFence + taggedText.Text);
                     }
+
                     break;
                 case TextTags.CodeBlockEnd:
                     if (codeFence == BlockCodeFence)

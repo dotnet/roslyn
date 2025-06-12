@@ -147,19 +147,10 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
     public void AddWork(TItem item, bool cancelExistingWork = false)
     {
-        var items = ArrayBuilder<TItem>.GetInstance();
-        try
-        {
-            items.Add(item);
-            AddWork(items, cancelExistingWork);
-        }
-        finally
-        {
-            items.Free();
-        }
+        AddWork([item], cancelExistingWork);
     }
 
-    public void AddWork(IEnumerable<TItem> items, bool cancelExistingWork = false)
+    public void AddWork(ReadOnlySpan<TItem> items, bool cancelExistingWork = false)
     {
         // Don't do any more work if we've been asked to shutdown.
         if (_entireQueueCancellationToken.IsCancellationRequested)
@@ -186,12 +177,13 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
         return;
 
-        void AddItemsToBatch(IEnumerable<TItem> items)
+        void AddItemsToBatch(ReadOnlySpan<TItem> items)
         {
             // no equality comparer.  We want to process all items.
             if (_equalityComparer == null)
             {
-                _nextBatch.AddRange(items);
+                foreach (var item in items)
+                    _nextBatch.Add(item);
                 return;
             }
 

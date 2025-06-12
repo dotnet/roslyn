@@ -70,6 +70,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IEnumerableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ICollectionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Specialized\SpecializedCollections.Empty.cs" />
