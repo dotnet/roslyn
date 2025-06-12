@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -28,9 +27,9 @@ internal sealed partial class CSharpGenerateConversionService() :
     protected override bool IsImplicitConversionGeneration(SyntaxNode node)
     {
         return node is ExpressionSyntax &&
-                (node.Parent is AssignmentExpressionSyntax || node.Parent is EqualsValueClauseSyntax) &&
-                !(node is CastExpressionSyntax) &&
-                !(node is MemberAccessExpressionSyntax);
+                node.Parent is AssignmentExpressionSyntax or EqualsValueClauseSyntax &&
+                node is not CastExpressionSyntax &&
+                node is not MemberAccessExpressionSyntax;
     }
 
     protected override bool IsExplicitConversionGeneration(SyntaxNode node)
@@ -57,8 +56,8 @@ internal sealed partial class CSharpGenerateConversionService() :
        ISet<TypeKind> classInterfaceModuleStructTypes,
        CancellationToken cancellationToken,
        out SyntaxToken identifierToken,
-       out IMethodSymbol methodSymbol,
-       out INamedTypeSymbol typeToGenerateIn)
+       [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+       [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
         {
@@ -83,8 +82,8 @@ internal sealed partial class CSharpGenerateConversionService() :
         ISet<TypeKind> classInterfaceModuleStructTypes,
         CancellationToken cancellationToken,
         out SyntaxToken identifierToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         if (TryGetConversionMethodAndTypeToGenerateIn(document, expression, classInterfaceModuleStructTypes, cancellationToken, out methodSymbol, out typeToGenerateIn))
         {
@@ -108,8 +107,8 @@ internal sealed partial class CSharpGenerateConversionService() :
         SyntaxNode expression,
         ISet<TypeKind> classInterfaceModuleStructTypes,
         CancellationToken cancellationToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         if (expression is CastExpressionSyntax castExpression)
         {
@@ -136,8 +135,8 @@ internal sealed partial class CSharpGenerateConversionService() :
         CastExpressionSyntax castExpression,
         ISet<TypeKind> classInterfaceModuleStructTypes,
         CancellationToken cancellationToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         methodSymbol = null;
         typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
@@ -167,8 +166,8 @@ internal sealed partial class CSharpGenerateConversionService() :
         SyntaxNode expression,
         ISet<TypeKind> classInterfaceModuleStructTypes,
         CancellationToken cancellationToken,
-        out IMethodSymbol methodSymbol,
-        out INamedTypeSymbol typeToGenerateIn)
+        [NotNullWhen(true)] out IMethodSymbol? methodSymbol,
+        [NotNullWhen(true)] out INamedTypeSymbol? typeToGenerateIn)
     {
         methodSymbol = null;
         typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;

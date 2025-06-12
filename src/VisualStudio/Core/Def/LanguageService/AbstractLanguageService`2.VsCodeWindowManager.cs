@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
 internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
 {
-    internal class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
+    internal sealed class VsCodeWindowManager : IVsCodeWindowManager, IVsCodeWindowEvents, IVsDocOutlineProvider
     {
         private readonly TLanguageService _languageService;
         private readonly IVsCodeWindow _codeWindow;
@@ -158,7 +158,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             var navigationBarClient = new NavigationBarClient(dropdownManager, _codeWindow, _languageService.SystemServiceProvider, _languageService.Workspace);
             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
             var controllerFactoryService = _languageService.Package.ComponentModel.GetService<INavigationBarControllerFactoryService>();
-            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer);
+            var newController = controllerFactoryService.CreateController(navigationBarClient, textBuffer!);
             var hr = dropdownManager.AddDropdownBar(cCombos: 3, pClient: navigationBarClient);
 
             if (ErrorHandler.Failed(hr))
@@ -242,13 +242,6 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
 
         private void GetOutline(out IntPtr phwnd)
         {
-            phwnd = default;
-
-            var enabled = _globalOptions.GetOption(DocumentOutlineOptionsStorage.EnableDocumentOutline)
-                ?? !_globalOptions.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag);
-            if (!enabled)
-                return;
-
             var threadingContext = _languageService.Package.ComponentModel.GetService<IThreadingContext>();
             threadingContext.ThrowIfNotOnUIThread();
 

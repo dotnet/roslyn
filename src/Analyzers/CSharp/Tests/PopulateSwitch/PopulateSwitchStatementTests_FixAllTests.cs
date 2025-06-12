@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwitch;
 
-public partial class PopulateSwitchStatementTests
+public sealed partial class PopulateSwitchStatementTests
 {
     [Fact]
     [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]

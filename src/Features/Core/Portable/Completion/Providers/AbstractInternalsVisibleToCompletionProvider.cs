@@ -253,7 +253,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
         var token = root.FindToken(result.Start);
         if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
         {
-            var text = root.GetText();
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Expand selection in both directions until a double quote or any line break character is reached
             static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));

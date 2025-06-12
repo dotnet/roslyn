@@ -17,7 +17,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseUtf8StringLiteralCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseUtf8StringLiteral)]
-public class UseUtf8StringLiteralTests
+public sealed class UseUtf8StringLiteralTests
 {
     [Fact]
     public async Task TestNotInAttribute()

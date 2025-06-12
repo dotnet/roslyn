@@ -102,6 +102,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function RazorSourceGenerator_FromVsix() As Task
             Using environment = New TestEnvironment()
                 Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.ContentTypeName = VisualStudioDiagnosticAnalyzerProvider.RazorContentTypeName
                 providerFactory.Extensions =
                 {
                     ({
@@ -184,6 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Async Function RazorSourceGenerator_FromSdk() As Task
             Using environment = New TestEnvironment()
                 Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.ContentTypeName = VisualStudioDiagnosticAnalyzerProvider.RazorContentTypeName
                 providerFactory.Extensions =
                 {
                      ({

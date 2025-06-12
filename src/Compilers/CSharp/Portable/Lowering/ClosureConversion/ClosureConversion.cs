@@ -151,6 +151,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ImmutableHashSet<Symbol> _allCapturedVariables;
 
+        /// <summary>
+        /// Containing Symbols are not checked after this step - for performance reasons we can allow inaccurate locals
+        /// </summary>
+        protected override bool EnforceAccurateContainerForLocals => false;
+
 #nullable enable
 
         private ClosureConversion(
@@ -768,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         LocalSymbol localToUse;
-                        if (!localMap.TryGetValue(local, out localToUse))
+                        if (!TryGetRewrittenLocal(local, out localToUse))
                         {
                             localToUse = local;
                         }
@@ -1198,17 +1203,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitScope(BoundScope node)
         {
             Debug.Assert(!node.Locals.IsEmpty);
-            var newLocals = ArrayBuilder<LocalSymbol>.GetInstance();
-            RewriteLocals(node.Locals, newLocals);
+            var newLocals = VisitLocals(node.Locals);
 
             var statements = VisitList(node.Statements);
-            if (newLocals.Count == 0)
+            if (newLocals.Length == 0)
             {
-                newLocals.Free();
                 return new BoundStatementList(node.Syntax, statements);
             }
 
-            return node.Update(newLocals.ToImmutableAndFree(), statements);
+            return node.Update(newLocals, statements);
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)

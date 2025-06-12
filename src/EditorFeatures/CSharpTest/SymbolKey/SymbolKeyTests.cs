@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
 [UseExportProvider]
-public class SymbolKeyTests
+public sealed class SymbolKeyTests
 {
     [Fact]
     public async Task FileType_01()

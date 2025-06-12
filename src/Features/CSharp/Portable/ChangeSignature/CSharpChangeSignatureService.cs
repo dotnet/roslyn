@@ -80,6 +80,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SyntaxKind.SimpleLambdaExpression,
         SyntaxKind.ParenthesizedLambdaExpression,
         SyntaxKind.NameMemberCref,
+        SyntaxKind.PrimaryConstructorBaseType,
     ];
 
     private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds =
@@ -104,6 +105,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
         SyntaxKind.RecordDeclaration,
         SyntaxKind.StructDeclaration,
         SyntaxKind.ClassDeclaration,
+        SyntaxKind.PrimaryConstructorBaseType,
     ];
 
     [ImportingConstructor]
@@ -272,6 +274,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
             case SyntaxKind.ObjectCreationExpression:
                 return ((ObjectCreationExpressionSyntax)matchingNode).Type;
 
+            case SyntaxKind.PrimaryConstructorBaseType:
             case SyntaxKind.ConstructorDeclaration:
             case SyntaxKind.IndexerDeclaration:
             case SyntaxKind.ThisConstructorInitializer:
@@ -507,6 +510,22 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
                     cancellationToken));
         }
 
+        if (updatedNode is PrimaryConstructorBaseTypeSyntax primaryConstructor)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo((PrimaryConstructorBaseTypeSyntax)originalNode, cancellationToken);
+
+            return primaryConstructor.WithArgumentList(
+                UpdateArgumentList(
+                    document,
+                    declarationSymbol,
+                    signaturePermutation,
+                    primaryConstructor.ArgumentList,
+                    isReducedExtensionMethod: false,
+                    IsParamsArrayExpanded(semanticModel, primaryConstructor, symbolInfo, cancellationToken),
+                    originalNode.SpanStart,
+                    cancellationToken));
+        }
+
         Debug.Assert(false, "Unknown reference location");
         return null;
     }
@@ -618,6 +637,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
                 BaseObjectCreationExpressionSyntax objectCreation => objectCreation.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
                 ElementAccessExpressionSyntax elementAccess => elementAccess.ArgumentList,
+                PrimaryConstructorBaseTypeSyntax primaryConstructor => primaryConstructor.ArgumentList,
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind())
             };
 
@@ -870,7 +890,7 @@ internal sealed class CSharpChangeSignatureService : AbstractChangeSignatureServ
 
             if (convertedType != null)
             {
-                convertedType = SymbolFinder.FindSourceDefinition(convertedType, document.Project.Solution, cancellationToken)
+                convertedType = await SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).ConfigureAwait(false)
                     ?? convertedType;
             }
 

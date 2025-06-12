@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical;
 
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertLogical), Shared]
-internal class CSharpInvertLogicalCodeRefactoringProvider :
+internal sealed class CSharpInvertLogicalCodeRefactoringProvider :
     AbstractInvertLogicalCodeRefactoringProvider<SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax>
 {
     [ImportingConstructor]

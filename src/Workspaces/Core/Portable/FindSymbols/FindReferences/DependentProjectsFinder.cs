@@ -27,7 +27,7 @@ internal static partial class DependentProjectsFinder
     /// Cache from the <see cref="MetadataId"/> for a particular <see cref="PortableExecutableReference"/> to the
     /// name of the <see cref="IAssemblySymbol"/> defined by it.
     /// </summary>
-    private static readonly Dictionary<MetadataId, string?> s_metadataIdToAssemblyName = new();
+    private static readonly Dictionary<MetadataId, string?> s_metadataIdToAssemblyName = [];
     private static readonly SemaphoreSlim s_metadataIdToAssemblyNameGate = new(initialCount: 1);
 
     private static readonly ConditionalWeakTable<
@@ -137,7 +137,7 @@ internal static partial class DependentProjectsFinder
         SymbolVisibility visibility,
         CancellationToken cancellationToken)
     {
-        var dictionary = s_solutionToDependentProjectMap.GetValue(solution, static _ => new());
+        var dictionary = s_solutionToDependentProjectMap.GetValue(solution, static _ => []);
 
         var key = (symbolOrigination.assembly, symbolOrigination.sourceProject, visibility);
         ImmutableArray<(Project project, bool hasInternalsAccess)> dependentProjects;

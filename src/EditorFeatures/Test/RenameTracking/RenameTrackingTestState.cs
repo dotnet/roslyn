@@ -98,7 +98,6 @@ internal sealed class RenameTrackingTestState : IDisposable
         var tracker = new RenameTrackingTaggerProvider(
             Workspace.GetService<IThreadingContext>(),
             Workspace.GetService<IInlineRenameService>(),
-            Workspace.GetService<IDiagnosticAnalyzerService>(),
             Workspace.GetService<IGlobalOptionService>(),
             Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
@@ -129,7 +128,7 @@ internal sealed class RenameTrackingTestState : IDisposable
 
     private static EditorTestWorkspace CreateTestWorkspace(string xml)
     {
-        return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeaturesWpf);
+        return EditorTestWorkspace.Create(xml, composition: EditorTestCompositions.EditorFeatures);
     }
 
     public void SendEscape()

@@ -3,11 +3,11 @@ trigger:
   branches:
     include:
     - main
+    - main-vs-deps
     - release/*
     - features/*
     - demos/*
     exclude:
-    - main-vs-deps
     # Since the version of VS on the integration VM images are a moving target,
     # we are unable to reliably run integration tests on servicing branches.
     - release/dev17.8
@@ -19,11 +19,11 @@ pr:
   branches:
     include:
     - main
+    - main-vs-deps
     - release/*
     - features/*
     - demos/*
     exclude:
-    - main-vs-deps
     # Since the version of VS on the integration VM images are a moving target,
     # we are unable to reliably run integration tests on servicing branches.
     - release/dev17.8
@@ -68,7 +68,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.scout.amd64.open
+  default: windows.vs2022preview.amd64.open
   values:
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open

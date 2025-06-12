@@ -17,7 +17,7 @@ internal partial class ColorSchemeApplier
     /// C++ has an 'Enhanced (Globals vs. Members)' scheme to emphasize
     /// a distinction between where identifiers are declared.
     /// </summary>
-    private class ColorScheme
+    private sealed class ColorScheme
     {
         public ImmutableArray<ColorTheme> Themes { get; }
 
@@ -28,7 +28,7 @@ internal partial class ColorSchemeApplier
     /// <summary>
     /// A ColorTheme contains a scheme's colors for a particular VS theme.
     /// </summary>
-    private class ColorTheme
+    private sealed class ColorTheme
     {
         public string Name { get; }
         public Guid Guid { get; }
@@ -42,7 +42,7 @@ internal partial class ColorSchemeApplier
         }
     }
 
-    private class ColorCategory
+    private sealed class ColorCategory
     {
         public string Name { get; }
         public Guid Guid { get; }
@@ -56,7 +56,7 @@ internal partial class ColorSchemeApplier
         }
     }
 
-    private class ColorItem
+    private sealed class ColorItem
     {
         public string Name { get; }
         public __VSCOLORTYPE BackgroundType { get; }

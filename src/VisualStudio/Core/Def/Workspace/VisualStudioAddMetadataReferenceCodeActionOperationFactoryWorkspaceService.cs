@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -41,7 +39,7 @@ internal sealed class VisualStudioAddMetadataReferenceCodeActionOperationFactory
         return new AddMetadataReferenceOperation(projectId, assemblyIdentity);
     }
 
-    private class AddMetadataReferenceOperation : CodeActionOperation
+    private sealed class AddMetadataReferenceOperation : CodeActionOperation
     {
         private readonly AssemblyIdentity _assemblyIdentity;
         private readonly ProjectId _projectId;

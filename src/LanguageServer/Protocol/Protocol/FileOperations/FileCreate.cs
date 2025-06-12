@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileCreate
+internal sealed class FileCreate
 {
     /// <summary>
     /// A <c>file://</c> URI for the location of the file/folder being created.
@@ -22,5 +22,5 @@ internal class FileCreate
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; set; }
+    public DocumentUri Uri { get; set; }
 }

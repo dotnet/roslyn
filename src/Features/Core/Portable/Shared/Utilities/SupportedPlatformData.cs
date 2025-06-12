@@ -31,6 +31,7 @@ internal sealed class SupportedPlatformData(Solution solution, ImmutableArray<Pr
         foreach (var project in projects)
         {
             var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
+            builder.AddSpace("    ");
             builder.AddText(text);
             builder.AddLineBreak();
         }

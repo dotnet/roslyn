@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class AutomaticLineEnderCommandHandler(
+internal sealed partial class AutomaticLineEnderCommandHandler(
     ITextUndoHistoryRegistry undoRegistry,
     IEditorOperationsFactoryService editorOperations,
     EditorOptionsService editorOptionsService) : AbstractAutomaticLineEnderCommandHandler(undoRegistry, editorOperations, editorOptionsService)

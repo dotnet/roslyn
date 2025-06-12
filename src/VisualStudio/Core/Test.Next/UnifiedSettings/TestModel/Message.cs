@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Message
+internal sealed record Message
 {
     [JsonPropertyName("text")]
     [JsonConverter(typeof(ResourceStringConverter))]

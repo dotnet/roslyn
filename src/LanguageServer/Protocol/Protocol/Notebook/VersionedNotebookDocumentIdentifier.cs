@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class VersionedNotebookDocumentIdentifier
+internal sealed class VersionedNotebookDocumentIdentifier
 {
 
     /// <summary>

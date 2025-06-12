@@ -12,18 +12,18 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
-{
-    public class FormatDocumentRangeTests : AbstractLanguageServerProtocolTests
-    {
-        public FormatDocumentRangeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting;
 
-        [Theory, CombinatorialData]
-        public async Task TestFormatDocumentRangeAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTests
+{
+    public FormatDocumentRangeTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFormatDocumentRangeAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"class A
 {
 {|format:void|} M()
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            var expected =
+        var expected =
 @"class A
 {
     void M()
@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var rangeToFormat = testLspServer.GetLocations("format").Single();
-            var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var rangeToFormat = testLspServer.GetLocations("format").Single();
+        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
 
-            var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
-            var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expected, actualText);
-        }
+        var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
+        var actualText = ApplyTextEdits(results, documentText);
+        Assert.Equal(expected, actualText);
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestFormatDocumentRange_UseTabsAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+    [Theory, CombinatorialData]
+    public async Task TestFormatDocumentRange_UseTabsAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"class A
 {
 {|format:void|} M()
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 			int i = 1;
 	}
 }";
-            var expected =
+        var expected =
 @"class A
 {
 	void M()
@@ -67,40 +67,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 			int i = 1;
 	}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var rangeToFormat = testLspServer.GetLocations("format").Single();
-            var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var rangeToFormat = testLspServer.GetLocations("format").Single();
+        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
 
-            var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
-            var actualText = ApplyTextEdits(results, documentText);
-            Assert.Equal(expected, actualText);
-        }
-
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(
-            TestLspServer testLspServer,
-            LSP.Location location,
-            bool insertSpaces = true,
-            int tabSize = 4)
-        {
-            return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(
-                LSP.Methods.TextDocumentRangeFormattingName,
-                CreateDocumentRangeFormattingParams(location, insertSpaces, tabSize),
-                CancellationToken.None);
-        }
-
-        private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(
-            LSP.Location location,
-            bool insertSpaces,
-            int tabSize)
-            => new LSP.DocumentRangeFormattingParams()
-            {
-                Range = location.Range,
-                TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                Options = new LSP.FormattingOptions()
-                {
-                    InsertSpaces = insertSpaces,
-                    TabSize = tabSize
-                }
-            };
+        var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
+        var actualText = ApplyTextEdits(results, documentText);
+        Assert.Equal(expected, actualText);
     }
+
+    private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(
+        TestLspServer testLspServer,
+        LSP.Location location,
+        bool insertSpaces = true,
+        int tabSize = 4)
+    {
+        return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(
+            LSP.Methods.TextDocumentRangeFormattingName,
+            CreateDocumentRangeFormattingParams(location, insertSpaces, tabSize),
+            CancellationToken.None);
+    }
+
+    private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(
+        LSP.Location location,
+        bool insertSpaces,
+        int tabSize)
+        => new LSP.DocumentRangeFormattingParams()
+        {
+            Range = location.Range,
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
+            Options = new LSP.FormattingOptions()
+            {
+                InsertSpaces = insertSpaces,
+                TabSize = tabSize
+            }
+        };
 }

@@ -14,6 +14,4 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// </summary>
 internal sealed class EmbeddedLanguageClassificationViewTaggerProvider(
     TaggerHost taggerHost, ClassificationTypeMap typeMap)
-    : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(taggerHost, typeMap, ClassificationType.EmbeddedLanguage)
-{
-}
+    : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(taggerHost, typeMap, ClassificationType.EmbeddedLanguage);

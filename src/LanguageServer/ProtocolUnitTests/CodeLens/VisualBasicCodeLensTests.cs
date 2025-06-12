@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeLens;
 
-public class VisualBasicCodeLensTests : AbstractCodeLensTests
+public sealed class VisualBasicCodeLensTests : AbstractCodeLensTests
 {
     public VisualBasicCodeLensTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {

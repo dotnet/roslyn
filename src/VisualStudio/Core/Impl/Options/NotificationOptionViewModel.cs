@@ -7,24 +7,23 @@
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+
+/// <summary>
+/// Represents a view model for <see cref="NotificationOption"/>
+/// </summary>
+internal sealed class NotificationOptionViewModel
 {
-    /// <summary>
-    /// Represents a view model for <see cref="NotificationOption"/>
-    /// </summary>
-    internal class NotificationOptionViewModel
+    public NotificationOptionViewModel(NotificationOption2 notification, ImageMoniker moniker)
     {
-        public NotificationOptionViewModel(NotificationOption2 notification, ImageMoniker moniker)
-        {
-            Notification = notification;
-            Name = notification.Severity.GetDisplayString();
-            Moniker = moniker;
-        }
-
-        public ImageMoniker Moniker { get; }
-
-        public string Name { get; }
-
-        public NotificationOption2 Notification { get; }
+        Notification = notification;
+        Name = notification.Severity.GetDisplayString();
+        Moniker = moniker;
     }
+
+    public ImageMoniker Moniker { get; }
+
+    public string Name { get; }
+
+    public NotificationOption2 Notification { get; }
 }

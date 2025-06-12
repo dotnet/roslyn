@@ -17,7 +17,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSystemHashCode;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseSystemHashCode)]
-public partial class UseSystemHashCodeTests(ITestOutputHelper logger)
+public sealed partial class UseSystemHashCodeTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)

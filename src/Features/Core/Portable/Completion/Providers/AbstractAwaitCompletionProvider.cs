@@ -64,9 +64,6 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
     protected abstract SyntaxToken? GetDotTokenLeftOfPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
-    protected virtual bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => syntaxContext.IsAwaitKeywordContext;
-
     private static bool IsConfigureAwaitable(Compilation compilation, ITypeSymbol symbol)
     {
         var originalDefinition = symbol.OriginalDefinition;
@@ -89,7 +86,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 
         var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
+        var isAwaitKeywordContext = syntaxContext.IsAwaitKeywordContext;
         var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
         if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
             return;

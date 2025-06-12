@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddRequiredParentheses;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-public partial class AddRequiredPatternParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public AddRequiredPatternParenthesesTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpAddRequiredPatternParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
 

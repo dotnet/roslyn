@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-internal record DebugAttachResult(
+internal sealed record DebugAttachResult(
     [property: JsonPropertyName("didAttach")] bool DidAttach
 );
 

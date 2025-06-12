@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -30,9 +29,6 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
     internal override string Language => LanguageNames.CSharp;
 
     public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
-
-    protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
-        => base.IsAwaitKeywordContext(syntaxContext);
 
     /// <summary>
     /// Gets the span start where async keyword should go.
@@ -86,8 +82,13 @@ internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvide
             // Don't change the return type if we don't understand it, or it already seems task-like.
             var taskLikeTypes = new KnownTaskTypes(semanticModel.Compilation);
             var returnType = semanticModel.GetTypeInfo(existingReturnType, cancellationToken).Type;
-            if (returnType is null or IErrorTypeSymbol || taskLikeTypes.IsTaskLike(returnType))
+            if (returnType is null or IErrorTypeSymbol ||
+                taskLikeTypes.IsTaskLike(returnType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumerableOfTType) ||
+                returnType.OriginalDefinition.Equals(taskLikeTypes.IAsyncEnumeratorOfTType))
+            {
                 return null;
+            }
 
             return $"{nameof(Task)}<{existingReturnType}>";
         }

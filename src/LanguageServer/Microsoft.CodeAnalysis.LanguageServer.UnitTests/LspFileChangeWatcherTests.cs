@@ -14,7 +14,7 @@ using FileSystemWatcher = Roslyn.LanguageServer.Protocol.FileSystemWatcher;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
-public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
+public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
     private readonly ClientCapabilities _clientCapabilitiesWithFileWatcherSupport = new ClientCapabilities
@@ -62,7 +62,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
         Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
@@ -93,7 +93,7 @@ public class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper)
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.GetRequiredParsedUri().LocalPath);
         Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again

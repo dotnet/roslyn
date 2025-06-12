@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportLanguageService(typeof(IDocumentationCommentFormattingService), LanguageNames.CSharp), Shared]
-internal class CSharpDocumentationCommentFormattingService : AbstractDocumentationCommentFormattingService
+internal sealed class CSharpDocumentationCommentFormattingService : AbstractDocumentationCommentFormattingService
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

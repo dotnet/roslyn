@@ -8,51 +8,50 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+
+/// <summary>
+/// An <see cref="ILsifJsonWriter"/> that writes in <see cref="LsifFormat.Line"/>.
+/// </summary>
+internal sealed partial class LineModeLsifJsonWriter : ILsifJsonWriter
 {
-    /// <summary>
-    /// An <see cref="ILsifJsonWriter"/> that writes in <see cref="LsifFormat.Line"/>.
-    /// </summary>
-    internal sealed partial class LineModeLsifJsonWriter : ILsifJsonWriter
+    public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
     {
-        public static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-        {
-            Formatting = Newtonsoft.Json.Formatting.None,
-            NullValueHandling = NullValueHandling.Ignore,
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            TypeNameHandling = TypeNameHandling.None,
-            Converters = new[] { new LsifConverter() }
-        };
+        Formatting = Newtonsoft.Json.Formatting.None,
+        NullValueHandling = NullValueHandling.Ignore,
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        TypeNameHandling = TypeNameHandling.None,
+        Converters = new[] { new LsifConverter() }
+    };
 
-        private readonly object _writeGate = new object();
-        private readonly TextWriter _outputWriter;
+    private readonly object _writeGate = new object();
+    private readonly TextWriter _outputWriter;
 
-        public LineModeLsifJsonWriter(TextWriter outputWriter)
+    public LineModeLsifJsonWriter(TextWriter outputWriter)
+    {
+        _outputWriter = outputWriter;
+    }
+
+    public void Write(Element element)
+    {
+        var line = JsonConvert.SerializeObject(element, SerializerSettings);
+
+        lock (_writeGate)
         {
-            _outputWriter = outputWriter;
+            _outputWriter.WriteLine(line);
         }
+    }
 
-        public void Write(Element element)
+    public void WriteAll(List<Element> elements)
+    {
+        var lines = new List<string>();
+        foreach (var element in elements)
+            lines.Add(JsonConvert.SerializeObject(element, SerializerSettings));
+
+        lock (_writeGate)
         {
-            var line = JsonConvert.SerializeObject(element, SerializerSettings);
-
-            lock (_writeGate)
-            {
+            foreach (var line in lines)
                 _outputWriter.WriteLine(line);
-            }
-        }
-
-        public void WriteAll(List<Element> elements)
-        {
-            var lines = new List<string>();
-            foreach (var element in elements)
-                lines.Add(JsonConvert.SerializeObject(element, SerializerSettings));
-
-            lock (_writeGate)
-            {
-                foreach (var line in lines)
-                    _outputWriter.WriteLine(line);
-            }
         }
     }
 }

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
-internal class UseExpressionBodyForMethodsHelper :
+internal sealed class UseExpressionBodyForMethodsHelper :
     UseExpressionBodyHelper<MethodDeclarationSyntax>
 {
     public static readonly UseExpressionBodyForMethodsHelper Instance = new();

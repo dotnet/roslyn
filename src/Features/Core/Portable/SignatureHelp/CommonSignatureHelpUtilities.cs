@@ -172,7 +172,7 @@ internal static class CommonSignatureHelpUtilities
         var addMethods = addSymbols.OfType<IMethodSymbol>()
                                    .Where(m => m.Parameters.Length >= 1)
                                    .ToImmutableArray()
-                                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
+                                   .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation, inclusionFilter: static s => true)
                                    .Sort(semanticModel, position);
 
         return addMethods;

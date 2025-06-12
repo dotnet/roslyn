@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
 
 [Export(typeof(ITableColumnDefinition))]
 [Name(Severity)]
-internal class CodeStyleSeverityColumnDefinition : TableColumnDefinitionBase
+internal sealed class CodeStyleSeverityColumnDefinition : TableColumnDefinitionBase
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

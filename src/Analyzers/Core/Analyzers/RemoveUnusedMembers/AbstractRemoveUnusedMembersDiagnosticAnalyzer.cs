@@ -583,8 +583,16 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                             continue;
 
                         // Do not flag ref-fields that are not read.  A ref-field can exist to have side effects by
-                        // writing into some other location when a write happens to it.
-                        if (member is IFieldSymbol { IsReadOnly: false, RefKind: RefKind.Ref })
+                        // writing into some other location when a write happens to it.  Note: this includes `readonly
+                        // ref` fields as well.  It's still legal to assign a normal value into a `readonly ref` field.
+                        // It's just not allowed to overwrite it *with another ref*.  In other words:
+                        //
+                        //      _readonlyRefField = value;     // is fine.
+                        //      _readonlyRefField = ref value; // is not.
+                        //
+                        // So as long as it is a ref-field, we don't care if it is unread, but is written to.  We must
+                        // continue allowing it.
+                        if (member is IFieldSymbol { RefKind: RefKind.Ref })
                             continue;
                     }
 

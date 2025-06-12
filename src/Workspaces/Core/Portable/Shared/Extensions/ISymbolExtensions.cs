@@ -309,8 +309,7 @@ internal static partial class ISymbolExtensions
             }
         }
 
-        var container = node as XContainer;
-        if (container == null)
+        if (node is not XContainer container)
         {
             return [Copy(node, copyAttributeAnnotations: false)];
         }
@@ -640,10 +639,11 @@ internal static partial class ISymbolExtensions
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
     /// to the existence of overriding members. Second, remove remaining symbols that are
     /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
-    /// attribute.
+    /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
+    /// should be included.
     /// </summary>
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
-        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
+        this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
     {
         if (symbols.Length == 0)
             return [];
@@ -672,8 +672,9 @@ internal static partial class ISymbolExtensions
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,
                 arg.editorBrowsableInfo.Compilation,
-                arg.editorBrowsableInfo),
-            arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols));
+                arg.editorBrowsableInfo) &&
+            arg.inclusionFilter(s),
+            arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols, inclusionFilter));
 
         return filteredSymbols;
     }
@@ -681,7 +682,6 @@ internal static partial class ISymbolExtensions
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
     {
-        return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation)
-            .WhereAsArray(s => !s.RequiresUnsafeModifier());
+        return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
     }
 }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal enum BoundMethodGroupFlags
     {
         None = 0,
-        SearchExtensionMethods = 1,
+        SearchExtensions = 1,
 
         /// <summary>
         /// Set if the group has a receiver but one was not specified in syntax.

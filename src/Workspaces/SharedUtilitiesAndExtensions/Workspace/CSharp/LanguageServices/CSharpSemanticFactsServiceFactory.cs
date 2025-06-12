@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -13,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 namespace Microsoft.CodeAnalysis.CSharp;
 
 [ExportLanguageServiceFactory(typeof(ISemanticFactsService), LanguageNames.CSharp), Shared]
-internal class CSharpSemanticFactsServiceFactory : ILanguageServiceFactory
+internal sealed class CSharpSemanticFactsServiceFactory : ILanguageServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

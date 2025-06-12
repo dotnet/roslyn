@@ -12,7 +12,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [Method(Methods.InitializeName)]
-internal class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
+internal sealed class InitializeHandler : ILspServiceRequestHandler<InitializeParams, InitializeResult>
 {
     public InitializeHandler()
     {

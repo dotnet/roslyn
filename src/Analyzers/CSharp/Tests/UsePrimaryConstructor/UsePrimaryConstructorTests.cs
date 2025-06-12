@@ -4096,7 +4096,6 @@ public sealed class UsePrimaryConstructorTests
                 {
                 }
                 """,
-            CodeActionIndex = 0,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }

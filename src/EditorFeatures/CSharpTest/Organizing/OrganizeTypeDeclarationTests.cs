@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing;
 
-public class OrganizeTypeDeclarationTests : AbstractOrganizerTests
+public sealed class OrganizeTypeDeclarationTests : AbstractOrganizerTests
 {
     [Theory, Trait(Traits.Feature, Traits.Features.Organizing)]
     [InlineData("class")]
@@ -1175,7 +1175,7 @@ $@"{typeKind} Program
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 

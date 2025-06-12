@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToTopLevelStatementsCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class ConvertToTopLevelStatementsRefactoringTests
+public sealed class ConvertToTopLevelStatementsRefactoringTests
 {
     [Fact]
     public async Task TestNotOnEmptyFile()

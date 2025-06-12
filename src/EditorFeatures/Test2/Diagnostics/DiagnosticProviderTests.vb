@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -290,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Dim analyzerService = workspace.GetService(Of IDiagnosticAnalyzerService)()
+            Dim analyzerService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
 
             Return analyzerService
         End Function
@@ -331,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
         Private Shared Function GetDocumentId(workspace As EditorTestWorkspace, document As String) As DocumentId
             Return (From doc In workspace.Documents
-                    Where doc.FilePath.Equals(document)
+                    Where Path.GetFileName(doc.FilePath).Equals(document)
                     Select doc.Id).Single()
         End Function
 

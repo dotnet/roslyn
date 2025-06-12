@@ -32,11 +32,11 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
 
     public void Dispose()
     {
-        Logger.Log(FunctionId.SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent, KeyValueLogMessage.Create(m =>
+        Logger.Log(FunctionId.SemanticModelReuseLanguageService_TryGetSpeculativeSemanticModelAsync_Equivalent, KeyValueLogMessage.Create(static (m, _logAggregator) =>
         {
             foreach (var kv in _logAggregator)
                 m[kv.Key.ToString()] = kv.Value.GetCount();
-        }));
+        }, _logAggregator));
     }
 
     public async Task<SemanticModel?> TryGetSpeculativeSemanticModelAsync(SemanticModel previousSemanticModel, SyntaxNode currentBodyNode, CancellationToken cancellationToken)

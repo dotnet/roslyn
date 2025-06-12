@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -19,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
 /// </summary>
 [Export(typeof(ITableColumnDefinition))]
 [Name(ColumnName)]
-internal class ContainingMemberColumnDefinition : TableColumnDefinitionBase
+internal sealed class ContainingMemberColumnDefinition : TableColumnDefinitionBase
 {
     public const string ColumnName = AbstractReferenceFinder.ContainingMemberInfoPropertyName;
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsReferenceType => false;
         public override bool IsValueType => true;
+        internal sealed override ParameterSymbol? ExtensionParameter => null;
         public override TypeKind TypeKind => TypeKind.FunctionPointer;
         public override bool IsRefLikeType => false;
         public override bool IsReadOnly => false;

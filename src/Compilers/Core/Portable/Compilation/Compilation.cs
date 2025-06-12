@@ -28,7 +28,6 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -3095,6 +3094,24 @@ namespace Microsoft.CodeAnalysis
             Stream ilStream,
             Stream pdbStream,
             CancellationToken cancellationToken = default(CancellationToken))
+            => EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, EmitDifferenceOptions.Default, cancellationToken);
+
+        /// <summary>
+        /// Emit the differences between the compilation and the previous generation
+        /// for Edit and Continue. The differences are expressed as added and changed
+        /// symbols, and are emitted as metadata, IL, and PDB deltas. A representation
+        /// of the current compilation is returned as an EmitBaseline for use in a
+        /// subsequent Edit and Continue.
+        /// </summary>
+        public EmitDifferenceResult EmitDifference(
+            EmitBaseline baseline,
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
+            Stream metadataStream,
+            Stream ilStream,
+            Stream pdbStream,
+            EmitDifferenceOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (baseline == null)
             {
@@ -3129,7 +3146,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, testData: null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, options, testData: null, cancellationToken);
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -3140,6 +3157,7 @@ namespace Microsoft.CodeAnalysis
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
+            EmitDifferenceOptions options,
             CompilationTestData? testData,
             CancellationToken cancellationToken);
 
@@ -3423,7 +3441,6 @@ namespace Microsoft.CodeAnalysis
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
             DefinitionMap definitionMap,
-            SymbolChanges changes,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -3443,7 +3460,6 @@ namespace Microsoft.CodeAnalysis
             using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
-                var deletedMethodDefs = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, changes);
 
                 // Map the definitions from the previous compilation to the current compilation.
                 // This must be done after compiling since synthesized definitions (generated when compiling method bodies)
@@ -3461,8 +3477,6 @@ namespace Microsoft.CodeAnalysis
                         baseline,
                         encId,
                         definitionMap,
-                        changes,
-                        deletedMethodDefs,
                         cancellationToken);
 
                     moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
@@ -3498,7 +3512,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    foreach (var (_, builder) in deletedMethodDefs)
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMethodDefinitions())
                     {
                         builder.Free();
                     }

@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
     Public Class PreviewTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
             .AddParts(
                 GetType(MockPreviewPaneService))
 

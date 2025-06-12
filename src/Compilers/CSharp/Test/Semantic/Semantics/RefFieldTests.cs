@@ -372,6 +372,32 @@ ref struct B
             CompileAndVerify(comp, verify: Verification.Skipped);
         }
 
+        [WorkItem(78700, "https://github.com/dotnet/roslyn/issues/78700")]
+        [Fact]
+        public void StaticRefFieldInClass()
+        {
+            var code = """
+                class Program
+                {
+                    static int g_3 = -6;
+                    static int g_4 = 123;
+                    static ref int g_2 = ref g_3;
+
+                    static void Main(){
+                        g_2 = ref g_4;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(code, references: [], parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (5,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int g_2 = ref g_3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "g_2").WithArguments("static").WithLocation(5, 20),
+                // (5,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int g_2 = ref g_3;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "g_2").WithLocation(5, 20));
+        }
+
         [Fact]
         public void RefAndReadonlyRefStruct_01()
         {
@@ -2067,6 +2093,42 @@ $@"#pragma warning disable 169
                 // (4,13): error CS9059: A ref field can only be declared in a ref struct.
                 //     ref int F;
                 Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 13));
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void NonRefStructContainerWithStaticRefField(string type)
+        {
+            var source =
+$@"#pragma warning disable 169
+{type} R
+{{
+    static ref int F;
+}}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "ref int").WithArguments("ref fields", "11.0").WithLocation(4, 12),
+                // (4,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("static").WithLocation(4, 20),
+                // (4,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 20));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (4,20): error CS0106: The modifier 'static' is not valid for this item
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F").WithArguments("static").WithLocation(4, 20),
+                // (4,20): error CS9059: A ref field can only be declared in a ref struct.
+                //     static ref int F;
+                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "F").WithLocation(4, 20));
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
-public partial class AddUsingTests
+public sealed partial class AddUsingTests
 {
     [Fact]
     public async Task TestWhereExtension()

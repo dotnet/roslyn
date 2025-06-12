@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Threading;
 using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
@@ -63,6 +64,9 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         Logger = logger;
         _jsonRpc = jsonRpc;
         TypeRefResolver = typeRefResolver ?? TypeRef.DefaultResolver.Instance;
+
+        // We have no need to continue running LSP requests after the connection is closed.
+        _jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
 
         _jsonRpc.AddLocalRpcTarget(this);
         _jsonRpc.Disconnected += JsonRpc_Disconnected;
@@ -180,7 +184,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
     public virtual bool TryGetLanguageForRequest(string methodName, object? serializedRequest, [NotNullWhen(true)] out string? language)
     {
-        Logger.LogInformation($"Using default language handler for {methodName}");
+        Logger.LogDebug($"Using default language handler for {methodName}");
         language = LanguageServerConstants.DefaultLanguageName;
         return true;
     }
@@ -326,18 +330,21 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return queue.DisposeAsync();
     }
 
-#pragma warning disable VSTHRD100
     /// <summary>
     /// Cleanup the server if we encounter a json rpc disconnect so that we can be restarted later.
     /// </summary>
-    private async void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
+    private void JsonRpc_Disconnected(object? sender, JsonRpcDisconnectedEventArgs e)
     {
-        // It is possible this gets called during normal shutdown and exit.
-        // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
-        await ShutdownAsync(message: "Shutdown triggered by JsonRpc disconnect").ConfigureAwait(false);
-        await ExitAsync().ConfigureAwait(false);
+        JsonRpc_DisconnectedAsync(sender, e).Forget();
+
+        async Task JsonRpc_DisconnectedAsync(object? sender, JsonRpcDisconnectedEventArgs e)
+        {
+            // It is possible this gets called during normal shutdown and exit.
+            // ShutdownAsync and ExitAsync will no-op if shutdown was already triggered by something else.
+            await ShutdownAsync(message: "Shutdown triggered by JsonRpc disconnect").ConfigureAwait(false);
+            await ExitAsync().ConfigureAwait(false);
+        }
     }
-#pragma warning disable VSTHRD100
 
     internal TestAccessor GetTestAccessor()
     {

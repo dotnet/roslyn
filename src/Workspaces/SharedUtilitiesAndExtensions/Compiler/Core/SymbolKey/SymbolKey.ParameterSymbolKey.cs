@@ -69,6 +69,9 @@ internal partial struct SymbolKey
                         }
 
                         break;
+                    case INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter }:
+                        Resolve(result, reader, metadataName, ordinal, [extensionParameter]);
+                        break;
                 }
             }
 

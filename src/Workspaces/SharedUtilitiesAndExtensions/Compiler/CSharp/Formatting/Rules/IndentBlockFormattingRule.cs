@@ -328,13 +328,13 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
             return;
         }
 
-        if (node is UsingStatementSyntax usingStatement && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax || usingStatement.Statement is UsingStatementSyntax))
+        if (node is UsingStatementSyntax usingStatement && usingStatement.Statement != null && !(usingStatement.Statement is BlockSyntax or UsingStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, usingStatement.Statement);
             return;
         }
 
-        if (node is FixedStatementSyntax fixedStatement && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax || fixedStatement.Statement is FixedStatementSyntax))
+        if (node is FixedStatementSyntax fixedStatement && fixedStatement.Statement != null && !(fixedStatement.Statement is BlockSyntax or FixedStatementSyntax))
         {
             AddEmbeddedStatementsIndentationOperation(list, fixedStatement.Statement);
             return;

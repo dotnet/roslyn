@@ -12,7 +12,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(ConstructMapping(from, to))
         {
             // mapping contents are read-only hereafter
-            Debug.Assert(allowAlpha || !from.Any(static tp => tp is SubstitutedTypeParameterSymbol));
+            Debug.Assert(allowAlpha || !from.Any(static tp => tp is SubstitutedTypeParameterSymbol && tp.ContainingSymbol is not SourceExtensionImplementationMethodSymbol)); // Tracked by https://github.com/dotnet/roslyn/issues/76130 : Follow up, will the SourceExtensionImplementationMethodSymbol type check still be necessary at the end 
         }
 
         // Only when the caller passes allowAlpha=true do we tolerate substituted (alpha-renamed) type parameters as keys
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
+        internal TypeMap WithAlphaRename(ImmutableArray<TypeParameterSymbol> oldTypeParameters, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             if (oldTypeParameters.Length == 0)
             {
@@ -148,12 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
-        internal TypeMap WithConcatAlphaRename(
-            MethodSymbol oldOwner,
-            Symbol newOwner,
-            out ImmutableArray<TypeParameterSymbol> newTypeParameters,
-            out ImmutableArray<TypeParameterSymbol> oldTypeParameters,
-            MethodSymbol stopAt = null)
+        internal static ImmutableArray<TypeParameterSymbol> ConcatMethodTypeParameters(MethodSymbol oldOwner, MethodSymbol stopAt)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
             Debug.Assert(stopAt == null || stopAt.ConstructedFrom == stopAt);
@@ -193,8 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 stopAt?.MethodKind == MethodKind.StaticConstructor ||
                 stopAt?.MethodKind == MethodKind.Constructor);
 
-            oldTypeParameters = parameters.ToImmutableAndFree();
-            return WithAlphaRename(oldTypeParameters, newOwner, out newTypeParameters);
+            return parameters.ToImmutableAndFree();
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeWithAnnotations> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeWithAnnotations> to)

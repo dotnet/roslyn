@@ -10,9 +10,4 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-internal sealed class XamlCommandAttribute : CommandAttribute
-{
-    public XamlCommandAttribute(string command) : base(command)
-    {
-    }
-}
+internal sealed class XamlCommandAttribute(string command) : CommandAttribute(command);

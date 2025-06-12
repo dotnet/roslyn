@@ -39,8 +39,8 @@ internal abstract class AbstractUnsealClassCodeFixProvider : CodeFixProvider
         if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is INamedTypeSymbol type &&
             type.TypeKind == TypeKind.Class && type.IsSealed && !type.IsStatic)
         {
-            var definition = SymbolFinderInternal.FindSourceDefinition(
-                type, document.Project.Solution, cancellationToken);
+            var definition = await SymbolFinderInternal.FindSourceDefinitionAsync(
+                type, document.Project.Solution, cancellationToken).ConfigureAwait(false);
             if (definition is not null && definition.DeclaringSyntaxReferences.Length > 0)
             {
                 var title = string.Format(TitleFormat, type.Name);

@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class CommentStructureTests : AbstractSyntaxStructureProviderTests
+public sealed class CommentStructureTests : AbstractSyntaxStructureProviderTests
 {
     protected override string LanguageName => LanguageNames.CSharp;
 

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Organizing;
@@ -19,11 +20,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 
@@ -152,7 +153,8 @@ internal sealed class OrganizeDocumentCommandHandler(
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
-        backgroundWorkContext.CancelOnEdit = false;
+        var disposable = await backgroundWorkContext.SuppressAutoCancelAsync().ConfigureAwait(true);
+        await using var _ = disposable.ConfigureAwait(true);
 
         commandArgs.SubjectBuffer.ApplyChanges(changes);
     }

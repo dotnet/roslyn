@@ -165,9 +165,6 @@
   <data name="Suppressed" xml:space="preserve">
     <value>Suppressed</value>
   </data>
-  <data name="Rule_Set" xml:space="preserve">
-    <value>Rule Set</value>
-  </data>
   <data name="Checking_out_0_for_editing" xml:space="preserve">
     <value>Checking out {0} for editing...</value>
   </data>

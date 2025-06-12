@@ -32,6 +32,7 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     {
         await new CustomCompositionCSharpTest
         {
+            CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = $$"""
 using System;
 using System.Threading.Tasks;
@@ -67,7 +68,7 @@ public class TestService
     {
         // Single statement with NotImplementedException
         [
-    @"public void TestMethod()
+    @"public void {|IDE3000:TestMethod|}()
     {
         {|IDE3000:throw new NotImplementedException();|}
     }"
@@ -161,7 +162,7 @@ public class TestService
         ],
         // Async method with NotImplementedException
         [
-    @"public async Task TestMethodAsync()
+    @"public async Task {|IDE3000:TestMethodAsync|}()
     {
         {|IDE3000:throw new NotImplementedException();|}
     }"

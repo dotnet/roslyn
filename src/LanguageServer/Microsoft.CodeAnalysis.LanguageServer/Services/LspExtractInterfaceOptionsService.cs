@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -15,17 +16,16 @@ internal sealed class LspExtractInterfaceOptionsService() : IExtractInterfaceOpt
 {
     public ExtractInterfaceOptionsResult GetExtractInterfaceOptions(
         Document document,
-        List<ISymbol> extractableMembers,
+        ImmutableArray<ISymbol> extractableMembers,
         string defaultInterfaceName,
-        List<string> conflictingTypeNames,
+        ImmutableArray<string> conflictingTypeNames,
         string defaultNamespace,
-        string generatedNameTypeParameterSuffix,
-        CancellationToken cancellationToken)
+        string generatedNameTypeParameterSuffix)
     {
         var extension = document.Project.Language == LanguageNames.CSharp ? ".cs" : ".vb";
         return new(
             isCancelled: false,
-            [.. extractableMembers],
+            extractableMembers,
             defaultInterfaceName,
             defaultInterfaceName + extension,
             ExtractInterfaceOptionsResult.ExtractLocation.SameFile);

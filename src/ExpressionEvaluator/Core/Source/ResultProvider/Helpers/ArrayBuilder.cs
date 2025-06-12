@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         internal ArrayBuilder()
         {
-            _items = new List<T>();
+            _items = [];
         }
 
         public int Count

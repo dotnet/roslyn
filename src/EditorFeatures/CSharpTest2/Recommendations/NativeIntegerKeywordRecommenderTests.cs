@@ -29,6 +29,17 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
     }
 
     [Fact]
+    public async Task TestInClass()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                $$
+            """);
+    }
+
+    [Fact]
     public async Task TestInParameterList()
     {
         await VerifyKeywordAsync(
@@ -591,4 +602,21 @@ public abstract class NativeIntegerKeywordRecommenderTests : RecommenderTests
     }
 
     #endregion
+
+    [Fact]
+    public async Task TestWithinExtension()
+    {
+        await VerifyKeywordAsync(
+            """
+                static class C
+                {
+                    extension(string s)
+                    {
+                        $$
+                    }
+                }
+                """,
+                CSharpNextParseOptions,
+                CSharpNextScriptParseOptions);
+    }
 }

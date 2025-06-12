@@ -9,7 +9,7 @@ using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionS
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record AlternativeDefault<T>
+internal sealed record AlternativeDefault<T>
 {
     [JsonPropertyName("flagName")]
     public string FlagName { get; init; }

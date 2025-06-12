@@ -17,9 +17,10 @@ internal sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
         _testOutputHelper = testOutputHelper;
     }
 
-    public override void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
+    public override IDisposable? CreateContext(string context) => null;
+    public override IDisposable? CreateLanguageContext(string? context) => null;
 
-    public override void LogEndContext(string message, params object[] @params) => Log("End", message, @params);
+    public override void LogDebug(string message, params object[] @params) => Log("Debug", message, @params);
 
     public override void LogError(string message, params object[] @params) => Log("Error", message, @params);
 
@@ -27,8 +28,6 @@ internal sealed class TestOutputLspLogger : AbstractLspLogger, ILspService
         => Log("Warning", $"{message}{Environment.NewLine}{exception}", @params);
 
     public override void LogInformation(string message, params object[] @params) => Log("Info", message, @params);
-
-    public override void LogStartContext(string message, params object[] @params) => Log("Start", message, @params);
 
     public override void LogWarning(string message, params object[] @params) => Log("Warning", message, @params);
 

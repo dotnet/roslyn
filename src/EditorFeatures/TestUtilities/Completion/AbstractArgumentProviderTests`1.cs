@@ -17,103 +17,102 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
+namespace Microsoft.CodeAnalysis.Test.Utilities.Completion;
+
+[UseExportProvider]
+public abstract class AbstractArgumentProviderTests<TWorkspaceFixture> : TestBase
+    where TWorkspaceFixture : TestWorkspaceFixture, new()
 {
-    [UseExportProvider]
-    public abstract class AbstractArgumentProviderTests<TWorkspaceFixture> : TestBase
-        where TWorkspaceFixture : TestWorkspaceFixture, new()
+    private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(ArgumentProvider));
+
+    private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
+
+    private ExportProvider? _lazyExportProvider;
+
+    protected ExportProvider ExportProvider
+        => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+
+    protected virtual TestComposition GetComposition()
+        => s_baseComposition.AddParts(GetArgumentProviderType());
+
+    private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
+        => _fixtureHelper.GetOrCreateFixture();
+
+    internal abstract Type GetArgumentProviderType();
+
+    protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
+
+    private protected async Task VerifyDefaultValueAsync(
+        string markup,
+        string? expectedDefaultValue,
+        string? previousDefaultValue = null,
+        OptionsCollection? options = null)
     {
-        private static readonly TestComposition s_baseComposition = EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(typeof(ArgumentProvider));
+        using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-        private readonly TestFixtureHelper<TWorkspaceFixture> _fixtureHelper = new();
+        var workspace = workspaceFixture.Target.GetWorkspace(markup, GetComposition());
+        var code = workspaceFixture.Target.Code;
+        var position = workspaceFixture.Target.Position;
 
-        private ExportProvider? _lazyExportProvider;
+        options?.SetGlobalOptions(workspace.GlobalOptions);
 
-        protected ExportProvider ExportProvider
-            => _lazyExportProvider ??= GetComposition().ExportProviderFactory.CreateExportProvider();
+        var document = workspaceFixture.Target.UpdateDocument(code, SourceCodeKind.Regular);
 
-        protected virtual TestComposition GetComposition()
-            => s_baseComposition.AddParts(GetArgumentProviderType());
+        var provider = workspace.ExportProvider.GetExportedValues<ArgumentProvider>().Single();
+        Assert.IsType(GetArgumentProviderType(), provider);
 
-        private protected ReferenceCountedDisposable<TWorkspaceFixture> GetOrCreateWorkspaceFixture()
-            => _fixtureHelper.GetOrCreateFixture();
+        var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
+        var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
+        Contract.ThrowIfNull(parameter);
 
-        internal abstract Type GetArgumentProviderType();
+        var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
+        await provider.ProvideArgumentAsync(context);
 
-        protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
+        Assert.Equal(expectedDefaultValue, context.DefaultValue);
+    }
 
-        private protected async Task VerifyDefaultValueAsync(
-            string markup,
-            string? expectedDefaultValue,
-            string? previousDefaultValue = null,
-            OptionsCollection? options = null)
+    private IParameterSymbol GetParameterSymbolInfo(Workspace workspace, SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken)
+    {
+        var token = root.FindToken(position);
+        var (argumentList, arguments) = GetArgumentList(token);
+        var symbols = semanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAllSymbols();
+
+        // if more than one symbol is found, filter to only include symbols with a matching number of arguments
+        if (symbols.Length > 1)
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+            symbols = symbols.WhereAsArray(
+                symbol =>
+                {
+                    var parameters = symbol.GetParameters();
+                    if (arguments.Length < GetMinimumArgumentCount(parameters))
+                        return false;
 
-            var workspace = workspaceFixture.Target.GetWorkspace(markup, GetComposition());
-            var code = workspaceFixture.Target.Code;
-            var position = workspaceFixture.Target.Position;
+                    if (arguments.Length > GetMaximumArgumentCount(parameters))
+                        return false;
 
-            options?.SetGlobalOptions(workspace.GlobalOptions);
-
-            var document = workspaceFixture.Target.UpdateDocument(code, SourceCodeKind.Regular);
-
-            var provider = workspace.ExportProvider.GetExportedValues<ArgumentProvider>().Single();
-            Assert.IsType(GetArgumentProviderType(), provider);
-
-            var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
-            var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
-            Contract.ThrowIfNull(parameter);
-
-            var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
-            await provider.ProvideArgumentAsync(context);
-
-            Assert.Equal(expectedDefaultValue, context.DefaultValue);
+                    return true;
+                });
         }
 
-        private IParameterSymbol GetParameterSymbolInfo(Workspace workspace, SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(position);
-            var (argumentList, arguments) = GetArgumentList(token);
-            var symbols = semanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAllSymbols();
+        var symbol = symbols.Single();
+        var parameters = symbol.GetParameters();
 
-            // if more than one symbol is found, filter to only include symbols with a matching number of arguments
-            if (symbols.Length > 1)
-            {
-                symbols = symbols.WhereAsArray(
-                    symbol =>
-                    {
-                        var parameters = symbol.GetParameters();
-                        if (arguments.Length < GetMinimumArgumentCount(parameters))
-                            return false;
+        var syntaxFacts = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxFactsService>();
+        Contract.ThrowIfTrue(arguments.Any(argument => syntaxFacts.IsNamedArgument(argument)), "Named arguments are not currently supported by this test.");
+        Contract.ThrowIfTrue(parameters.Any(parameter => parameter.IsParams), "'params' parameters are not currently supported by this test.");
 
-                        if (arguments.Length > GetMaximumArgumentCount(parameters))
-                            return false;
+        var index = arguments.Any()
+            ? arguments.IndexOf(arguments.Single(argument => argument.FullSpan.Start <= position && argument.FullSpan.End >= position))
+            : 0;
 
-                        return true;
-                    });
-            }
+        return parameters[index];
 
-            var symbol = symbols.Single();
-            var parameters = symbol.GetParameters();
+        // Local functions
+        static int GetMinimumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+            => parameters.Count(parameter => !parameter.IsOptional && !parameter.IsParams);
 
-            var syntaxFacts = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxFactsService>();
-            Contract.ThrowIfTrue(arguments.Any(argument => syntaxFacts.IsNamedArgument(argument)), "Named arguments are not currently supported by this test.");
-            Contract.ThrowIfTrue(parameters.Any(parameter => parameter.IsParams), "'params' parameters are not currently supported by this test.");
-
-            var index = arguments.Any()
-                ? arguments.IndexOf(arguments.Single(argument => argument.FullSpan.Start <= position && argument.FullSpan.End >= position))
-                : 0;
-
-            return parameters[index];
-
-            // Local functions
-            static int GetMinimumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
-                => parameters.Count(parameter => !parameter.IsOptional && !parameter.IsParams);
-
-            static int GetMaximumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
-                => parameters.Any(parameter => parameter.IsParams) ? int.MaxValue : parameters.Length;
-        }
+        static int GetMaximumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+            => parameters.Any(parameter => parameter.IsParams) ? int.MaxValue : parameters.Length;
     }
 }

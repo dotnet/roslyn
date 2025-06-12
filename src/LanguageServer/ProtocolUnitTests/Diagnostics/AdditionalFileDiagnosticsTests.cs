@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
+public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 {
     public AdditionalFileDiagnosticsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
@@ -40,7 +40,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
             @"C:\C.cs: []",
             @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
             @"C:\CSProj1.csproj: []"
-        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
+        ], results.Select(r => $"{r.Uri.GetRequiredParsedUri().LocalPath}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -65,7 +65,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
 
         AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
         AssertEx.Empty(results[2].Diagnostics);
 
         var initialSolution = testLspServer.GetCurrentSolution();
@@ -101,10 +101,10 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         Assert.Equal(6, results.Length);
 
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[1].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[1].Uri.GetRequiredParsedUri().LocalPath);
         Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
-        Assert.Equal(@"C:\Test.txt", results[4].Uri.LocalPath);
+        Assert.Equal(@"C:\Test.txt", results[4].Uri.GetRequiredParsedUri().LocalPath);
         Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
@@ -118,7 +118,7 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         => new(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty.Add(LanguageNames.CSharp, [DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp), new MockAdditionalFileDiagnosticAnalyzer()]));
 
     [DiagnosticAnalyzer(LanguageNames.CSharp), PartNotDiscoverable]
-    private class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
+    private sealed class MockAdditionalFileDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string Id = "MockAdditionalDiagnostic";
         private readonly DiagnosticDescriptor _descriptor = new(Id, "MockAdditionalDiagnostic", "MockAdditionalDiagnostic", "InternalCategory", DiagnosticSeverity.Warning, isEnabledByDefault: true, helpLinkUri: "https://github.com/dotnet/roslyn");

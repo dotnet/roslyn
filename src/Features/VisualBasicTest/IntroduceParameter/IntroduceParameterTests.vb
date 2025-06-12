@@ -30,8 +30,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -75,8 +74,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -104,8 +102,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -165,8 +162,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -610,8 +606,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -634,8 +629,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -677,8 +671,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -707,8 +700,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -847,8 +839,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -981,8 +972,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 
@@ -1013,8 +1003,7 @@ End Class"
             Await New VerifyVB.Test With
                 {
                    .TestCode = source,
-                   .FixedCode = expected,
-                   .CodeActionIndex = 0
+                   .FixedCode = expected
                 }.RunAsync()
         End Function
 

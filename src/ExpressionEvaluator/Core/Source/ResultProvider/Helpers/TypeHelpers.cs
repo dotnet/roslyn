@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     continue;
                 }
-                result ??= new Dictionary<string, DkmClrDebuggerBrowsableAttributeState>();
+                result ??= [];
 
                 // There can be multiple same attributes for derived classes.
                 // Debugger provides attributes starting from derived classes and then up to base ones.

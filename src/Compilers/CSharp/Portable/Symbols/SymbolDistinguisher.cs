@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
@@ -24,13 +22,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal sealed class SymbolDistinguisher
     {
-        private readonly CSharpCompilation _compilation;
+        private readonly CSharpCompilation? _compilation;
         private readonly Symbol _symbol0;
         private readonly Symbol _symbol1;
 
         private ImmutableArray<string> _lazyDescriptions;
 
-        public SymbolDistinguisher(CSharpCompilation compilation, Symbol symbol0, Symbol symbol1)
+        public SymbolDistinguisher(CSharpCompilation? compilation, Symbol symbol0, Symbol symbol1)
         {
             Debug.Assert(symbol0 != symbol1);
             CheckSymbolKind(symbol0);
@@ -96,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol unwrappedSymbol0 = UnwrapSymbol(_symbol0);
                 Symbol unwrappedSymbol1 = UnwrapSymbol(_symbol1);
 
-                string location0 = GetLocationString(_compilation, unwrappedSymbol0);
-                string location1 = GetLocationString(_compilation, unwrappedSymbol1);
+                string? location0 = GetLocationString(_compilation, unwrappedSymbol0);
+                string? location1 = GetLocationString(_compilation, unwrappedSymbol1);
 
                 // The locations should not be equal, but they might be if the same
                 // SyntaxTree is referenced by two different compilations.
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static string GetLocationString(CSharpCompilation compilation, Symbol unwrappedSymbol)
+        private static string? GetLocationString(CSharpCompilation? compilation, Symbol unwrappedSymbol)
         {
             Debug.Assert((object)unwrappedSymbol == UnwrapSymbol(unwrappedSymbol));
 
@@ -179,10 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (compilation != null)
                 {
-                    PortableExecutableReference metadataReference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
+                    PortableExecutableReference? metadataReference = compilation.GetMetadataReference(containingAssembly) as PortableExecutableReference;
                     if (metadataReference != null)
                     {
-                        string path = metadataReference.FilePath;
+                        string? path = metadataReference.FilePath;
                         if (!string.IsNullOrEmpty(path))
                         {
                             return path;
@@ -219,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (_index == 0) ? _distinguisher._symbol0 : _distinguisher._symbol1;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 var other = obj as Description;
                 return other != null &&
@@ -243,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _distinguisher.GetDescription(_index);
             }
 
-            string IFormattable.ToString(string format, IFormatProvider formatProvider)
+            string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
             {
                 return ToString();
             }

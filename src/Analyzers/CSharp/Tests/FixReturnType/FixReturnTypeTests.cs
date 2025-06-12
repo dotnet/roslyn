@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpFixReturnTypeCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixReturnType)]
-public class FixReturnTypeTests
+public sealed class FixReturnTypeTests
 {
     [Fact]
     public async Task Simple()

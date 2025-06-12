@@ -6,21 +6,20 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages
-{
-    internal sealed class AspNetCoreBraceMatcherExtensionProvider
-        : AbstractProjectExtensionProvider<
-            AspNetCoreBraceMatcherExtensionProvider,
-            IAspNetCoreEmbeddedLanguageBraceMatcher,
-            ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute>
-    {
-        protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute exportAttribute)
-            => [exportAttribute.Language];
+namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
 
-        protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageBraceMatcher> extensions)
-        {
-            extensions = default;
-            return false;
-        }
+internal sealed class AspNetCoreBraceMatcherExtensionProvider
+    : AbstractProjectExtensionProvider<
+        AspNetCoreBraceMatcherExtensionProvider,
+        IAspNetCoreEmbeddedLanguageBraceMatcher,
+        ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute>
+{
+    protected override ImmutableArray<string> GetLanguages(ExportAspNetCoreEmbeddedLanguageBraceMatcherAttribute exportAttribute)
+        => [exportAttribute.Language];
+
+    protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<IAspNetCoreEmbeddedLanguageBraceMatcher> extensions)
+    {
+        extensions = default;
+        return false;
     }
 }

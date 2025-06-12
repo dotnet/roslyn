@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             ModuleName = moduleName;
             Signature = signature;
             LanguageId = languageId;
-            _resolvedAddresses = new List<Address>();
+            _resolvedAddresses = [];
         }
 
         internal readonly string ModuleName;

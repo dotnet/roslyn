@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// JsonConverter to correctly deserialize int arrays in the Label param of ParameterInformation.
 /// </summary>
-internal class ParameterInformationConverter : JsonConverter<ParameterInformation>
+internal sealed class ParameterInformationConverter : JsonConverter<ParameterInformation>
 {
     public override ParameterInformation Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

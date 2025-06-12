@@ -7,16 +7,15 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
+
+internal sealed class EditAndContinueTestAnalyzerConfigOptions : AnalyzerConfigOptions
 {
-    internal class EditAndContinueTestAnalyzerConfigOptions : AnalyzerConfigOptions
-    {
-        private readonly Dictionary<string, string> _options;
+    private readonly Dictionary<string, string> _options;
 
-        public EditAndContinueTestAnalyzerConfigOptions(IEnumerable<(string key, string value)> options)
-            => _options = options.ToDictionary(e => e.key, e => e.value);
+    public EditAndContinueTestAnalyzerConfigOptions(IEnumerable<(string key, string value)> options)
+        => _options = options.ToDictionary(e => e.key, e => e.value);
 
-        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-            => _options.TryGetValue(key, out value);
-    }
+    public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+        => _options.TryGetValue(key, out value);
 }

@@ -259,7 +259,7 @@ start:
         }
     }
 
-    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedInstanceMethodSymbol
+    internal sealed partial class SynthesizedSealedPropertyAccessor : SynthesizedMethodSymbol
     {
         internal override bool SynthesizesLoweredBoundBody
         {
@@ -296,7 +296,7 @@ start:
 
     internal abstract partial class MethodToClassRewriter
     {
-        private sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
+        internal sealed partial class BaseMethodWrapperSymbol : SynthesizedMethodBaseSymbol
         {
             internal sealed override bool GenerateDebugInfo
             {

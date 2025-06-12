@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
 [UseExportProvider]
-public class GenerateConstructorIntentTests : IntentTestsBase
+public sealed class GenerateConstructorIntentTests : IntentTestsBase
 {
     [Fact]
     public async Task GenerateConstructorSimpleResult()

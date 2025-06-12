@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 /// <summary>
 /// Batches requests to refresh the semantic tokens to optimize user experience.
 /// </summary>
-internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
+internal sealed class SemanticTokensRefreshQueue : AbstractRefreshQueue
 {
     /// <summary>
     /// Lock over the mutable state that follows.
@@ -62,7 +62,7 @@ internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
 
     protected override void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        Uri? documentUri = null;
+        DocumentUri? documentUri = null;
 
         if (e.DocumentId is not null)
         {

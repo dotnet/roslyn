@@ -19,8 +19,13 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         internal static void VerifySource(this SyntaxTree tree, IEnumerable<TextChangeRange>? changes = null)
         {
-            var root = tree.GetRoot();
-            var text = tree.GetText();
+            VerifySource(tree.GetText(), tree.GetRoot(), changes);
+        }
+
+        /// <inheritdoc cref="VerifySource(SyntaxTree, IEnumerable{TextChangeRange}?)"/>
+        [Conditional("DEBUG")]
+        internal static void VerifySource(SourceText text, SyntaxNode root, IEnumerable<TextChangeRange>? changes = null)
+        {
             var fullSpan = new TextSpan(0, text.Length);
             SyntaxNode? node = null;
 

@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private readonly ILBuilder _builder;
 
         /// <summary>
+        /// Associated syntax for diagnostic reporting.
+        /// </summary>
+        private readonly SyntaxNode _syntax;
+
+        /// <summary>
         /// Switch key for the jump table
         /// </summary>
         private readonly LocalOrParameter _key;
@@ -65,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal SwitchStringJumpTableEmitter(
             ILBuilder builder,
+            SyntaxNode syntax,
             LocalOrParameter key,
             KeyValuePair<ConstantValue, object>[] caseLabels,
             object fallThroughLabel,
@@ -76,6 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             RoslynDebug.Assert(emitStringCondBranchDelegate != null);
 
             _builder = builder;
+            _syntax = syntax;
             _key = key;
             _caseLabels = caseLabels;
             _fallThroughLabel = fallThroughLabel;
@@ -148,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             // Emit conditional jumps to hash buckets by using an integral switch jump table based on keyHash.
             var hashBucketJumpTableEmitter = new SwitchIntegralJumpTableEmitter(
                 builder: _builder,
+                _syntax,
                 caseLabels: jumpTableLabels,
                 fallThroughLabel: _fallThroughLabel,
                 keyTypeCode: Cci.PrimitiveTypeCode.UInt32,

@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
         }
 
+        internal SubstitutedParameterSymbol(NamedTypeSymbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
+            this((Symbol)containingSymbol, map, originalParameter)
+        {
+        }
+
         private SubstitutedParameterSymbol(Symbol containingSymbol, TypeMap map, ParameterSymbol originalParameter) :
             base(originalParameter)
         {
@@ -68,6 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => _underlyingParameter.InterpolatedStringHandlerArgumentIndexes;
 
         internal override bool HasInterpolatedStringHandlerArgumentError => _underlyingParameter.HasInterpolatedStringHandlerArgumentError;
+
+        internal override bool HasEnumeratorCancellationAttribute => _underlyingParameter.HasEnumeratorCancellationAttribute;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

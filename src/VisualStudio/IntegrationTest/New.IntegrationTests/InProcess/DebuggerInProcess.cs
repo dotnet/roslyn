@@ -16,7 +16,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class DebuggerInProcess
+internal sealed partial class DebuggerInProcess
 {
     /// <summary>
     /// HResult for "Operation Not Supported" when raising commands. 

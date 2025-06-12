@@ -244,6 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 ValidateLinkedAssemblies(diagnostics, cancellationToken);
                             }
 
+                            // If "data section string literals" are enabled, check the necessary APIs are available so used assemblies are tracked correctly.
+                            if (this.DeclaringCompilation.DataSectionStringLiteralThreshold != null)
+                            {
+                                diagnostics ??= BindingDiagnosticBag.GetInstance();
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__get_UTF8, diagnostics, NoLocation.Singleton);
+                                _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
+                            }
+
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)

@@ -2762,4 +2762,43 @@ class D<T> : B<{passToBase}>{constraint}
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78282")]
+    public async Task TestInstanceCompoundOperator()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            abstract class C1
+            {
+                abstract public void operator ++();
+
+                abstract public void operator -=(int i);
+            }
+
+            class [|C2|] : C1
+            {
+            }
+            """,
+            """
+            abstract class C1
+            {
+                abstract public void operator ++();
+            
+                abstract public void operator -=(int i);
+            }
+            
+            class C2 : C1
+            {
+                public override void operator -=(int i)
+                {
+                    throw new System.NotImplementedException();
+                }
+            
+                public override void operator ++()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """);
+    }
 }

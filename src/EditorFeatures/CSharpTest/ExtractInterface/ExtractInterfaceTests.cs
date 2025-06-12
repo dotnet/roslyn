@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ExtractInterface;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
@@ -1448,7 +1449,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id)!.GetTextView()).ToList();
 
@@ -2006,7 +2007,7 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
         var markup = """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" CommonReferencesNet8="true">
-                    <Document FilePath="z:\\file.cs"><![CDATA[using System;
+                    <Document FilePath="file.cs"><![CDATA[using System;
             using System.Collections.Generic;
             using System.Runtime.CompilerServices;
 
@@ -2086,5 +2087,25 @@ public sealed class ExtractInterfaceTests : AbstractExtractInterfaceTests
             """;
 
         await TestExtractInterfaceCodeActionCSharpAsync(markup, expectedMarkup);
+    }
+
+    [WpfFact]
+    public async Task ExtractInterface_Invocation_FromExtension()
+    {
+        var markup = """
+            using System;
+
+            static class C
+            {
+                $$extension(string s)
+                {
+                    public void Goo() { }
+                }
+            }
+            """;
+
+        await TestExtractInterfaceCommandCSharpAsync(
+            markup, expectedSuccess: false,
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
     }
 }

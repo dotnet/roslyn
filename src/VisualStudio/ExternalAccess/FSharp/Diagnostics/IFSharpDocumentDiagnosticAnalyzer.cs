@@ -8,12 +8,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
-{
-    internal interface IFSharpDocumentDiagnosticAnalyzer
-    {
-        Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken);
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics;
 
-        Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
-    }
+internal interface IFSharpDocumentDiagnosticAnalyzer
+{
+    Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken);
+
+    Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
 }

@@ -52,11 +52,6 @@
         <target state="translated">'New' 식에 대한 힌트 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ByRef_on_custom_structure">
-        <source>_Don't put ByRef on custom structure</source>
-        <target state="translated">사용자 지정 구조에 ByRef 추가 안 함(_D)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
         <target state="translated">맺음 구문 자동 삽입(_U)</target>

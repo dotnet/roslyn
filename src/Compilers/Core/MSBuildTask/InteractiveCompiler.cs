@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
     /// <summary>
-    /// This class defines all of the common stuff that is shared between the Vbc and Csc tasks.
+    /// This class defines all of the common stuff that is shared between the Vbi and Csi tasks.
     /// This class is not instantiatable as a Task just by itself.
     /// </summary>
     public abstract class InteractiveCompiler : ManagedToolTask

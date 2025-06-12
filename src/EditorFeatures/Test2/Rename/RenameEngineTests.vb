@@ -345,8 +345,8 @@ class C2
                         </Project>
                     </Workspace>, host:=host, renameTo:="def")
 
-                Dim originalDocument = result.ConflictResolution.OldSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
-                Dim newDocument = result.ConflictResolution.NewSolution.Projects.First().Documents.Where(Function(d) d.FilePath = "Test2.cs").Single()
+                Dim originalDocument = result.ConflictResolution.OldSolution.Projects.First().Documents.Where(Function(d) d.Name = "Test2.cs").Single()
+                Dim newDocument = result.ConflictResolution.NewSolution.Projects.First().Documents.Where(Function(d) d.Name = "Test2.cs").Single()
                 Assert.Same(originalDocument.State, newDocument.State)
                 Assert.Equal(1, result.ConflictResolution.NewSolution.GetChangedDocuments(result.ConflictResolution.OldSolution).Count)
             End Using

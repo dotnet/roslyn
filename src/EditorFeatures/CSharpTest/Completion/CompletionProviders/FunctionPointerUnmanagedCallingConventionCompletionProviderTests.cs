@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     internal override Type GetCompletionProviderType() => typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider);
 
@@ -72,6 +72,6 @@ public class FunctionPointerUnmanagedCallingConventionCompletionProviderTests : 
                 </Project>
             </Workspace>
             """;
-        await VerifyItemExistsAsync(markup, callingConvention, glyph: (int)Glyph.Keyword);
+        await VerifyItemExistsAsync(markup, callingConvention, glyph: Glyph.Keyword);
     }
 }

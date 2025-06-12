@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class TypeHierarchyItem
+internal sealed class TypeHierarchyItem
 {
     /// <summary>
     /// The name of this item.
@@ -50,7 +50,7 @@ internal class TypeHierarchyItem
     [JsonPropertyName("uri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri Uri { get; init; }
+    public DocumentUri Uri { get; init; }
 
     /// <summary>
     /// The range enclosing this symbol not including leading/trailing whitespace

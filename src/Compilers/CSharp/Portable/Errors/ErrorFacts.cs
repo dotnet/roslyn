@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_IdentityConversion
                 or ErrorCode.ERR_ConversionNotInvolvingContainedType
                 or ErrorCode.ERR_DuplicateConversionInClass
-                or ErrorCode.ERR_OperatorsMustBeStatic
+                or ErrorCode.ERR_OperatorsMustBeStaticAndPublic
                 or ErrorCode.ERR_BadIncDecSignature
                 or ErrorCode.ERR_BadUnaryOperatorSignature
                 or ErrorCode.ERR_BadBinaryOperatorSignature
@@ -1726,6 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InvalidPathMap
                 or ErrorCode.ERR_PublicSignButNoKey
                 or ErrorCode.ERR_TooManyUserStrings
+                or ErrorCode.ERR_TooManyUserStrings_RestartRequired
                 or ErrorCode.ERR_PeWritingFailure
                 or ErrorCode.WRN_AttributeIgnoredWhenPublicSigning
                 or ErrorCode.ERR_OptionMustBeAbsolutePath
@@ -2487,6 +2488,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialMemberDuplicateImplementation
                 or ErrorCode.ERR_PartialEventInitializer
                 or ErrorCode.ERR_PartialConstructorInitializer
+                or ErrorCode.ERR_ExtensionDisallowsName
+                or ErrorCode.ERR_ExtensionDisallowsMember
+                or ErrorCode.ERR_BadExtensionContainingType
+                or ErrorCode.ERR_ExtensionParameterDisallowsDefaultValue
+                or ErrorCode.ERR_ReceiverParameterOnlyOne
+                or ErrorCode.ERR_ExtensionResolutionFailed
+                or ErrorCode.ERR_ReceiverParameterSameNameAsTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_LocalSameNameAsExtensionParameter
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_TypeParameterSameNameAsExtensionParameter
+                or ErrorCode.ERR_InvalidExtensionParameterReference
+                or ErrorCode.ERR_ValueParameterSameNameAsExtensionTypeParameter
+                or ErrorCode.ERR_UnderspecifiedExtension
+                or ErrorCode.ERR_ExpressionTreeContainsExtensionPropertyAccess
+                or ErrorCode.ERR_PPIgnoredFollowsToken
+                or ErrorCode.ERR_PPIgnoredNeedsFileBasedProgram
+                or ErrorCode.ERR_PPIgnoredFollowsIf
+                or ErrorCode.ERR_RefExtensionParameterMustBeValueTypeOrConstrainedToOne
+                or ErrorCode.ERR_InExtensionParameterMustBeValueType
+                or ErrorCode.ERR_ProtectedInExtension
+                or ErrorCode.ERR_InstanceMemberWithUnnamedExtensionsParameter
+                or ErrorCode.ERR_InitInExtension
+                or ErrorCode.ERR_ModifierOnUnnamedReceiverParameter
+                or ErrorCode.ERR_ExtensionTypeNameDisallowed
+                or ErrorCode.ERR_ExpressionTreeContainsNamedArgumentOutOfPosition
+                or ErrorCode.ERR_OperatorsMustBePublic
+                or ErrorCode.ERR_OperatorMustReturnVoid
+                or ErrorCode.ERR_CloseUnimplementedInterfaceMemberOperatorMismatch
+                or ErrorCode.ERR_OperatorMismatchOnOverride
+                or ErrorCode.ERR_BadCompoundAssignmentOpArgs
+                or ErrorCode.ERR_PPShebangInProjectBasedProgram
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

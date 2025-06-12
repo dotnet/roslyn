@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers;
 
 [ExportLanguageService(typeof(IGenerateEqualsAndGetHashCodeService), LanguageNames.CSharp), Shared]
-internal class CSharpGenerateEqualsAndGetHashCodeService : AbstractGenerateEqualsAndGetHashCodeService
+internal sealed class CSharpGenerateEqualsAndGetHashCodeService : AbstractGenerateEqualsAndGetHashCodeService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -397,6 +397,12 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (node is TElementAccessExpressionSyntax elementAccess)
             return (TExpressionSyntax?)syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
 
+        if (syntaxFacts.SyntaxKinds.SimpleAssignmentExpression == node.RawKind && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
+        {
+            syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
+            return (TExpressionSyntax)left;
+        }
+
         return null;
     }
 }

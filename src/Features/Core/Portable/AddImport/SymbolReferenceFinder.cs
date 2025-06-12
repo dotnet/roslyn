@@ -38,13 +38,14 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private readonly SyntaxNode _node;
         private readonly ISymbolSearchService _symbolSearchService;
-        private readonly AddImportOptions _options;
         private readonly ImmutableArray<PackageSource> _packageSources;
 
         /// <summary>
         /// If the search is being conducted inside of a `using/import` directive.
         /// </summary>
         private readonly bool _isWithinImport;
+
+        public readonly AddImportOptions Options;
 
         public SymbolReferenceFinder(
             AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
@@ -64,7 +65,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             _node = node;
 
             _symbolSearchService = symbolSearchService;
-            _options = options;
+            Options = options;
             _packageSources = packageSources;
             _syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
@@ -211,7 +212,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // editor browsable rules.
             var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                 s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
-                     s.Symbol.IsEditorBrowsable(_options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
+                     s.Symbol.IsEditorBrowsable(Options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
             // These types may be contained within namespaces, or they may be nested 
             // inside generic types.  Record these namespaces/types if it would be 
@@ -336,10 +337,12 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private bool HasAccessibleStaticFieldOrProperty(INamedTypeSymbol namedType, string fieldOrPropertyName)
         {
-            return namedType.GetMembers(fieldOrPropertyName)
-                            .Any(static (m, self) => (m is IFieldSymbol || m is IPropertySymbol) &&
-                                      m.IsStatic &&
-                                      m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
+            return namedType
+                .GetMembers(fieldOrPropertyName)
+                .Any(static (m, self) =>
+                    m is IFieldSymbol or IPropertySymbol &&
+                    m.IsStatic &&
+                    m.IsAccessibleWithin(self._semanticModel.Compilation.Assembly), this);
         }
 
         /// <summary>

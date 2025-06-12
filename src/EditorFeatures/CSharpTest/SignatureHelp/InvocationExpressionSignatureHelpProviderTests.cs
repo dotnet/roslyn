@@ -2082,8 +2082,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await VerifyItemWithReferenceWorkerAsync(markup, [new SignatureHelpTestItem($"""
             void C.bar()
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
@@ -2126,8 +2126,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await VerifyItemWithReferenceWorkerAsync(markup, [new SignatureHelpTestItem($"""
             void C.bar()
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
@@ -2341,8 +2341,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
         await VerifyItemWithReferenceWorkerAsync(markup, [new SignatureHelpTestItem($"""
             void C.Do(int x)
 
-            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
             """, currentParameterIndex: 0)], hideAdvancedMembers: false);
@@ -2613,8 +2613,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             expectedItems.Add(new SignatureHelpTestItem($"""
                 void C.M<object>(Action<object> arg1, object arg2, bool flag)
 
-                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                    {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                    {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
                 {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
                 """, currentParameterIndex: 0));
@@ -2625,8 +2625,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             expectedItems.Add(new SignatureHelpTestItem($"""
                 void C.M<T>(Action<T> arg1, T arg2, bool flag)
 
-                {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
-                {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+                    {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+                    {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
 
                 {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
                 """, currentParameterIndex: 0));

@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             ' namespaces.
             If blockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) AndAlso
                typeDeclaration.Members.Any() AndAlso
-typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
+               typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
                 Return Nothing
             End If
@@ -163,9 +163,7 @@ typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
                 fullyQualifiedContainerName,
                 blockStatement.Modifiers.Any(SyntaxKind.PartialKeyword),
                 blockStatement.AttributeLists.Any(),
-                If(typeDeclaration.Kind() = SyntaxKind.ClassBlock, DeclaredSymbolInfoKind.Class,
-                   If(typeDeclaration.Kind() = SyntaxKind.InterfaceBlock, DeclaredSymbolInfoKind.Interface,
-                      If(typeDeclaration.Kind() = SyntaxKind.ModuleBlock, DeclaredSymbolInfoKind.Module, DeclaredSymbolInfoKind.Struct))),
+                GetDeclaredSymbolInfoKind(typeDeclaration),
                 GetAccessibility(container, typeDeclaration, blockStatement.Modifiers),
                 blockStatement.Identifier.Span,
                 GetInheritanceNames(stringTable, typeDeclaration),
@@ -400,48 +398,6 @@ typeDeclaration.Members.All(Function(m) TypeOf m Is TypeBlockSyntax) Then
 
         Private Shared Function IsNestedType(node As DeclarationStatementSyntax) As Boolean
             Return TypeOf node.Parent Is TypeBlockSyntax
-        End Function
-
-        Private Shared Function GetAccessibility(container As SyntaxNode, node As StatementSyntax, modifiers As SyntaxTokenList) As Accessibility
-            Dim sawFriend = False
-
-            For Each modifier In modifiers
-                Select Case modifier.Kind()
-                    Case SyntaxKind.PublicKeyword : Return Accessibility.Public
-                    Case SyntaxKind.PrivateKeyword : Return Accessibility.Private
-                    Case SyntaxKind.ProtectedKeyword : Return Accessibility.Protected
-                    Case SyntaxKind.FriendKeyword
-                        sawFriend = True
-                        Continue For
-                End Select
-            Next
-
-            If sawFriend Then
-                Return Accessibility.Internal
-            End If
-
-            ' No accessibility modifiers
-            Select Case container.Kind()
-                Case SyntaxKind.ClassBlock
-                    ' In a class, fields and shared-constructors are private by default,
-                    ' everything Else Is Public
-                    If node.Kind() = SyntaxKind.FieldDeclaration Then
-                        Return Accessibility.Private
-                    End If
-
-                    If node.Kind() = SyntaxKind.SubNewStatement AndAlso
-                       DirectCast(node, SubNewStatementSyntax).Modifiers.Any(SyntaxKind.SharedKeyword) Then
-                        Return Accessibility.Private
-                    End If
-
-                    Return Accessibility.Public
-                Case SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ModuleBlock
-                    ' Everything in a struct/interface/module is public
-                    Return Accessibility.Public
-            End Select
-
-            ' Otherwise, it's internal
-            Return Accessibility.Internal
         End Function
 
         Private Shared Function GetMethodSuffix(method As MethodStatementSyntax) As String

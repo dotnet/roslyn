@@ -32,6 +32,8 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     private readonly IThreadingContext _threadingContext;
     private readonly AsyncBatchingWorkQueue<WorkspaceChangeEventArgs> _eventQueue;
 
+    private WorkspaceEventRegistration? _workspaceChangedDisposer;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public HostLegacySolutionEventsWorkspaceEventListener(
@@ -53,16 +55,19 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
         // We only support this option to disable crawling in internal speedometer and ddrit perf runs to lower noise.
         // It is not exposed to the user.
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
 
     public void StopListening(Workspace workspace)
     {
         if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
-            workspace.WorkspaceChanged -= OnWorkspaceChanged;
+        {
+            _workspaceChangedDisposer?.Dispose();
+            _workspaceChangedDisposer = null;
+        }
     }
 
-    private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // Legacy workspace events exist solely to let unit testing continue to work using their own fork of solution
         // crawler.  As such, they only need events for the project types they care about.  Specifically, that is only

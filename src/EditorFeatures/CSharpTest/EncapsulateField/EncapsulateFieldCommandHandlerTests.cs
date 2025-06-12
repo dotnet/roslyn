@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField;
 
 [UseExportProvider]
-public class EncapsulateFieldCommandHandlerTests
+public sealed class EncapsulateFieldCommandHandlerTests
 {
     [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
     public async Task EncapsulatePrivateField()
@@ -202,7 +202,7 @@ public class EncapsulateFieldCommandHandlerTests
             </Workspace>
             """),
             workspaceKind: WorkspaceKind.Interactive,
-            composition: EditorTestCompositions.EditorFeaturesWpf);
+            composition: EditorTestCompositions.EditorFeatures);
         // Force initialization.
         workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 

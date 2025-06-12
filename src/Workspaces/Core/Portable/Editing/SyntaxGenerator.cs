@@ -1228,7 +1228,11 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// Changes the <see cref="DeclarationModifiers"/> for the declaration.
     /// </summary>
-    public abstract SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers);
+    public SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
+        => WithModifiers<SyntaxNode>(declaration, modifiers);
+
+    internal abstract TSyntaxNode WithModifiers<TSyntaxNode>(TSyntaxNode declaration, DeclarationModifiers modifiers)
+        where TSyntaxNode : SyntaxNode;
 
     /// <summary>
     /// Gets the <see cref="DeclarationKind"/> for the declaration.
@@ -2409,6 +2413,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// Parses an expression from string
     /// </summary>
     internal abstract SyntaxNode ParseExpression(string stringToParse);
+
+    internal abstract SyntaxNode ParseTypeName(string stringToParse);
 
     internal abstract SyntaxTrivia Trivia(SyntaxNode node);
 

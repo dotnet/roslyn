@@ -2553,12 +2553,12 @@ class B<T> : A<T>, I where T : class
         [InlineData("object", "dynamic", "dynamic", "System.Object", false)]
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", true)]
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", false)]
-        [InlineData("nint", "nint", "nint", "System.IntPtr", true)]
-        [InlineData("nint", "nint", "nint", "System.IntPtr", false)]
+        [InlineData("nint", "nint", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "nint", "System.IntPtr", "System.IntPtr", false)]
         [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
         [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
-        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
-        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("System.IntPtr", "nint", "System.IntPtr", "System.IntPtr", false)]
         public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, string expectedOutput, bool useCompilationReference)
         {
             var source0 =
@@ -2645,12 +2645,12 @@ class B<T> : A<T>, I
         [InlineData("object", "dynamic", "dynamic", false)]
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
         [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
-        [InlineData("nint", "nint", "nint", true)]
-        [InlineData("nint", "nint", "nint", false)]
+        [InlineData("nint", "nint", "System.IntPtr", true)]
+        [InlineData("nint", "nint", "System.IntPtr", false)]
         [InlineData("nint", "System.IntPtr", "System.IntPtr", true)]
         [InlineData("nint", "System.IntPtr", "System.IntPtr", false)]
-        [InlineData("System.IntPtr", "nint", "nint", true)]
-        [InlineData("System.IntPtr", "nint", "nint", false)]
+        [InlineData("System.IntPtr", "nint", "System.IntPtr", true)]
+        [InlineData("System.IntPtr", "nint", "System.IntPtr", false)]
         public void ExplicitImplementationInBaseType_04(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
         {
             var source0 =

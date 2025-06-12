@@ -2,28 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+///  Known workspace kinds
+/// </summary>
+public static class WorkspaceKind
 {
+    public const string Host = nameof(Host);
+    public const string Debugger = nameof(Debugger);
+    public const string Interactive = nameof(Interactive);
+    public const string MetadataAsSource = nameof(MetadataAsSource);
+    public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
+    public const string Preview = nameof(Preview);
+    public const string MSBuild = "MSBuildWorkspace"; // This string is specifically used to avoid a breaking change.
+
     /// <summary>
-    ///  Known workspace kinds
+    /// <see cref="AdhocWorkspace"/> kind.
     /// </summary>
-    public static class WorkspaceKind
-    {
-        public const string Host = nameof(Host);
-        public const string Debugger = nameof(Debugger);
-        public const string Interactive = nameof(Interactive);
-        public const string MetadataAsSource = nameof(MetadataAsSource);
-        public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
-        public const string Preview = nameof(Preview);
-        public const string MSBuild = "MSBuildWorkspace"; // This string is specifically used to avoid a breaking change.
+    internal const string Custom = "Custom";
 
-        /// <summary>
-        /// <see cref="AdhocWorkspace"/> kind.
-        /// </summary>
-        internal const string Custom = "Custom";
-
-        internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
-        internal const string RemoteWorkspace = nameof(RemoteWorkspace);
-        internal const string SemanticSearch = nameof(SemanticSearch);
-    }
+    internal const string CloudEnvironmentClientWorkspace = nameof(CloudEnvironmentClientWorkspace);
+    internal const string RemoteWorkspace = nameof(RemoteWorkspace);
+    internal const string SemanticSearch = nameof(SemanticSearch);
 }

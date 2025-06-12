@@ -13,7 +13,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentClientCapabilities
+internal sealed class NotebookDocumentClientCapabilities
 {
     /// <summary>
     /// Capabilities specific to notebook document synchronization

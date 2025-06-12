@@ -32,6 +32,7 @@ internal sealed partial class SyntaxTreeIndex
     public bool ContainsImplicitObjectCreation => _contextInfo.ContainsImplicitObjectCreation;
     public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
     public bool ContainsLockStatement => _contextInfo.ContainsLockStatement;
+    public bool ContainsPartialClass => _contextInfo.ContainsPartialClass;
     public bool ContainsQueryExpression => _contextInfo.ContainsQueryExpression;
     public bool ContainsThisConstructorInitializer => _contextInfo.ContainsThisConstructorInitializer;
     public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;

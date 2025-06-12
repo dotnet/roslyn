@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 [ExportWorkspaceServiceFactory(typeof(IImportCompletionCacheService<ExtensionMethodImportCompletionCacheEntry, object>), ServiceLayer.Default), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
-    : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None)
-{
-}
+internal sealed class DefaultExtensionMethodImportCompletionCacheServiceFactory(
+    IAsynchronousOperationListenerProvider listenerProvider)
+    : AbstractImportCompletionCacheServiceFactory<ExtensionMethodImportCompletionCacheEntry, object>(
+        listenerProvider, ExtensionMethodImportCompletionHelper.BatchUpdateCacheAsync, CancellationToken.None);

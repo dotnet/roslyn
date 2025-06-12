@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// internal representation of an XML snippet.
 /// </summary>
 [Export(typeof(XmlSnippetParser)), Shared]
-internal partial class XmlSnippetParser
+internal sealed partial class XmlSnippetParser
 {
     /// <summary>
     /// Cache to hold onto the parsed XML for a particular snippet.
@@ -47,7 +47,7 @@ internal partial class XmlSnippetParser
         ParsedXmlSnippet? parsedSnippet = null;
         try
         {
-            logger.LogInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
+            logger.LogDebug($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))

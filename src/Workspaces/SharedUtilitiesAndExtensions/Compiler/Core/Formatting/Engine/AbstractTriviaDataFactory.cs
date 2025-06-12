@@ -13,7 +13,7 @@ internal abstract partial class AbstractTriviaDataFactory
     private const int LineBreakCacheSize = 5;
     private const int IndentationLevelCacheSize = 20;
 
-    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = new();
+    private static readonly Dictionary<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)> s_optionsToWhitespace = [];
     private static Tuple<LineFormattingOptions, (Whitespace[] spaces, Whitespace[,] whitespaces)>? s_lastOptionAndWhitespace;
 
     protected readonly TreeData TreeInfo;

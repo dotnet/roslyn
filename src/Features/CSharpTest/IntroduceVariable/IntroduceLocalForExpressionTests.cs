@@ -16,7 +16,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceLocalForExpression)]
-public partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed partial class IntroduceLocalForExpressionTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private static readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
     private static readonly CodeStyleOption2<bool> offWithInfo = new(false, NotificationOption2.Suggestion);

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 [Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class TestDiscoverer(ILoggerFactory loggerFactory)
+internal sealed partial class TestDiscoverer(ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<TestDiscoverer>();
 

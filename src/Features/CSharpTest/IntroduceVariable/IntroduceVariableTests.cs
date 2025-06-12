@@ -9503,4 +9503,69 @@ namespace ConsoleApp1
             }
             """, index: 0, options: ImplicitTypingEverywhere());
     }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78204")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77559")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77147")]
+    public async Task TestInTopLevelStatement()
+    {
+        await TestMissingAsync(
+            """
+            void M()
+            {
+                _ = ([|long|])0;
+            }
+            """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78204")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77559")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/77147")]
+    public async Task TestInClassDeclaration()
+    {
+        await TestMissingAsync(
+            """
+            public class C {
+                void M()
+                {
+                    _ = ([|long|])0;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78680")]
+    public async Task FixReferenceInMemberAccessNameInTopLevel()
+    {
+        await TestAsync(
+            """
+            C c = null;
+            C d = null;
+            Console.WriteLine([|c.c|]);
+            Console.WriteLine(d.c.c);
+
+            class C
+            {
+                public C c;
+            }
+            """,
+            """
+            C c = null;
+            C d = null;
+            
+            C {|Rename:c1|} = c.c;
+
+            Console.WriteLine(c1);
+            Console.WriteLine(d.c.c);
+
+            class C
+            {
+                public C c;
+            }
+            """,
+            parseOptions: null,
+            index: 1);
+    }
 }

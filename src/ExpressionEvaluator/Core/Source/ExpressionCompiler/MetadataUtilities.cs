@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     continue;
                 }
 
-                modulesByName ??= new Dictionary<string, ModuleMetadata?>(); // Requires case-insensitive comparison?
+                modulesByName ??= []; // Requires case-insensitive comparison?
                 var name = metadata.Name;
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
             }

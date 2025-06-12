@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging;
 
 [Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
-public class BreakpointSpansTests
+public sealed class BreakpointSpansTests
 {
     #region Helpers 
 

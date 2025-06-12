@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation, forMethod: false);
             }
 
             return mods;

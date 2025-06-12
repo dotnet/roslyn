@@ -89,7 +89,7 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
         if (documentId is not null)
         {
-            var document = solution.GetRequiredDocument(documentId);
+            var document = solution.GetRequiredTextDocument(documentId);
             return [document];
         }
 
@@ -105,7 +105,8 @@ internal sealed class StackTraceExplorerService() : IStackTraceExplorerService
 
             foreach (var document in allDocuments)
             {
-                if (string.Equals(document.Name, documentName, StringComparison.OrdinalIgnoreCase))
+                var name = Path.GetFileName(document.Name);
+                if (name.Equals(documentName, StringComparison.OrdinalIgnoreCase))
                 {
                     potentialMatches.Add(document);
                 }

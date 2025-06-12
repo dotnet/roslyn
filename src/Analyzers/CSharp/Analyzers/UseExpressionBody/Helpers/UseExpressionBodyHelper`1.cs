@@ -153,10 +153,15 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         [NotNullWhen(true)] out ArrowExpressionClauseSyntax? arrowExpression,
         out SyntaxToken semicolonToken)
     {
+        arrowExpression = null;
+        semicolonToken = default;
+
+        // If we have `X Prop { ... } = ...;` we can't convert this as expr-bodied properties can't have initializers.
+        if (declaration is PropertyDeclarationSyntax { Initializer: not null })
+            return false;
+
         if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
-        {
             return true;
-        }
 
         var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
         if (getAccessor?.ExpressionBody != null &&

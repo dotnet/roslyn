@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -66,7 +67,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             Uri? absoluteUri;
             if (document.SourceGeneratedDocumentIdentity is not null)
             {
-                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value);
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value).GetRequiredParsedUri();
             }
             else
             {
@@ -89,6 +90,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             {
                 new RoslynSearchResultPreviewPanel(
                     _provider,
+                    // Editor APIs require a parseable System.Uri instance
                     absoluteUri,
                     projectGuid,
                     roslynResult.SearchResult.NavigableItem.SourceSpan.ToSpan(),

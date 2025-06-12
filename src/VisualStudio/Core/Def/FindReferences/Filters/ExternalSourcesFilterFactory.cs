@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 [TableManagerIdentifier("FindAllReferences*")]
 [Name(nameof(ExternalSourcesFilterFactory))]
 [Order(After = nameof(EntireSolutionWithoutMetadataFilterFactory))]
-internal class ExternalSourcesFilterFactory : IScopeFilterFactory
+internal sealed class ExternalSourcesFilterFactory : IScopeFilterFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +28,7 @@ internal class ExternalSourcesFilterFactory : IScopeFilterFactory
         return ExternalSourcesFilterHandler.Instance;
     }
 
-    private class ExternalSourcesFilterHandler : ExternalSourcesFilterHandlerBase
+    private sealed class ExternalSourcesFilterHandler : ExternalSourcesFilterHandlerBase
     {
         public static ExternalSourcesFilterHandler Instance = new();
 

@@ -6,7 +6,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste;
 
-public class PasteUnknownSourceIntoNormalInterpolatedStringTests
+public sealed class PasteUnknownSourceIntoNormalInterpolatedStringTests
     : StringCopyPasteCommandHandlerUnknownSourceTests
 {
     #region Paste from external source into normal interpolated string no hole

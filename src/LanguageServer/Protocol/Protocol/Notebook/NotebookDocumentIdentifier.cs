@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.17</remarks>
-internal class NotebookDocumentIdentifier
+internal sealed class NotebookDocumentIdentifier
 {
     /// <summary>
     /// The notebook document's URI.

@@ -505,11 +505,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             fields.Add(field);
         }
 
-        private BoundExpression HoistRefInitialization(SynthesizedLocal local, BoundAssignmentOperator node)
+        private BoundExpression HoistRefInitialization(LocalSymbol local, BoundAssignmentOperator node)
         {
+            Debug.Assert(
+                local switch
+                {
+                    TypeSubstitutedLocalSymbol tsl => tsl.UnderlyingLocalSymbol,
+                    _ => local
+                } is SynthesizedLocal
+            );
             Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill ||
                          (local.SynthesizedKind == SynthesizedLocalKind.ForEachArray && local.Type.HasInlineArrayAttribute(out _) && local.Type.TryGetInlineArrayElementField() is object));
-            Debug.Assert(local.SyntaxOpt != null);
+            Debug.Assert(local.GetDeclaratorSyntax() != null);
 #pragma warning disable format
             Debug.Assert(local.SynthesizedKind switch
                          {
@@ -856,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We have an assignment to a variable that has not yet been assigned a proxy.
             // So we assign the proxy before translating the assignment.
-            return HoistRefInitialization((SynthesizedLocal)leftLocal, node);
+            return HoistRefInitialization(leftLocal, node);
         }
 
         /// <summary>

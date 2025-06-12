@@ -9,13 +9,16 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// TODO: document.
+/// Converts the LSP spec URI string into our custom wrapper for URI strings.
+/// We do not convert directly to <see cref="System.Uri"/> as it is unable to handle
+/// certain valid RFC spec URIs.  We do not want serialization / deserialization to fail if we cannot parse the URI.
+/// See https://github.com/dotnet/runtime/issues/64707
 /// </summary>
-internal class DocumentUriConverter : JsonConverter<Uri>
+internal sealed class DocumentUriConverter : JsonConverter<DocumentUri>
 {
-    public override Uri Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override DocumentUri Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     => new(reader.GetString());
 
-    public override void Write(Utf8JsonWriter writer, Uri value, JsonSerializerOptions options)
-        => writer.WriteStringValue(value.AbsoluteUri);
+    public override void Write(Utf8JsonWriter writer, DocumentUri value, JsonSerializerOptions options)
+        => writer.WriteStringValue(value.UriString);
 }

@@ -1,0 +1,35 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the MIT license.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <!--
+      PackageId is used by Restore. If we set it to Microsoft.CodeAnalysis.Analyzers
+      Restore would conclude that there is a cyclic dependency between Microsoft.CodeAnalysis and Microsoft.CodeAnalysis.Analyzers.
+    -->
+    <PackageId>*$(MSBuildProjectFile)*</PackageId>
+    <MicrosoftCodeAnalysisVersion>$(MicrosoftCodeAnalysisVersionForCodeAnalysisAnalyzers)</MicrosoftCodeAnalysisVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" VersionOverride="$(MicrosoftCodeAnalysisVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\DocumentationCommentIdParser.cs" Link="DocumentationCommentIdParser.cs" />
+    <Compile Include="..\..\Microsoft.CodeAnalysis.BannedApiAnalyzers\Core\SymbolIsBannedAnalyzerBase.cs" Link="SymbolIsBannedAnalyzerBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AnalyzerBannedSymbols.txt" />
+    <EmbeddedResource Update="CodeAnalysisDiagnosticsResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ReleaseTrackingAnalyzers.Help.md" Link="ReleaseTrackingAnalyzers.Help.md" />
+  </ItemGroup>
+  <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
+  <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />
+</Project>

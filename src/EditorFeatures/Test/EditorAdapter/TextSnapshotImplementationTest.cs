@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter;
 
 [UseExportProvider]
-public class TextSnapshotImplementationTest
+public sealed class TextSnapshotImplementationTest
 {
     private static Tuple<ITextSnapshot, SourceText> Create(params string[] lines)
     {

@@ -19,7 +19,7 @@ using Roslyn.Test.Utilities;
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
 [TestService]
-internal partial class PickMembersDialogInProcess
+internal sealed partial class PickMembersDialogInProcess
 {
     private async Task<PickMembersDialog?> TryGetDialogAsync(CancellationToken cancellationToken)
     {

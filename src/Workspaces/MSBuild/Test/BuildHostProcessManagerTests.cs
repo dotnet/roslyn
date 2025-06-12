@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 using BuildHostProcessKind = BuildHostProcessManager.BuildHostProcessKind;
 
-public class BuildHostProcessManagerTests
+public sealed class BuildHostProcessManagerTests
 {
     [Fact]
     public void ProcessStartInfo_ForNetCore_RollsForwardToLatestPreview()
@@ -65,7 +66,10 @@ public class BuildHostProcessManagerTests
     {
         const string BinaryLogPath = "test.binlog";
 
-        var processStartInfo = new BuildHostProcessManager(binaryLogPath: BinaryLogPath)
+        var binLogPathProviderMock = new Mock<IBinLogPathProvider>(MockBehavior.Strict);
+        binLogPathProviderMock.Setup(m => m.GetNewLogPath()).Returns(BinaryLogPath);
+
+        var processStartInfo = new BuildHostProcessManager(binaryLogPathProvider: binLogPathProviderMock.Object)
             .CreateBuildHostStartInfo(buildHostKind, pipeName: "");
 
 #if NET

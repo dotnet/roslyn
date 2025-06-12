@@ -14,13 +14,11 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper)
 {
     private async Task<ITelemetryReporter> CreateReporterAsync()
     {
-        var exportProvider = await LanguageServerTestComposition.CreateExportProviderAsync(
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
             LoggerFactory,
             includeDevKitComponents: true,
             MefCacheDirectory.Path,
-            [],
-            out var _,
-            out var _);
+            []);
 
         // VS Telemetry requires this environment variable to be set.
         Environment.SetEnvironmentVariable("CommonPropertyBagPath", Path.GetTempFileName());

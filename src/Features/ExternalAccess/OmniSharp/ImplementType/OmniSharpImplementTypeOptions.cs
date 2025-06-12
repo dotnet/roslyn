@@ -4,21 +4,20 @@
 
 using Microsoft.CodeAnalysis.ImplementType;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType
+namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType;
+
+internal readonly record struct OmniSharpImplementTypeOptions(
+    OmniSharpImplementTypeInsertionBehavior InsertionBehavior,
+    OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior);
+
+internal enum OmniSharpImplementTypeInsertionBehavior
 {
-    internal readonly record struct OmniSharpImplementTypeOptions(
-        OmniSharpImplementTypeInsertionBehavior InsertionBehavior,
-        OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior);
+    WithOtherMembersOfTheSameKind = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
+    AtTheEnd = ImplementTypeInsertionBehavior.AtTheEnd,
+}
 
-    internal enum OmniSharpImplementTypeInsertionBehavior
-    {
-        WithOtherMembersOfTheSameKind = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
-        AtTheEnd = ImplementTypeInsertionBehavior.AtTheEnd,
-    }
-
-    internal enum OmniSharpImplementTypePropertyGenerationBehavior
-    {
-        PreferThrowingProperties = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties,
-        PreferAutoProperties = ImplementTypePropertyGenerationBehavior.PreferAutoProperties,
-    }
+internal enum OmniSharpImplementTypePropertyGenerationBehavior
+{
+    PreferThrowingProperties = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties,
+    PreferAutoProperties = ImplementTypePropertyGenerationBehavior.PreferAutoProperties,
 }

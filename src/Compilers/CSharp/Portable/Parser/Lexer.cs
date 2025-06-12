@@ -475,12 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             // dots followed by an integer (which will be treated as a range expression).
                             //
                             // Move back one space to see what's before this dot and adjust accordingly.
-
-                            this.TextWindow.Reset(atDotPosition - 1);
-                            var priorCharacterIsDot = this.TextWindow.PeekChar() is '.';
-                            this.TextWindow.Reset(atDotPosition);
-
-                            if (priorCharacterIsDot)
+                            if (this.TextWindow.PreviousChar() is '.')
                             {
                                 // We have two dots in a row.  Treat the second dot as a dot, not the start of a number literal.
                                 TextWindow.AdvanceChar();
@@ -2510,7 +2505,7 @@ top:
             return token;
         }
 
-        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        private string? LexOptionalPreprocessingMessage()
         {
             PooledStringBuilder? builder = null;
 
@@ -2534,10 +2529,11 @@ top:
                 this.TextWindow.AdvanceChar();
             }
 
-            var leading = builder == null
-                ? null
-                : SyntaxFactory.PreprocessingMessage(builder.ToStringAndFree());
+            return builder?.ToStringAndFree();
+        }
 
+        private SyntaxToken LexEndOfDirectiveAfterOptionalPreprocessingMessage(SyntaxTrivia? leading)
+        {
             // now try to consume the EOL if there.
             var directiveTriviaCache = _directiveTriviaCache;
             directiveTriviaCache?.Clear();
@@ -2550,6 +2546,23 @@ top:
             var endOfDirective = SyntaxFactory.Token(leading, SyntaxKind.EndOfDirectiveToken, trailing);
 
             return endOfDirective;
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalPreprocessingMessage()
+        {
+            var leading = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxFactory.PreprocessingMessage(message)
+                : null;
+
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(leading);
+        }
+
+        public SyntaxToken LexEndOfDirectiveWithOptionalContent(out SyntaxToken? content)
+        {
+            content = this.LexOptionalPreprocessingMessage() is { } message
+                ? SyntaxToken.StringLiteral(message)
+                : null;
+            return this.LexEndOfDirectiveAfterOptionalPreprocessingMessage(null);
         }
 
         private bool ScanDirectiveToken(ref TokenInfo info)
@@ -2598,6 +2611,11 @@ top:
                 case '-':
                     TextWindow.AdvanceChar();
                     info.Kind = SyntaxKind.MinusToken;
+                    break;
+
+                case ':':
+                    TextWindow.AdvanceChar();
+                    info.Kind = SyntaxKind.ColonToken;
                     break;
 
                 case '!':

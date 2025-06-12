@@ -80,8 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedFlowAnalysisAttributes(ref attributes);
+        }
 
-            if (ContainingSymbol is SourcePropertyAccessorSymbol propertyAccessor && propertyAccessor.AssociatedSymbol is SourcePropertySymbolBase property)
+        internal void AddSynthesizedFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
+            if (ContainingSymbol is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase property })
             {
                 var annotations = FlowAnalysisAnnotations;
                 if ((annotations & FlowAnalysisAnnotations.DisallowNull) != 0)

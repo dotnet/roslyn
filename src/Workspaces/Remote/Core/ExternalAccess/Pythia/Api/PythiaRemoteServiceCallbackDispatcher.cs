@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal abstract class PythiaRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
 {
-    internal abstract class PythiaRemoteServiceCallbackDispatcher : IRemoteServiceCallbackDispatcher
-    {
-        private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
+    private readonly RemoteServiceCallbackDispatcher _dispatcher = new();
 
-        public object GetCallback(PythiaRemoteServiceCallbackIdWrapper callbackId)
-            => _dispatcher.GetCallback(callbackId.UnderlyingObject);
+    public object GetCallback(PythiaRemoteServiceCallbackIdWrapper callbackId)
+        => _dispatcher.GetCallback(callbackId.UnderlyingObject);
 
-        RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
-            => _dispatcher.CreateHandle(instance);
-    }
+    RemoteServiceCallbackDispatcher.Handle IRemoteServiceCallbackDispatcher.CreateHandle(object? instance)
+        => _dispatcher.CreateHandle(instance);
 }

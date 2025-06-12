@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         protected AbstractTypeParameterChecker(ImmutableArray<ITypeParameterSymbol> acceptableTypeParameters)
         {
-            _acceptableTypeParameters = new HashSet<ITypeParameterSymbol>(acceptableTypeParameters);
+            _acceptableTypeParameters = [.. acceptableTypeParameters];
         }
 
         public abstract IParameterSymbol GetThisParameter(IMethodSymbol method);

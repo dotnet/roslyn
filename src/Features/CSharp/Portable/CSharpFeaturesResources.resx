@@ -581,4 +581,10 @@
   <data name="required_property" xml:space="preserve">
     <value>required property</value>
   </data>
+  <data name="Convert_0_extension_methods_to_extension" xml:space="preserve">
+    <value>Convert '{0}' extension methods to extension</value>
+  </data>
+  <data name="Convert_all_extension_methods_in_0_to_extension" xml:space="preserve">
+    <value>Convert all extension methods in '{0}' to extension</value>
+  </data>
 </root>

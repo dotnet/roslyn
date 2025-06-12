@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_MetadataNameTooLong { get; }
         public abstract int ERR_EncReferenceToAddedMember { get; }
         public abstract int ERR_TooManyUserStrings { get; }
+        public abstract int ERR_TooManyUserStrings_RestartRequired { get; }
         public abstract int ERR_PeWritingFailure { get; }
         public abstract int ERR_ModuleEmitFailure { get; }
         public abstract int ERR_EncUpdateFailedMissingSymbol { get; }

@@ -30,6 +30,7 @@ internal enum DeclaredSymbolInfoKind : byte
     Method,
     Module,
     Namespace,
+    Operator,
     Property,
     Record,
     RecordStruct,

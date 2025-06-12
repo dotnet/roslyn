@@ -215,8 +215,8 @@ internal static class RenameUtilities
 
         if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
         {
-            var originalSourceSymbol = SymbolFinder.FindSourceDefinition(
-                symbol.GetOverriddenMember(), solution, cancellationToken);
+            var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(
+                symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
 
             if (originalSourceSymbol != null)
                 return await TryGetPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
@@ -319,8 +319,8 @@ internal static class RenameUtilities
         Contract.ThrowIfNull(solution);
 
         // Make sure we're on the original source definition if we can be
-        var foundSymbol = SymbolFinder.FindSourceDefinition(
-            symbol, solution, cancellationToken);
+        var foundSymbol = await SymbolFinder.FindSourceDefinitionAsync(
+            symbol, solution, cancellationToken).ConfigureAwait(false);
 
         var bestSymbol = foundSymbol ?? symbol;
         symbol = bestSymbol;

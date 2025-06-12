@@ -27,7 +27,7 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertTupleToStructCodeRef
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertTupleToStruct)]
-public class ConvertTupleToStructTests
+public sealed class ConvertTupleToStructTests
 {
     private static OptionsCollection PreferImplicitTypeWithInfo()
         => new(LanguageNames.CSharp)

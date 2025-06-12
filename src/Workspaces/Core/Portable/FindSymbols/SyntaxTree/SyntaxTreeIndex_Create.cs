@@ -41,6 +41,7 @@ internal sealed partial class SyntaxTreeIndex
     {
         var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
         var ignoreCase = !syntaxFacts.IsCaseSensitive;
+        var partialKeywordKind = syntaxFacts.SyntaxKinds.PartialKeyword;
         var isCaseSensitive = !ignoreCase;
 
         GetIdentifierSet(ignoreCase, out var identifiers, out var escapedIdentifiers);
@@ -74,6 +75,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsAttribute = false;
             var containsDirective = root.ContainsDirectives;
             var containsPrimaryConstructorBaseType = false;
+            var containsPartialClass = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -106,6 +108,7 @@ internal sealed partial class SyntaxTreeIndex
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
                         containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
                         containsPrimaryConstructorBaseType = containsPrimaryConstructorBaseType || syntaxFacts.IsPrimaryConstructorBaseType(node);
+                        containsPartialClass = containsPartialClass || IsPartialClass(node);
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
 
@@ -200,7 +203,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsCollectionInitializer,
                     containsAttribute,
                     containsDirective,
-                    containsPrimaryConstructorBaseType),
+                    containsPrimaryConstructorBaseType,
+                    containsPartialClass),
                 aliasInfo,
                 interceptsLocationInfo);
         }
@@ -209,6 +213,21 @@ internal sealed partial class SyntaxTreeIndex
             Free(ignoreCase, identifiers, escapedIdentifiers);
             StringLiteralHashSetPool.ClearAndFree(stringLiterals);
             LongLiteralHashSetPool.ClearAndFree(longLiterals);
+        }
+
+        bool IsPartialClass(SyntaxNode node)
+        {
+            if (!syntaxFacts.IsClassDeclaration(node))
+                return false;
+
+            var modifiers = syntaxFacts.GetModifiers(node);
+            foreach (var modifier in modifiers)
+            {
+                if (modifier.RawKind == partialKeywordKind)
+                    return true;
+            }
+
+            return false;
         }
     }
 

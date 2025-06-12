@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugId methodId,
             DebugId closureId,
             RuntimeRudeEdit? rudeEdit)
-            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod is null ? [] : TypeMap.ConcatMethodTypeParameters(containingMethod, stopAt: null))
         {
             TypeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             TopLevelMethod = topLevelMethod;

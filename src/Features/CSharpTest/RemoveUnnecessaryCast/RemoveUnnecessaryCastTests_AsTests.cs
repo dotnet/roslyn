@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-public partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class RemoveUnnecessaryCastTests_AsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public RemoveUnnecessaryCastTests_AsTests(ITestOutputHelper logger)
       : base(logger)

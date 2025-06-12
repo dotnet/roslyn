@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor;
 [Name(PredefinedCommandHandlerNames.GoToAdjacentMember)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService) :
+internal sealed class GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService) :
     ICommandHandler<GoToNextMemberCommandArgs>,
     ICommandHandler<GoToPreviousMemberCommandArgs>
 {

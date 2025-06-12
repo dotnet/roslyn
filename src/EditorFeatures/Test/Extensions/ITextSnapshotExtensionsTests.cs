@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 
 [UseExportProvider]
-public class ITextSnapshotExtensionsTests
+public sealed class ITextSnapshotExtensionsTests
 {
     [Fact]
     public void GetLeadingWhitespaceOfLineAtPosition_EmptyLineReturnsEmptyString()

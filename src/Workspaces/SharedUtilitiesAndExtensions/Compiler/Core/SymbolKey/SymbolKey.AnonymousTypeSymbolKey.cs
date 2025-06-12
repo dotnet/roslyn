@@ -20,7 +20,7 @@ internal partial struct SymbolKey
 
             var properties = symbol.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             var propertyTypes = properties.SelectAsArray(p => p.Type);
-            var propertyNames = properties.SelectAsArray(p => p.Name);
+            var propertyNames = properties.SelectAsArray(p => (string?)p.Name);
             var propertyIsReadOnly = properties.SelectAsArray(p => p.SetMethod == null);
             var propertyLocations = properties.SelectAsArray(p => p.Locations.FirstOrDefault());
 

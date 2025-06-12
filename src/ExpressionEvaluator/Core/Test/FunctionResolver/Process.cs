@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         internal Process(bool shouldEnable, params Module[] modules)
         {
             _shouldEnable = shouldEnable;
-            _modules = new List<Module>(modules);
+            _modules = [.. modules];
         }
 
         internal int ShouldEnableRequests { get; private set; }

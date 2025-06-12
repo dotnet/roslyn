@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -31,7 +32,7 @@ using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
+public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
     private static string Inspect(DiagnosticData d)
         => $"{d.Severity} {d.Id}:" +
@@ -73,7 +74,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
         return workspace;
     }
 
-    private class TestSourceTextContainer : SourceTextContainer
+    private sealed class TestSourceTextContainer : SourceTextContainer
     {
         public SourceText Text { get; set; }
 
@@ -115,11 +116,9 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
 
-        DocumentId documentId;
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
-            .AddTestProject("proj", out var projectId).Solution
-            .AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40))
-            .AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs"));
+            .AddTestProject("proj", out var projectId)
+            .AddTestDocument("class C { }", "test.cs", out var documentId).Project.Solution);
 
         var solution = localWorkspace.CurrentSolution;
         var project = solution.GetRequiredProject(projectId);
@@ -157,26 +156,60 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         // EmitSolutionUpdate
 
-        var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
+        var errorReadingFileDescriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
+        var moduleErrorDescriptor = EditAndContinueDiagnosticDescriptors.GetModuleDiagnosticDescriptor(Contracts.EditAndContinue.ManagedHotReloadAvailabilityStatus.Optimized);
+        var syntaxErrorDescriptor = new DiagnosticDescriptor("CS0001", "Syntax error", "Syntax error", "Compiler", DiagnosticSeverity.Error, isEnabledByDefault: true);
+        var compilerHiddenDescriptor = new DiagnosticDescriptor("CS0002", "Hidden", "Emit Hidden", "Compiler", DiagnosticSeverity.Hidden, isEnabledByDefault: true);
+        var compilerInfoDescriptor = new DiagnosticDescriptor("CS0003", "Info", "Emit Info", "Compiler", DiagnosticSeverity.Info, isEnabledByDefault: true);
+        var compilerWarningDescriptor = new DiagnosticDescriptor("CS0004", "Emit Warning", "Emit Warning", "Compiler", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        var compilerErrorDescriptor = new DiagnosticDescriptor("CS0005", "Emit Error", "Emit Error", "Compiler", DiagnosticSeverity.Error, isEnabledByDefault: true);
 
-        mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, _) =>
+        mockEncService.EmitSolutionUpdateImpl = (solution, _, _) =>
         {
             var syntaxTree = solution.GetRequiredDocument(documentId).GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
-            var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
-            var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
-            var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var documentDiagnostic = CodeAnalysis.Diagnostic.Create(errorReadingFileDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
+            var projectDiagnostic = CodeAnalysis.Diagnostic.Create(errorReadingFileDescriptor, Location.None, ["proj", "error 2"]);
+            var moduleError = CodeAnalysis.Diagnostic.Create(moduleErrorDescriptor, Location.None, ["proj", "module error"]);
+            var syntaxError = CodeAnalysis.Diagnostic.Create(syntaxErrorDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocHidden = CodeAnalysis.Diagnostic.Create(compilerHiddenDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocInfo = CodeAnalysis.Diagnostic.Create(compilerInfoDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocWarning = CodeAnalysis.Diagnostic.Create(compilerWarningDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerDocError = CodeAnalysis.Diagnostic.Create(compilerErrorDescriptor, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)));
+            var compilerProjectHidden = CodeAnalysis.Diagnostic.Create(compilerHiddenDescriptor, Location.None);
+            var compilerProjectInfo = CodeAnalysis.Diagnostic.Create(compilerInfoDescriptor, Location.None);
+            var compilerProjectWarning = CodeAnalysis.Diagnostic.Create(compilerWarningDescriptor, Location.None);
+            var compilerProjectError = CodeAnalysis.Diagnostic.Create(compilerErrorDescriptor, Location.None);
             var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
+            var deletedDocumentRudeEdit = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["<deleted>"]).ToDiagnostic(tree: null);
 
             return new()
             {
                 Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
-                Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
+                Diagnostics =
+                [
+                    new ProjectDiagnostics(
+                        project.Id,
+                        [
+                            documentDiagnostic,
+                            projectDiagnostic,
+                            moduleError,
+                            rudeEditDiagnostic,
+                            deletedDocumentRudeEdit,
+                            compilerDocError,
+                            compilerDocWarning,
+                            compilerDocHidden,
+                            compilerDocInfo,
+                            compilerProjectError,
+                            compilerProjectWarning,
+                            compilerProjectHidden,
+                            compilerProjectInfo,
+                        ])
+                ],
                 SyntaxError = syntaxError,
                 ProjectsToRebuild = [project.Id],
-                ProjectsToRestart = [project.Id]
+                ProjectsToRestart = ImmutableDictionary<ProjectId, ImmutableArray<ProjectId>>.Empty.Add(project.Id, [])
             };
         };
 
@@ -186,16 +219,28 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         AssertEx.Equal(
         [
-            $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
-            $"Error ENC1001: proj.csproj(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}"
+            $"Error ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
+            $"Error ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
+            $"Error ENC2012: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "proj", "module error")}",
+            $"Error ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
+            $"Error CS0005: {document.FilePath}(0, 1, 0, 2): Emit Error",
+            $"Warning CS0004: {document.FilePath}(0, 1, 0, 2): Emit Warning",
+            $"Error CS0005: {project.FilePath}(0, 0, 0, 0): Emit Error",
+            $"Warning CS0004: {project.FilePath}(0, 0, 0, 0): Emit Warning",
         ], sessionState.ApplyChangesDiagnostics.Select(Inspect));
 
         AssertEx.Equal(
         [
-            $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
-            $"Error ENC1001: proj.csproj(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
-            $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error 3")}",
-            $"RestartRequired ENC0033: test.cs(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}"
+            $"RestartRequired ENC1001: {document.FilePath}(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
+            $"RestartRequired ENC1001: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
+            $"RestartRequired ENC2012: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, "proj", "module error")}",
+            $"RestartRequired ENC0033: {document.FilePath}(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}",
+            $"RestartRequired ENC0033: {project.FilePath}(0, 0, 0, 0): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "<deleted>")}",
+            $"Error CS0005: {document.FilePath}(0, 1, 0, 2): Emit Error",
+            $"Warning CS0004: {document.FilePath}(0, 1, 0, 2): Emit Warning",
+            $"Error CS0005: {project.FilePath}(0, 0, 0, 0): Emit Error",
+            $"Warning CS0004: {project.FilePath}(0, 0, 0, 0): Emit Warning",
+            $"Error CS0001: {document.FilePath}(0, 1, 0, 2): Syntax error",
         ], updates.Diagnostics.Select(Inspect));
 
         Assert.True(sessionState.IsSessionActive);
@@ -259,10 +304,12 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
         Assert.True(workspace.SetCurrentSolution(_ => solution, WorkspaceChangeKind.SolutionAdded));
         solution = workspace.CurrentSolution;
 
-        var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
+        var moduleId = EmitAndLoadLibraryToDebuggee(projectId, source1, sourceFilePath: sourceFile.Path);
 
         // hydrate document text and overwrite file content:
-        var document1 = await solution.GetDocument(documentId).GetTextAsync();
+        var document1 = solution.GetRequiredDocument(documentId);
+        _ = await document1.GetTextAsync(CancellationToken.None);
+
         File.WriteAllText(sourceFile.Path, source2, Encoding.UTF8);
 
         await languageService.StartSessionAsync(CancellationToken.None);
@@ -282,7 +329,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         // check committed document status:
         var debuggingSession = service.GetTestAccessor().GetActiveDebuggingSessions().Single();
-        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(documentId, currentDocument: null, CancellationToken.None);
+        var (document, state) = await debuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(document1, CancellationToken.None);
         var text = await document.GetTextAsync();
         Assert.Equal(CommittedSolution.DocumentState.MatchesBuildOutput, state);
         Assert.Equal(source1, (await document.GetTextAsync(CancellationToken.None)).ToString());

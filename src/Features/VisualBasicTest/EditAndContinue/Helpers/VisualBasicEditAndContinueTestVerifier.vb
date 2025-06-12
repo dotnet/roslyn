@@ -44,6 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
         Public Overrides Function TryGetResource(keyword As String) As String
             Return EditingTestBase.TryGetResource(keyword)
         End Function
+
+        Public Overrides ReadOnly Property ParseOptions As ParseOptions
+            Get
+                Return VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
+            End Get
+        End Property
     End Class
 End Namespace
 

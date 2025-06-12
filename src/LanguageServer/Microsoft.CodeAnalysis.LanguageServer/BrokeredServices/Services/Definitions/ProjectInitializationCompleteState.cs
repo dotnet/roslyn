@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Defini
 /// Copied from https://devdiv.visualstudio.com/DevDiv/_git/CPS?path=/src/Microsoft.VisualStudio.ProjectSystem.Server/ProjectInitializationCompletionState.cs
 /// </summary>
 [DataContract]
-internal class ProjectInitializationCompletionState
+internal sealed class ProjectInitializationCompletionState
 {
     [DataMember(IsRequired = true, EmitDefaultValue = false, Name = "environmentStateVersion")]
     public int EnvironmentStateVersion { get; set; }

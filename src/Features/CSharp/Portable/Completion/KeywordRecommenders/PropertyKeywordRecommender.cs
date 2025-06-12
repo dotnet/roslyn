@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 internal sealed class PropertyKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.PropertyKeyword)
 {
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => context.IsMemberAttributeContext(SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, includingRecordParameters: true, cancellationToken);
+        => context.IsMemberAttributeContext(SyntaxKindSet.NonEnumTypeDeclarations, includingRecordParameters: true, cancellationToken);
 }

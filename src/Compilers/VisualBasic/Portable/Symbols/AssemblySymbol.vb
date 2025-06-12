@@ -750,8 +750,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
+            ' Avoid using the identity to obtain the public key if possible to avoid the allocations associated
+            ' with identity creation
+            Dim assemblyWantingAccessAssemblySymbol As AssemblySymbol = TryCast(assemblyWantingAccess, AssemblySymbol)
+            Dim publicKey = If(assemblyWantingAccessAssemblySymbol IsNot Nothing, assemblyWantingAccessAssemblySymbol.PublicKey.NullToEmpty(), assemblyWantingAccess.Identity.PublicKey)
+
             For Each key In myKeys
-                Dim conclusion As IVTConclusion = Me.Identity.PerformIVTCheck(assemblyWantingAccess.Identity.PublicKey, key)
+                Dim conclusion As IVTConclusion = Me.Identity.PerformIVTCheck(publicKey, key)
                 Debug.Assert(conclusion <> IVTConclusion.NoRelationshipClaimed)
                 If conclusion = IVTConclusion.Match Then
                     ' Note that C# includes  OrElse conclusion = IVTConclusion.OneSignedOneNot

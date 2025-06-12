@@ -14,7 +14,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAndVerbatimString;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
-public class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertBetweenRegularAndVerbatimInterpolatedStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider();

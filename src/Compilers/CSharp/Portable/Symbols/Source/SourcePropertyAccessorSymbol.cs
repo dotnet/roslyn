@@ -554,6 +554,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
+            else if (ContainingType.IsExtension && IsInitOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_InitInExtension, location, _property);
+            }
             else if (LocalDeclaredReadOnly && IsInitOnly)
             {
                 // 'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.
@@ -724,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 #nullable disable
 
-        public sealed override bool IsImplicitlyDeclared
+        public override bool IsImplicitlyDeclared
         {
             get
             {
@@ -737,7 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.InitAccessorDeclaration:
                     case SyntaxKind.ArrowExpressionClause:
                         return false;
-                };
+                }
 
                 return true;
             }
@@ -792,7 +796,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
             base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
+            AddSynthesizedReturnTypeFlowAnalysisAttributes(ref attributes);
+        }
 
+        internal void AddSynthesizedReturnTypeFlowAnalysisAttributes(ref ArrayBuilder<CSharpAttributeData> attributes)
+        {
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
@@ -801,33 +809,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
                 AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
-            }
-        }
-
-        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
-        {
-            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            if (_isAutoPropertyAccessor)
-            {
-                var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            }
-
-            if (!NotNullMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
-            }
-
-            if (!NotNullWhenTrueMembers.IsEmpty || !NotNullWhenFalseMembers.IsEmpty)
-            {
-                foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
-                {
-                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
-                }
             }
         }
 

@@ -1165,6 +1165,7 @@ class C
             Assert.NotNull(a);
             Assert.Equal("System.Int32 a", a.ToTestDisplayString());
 
+            Assert.NotNull(functionPointerTypeSyntax.Parent);
             VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<int[a]> local')
   Ignored Dimensions(1):
@@ -1271,6 +1272,7 @@ class E
             Assert.Equal("C.D", nestedTypeInfo.Type!.ToTestDisplayString());
             Assert.False(nestedTypeInfo.Type!.IsErrorType());
 
+            Assert.NotNull(functionPointerTypeSyntax.Parent);
             VerifyOperationTreeForNode(comp, model, functionPointerTypeSyntax.Parent, expectedOperationTree: @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'delegate*<C.D> d')
   Declarators:

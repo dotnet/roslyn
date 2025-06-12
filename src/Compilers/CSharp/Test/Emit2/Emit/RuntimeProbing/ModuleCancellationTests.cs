@@ -14,12 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class ModuleCancellationTests : CSharpTestBase
 {
-#if NET
-    const string NativeIntDisplay = "nint";
-#else
-    const string NativeIntDisplay = "System.IntPtr";
-#endif
-
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.ModuleCancellation]);
 
     private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
@@ -86,7 +80,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               IL_0015:  pop
               IL_0016:  ldsfld     "C.<>c C.<>c.<>9"
               IL_001b:  ldftn      "int C.<>c.<F>b__0_1()"
-              IL_0021:  newobj     "System.Func<int>..ctor(object, {{NativeIntDisplay}})"
+              IL_0021:  newobj     "System.Func<int>..ctor(object, System.IntPtr)"
               IL_0026:  dup
               IL_0027:  stsfld     "System.Func<int> C.<>c.<>9__0_1"
               IL_002c:  call       "void C.F(System.Func<int>)"
@@ -1483,7 +1477,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new Action<CancellationToken>(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(System.Threading.CancellationToken)"
-              IL_0012:  newobj     "System.Action<System.Threading.CancellationToken>..ctor(object, {{NativeIntDisplay}})"
+              IL_0012:  newobj     "System.Action<System.Threading.CancellationToken>..ctor(object, System.IntPtr)"
               IL_0017:  stloc.0
               // sequence point: g(token);
               IL_0018:  ldloc.0
@@ -1566,7 +1560,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new D(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(int, System.Threading.CancellationToken)"
-              IL_0012:  newobj     "D..ctor(object, {{NativeIntDisplay}})"
+              IL_0012:  newobj     "D..ctor(object, System.IntPtr)"
               IL_0017:  stloc.0
               // sequence point: g(token: token, a: 1);
               IL_0018:  ldloc.0
@@ -1618,7 +1612,7 @@ public sealed class ModuleCancellationTests : CSharpTestBase
               // sequence point: var g = new D(G);
               IL_000b:  ldarg.0
               IL_000c:  ldftn      "void C.G(int, System.Threading.CancellationToken)"
-              IL_0012:  newobj     "D..ctor(object, {{NativeIntDisplay}})"
+              IL_0012:  newobj     "D..ctor(object, System.IntPtr)"
               IL_0017:  stloc.0
               // sequence point: g(1);
               IL_0018:  ldloc.0

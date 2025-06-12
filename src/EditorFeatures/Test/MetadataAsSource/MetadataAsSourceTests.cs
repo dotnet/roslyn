@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-public partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
+public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
 {
     public enum OriginatingProjectLanguage
     {

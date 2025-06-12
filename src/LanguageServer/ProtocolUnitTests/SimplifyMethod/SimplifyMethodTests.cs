@@ -12,18 +12,18 @@ using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod
-{
-    public class SimplifyMethodTests : AbstractLanguageServerProtocolTests
-    {
-        public SimplifyMethodTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
-        {
-        }
+namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SimplifyMethod;
 
-        [Theory, CombinatorialData]
-        public async Task TestGetSimplifyMethodAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
+public sealed class SimplifyMethodTests : AbstractLanguageServerProtocolTests
+{
+    public SimplifyMethodTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
+    {
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetSimplifyMethodAsync(bool mutatingLspWorkspace)
+    {
+        var markup =
 @"
 using System;
 using System.Threading.Tasks;
@@ -32,30 +32,29 @@ class A
 {
 {|caret:|}
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var methodInsertionLocation = testLspServer.GetLocations("caret").First();
-            var method = "private global::System.Threading.Tasks.Task test() => throw new global::System.NotImplementedException();";
-            var expectedEdit = new TextEdit()
-            {
-                NewText = "private Task test() => throw new NotImplementedException();",
-                Range = methodInsertionLocation.Range,
-            };
-
-            var results = await RunRenameAsync(testLspServer, CreateSimplifyMethodParams(methodInsertionLocation, method));
-            Assert.NotNull(results);
-            AssertJsonEquals(expectedEdit, results.First());
-        }
-
-        private static async Task<TextEdit[]?> RunRenameAsync(TestLspServer testLspServer, SimplifyMethodParams @params)
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var methodInsertionLocation = testLspServer.GetLocations("caret").First();
+        var method = "private global::System.Threading.Tasks.Task test() => throw new global::System.NotImplementedException();";
+        var expectedEdit = new TextEdit()
         {
-            return await testLspServer.ExecuteRequestAsync<SimplifyMethodParams, TextEdit[]>(SimplifyMethodHandler.SimplifyMethodMethodName, @params, CancellationToken.None);
-        }
+            NewText = "private Task test() => throw new NotImplementedException();",
+            Range = methodInsertionLocation.Range,
+        };
 
-        private static SimplifyMethodParams CreateSimplifyMethodParams(LSP.Location location, string newText)
-            => new SimplifyMethodParams()
-            {
-                TextDocument = CreateTextDocumentIdentifier(location.Uri),
-                TextEdit = new TextEdit() { Range = location.Range, NewText = newText },
-            };
+        var results = await RunRenameAsync(testLspServer, CreateSimplifyMethodParams(methodInsertionLocation, method));
+        Assert.NotNull(results);
+        AssertJsonEquals(expectedEdit, results.First());
     }
+
+    private static async Task<TextEdit[]?> RunRenameAsync(TestLspServer testLspServer, SimplifyMethodParams @params)
+    {
+        return await testLspServer.ExecuteRequestAsync<SimplifyMethodParams, TextEdit[]>(SimplifyMethodHandler.SimplifyMethodMethodName, @params, CancellationToken.None);
+    }
+
+    private static SimplifyMethodParams CreateSimplifyMethodParams(LSP.Location location, string newText)
+        => new SimplifyMethodParams()
+        {
+            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
+            TextEdit = new TextEdit() { Range = location.Range, NewText = newText },
+        };
 }

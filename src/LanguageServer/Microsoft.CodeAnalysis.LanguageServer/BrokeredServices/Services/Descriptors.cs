@@ -11,7 +11,7 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 
-internal class Descriptors
+internal sealed class Descriptors
 {
     // Descriptors for remote services.
     // If adding services here, make sure to update RemoteServicesToRegister.

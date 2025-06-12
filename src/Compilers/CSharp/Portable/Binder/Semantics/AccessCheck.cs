@@ -327,8 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // For the purpose of accessibility checks, extension members are considered to be declared within the enclosing static type
             return IsNonPublicMemberAccessible(
-                containingType,
+                containingType.IsExtension && containingType.ContainingType is { } extensionEnclosingType ? extensionEnclosingType : containingType,
                 declaredAccessibility,
                 within,
                 throughTypeOpt,
@@ -695,7 +696,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ErrorCode GetProtectedMemberInSealedTypeError(NamedTypeSymbol containingType)
         {
-            return containingType.TypeKind == TypeKind.Struct ? ErrorCode.ERR_ProtectedInStruct : ErrorCode.WRN_ProtectedInSealed;
+            return containingType.IsExtension ? ErrorCode.ERR_ProtectedInExtension
+                : containingType.TypeKind == TypeKind.Struct ? ErrorCode.ERR_ProtectedInStruct
+                : ErrorCode.WRN_ProtectedInSealed;
         }
     }
 }

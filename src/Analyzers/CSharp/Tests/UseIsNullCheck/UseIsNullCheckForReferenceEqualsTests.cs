@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
     public UseIsNullCheckForReferenceEqualsTests(ITestOutputHelper logger)
         : base(logger)

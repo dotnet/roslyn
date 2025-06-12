@@ -109,7 +109,7 @@ internal sealed class DelegateInvokeMethodReferenceFinder : AbstractReferenceFin
             var convertedType = (ISymbol?)state.SemanticModel.GetTypeInfo(node, cancellationToken).ConvertedType;
             if (convertedType != null)
             {
-                convertedType = SymbolFinder.FindSourceDefinition(convertedType, state.Solution, cancellationToken) ?? convertedType;
+                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, state.Solution, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken) ?? convertedType;
             }
 
             if (convertedType == methodSymbol.ContainingType)

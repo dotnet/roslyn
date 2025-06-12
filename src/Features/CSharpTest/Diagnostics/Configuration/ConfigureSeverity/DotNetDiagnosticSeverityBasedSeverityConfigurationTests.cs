@@ -51,7 +51,7 @@ public abstract partial class DotNetDiagnosticSeverityBasedSeverityConfiguration
     }
 
     [Trait(Traits.Feature, Traits.Features.CodeActionsConfiguration)]
-    public class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests
+    public sealed class NoneConfigurationTests : DotNetDiagnosticSeverityBasedSeverityConfigurationTests
     {
         protected override int CodeActionIndex => 0;
 

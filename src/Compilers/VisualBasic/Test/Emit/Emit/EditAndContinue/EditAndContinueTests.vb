@@ -1475,6 +1475,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E, remove_E, raise_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1483,6 +1484,7 @@ End Class
   IL_0007:  newobj     0x06000005
   IL_000c:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -1537,6 +1539,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1546,6 +1549,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1555,6 +1559,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+raise_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1649,6 +1654,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E, remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1657,6 +1663,7 @@ End Class
   IL_0007:  newobj     0x06000007
   IL_000c:  throw
 }
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1666,6 +1673,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1675,6 +1683,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -1736,6 +1745,7 @@ End Class
                             })
 
                             g.VerifyIL("
+add_E
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -1745,6 +1755,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -1754,6 +1765,7 @@ End Class
   IL_000b:  nop
   IL_000c:  ret
 }
+add_E, remove_E
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2337,6 +2349,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2345,6 +2358,7 @@ End Class
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
 }
+get_P
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -2358,6 +2372,7 @@ End Class
   IL_000d:  ldloc.0
   IL_000e:  ret
 }
+set_P
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -2367,6 +2382,7 @@ End Class
   IL_0008:  nop
   IL_0009:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2429,6 +2445,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size       15 (0xf)
   .maxstack  1
@@ -2442,6 +2459,7 @@ End Class
   IL_000d:  ldloc.0
   IL_000e:  ret
 }
+set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2451,6 +2469,7 @@ End Class
   IL_000b:  nop
   IL_000c:  ret
 }
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2522,6 +2541,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P, set_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2530,6 +2550,7 @@ End Class
   IL_0007:  newobj     0x06000004
   IL_000c:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2576,6 +2597,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -2649,6 +2671,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -2657,6 +2680,7 @@ End Class
   IL_0007:  newobj     0x06000004
   IL_000c:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -2703,6 +2727,7 @@ End Class
                             })
 
                             g.VerifyIL("
+get_P
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -5980,6 +6005,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -5996,6 +6022,7 @@ End Class
   IL_0025:  stloc.2
   IL_0026:  ret
 }
+_Lambda$__1-0
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6004,6 +6031,7 @@ End Class
   IL_0006:  newobj     0x06000007
   IL_000b:  throw
 }
+_Lambda$__1-1
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -6013,6 +6041,7 @@ End Class
   IL_0007:  nop
   IL_0008:  ret
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -6086,33 +6115,36 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
-      // Code size       13 (0xd)
-      .maxstack  8
-      IL_0000:  ldstr      0x70000005
-      IL_0005:  ldc.i4.s   -2
-      IL_0007:  newobj     0x06000006
-      IL_000c:  throw
-    }
-    {
-      // Code size       12 (0xc)
-      .maxstack  8
-      IL_0000:  ldstr      0x7000014E
-      IL_0005:  ldc.i4.m1
-      IL_0006:  newobj     0x06000006
-      IL_000b:  throw
-    }
-    {
-      // Code size       15 (0xf)
-      .maxstack  8
-      IL_0000:  ldarg.0
-      IL_0001:  ldarg.1
-      IL_0002:  call       0x0A000008
-      IL_0007:  ldarg.0
-      IL_0008:  ldarg.2
-      IL_0009:  stfld      0x04000003
-      IL_000e:  ret
-    }
+    // Code size       13 (0xd)
+    .maxstack  8
+    IL_0000:  ldstr      0x70000005
+    IL_0005:  ldc.i4.s   -2
+    IL_0007:  newobj     0x06000006
+    IL_000c:  throw
+}
+_Lambda$__1-0
+{
+    // Code size       12 (0xc)
+    .maxstack  8
+    IL_0000:  ldstr      0x7000014E
+    IL_0005:  ldc.i4.m1
+    IL_0006:  newobj     0x06000006
+    IL_000b:  throw
+}
+.ctor
+{
+    // Code size       15 (0xf)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldarg.1
+    IL_0002:  call       0x0A000008
+    IL_0007:  ldarg.0
+    IL_0008:  ldarg.2
+    IL_0009:  stfld      0x04000003
+    IL_000e:  ret
+}
 ")
                     End Sub).
                 AddGeneration(' 2
@@ -6160,6 +6192,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       39 (0x27)
   .maxstack  2
@@ -6176,6 +6209,7 @@ End Class
   IL_0025:  stloc.0
   IL_0026:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -6183,6 +6217,7 @@ End Class
   IL_0001:  call       0x0A00000B
   IL_0006:  ret
 }
+_Lambda$__1#2-0#2
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -6233,6 +6268,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6241,6 +6277,7 @@ End Class
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
 }
+_Lambda$__1#2-0#2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6336,6 +6373,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6344,6 +6382,7 @@ End Class
   IL_0007:  newobj     0x06000006
   IL_000c:  throw
 }
+_Lambda$__1#1-0#1
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6352,6 +6391,7 @@ End Class
   IL_0006:  newobj     0x06000006
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -6478,6 +6518,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6486,6 +6527,7 @@ End Class
   IL_0007:  newobj     0x06000009
   IL_000c:  throw
 }
+_Lambda$__1-0, _Lambda$__1-1#1, _Lambda$__1-2#2
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -6494,6 +6536,7 @@ End Class
   IL_0006:  newobj     0x06000009
   IL_000b:  throw
 }
+.ctor
 {
   // Code size       15 (0xf)
   .maxstack  8
@@ -6534,6 +6577,7 @@ End Class
                         g.VerifyMemberRefNames(".ctor", "$I1#4-0#4", "$I", "_Lambda$__1#4-0#4", ".ctor", ".ctor", ".ctor", "$I", "WriteLine")
 
                         g.VerifyIL("
+F
 {
   // Code size       50 (0x32)
   .maxstack  2
@@ -6554,6 +6598,7 @@ End Class
   IL_0030:  ldloc.0
   IL_0031:  ret
 }
+.ctor
 {
   // Code size        7 (0x7)
   .maxstack  8
@@ -6561,6 +6606,7 @@ End Class
   IL_0001:  call       0x0A000029
   IL_0006:  ret
 }
+.cctor
 {
   // Code size       11 (0xb)
   .maxstack  8
@@ -6568,6 +6614,7 @@ End Class
   IL_0005:  stsfld     0x0A00002B
   IL_000a:  ret
 }
+_Lambda$__1#4-0#4
 {
   // Code size        9 (0x9)
   .maxstack  8
@@ -6617,6 +6664,7 @@ End Class
                         })
 
                         g.VerifyIL("
+F
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -6625,6 +6673,7 @@ End Class
   IL_0007:  newobj     0x06000009
   IL_000c:  throw
 }
+_Lambda$__1#4-0#4
 {
   // Code size       12 (0xc)
   .maxstack  8
@@ -7319,6 +7368,7 @@ End Class",
                         v.VerifyTypeRefNames("Object")
 
                         v.VerifyIL("
+M
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -7371,6 +7421,7 @@ End Class",
                         v.VerifyTypeRefNames("Exception", "Object")
 
                         v.VerifyIL("
+M
 {
   // Code size       13 (0xd)
   .maxstack  8
@@ -7379,6 +7430,7 @@ End Class",
   IL_0007:  newobj     0x06000003
   IL_000c:  throw
 }
+.ctor
 {
   // Code size       10 (0xa)
   .maxstack  8
@@ -7436,7 +7488,7 @@ End Class",
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
-        Public Sub PrivateImplDetails_DataFields_Arrays()
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
             Using New EditAndContinueTest().
                 AddBaseline(
                     source:="
@@ -7536,6 +7588,88 @@ End Class
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10")
+                            g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3")
+                            g.VerifyMethodDefNames(".ctor")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Dim b As Byte() = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+End Class
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider:=Function(c) c.GetMember("C..ctor"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11")
+                            g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD")
+                            g.VerifyMethodDefNames(".ctor")
+
+                            g.VerifyEncLogDefinitions(
+                            {
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                                Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                            })
+
+                            g.VerifyEncMapDefinitions(
+                            {
+                                Handle(5, TableIndex.TypeDef),
+                                Handle(6, TableIndex.TypeDef),
+                                Handle(3, TableIndex.Field),
+                                Handle(1, TableIndex.MethodDef),
+                                Handle(5, TableIndex.CustomAttribute),
+                                Handle(2, TableIndex.ClassLayout),
+                                Handle(2, TableIndex.FieldRva),
+                                Handle(2, TableIndex.NestedClass)
+                            })
+
+                            g.VerifyIL("C..ctor", "
+{
+  // Code size       32 (0x20)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub Object..ctor()""
+  IL_0006:  nop
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   11
+  IL_000a:  newarr     ""Byte""
+  IL_000f:  dup
+  IL_0010:  ldtoken    ""<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD""
+  IL_0015:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_001a:  stfld      ""C.b As Byte()""
+  IL_001f:  ret
+}")
+                        End Sub,
+                    options:=
+                        New EmitDifferenceOptions() With
+                        {
+                            .EmitFieldRva = True
+                        }).
+                    Verify()
+            End Using
+        End Sub
+
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub PrivateImplDetails_ComputeStringHash()
             Using New EditAndContinueTest().
                 AddBaseline(

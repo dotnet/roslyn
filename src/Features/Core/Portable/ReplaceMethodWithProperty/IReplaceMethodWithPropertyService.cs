@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -29,11 +27,11 @@ internal interface IReplaceMethodWithPropertyService : ILanguageService
 }
 
 internal readonly struct GetAndSetMethods(
-    IMethodSymbol getMethod, IMethodSymbol setMethod,
-    SyntaxNode getMethodDeclaration, SyntaxNode setMethodDeclaration)
+    IMethodSymbol getMethod, IMethodSymbol? setMethod,
+    SyntaxNode getMethodDeclaration, SyntaxNode? setMethodDeclaration)
 {
     public readonly IMethodSymbol GetMethod = getMethod;
-    public readonly IMethodSymbol SetMethod = setMethod;
+    public readonly IMethodSymbol? SetMethod = setMethod;
     public readonly SyntaxNode GetMethodDeclaration = getMethodDeclaration;
-    public readonly SyntaxNode SetMethodDeclaration = setMethodDeclaration;
+    public readonly SyntaxNode? SetMethodDeclaration = setMethodDeclaration;
 }

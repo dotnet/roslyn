@@ -20,7 +20,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
-        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
             GetType(MockPreviewDialogService),
             GetType(TestWorkspaceConfigurationService))
@@ -109,7 +109,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim tracker = New RenameTrackingTaggerProvider(
                 workspace.GetService(Of IThreadingContext),
                 workspace.GetService(Of IInlineRenameService)(),
-                workspace.GetService(Of IDiagnosticAnalyzerService)(),
                 workspace.GetService(Of IGlobalOptionService)(),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
 

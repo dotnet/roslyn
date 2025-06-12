@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace;
 
-internal class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
+internal sealed class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
 {
     private readonly ISyntaxFacts _syntaxFacts;
 

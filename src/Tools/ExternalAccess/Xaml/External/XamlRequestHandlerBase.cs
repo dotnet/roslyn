@@ -6,6 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
@@ -24,7 +25,7 @@ internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServic
     public bool RequiresLSPSolution => true;
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request)
-        => new() { Uri = GetTextDocumentUri(request) };
+        => new() { DocumentUri = new(GetTextDocumentUri(request)) };
 
     public abstract Uri GetTextDocumentUri(TRequest request);
 

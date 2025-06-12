@@ -19,6 +19,6 @@ internal sealed class MockWorkspaceEventListenerProvider() : IWorkspaceServiceFa
 {
     public IEnumerable<IEventListener>? EventListeners;
 
-    public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-        => EventListeners != null ? new DefaultWorkspaceEventListenerServiceFactory.Service(workspaceServices.Workspace, EventListeners) : null;
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => EventListeners != null ? new DefaultWorkspaceEventListenerServiceFactory.Service(workspaceServices.Workspace, EventListeners) : null!;
 }

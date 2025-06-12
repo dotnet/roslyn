@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -1082,7 +1083,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -1246,7 +1247,7 @@ public class Program
                     AssertEx.SetEqual(
                         symbols.Select(s => s.GetPublicSymbol()),
                         symbolInfo.CandidateSymbols,
-                        Roslyn.Utilities.ReferenceEqualityComparer.Instance);
+                        ReferenceEqualityComparer.Instance);
                 }
             }
 
@@ -3069,6 +3070,187 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             Assert.NotNull(igooType);
 
             Assert.Equal(igooType, nameofType);
+        }
+
+        [Fact]
+        public void Nameof_Indexer_01()
+        {
+            string source = """
+                using System.Collections.Generic;
+                var d = new Dictionary<string, string>();
+                _ = nameof(d[""]);
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(d[""]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, @"d[""""]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_02()
+        {
+            string source = """
+                var a = new object[1];
+                _ = nameof(a[0]);
+                _ = nameof(a[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (2,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[0]").WithLocation(2, 12),
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(a[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "a[^1]").WithLocation(3, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_03()
+        {
+            string source = """
+                using System;
+                var s = new Span<int>();
+                _ = nameof(s[0]);
+                _ = nameof(s[^1]);
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[0]").WithLocation(3, 12),
+                // (4,12): error CS8081: Expression does not have a name.
+                // _ = nameof(s[^1]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "s[^1]").WithLocation(4, 12));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_04()
+        {
+            string source = """
+                class C<T>
+                {
+                    public ref T this[int i] => throw null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new C<object>();
+                        _ = nameof(x[0]);
+                        _ = nameof(x[0] = default);
+                        var y = new C<int>();
+                        _ = nameof(y[0] += 1);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(x[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "x[0] = default").WithLocation(11, 20),
+                // (13,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(y[0] += 1);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "y[0] += 1").WithLocation(13, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_05()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] => default;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_06()
+        {
+            string source = """
+                ref struct R<T>
+                {
+                    public T this[int i] { set { } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var r = new R<object>();
+                        _ = nameof(r[0]);
+                        _ = nameof(r[0] = default);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(10, 20),
+                // (10,20): error CS0154: The property or indexer 'R<object>.this[int]' cannot be used in this context because it lacks the get accessor
+                //         _ = nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "r[0]").WithArguments("R<object>.this[int]").WithLocation(10, 20),
+                // (11,20): error CS8081: Expression does not have a name.
+                //         _ = nameof(r[0] = default);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0] = default").WithLocation(11, 20));
+        }
+
+        [Fact]
+        public void Nameof_Indexer_07()
+        {
+            string source = """
+                using System.Diagnostics.CodeAnalysis;
+                ref struct R<T>
+                {
+                    private ref readonly int _i;
+                    public T this[[UnscopedRef] in int i] { get { _i = ref i; return default; } }
+                }
+                class Program
+                {
+                    static R<string> F(bool b)
+                    {
+                        var r = new R<string>();
+                        _ = b ?
+                            r[0] :
+                            nameof(r[0]);
+                        return r;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (13,13): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(13, 13),
+                // (13,15): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             r[0] :
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(13, 15),
+                // (14,20): error CS8081: Expression does not have a name.
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "r[0]").WithLocation(14, 20),
+                // (14,20): error CS8350: This combination of arguments to 'R<string>.this[in int]' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "r[0]").WithArguments("R<string>.this[in int]", "i").WithLocation(14, 20),
+                // (14,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //             nameof(r[0]);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
         }
     }
 }

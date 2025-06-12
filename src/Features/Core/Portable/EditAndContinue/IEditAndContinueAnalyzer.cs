@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal interface IEditAndContinueAnalyzer : ILanguageService
 {
     Task<DocumentAnalysisResults> AnalyzeDocumentAsync(
-        Project baseProject,
+        DocumentId documentId,
+        Project oldProject,
+        Project newProject,
         AsyncLazy<ActiveStatementsMap> lazyBaseActiveStatements,
-        Document document,
         ImmutableArray<ActiveStatementLineSpan> newActiveStatementSpans,
         AsyncLazy<EditAndContinueCapabilities> lazyCapabilities,
         TraceLog log,

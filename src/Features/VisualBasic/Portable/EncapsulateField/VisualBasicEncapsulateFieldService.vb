@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef

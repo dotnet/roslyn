@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -19,7 +20,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.NavigationBar
     <ExportLanguageService(GetType(INavigationBarItemService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicNavigationBarItemService
+    Partial Friend NotInheritable Class VisualBasicNavigationBarItemService
         Inherits AbstractNavigationBarItemService
 
         Private ReadOnly _typeFormat As SymbolDisplayFormat = New SymbolDisplayFormat(

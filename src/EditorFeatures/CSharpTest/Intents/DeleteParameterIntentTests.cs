@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
 
 [UseExportProvider]
-public class DeleteParameterIntentTests : IntentTestsBase
+public sealed class DeleteParameterIntentTests : IntentTestsBase
 {
     [Fact]
     public async Task TestDeleteParameterIntentAsync()

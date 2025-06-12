@@ -710,6 +710,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                Debug.Assert(!this.GetIsNewExtensionMember());
+
                 if (this.IsPartialDefinition() &&
                     this.PartialImplementationPart is null)
                 {
@@ -1287,6 +1289,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
                     ));
             }
+        }
+
+        public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
+        {
+            Debug.Assert(this.IsDefinition);
+            Debug.Assert(this.GetIsNewExtensionMember());
+            return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }
 }

@@ -4,26 +4,27 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
     Friend Class WorkspaceChangeWatcher
         Implements IDisposable
 
-        Private ReadOnly _environment As TestEnvironment
         Private ReadOnly _asynchronousOperationWaiter As IAsynchronousOperationWaiter
+        Private ReadOnly _workspaceChangedDisposer As WorkspaceEventRegistration
         Private _changeEvents As New List(Of WorkspaceChangeEventArgs)
 
         Public Sub New(environment As TestEnvironment)
-            _environment = environment
-
             Dim listenerProvider = environment.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)()
             _asynchronousOperationWaiter = listenerProvider.GetWaiter(FeatureAttribute.Workspace)
 
-            AddHandler environment.Workspace.WorkspaceChanged, AddressOf OnWorkspaceChanged
+            _workspaceChangedDisposer = environment.Workspace.RegisterWorkspaceChangedHandler(AddressOf OnWorkspaceChanged)
         End Sub
 
-        Private Sub OnWorkspaceChanged(sender As Object, e As WorkspaceChangeEventArgs)
+        Public Sub Dispose() Implements IDisposable.Dispose
+            _workspaceChangedDisposer.Dispose()
+        End Sub
+
+        Private Sub OnWorkspaceChanged(e As WorkspaceChangeEventArgs)
             _changeEvents.Add(e)
         End Sub
 
@@ -35,9 +36,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _changeEvents = New List(Of WorkspaceChangeEventArgs)()
             Return changeEvents
         End Function
-
-        Public Sub Dispose() Implements IDisposable.Dispose
-            RemoveHandler _environment.Workspace.WorkspaceChanged, AddressOf OnWorkspaceChanged
-        End Sub
     End Class
 End Namespace

@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [UseExportProvider]
-public class CompletionProviderOrderTests
+public sealed class CompletionProviderOrderTests
 {
     /// <summary>
     /// Verifies the exact order of all built-in completion providers.
@@ -25,7 +25,7 @@ public class CompletionProviderOrderTests
     [Fact]
     public void TestCompletionProviderOrder()
     {
-        var exportProvider = EditorTestCompositions.EditorFeaturesWpf.ExportProviderFactory.CreateExportProvider();
+        var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
         var completionProviderExports = exportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>();
         var orderedCSharpCompletionProviders = ExtensionOrderer.Order(completionProviderExports.Where(export => export.Metadata.Language == LanguageNames.CSharp));
 

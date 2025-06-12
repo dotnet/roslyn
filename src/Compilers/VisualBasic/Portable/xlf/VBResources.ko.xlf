@@ -132,6 +132,11 @@
         <target state="translated">'{0}'은(는) '{1}' 어셈블리에 정의되어 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
+        <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
+        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TypeReserved">
         <source>The type name '{0}' is reserved to be used by the compiler.</source>
         <target state="translated">형식 이름 '{0}'은(는) 컴파일러에서 사용하도록 예약되어 있습니다.</target>

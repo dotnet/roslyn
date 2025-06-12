@@ -10044,7 +10044,7 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
-        public void UserDefinedBinaryOperator_RefStruct_Compound()
+        public void UserDefinedBinaryOperator_RefStruct_Compound_01()
         {
             var source = """
                 public ref struct C
@@ -10079,6 +10079,50 @@ public struct Vec4
                 // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
                 //         c = X(c, c1);
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18));
+        }
+
+        [Fact]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_02()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
+                    public static C Y(C left) => left;
+                    public C M1(C c, scoped C c1)
+                    {
+                        return Y(c += c1);
+                    }
+                    public C M2(C c, scoped C c1)
+                    {
+                        return Y(c = X(c, c1));
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, C)", "right").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, C)", "right").WithLocation(8, 18),
+                // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (8,23): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 23),
+                // (12,22): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(12, 22),
+                // (12,27): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(12, 27)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
@@ -10166,7 +10210,7 @@ public struct Vec4
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
-        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget()
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_01()
         {
             var source = """
                 public ref struct C
@@ -10183,6 +10227,111 @@ public struct Vec4
                 }
                 """;
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_02()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
+                    public static C Y(C left) => left;
+                    public C M1(scoped C c, C c1)
+                    {
+                        return Y(c += c1);
+                    }
+                    public C M2(scoped C c, C c1)
+                    {
+                        return Y(c = X(c, c1));
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, C)", "left").WithLocation(8, 18),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_03()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, scoped C right) => left;
+                    public static C X(C left, scoped C right) => left;
+                    public static C Y(C left) => left;
+                    public C M1(scoped C c, C c1)
+                    {
+                        return Y(c += c1);
+                    }
+                    public C M2(scoped C c, C c1)
+                    {
+                        return Y(c = X(c, c1));
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c += c1)").WithArguments("C.Y(C)", "left").WithLocation(8, 16),
+                // (8,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c").WithArguments("scoped C c").WithLocation(8, 18),
+                // (8,18): error CS8347: Cannot use a result of 'C.operator +(C, scoped C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c += c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, scoped C)", "left").WithLocation(8, 18),
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget_04()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, C right) => right; 
+                    public static C X(scoped C left, C right) => right;
+                    public static C Y(C left) => left;
+                    public C M1(scoped C c, C c1)
+                    {
+                        return Y(c += c1);
+                    }
+                    public C M2(scoped C c, C c1)
+                    {
+                        return Y(c = X(c, c1));
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): error CS8347: Cannot use a result of 'C.Y(C)' in this context because it may expose variables referenced by parameter 'left' outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeCall, "Y(c = X(c, c1))").WithArguments("C.Y(C)", "left").WithLocation(12, 16),
+                // (12,18): error CS8352: Cannot use variable 'scoped C c' in this context because it may expose referenced variables outside of their declaration scope
+                //         return Y(c = X(c, c1));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c = X(c, c1)").WithArguments("scoped C c").WithLocation(12, 18)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]

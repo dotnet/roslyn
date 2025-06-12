@@ -4,7 +4,6 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList
-{
-    internal readonly record struct FSharpTaskListItem(FSharpTaskListDescriptor TaskDescriptor, string Message, Document Document, TextSpan Span);
-}
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList;
+
+internal readonly record struct FSharpTaskListItem(FSharpTaskListDescriptor TaskDescriptor, string Message, Document Document, TextSpan Span);

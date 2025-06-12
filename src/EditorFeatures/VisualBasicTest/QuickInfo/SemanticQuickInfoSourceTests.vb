@@ -2355,7 +2355,7 @@ class X
     end sub
 end class",
                 MainDescription("Operator String.=(a As String, b As String) As Boolean"),
-                SymbolGlyph(Glyph.Operator))
+                SymbolGlyph(Glyph.OperatorPublic))
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29703")>

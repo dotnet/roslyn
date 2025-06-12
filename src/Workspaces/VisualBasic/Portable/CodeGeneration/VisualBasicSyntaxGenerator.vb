@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
@@ -615,6 +616,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function ParseExpression(stringToParse As String) As SyntaxNode
             Return SyntaxFactory.ParseExpression(stringToParse)
+        End Function
+
+        Friend Overrides Function ParseTypeName(stringToParse As String) As SyntaxNode
+            Return SyntaxFactory.ParseTypeName(stringToParse)
         End Function
 #End Region
 
@@ -2368,8 +2373,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return VisualBasicAccessibilityFacts.GetModifierTokens(declaration)
         End Function
 
-        Public Overrides Function WithModifiers(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode
-            Return Isolate(declaration, Function(d) Me.WithModifiersInternal(d, modifiers))
+        Friend Overrides Function WithModifiers(Of TSyntaxNode As SyntaxNode)(declaration As TSyntaxNode, modifiers As DeclarationModifiers) As TSyntaxNode
+            Return DirectCast(Isolate(declaration, Function(d) Me.WithModifiersInternal(d, modifiers)), TSyntaxNode)
         End Function
 
         Private Function WithModifiersInternal(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode

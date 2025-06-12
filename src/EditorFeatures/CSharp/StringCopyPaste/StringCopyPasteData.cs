@@ -12,6 +12,7 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 /// it can be retrieved later on if the user pastes.
 /// </summary>
 [method: JsonConstructor]
-internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
+internal sealed class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> contents)
 {
     public ImmutableArray<StringCopyPasteContent> Contents { get; } = contents;
 
@@ -39,7 +40,7 @@ internal class StringCopyPasteData(ImmutableArray<StringCopyPasteContent> conten
 
     public static StringCopyPasteData? FromJson(string? json)
     {
-        if (string.IsNullOrWhiteSpace(json))
+        if (RoslynString.IsNullOrWhiteSpace(json))
             return null;
 
         try

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
-internal class TestHandlerProvider : AbstractHandlerProvider
+internal sealed class TestHandlerProvider : AbstractHandlerProvider
 {
     private readonly IEnumerable<(RequestHandlerMetadata metadata, IMethodHandler provider)> _providers;
 

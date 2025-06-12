@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.ShowValueTracking)]
-internal class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
+internal sealed class ValueTrackingCommandHandler : ICommandHandler<ValueTrackingEditorCommandArgs>
 {
     private readonly IAsyncServiceProvider _serviceProvider;
     private readonly IThreadingContext _threadingContext;

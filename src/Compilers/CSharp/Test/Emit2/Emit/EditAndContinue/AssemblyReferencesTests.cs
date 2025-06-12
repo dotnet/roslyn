@@ -81,9 +81,13 @@ class C
                     compilation1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
+            compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, EmitDifferenceOptions.Default, CancellationToken.None);
 
-            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
+            var il = ImmutableArray.Create(ilStream.ToArray());
+            mdStream.Position = 0;
+            using var mdReaderProvider = MetadataReaderProvider.FromMetadataStream(mdStream);
+
+            var actualIL = ILValidation.DumpEncDeltaMethodBodies(il, [mdReaderProvider.GetMetadataReader()]);
             var expectedIL = @"
 {
   // Code size        7 (0x7)
@@ -153,9 +157,13 @@ class C
                     compilation1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
+            compilation1.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, EmitDifferenceOptions.Default, CancellationToken.None);
 
-            var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
+            var il = ImmutableArray.Create(ilStream.ToArray());
+            mdStream.Position = 0;
+            using var mdReaderProvider = MetadataReaderProvider.FromMetadataStream(mdStream);
+
+            var actualIL = ILValidation.DumpEncDeltaMethodBodies(il, [mdReaderProvider.GetMetadataReader()]);
 
             // Symbol matcher should ignore overloads with missing type symbols and match 
             // F(object).

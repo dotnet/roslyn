@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.ProjectManagement;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType;
 
 [ExportWorkspaceServiceFactory(typeof(IGenerateTypeOptionsService), ServiceLayer.Host), Shared]
-internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
+internal sealed class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceServiceFactory
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +28,7 @@ internal class VisualStudioGenerateTypeOptionsServiceFactory : IWorkspaceService
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new VisualStudioGenerateTypeOptionsService();
 
-    private class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
+    private sealed class VisualStudioGenerateTypeOptionsService : IGenerateTypeOptionsService
     {
         private bool _isNewFile = false;
         private string _accessSelectString = "";

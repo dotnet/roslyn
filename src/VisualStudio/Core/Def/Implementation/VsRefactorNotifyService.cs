@@ -173,20 +173,10 @@ internal sealed class VsRefactorNotifyService : IRefactorNotifyService
 
         foreach (var documentId in changedDocumentIDs)
         {
-            var hierarchy = visualStudioWorkspace.GetHierarchy(documentId.ProjectId);
-
-            if (hierarchy == null)
-            {
-                continue;
-            }
-
             var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
-            var itemID = hierarchy.TryGetItemId(document.FilePath);
 
-            if (itemID == VSConstants.VSITEMID_NIL)
-            {
+            if (!VisualStudioWorkspaceUtilities.TryGetVsHierarchyAndItemId(document, out var hierarchy, out var itemID))
                 continue;
-            }
 
             if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
             {

@@ -4,6 +4,6 @@
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking;
 
-internal class ValueTrackingTreeRootViewModel : TreeViewItemBase
+internal sealed class ValueTrackingTreeRootViewModel : TreeViewItemBase
 {
 }

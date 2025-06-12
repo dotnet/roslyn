@@ -48,7 +48,7 @@ internal sealed partial class UnnamedSymbolCompletionProvider
             displayTextSuffix: ")",
             filterText: targetTypeName,
             sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
-            glyph: Glyph.Operator,
+            glyph: conversion.GetGlyph(),
             symbols: symbols,
             rules: s_conversionRules,
             contextPosition: position,

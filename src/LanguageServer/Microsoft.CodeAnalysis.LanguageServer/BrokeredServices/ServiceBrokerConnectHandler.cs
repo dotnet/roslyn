@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ServiceBrokerConnectHandler)), Shared]
 [Method("serviceBroker/connect")]
-internal class ServiceBrokerConnectHandler : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
+internal sealed class ServiceBrokerConnectHandler : ILspServiceNotificationHandler<ServiceBrokerConnectHandler.NotificationParams>
 {
     private readonly ServiceBrokerFactory _serviceBrokerFactory;
 
@@ -32,7 +32,7 @@ internal class ServiceBrokerConnectHandler : ILspServiceNotificationHandler<Serv
         return _serviceBrokerFactory.CreateAndConnectAsync(request.PipeName);
     }
 
-    private class NotificationParams
+    private sealed class NotificationParams
     {
         [JsonPropertyName("pipeName")]
         public required string PipeName { get; set; }

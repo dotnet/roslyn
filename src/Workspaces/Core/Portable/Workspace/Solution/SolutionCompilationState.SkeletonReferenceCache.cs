@@ -276,13 +276,13 @@ internal sealed partial class SolutionCompilationState
                         }
 
                         // log emit failures so that we can improve most common cases
-                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(static (m, emitResult) =>
                         {
                             // log errors in the format of
                             // CS0001:1;CS002:10;...
                             var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
                             m["Errors"] = string.Join(";", groups);
-                        }));
+                        }, emitResult));
 
                         return (null, null!);
                     }

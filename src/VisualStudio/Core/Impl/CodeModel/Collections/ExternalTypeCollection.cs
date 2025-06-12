@@ -11,61 +11,60 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+
+[ComVisible(true)]
+[ComDefaultInterface(typeof(ICodeElements))]
+public sealed class ExternalTypeCollection : AbstractCodeElementCollection
 {
-    [ComVisible(true)]
-    [ComDefaultInterface(typeof(ICodeElements))]
-    public sealed class ExternalTypeCollection : AbstractCodeElementCollection
+    internal static EnvDTE.CodeElements Create(
+        CodeModelState state,
+        object parent,
+        ProjectId projectId,
+        ImmutableArray<INamedTypeSymbol> typeSymbols)
     {
-        internal static EnvDTE.CodeElements Create(
-            CodeModelState state,
-            object parent,
-            ProjectId projectId,
-            ImmutableArray<INamedTypeSymbol> typeSymbols)
+        var collection = new ExternalTypeCollection(state, parent, projectId, typeSymbols);
+        return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+    }
+
+    private readonly ProjectId _projectId;
+    private readonly ImmutableArray<INamedTypeSymbol> _typeSymbols;
+
+    private ExternalTypeCollection(CodeModelState state, object parent, ProjectId projectId, ImmutableArray<INamedTypeSymbol> typeSymbols)
+        : base(state, parent)
+    {
+        _projectId = projectId;
+        _typeSymbols = typeSymbols;
+    }
+
+    protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
+    {
+        if (index < _typeSymbols.Length)
         {
-            var collection = new ExternalTypeCollection(state, parent, projectId, typeSymbols);
-            return (EnvDTE.CodeElements)ComAggregate.CreateAggregatedObject(collection);
+            element = this.State.CodeModelService.CreateCodeType(this.State, _projectId, _typeSymbols[index]);
+            return true;
         }
 
-        private readonly ProjectId _projectId;
-        private readonly ImmutableArray<INamedTypeSymbol> _typeSymbols;
+        element = null;
+        return false;
+    }
 
-        private ExternalTypeCollection(CodeModelState state, object parent, ProjectId projectId, ImmutableArray<INamedTypeSymbol> typeSymbols)
-            : base(state, parent)
+    protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
+    {
+        var index = _typeSymbols.IndexOf(t => t.Name == name);
+
+        if (index >= 0 && index < _typeSymbols.Length)
         {
-            _projectId = projectId;
-            _typeSymbols = typeSymbols;
+            element = this.State.CodeModelService.CreateCodeType(this.State, _projectId, _typeSymbols[index]);
+            return true;
         }
 
-        protected override bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element)
-        {
-            if (index < _typeSymbols.Length)
-            {
-                element = this.State.CodeModelService.CreateCodeType(this.State, _projectId, _typeSymbols[index]);
-                return true;
-            }
+        element = null;
+        return false;
+    }
 
-            element = null;
-            return false;
-        }
-
-        protected override bool TryGetItemByName(string name, out EnvDTE.CodeElement element)
-        {
-            var index = _typeSymbols.IndexOf(t => t.Name == name);
-
-            if (index >= 0 && index < _typeSymbols.Length)
-            {
-                element = this.State.CodeModelService.CreateCodeType(this.State, _projectId, _typeSymbols[index]);
-                return true;
-            }
-
-            element = null;
-            return false;
-        }
-
-        public override int Count
-        {
-            get { return _typeSymbols.Length; }
-        }
+    public override int Count
+    {
+        get { return _typeSymbols.Length; }
     }
 }

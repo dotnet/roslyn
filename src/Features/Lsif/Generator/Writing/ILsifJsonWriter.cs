@@ -5,11 +5,10 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 
-namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
+namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
+
+internal interface ILsifJsonWriter
 {
-    internal interface ILsifJsonWriter
-    {
-        void Write(Element element);
-        void WriteAll(List<Element> elements);
-    }
+    void Write(Element element);
+    void WriteAll(List<Element> elements);
 }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringIndentation;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.StringIndentation)]
-public class StringIndentationTests
+public sealed class StringIndentationTests
 {
     private static async Task TestAsync(string contents)
     {

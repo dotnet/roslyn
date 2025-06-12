@@ -1,1 +1,14 @@
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.WithModifiers(Microsoft.CodeAnalysis.SyntaxNode declaration, Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> Microsoft.CodeAnalysis.SyntaxNode
 
+Microsoft.CodeAnalysis.Editing.OperatorKind.AdditionAssignment = 27 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseAndAssignment = 33 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.BitwiseOrAssignment = 34 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.DivisionAssignment = 30 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ExclusiveOrAssignment = 32 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.LeftShiftAssignment = 35 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.ModulusAssignment = 31 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.MultiplicationAssignment = 29 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.RightShiftAssignment = 36 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.SubtractionAssignment = 28 -> Microsoft.CodeAnalysis.Editing.OperatorKind
+Microsoft.CodeAnalysis.Editing.OperatorKind.UnsignedRightShiftAssignment = 37 -> Microsoft.CodeAnalysis.Editing.OperatorKind

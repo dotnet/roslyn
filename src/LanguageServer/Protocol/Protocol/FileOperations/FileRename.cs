@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </para>
 /// </summary>
 /// <remarks>Since LSP 3.16</remarks>
-internal class FileRename
+internal sealed class FileRename
 {
     /// <summary>
     /// A <c>file://</c> URI for the original location of the file/folder being renamed
@@ -22,7 +22,7 @@ internal class FileRename
     [JsonPropertyName("oldUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri OldUri { get; set; }
+    public DocumentUri OldUri { get; set; }
 
     /// <summary>
     /// A <c>file://</c> URI for the new location of the file/folder being renamed.
@@ -30,5 +30,5 @@ internal class FileRename
     [JsonPropertyName("newUri")]
     [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
-    public Uri NewUri { get; set; }
+    public DocumentUri NewUri { get; set; }
 }

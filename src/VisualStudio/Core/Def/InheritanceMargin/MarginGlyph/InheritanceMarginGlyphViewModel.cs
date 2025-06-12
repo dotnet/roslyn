@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
-internal class InheritanceMarginGlyphViewModel
+internal sealed class InheritanceMarginGlyphViewModel
 {
     private readonly ClassificationTypeMap _classificationTypeMap;
     private readonly IClassificationFormatMap _classificationFormatMap;

@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Append('.');
                 }
 
-                builder.Append(symbol.Name);
+                builder.Append(symbol.IsExtension ? symbol.ExtensionName : symbol.Name);
 
                 if (symbol.Arity != 0)
                 {

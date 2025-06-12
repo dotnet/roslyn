@@ -22,7 +22,7 @@ using VerifyCSRefactoring = CSharpCodeRefactoringVerifier<CSharpConvertToRecordR
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToRecord)]
-public class ConvertToRecordCodeRefactoringTests
+public sealed class ConvertToRecordCodeRefactoringTests
 {
     [Fact]
     public async Task VerifyRefactoringAndFixHaveSameEquivalenceKey()
@@ -4515,6 +4515,55 @@ public class ConvertToRecordCodeRefactoringTests
         }.RunAsync();
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
+    public async Task TestDoesNotCrashOnAbstractMethod()
+    {
+        var initialMarkup = """
+            namespace N
+            {
+                public abstract class [|C|]
+                {
+                    public string? S { get; set; }
+
+                    public abstract System.Guid F();
+                }
+            }
+            """;
+        var changedMarkup = """
+            namespace N
+            {
+                public abstract record C(string? S)
+                {
+                    public abstract System.Guid F();
+                }
+            }
+            """;
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78664")]
+    public async Task TestDoesNotCrashOnAbstractCloneMethod()
+    {
+        var initialMarkup = """
+            namespace N
+            {
+                public abstract class [|C|]
+                {
+                    public string? S { get; set; }
+
+                    public abstract object Clone();
+                }
+            }
+            """;
+        var changedMarkup = """
+            namespace N
+            {
+                public abstract record C(string? S);
+            }
+            """;
+        await TestRefactoringAsync(initialMarkup, changedMarkup);
+    }
+
 #pragma warning disable RS1042 // Do not implement
     private sealed class ConvertToRecordTestGenerator : ISourceGenerator
 #pragma warning restore RS1042 // Do not implement
@@ -4704,7 +4753,7 @@ public class ConvertToRecordCodeRefactoringTests
         }
     }
 
-    private class RefactoringTestWithGenerator : RefactoringTest
+    private sealed class RefactoringTestWithGenerator : RefactoringTest
     {
         protected override IEnumerable<Type> GetSourceGenerators()
         {
@@ -4727,7 +4776,7 @@ public class ConvertToRecordCodeRefactoringTests
     private static Task TestNoRefactoringAsync(string initialMarkup)
         => TestRefactoringAsync(initialMarkup, initialMarkup);
 
-    private class CodeFixTest :
+    private sealed class CodeFixTest :
         CSharpCodeFixVerifier<TestAnalyzer, CSharpConvertToRecordCodeFixProvider>.Test
     {
         public CodeFixTest()
@@ -4747,7 +4796,7 @@ public class ConvertToRecordCodeRefactoringTests
         }
     }
 
-    private class TestAnalyzer : DiagnosticAnalyzer
+    private sealed class TestAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => [new DiagnosticDescriptor(

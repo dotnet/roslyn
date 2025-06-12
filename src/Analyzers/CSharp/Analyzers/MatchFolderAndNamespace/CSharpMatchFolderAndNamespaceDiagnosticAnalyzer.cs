@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace;
 [Export(typeof(CSharpMatchFolderAndNamespaceDiagnosticAnalyzer)), Shared]
 #endif
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer
+internal sealed class CSharpMatchFolderAndNamespaceDiagnosticAnalyzer
     : AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax>
 {
 #if !CODE_STYLE

@@ -28,7 +28,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
-public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
+public sealed partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument, EditorTestHostProject, EditorTestHostSolution>
 {
     private const string ReferencesOnDiskAttributeName = "ReferencesOnDisk";
 
@@ -337,7 +337,7 @@ public partial class EditorTestWorkspace : TestWorkspace<EditorTestHostDocument,
         out IList<object> projectionBufferSpans,
         out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
     {
-        projectionBufferSpans = new List<object>();
+        projectionBufferSpans = [];
         var projectionBufferSpanStartingPositions = new List<int>();
         mappedCaretLocation = null;
 

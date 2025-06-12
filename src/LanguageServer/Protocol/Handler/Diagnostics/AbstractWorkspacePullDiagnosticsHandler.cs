@@ -32,15 +32,15 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
     /// Stores the LSP changed state on a per category basis.  This ensures that requests for different categories
     /// are 'walled off' from each other and only reset state for their own category.
     /// </summary>
-    private readonly Dictionary<string, bool> _categoryToLspChanged = new();
+    private readonly Dictionary<string, bool> _categoryToLspChanged = [];
 
     protected AbstractWorkspacePullDiagnosticsHandler(
         LspWorkspaceManager workspaceManager,
         LspWorkspaceRegistrationService registrationService,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IDiagnosticSourceManager diagnosticSourceManager,
         IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
+        IGlobalOptionService globalOptions)
+        : base(diagnosticRefresher, globalOptions)
     {
         DiagnosticSourceManager = diagnosticSourceManager;
         _workspaceManager = workspaceManager;
@@ -114,7 +114,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         }
 
         // We've hit a change, so we close the current request to allow the client to open a new one.
-        context.TraceInformation($"Closing workspace/diagnostics request for {category}");
+        context.TraceDebug($"Closing workspace/diagnostics request for {category}");
         return;
 
         bool HasChanged()

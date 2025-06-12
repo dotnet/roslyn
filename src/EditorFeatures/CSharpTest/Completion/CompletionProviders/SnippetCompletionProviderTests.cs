@@ -19,7 +19,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+public sealed class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
     public SnippetCompletionProviderTests()
     {
@@ -130,7 +130,7 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
     }
 
     [ExportLanguageService(typeof(ISnippetInfoService), LanguageNames.CSharp, ServiceLayer.Test), Shared, PartNotDiscoverable]
-    private class MockSnippetInfoService : ISnippetInfoService
+    private sealed class MockSnippetInfoService : ISnippetInfoService
     {
         internal const string SnippetShortcut = nameof(SnippetShortcut);
         internal const string SnippetDescription = nameof(SnippetDescription);
@@ -149,11 +149,10 @@ public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTe
         }
 
         public IEnumerable<SnippetInfo> GetSnippetsIfAvailable()
-            => new List<SnippetInfo>
-                {
-                    new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
-                    new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
-                };
+            => [
+                new SnippetInfo(SnippetShortcut, SnippetTitle, SnippetDescription, SnippetPath),
+                new SnippetInfo(PreProcessorSnippetShortcut, PreProcessorSnippetTitle, PreProcessorSnippetDescription, PreProcessorSnippetPath)
+            ];
 
         public bool SnippetShortcutExists_NonBlocking(string shortcut)
             => string.Equals(shortcut, SnippetShortcut, StringComparison.OrdinalIgnoreCase) ||

@@ -13,6 +13,4 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// exported.  It is consumed by the <see cref="TotalClassificationTaggerProvider"/> instead.
 /// </summary>
 internal sealed class SemanticClassificationViewTaggerProvider(TaggerHost taggerHost, ClassificationTypeMap typeMap)
-    : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(taggerHost, typeMap, ClassificationType.Semantic)
-{
-}
+    : AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(taggerHost, typeMap, ClassificationType.Semantic);

@@ -8,6 +8,7 @@ Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -25,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
+            options As EmitDifferenceOptions,
             testData As CompilationTestData,
             cancellationToken As CancellationToken) As EmitDifferenceResult
 
@@ -86,6 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     compilation.SourceAssembly,
                     changes,
                     emitOpts,
+                    options,
                     compilation.Options.OutputKind,
                     serializationProperties,
                     manifestResources,
@@ -118,7 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
                     definitionMap,
-                    changes,
                     metadataStream,
                     ilStream,
                     pdbStream,

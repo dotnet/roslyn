@@ -10,7 +10,7 @@ using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionS
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 
-internal record Input
+internal sealed record Input
 {
     [JsonPropertyName("store")]
     public string Store { get; init; }

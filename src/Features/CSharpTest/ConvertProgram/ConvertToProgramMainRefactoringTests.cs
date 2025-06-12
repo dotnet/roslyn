@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertProgram;
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertToProgramMainCodeRefactoringProvider>;
 
 [UseExportProvider]
-public class ConvertToProgramMainRefactoringTests
+public sealed class ConvertToProgramMainRefactoringTests
 {
     [Fact]
     public async Task TestNotOnFileWithNoGlobalStatements()

@@ -51,6 +51,11 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         if (typeDeclaration is RecordDeclarationSyntax)
             return;
 
+        // Extensions use the .ParameterList to represent the parameters of the extension method.  But this is not a
+        // constructor, and we cannot offer to convert it to have a regular constructor.
+        if (typeDeclaration is ExtensionBlockDeclarationSyntax)
+            return;
+
         var triggerSpan = TextSpan.FromBounds(typeDeclaration.SpanStart, typeDeclaration.ParameterList.FullSpan.End);
         if (!triggerSpan.Contains(span))
             return;
@@ -344,6 +349,9 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         async Task RewritePrimaryConstructorParameterReferencesAsync()
         {
+            using var _ = PooledHashSet<EqualsValueClauseSyntax>.GetInstance(out var removedInitializers);
+            removedInitializers.AddRange(initializedFieldsAndProperties.Select(t => t.initializer));
+
             foreach (var (parameter, references) in parameterReferences)
             {
                 // Only have to update references if we're synthesizing a field for this parameter.
@@ -359,6 +367,12 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
                     foreach (var identifierName in grouping)
                     {
+                        // Don't both updating an identifier that was in a node we already decided to explicitly remove.  For
+                        // example, if we have `int Prop { get; } = p;` and we already deleted `= p`, then no need to update
+                        // the `p` reference here.
+                        if (identifierName.GetAncestors<EqualsValueClauseSyntax>().Any(removedInitializers.Contains))
+                            continue;
+
                         var xmlElement = identifierName.AncestorsAndSelf().OfType<XmlEmptyElementSyntax>().FirstOrDefault();
                         if (xmlElement is { Name.LocalName.ValueText: "paramref" })
                         {

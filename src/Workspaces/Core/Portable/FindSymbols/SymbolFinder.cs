@@ -137,10 +137,7 @@ public static partial class SymbolFinder
     /// Returns null if no such symbol can be found in the specified solution.
     /// </summary>
     public static Task<ISymbol?> FindSourceDefinitionAsync(ISymbol? symbol, Solution solution, CancellationToken cancellationToken = default)
-        => Task.FromResult(SymbolFinderInternal.FindSourceDefinition(symbol, solution, cancellationToken));
-
-    internal static ISymbol? FindSourceDefinition(ISymbol? symbol, Solution solution, CancellationToken cancellationToken)
-        => SymbolFinderInternal.FindSourceDefinition(symbol, solution, cancellationToken);
+        => SymbolFinderInternal.FindSourceDefinitionAsync(symbol, solution, cancellationToken).AsTask();
 
     /// <summary>
     /// Finds symbols in the given compilation that are similar to the specified symbol.

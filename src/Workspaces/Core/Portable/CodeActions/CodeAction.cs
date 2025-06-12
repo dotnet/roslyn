@@ -688,14 +688,6 @@ public abstract partial class CodeAction
             CodeActionPriority priority = CodeActionPriority.Default)
             => new(title, createChangedDocument, createChangedDocumentPreview: null, equivalenceKey, priority, createdFromFactoryMethod: true);
 
-        public static DocumentChangeAction New(
-            string title,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocument,
-            Func<IProgress<CodeAnalysisProgress>, CancellationToken, Task<Document>> createChangedDocumentPreview,
-            string? equivalenceKey,
-            CodeActionPriority priority = CodeActionPriority.Default)
-            => new(title, createChangedDocument, createChangedDocumentPreview, equivalenceKey, priority, createdFromFactoryMethod: true);
-
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
             if (_createChangedDocumentPreview is null)

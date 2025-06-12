@@ -175,19 +175,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return $"'{prefix} ... {suffix}'";
         }
 
-        private static bool ShouldLogType(IOperation operation)
-        {
-            var operationKind = (int)operation.Kind;
-
-            // Expressions
-            if (operationKind >= 0x100 && operationKind < 0x400)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         protected void LogString(string str)
         {
             if (_pendingIndent)
@@ -407,11 +394,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             where T : IOperation
         {
             VisitArrayCommon(list, header, logElementCount, logNullForDefault, o => Visit(o));
-        }
-
-        private void VisitArray(ImmutableArray<ISymbol> list, string header, bool logElementCount, bool logNullForDefault = false)
-        {
-            VisitArrayCommon(list, header, logElementCount, logNullForDefault, VisitSymbolArrayElement);
         }
 
         private void VisitArray(ImmutableArray<string> list, string header, bool logElementCount, bool logNullForDefault = false)

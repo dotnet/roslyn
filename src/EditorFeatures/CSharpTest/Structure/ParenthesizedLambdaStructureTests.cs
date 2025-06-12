@@ -12,7 +12,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure;
 
 [Trait(Traits.Feature, Traits.Features.Outlining)]
-public class ParenthesizedLambdaStructureTests : AbstractCSharpSyntaxNodeStructureTests<ParenthesizedLambdaExpressionSyntax>
+public sealed class ParenthesizedLambdaStructureTests : AbstractCSharpSyntaxNodeStructureTests<ParenthesizedLambdaExpressionSyntax>
 {
     internal override AbstractSyntaxStructureProvider CreateProvider() => new ParenthesizedLambdaExpressionStructureProvider();
 

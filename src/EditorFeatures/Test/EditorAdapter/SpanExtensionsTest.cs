@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter;
 
-public class SpanExtensionsTest
+public sealed class SpanExtensionsTest
 {
     [Fact]
     public void ConvertToTextSpan()

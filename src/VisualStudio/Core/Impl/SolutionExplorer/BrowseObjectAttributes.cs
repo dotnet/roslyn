@@ -6,34 +6,33 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+/// <summary>
+/// The attribute used for adding localized display names to properties
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+internal sealed class BrowseObjectDisplayNameAttribute : DisplayNameAttribute
 {
-    /// <summary>
-    /// The attribute used for adding localized display names to properties
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
-    internal sealed class BrowseObjectDisplayNameAttribute : DisplayNameAttribute
+    private readonly string m_key;
+    private bool m_initialized;
+
+    public BrowseObjectDisplayNameAttribute(string key)
     {
-        private readonly string m_key;
-        private bool m_initialized;
+        m_key = key;
+    }
 
-        public BrowseObjectDisplayNameAttribute(string key)
+    public override string DisplayName
+    {
+        get
         {
-            m_key = key;
-        }
-
-        public override string DisplayName
-        {
-            get
+            if (!m_initialized)
             {
-                if (!m_initialized)
-                {
-                    base.DisplayNameValue = SolutionExplorerShim.ResourceManager.GetString(m_key, CultureInfo.CurrentUICulture);
-                    m_initialized = true;
-                }
-
-                return base.DisplayName;
+                base.DisplayNameValue = SolutionExplorerShim.ResourceManager.GetString(m_key, CultureInfo.CurrentUICulture);
+                m_initialized = true;
             }
+
+            return base.DisplayName;
         }
     }
 }

@@ -13,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-public class BinaryExpressionWrappingTests : AbstractWrappingTests
+public sealed class BinaryExpressionWrappingTests : AbstractWrappingTests
 {
     private TestParameters EndOfLine
         => new(options: Option(CodeStyleOptions2.OperatorPlacementWhenWrapping, OperatorPlacementWhenWrappingPreference.EndOfLine));

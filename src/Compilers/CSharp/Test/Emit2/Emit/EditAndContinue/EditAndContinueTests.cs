@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -100,7 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             Handle(4, TableIndex.CustomAttribute)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            .ctor
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -109,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0007:  newobj     0x06000003
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -121,10 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -186,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                         });
 
                         g.VerifyIL("""
+                            .ctor
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -194,6 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0007:  newobj     0x06000003
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -202,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -2324,6 +2328,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
@@ -2336,6 +2341,7 @@ class C
                               IL_0018:  stsfld     0x04000003
                               IL_001d:  ret
                             }
+                            <F>b__0_0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -2344,6 +2350,7 @@ class C
                               IL_0006:  newobj     0x06000007
                               IL_000b:  throw
                             }
+                            <F>b__0_1
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -2352,6 +2359,7 @@ class C
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -2664,6 +2672,7 @@ partial class C
                         g.VerifyMethodDefNames("M", "<M>b__0", ".ctor", ".ctor", "<M>b__0#1");
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       28 (0x1c)
                               .maxstack  2
@@ -2679,6 +2688,7 @@ partial class C
                               IL_001a:  stloc.1
                               IL_001b:  ret
                             }
+                            <M>b__0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -2687,6 +2697,7 @@ partial class C
                               IL_0006:  newobj     0x06000005
                               IL_000b:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -2699,6 +2710,7 @@ partial class C
                               IL_000a:  stfld      0x04000002
                               IL_000f:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -2707,6 +2719,7 @@ partial class C
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <M>b__0#1
                             {
                               // Code size        9 (0x9)
                               .maxstack  8
@@ -3991,6 +4004,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
@@ -4031,6 +4045,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4039,6 +4054,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4054,6 +4070,7 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: """
                         class C
                         {
@@ -4090,7 +4107,8 @@ class C
                             Handle(4, TableIndex.MethodSemantics),
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4098,6 +4116,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4106,10 +4125,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -4128,24 +4144,27 @@ class C
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                         class C
                         {
                         }
                         """,
-                    edits: new[]
-                    {
+                    edits:
+                    [
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.get_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.set_P"), newSymbolProvider: c => c.GetMember("C")),
                         Edit(SemanticEditKind.Delete, c => c.GetMember("C.P"), newSymbolProvider: c => c.GetMember("C")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames("HotReloadException");
+                        g.VerifyFieldDefNames("Code");
                         g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
 
                         // Set the property name to "_deleted"
@@ -4173,6 +4192,7 @@ class C
                         ]);
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4181,6 +4201,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4196,22 +4217,24 @@ class C
                             """);
                     })
                 .AddGeneration(
+                    // 2
                     source: """
                         class C
                         {
                             public string P { get; set; }
                         }
                         """,
-                    edits: new[] {
+                    edits: [
                         Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
-                    },
+                    ],
                     validator: g =>
                     {
                         g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
                         g.VerifyMethodDefNames("get_P", "set_P");
                         g.VerifyMemberRefNames(".ctor", ".ctor");
-                        g.VerifyEncLogDefinitions(new[]
-                        {
+                        g.VerifyEncLogDefinitions(
+                        [
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -4224,9 +4247,9 @@ class C
                             Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
-                        });
-                        g.VerifyEncMapDefinitions(new[]
-                        {
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
                             Handle(2, TableIndex.Field),
                             Handle(1, TableIndex.MethodDef),
                             Handle(2, TableIndex.MethodDef),
@@ -4238,9 +4261,10 @@ class C
                             Handle(1, TableIndex.Property),
                             Handle(3, TableIndex.MethodSemantics),
                             Handle(4, TableIndex.MethodSemantics)
-                        });
+                        ]);
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4248,6 +4272,7 @@ class C
                               IL_0001:  ldfld      0x04000002
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4256,10 +4281,7 @@ class C
                               IL_0002:  stfld      0x04000002
                               IL_0007:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -4321,6 +4343,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4329,6 +4352,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4383,6 +4407,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size       11 (0xb)
                               .maxstack  1
@@ -4393,6 +4418,7 @@ class C
                               IL_0009:  ldloc.0
                               IL_000a:  ret
                             }
+                            set_P
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -4457,6 +4483,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4465,6 +4492,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4518,6 +4546,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size       11 (0xb)
                               .maxstack  1
@@ -4528,6 +4557,7 @@ class C
                               IL_0009:  ldloc.0
                               IL_000a:  ret
                             }
+                            set_P
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -4535,6 +4565,264 @@ class C
                               IL_0001:  ret
                             }
                             """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeToAutoProp()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_ChangeToAutoProp_FieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get { return "1"; } set { } }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void Property_AutoProp_AddFieldAccess()
+        {
+            using var _ = new EditAndContinueTest(parseOptions: TestOptions.RegularPreview.WithNoRefSafetyRulesAttribute())
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            public string P { get; set; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames("<P>k__BackingField");
+                        g.VerifyMethodDefNames("get_P", "set_P", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            public string P { get; set => field = value; }
+                        }
+                        """,
+                    edits: [
+                        Edit(SemanticEditKind.Insert, symbolProvider: c => c.GetMember("C.P")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("get_P", "set_P");
+                        g.VerifyMemberRefNames(".ctor", ".ctor");
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodSemantics, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(1, TableIndex.CustomAttribute),
+                            Handle(7, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(3, TableIndex.MethodSemantics),
+                            Handle(4, TableIndex.MethodSemantics)
+                        ]);
+
+                        var expectedIL = """
+                            get_P
+                            {
+                              // Code size        7 (0x7)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldfld      0x04000001
+                              IL_0006:  ret
+                            }
+                            set_P
+                            {
+                              // Code size        8 (0x8)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  stfld      0x04000001
+                              IL_0007:  ret
+                            }
+                            """;
+
+                        g.VerifyIL(expectedIL);
                     })
                 .Verify();
         }
@@ -4626,7 +4914,8 @@ class C
                             Handle(4, TableIndex.MethodSemantics)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4635,6 +4924,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4642,6 +4932,7 @@ class C
                               IL_0001:  ldfld      0x04000002
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4650,6 +4941,7 @@ class C
                               IL_0002:  stfld      0x04000002
                               IL_0007:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4662,10 +4954,7 @@ class C
                               IL_000a:  stfld      0x04000003
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .AddGeneration(
                     // 2
@@ -4717,6 +5006,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4724,6 +5014,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4732,6 +5023,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4832,6 +5124,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P, set_P
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -4840,6 +5133,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            get_Q
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4847,6 +5141,7 @@ class C
                               IL_0001:  ldfld      0x04000002
                               IL_0006:  ret
                             }
+                            set_Q
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4855,6 +5150,7 @@ class C
                               IL_0002:  stfld      0x04000002
                               IL_0007:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -4919,6 +5215,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_P
                             {
                               // Code size        7 (0x7)
                               .maxstack  8
@@ -4926,6 +5223,7 @@ class C
                               IL_0001:  ldfld      0x04000001
                               IL_0006:  ret
                             }
+                            set_P
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -4934,6 +5232,7 @@ class C
                               IL_0002:  stfld      0x04000001
                               IL_0007:  ret
                             }
+                            get_Q, set_Q
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5005,6 +5304,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_Item, set_Item
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5013,6 +5313,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -5099,7 +5400,8 @@ class C
                         });
 
                         g.VerifyIL("""
-                             {
+                            get_Item
+                            {
                               // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
@@ -5107,6 +5409,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -5117,6 +5420,7 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -5171,6 +5475,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -5181,6 +5486,7 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            get_Item
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5230,6 +5536,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -5298,12 +5605,14 @@ class C
                         });
 
                         g.VerifyIL("""
+                            get_Item
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  ldc.i4.1
                               IL_0001:  ret
                             }
+                            set_Item
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
@@ -5512,6 +5821,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            add_E, remove_E
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5520,6 +5830,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -5628,6 +5939,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            add_E, remove_E
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -5636,6 +5948,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            add_F
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5660,6 +5973,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            remove_F
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5684,6 +5998,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -5751,6 +6066,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            add_E
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5775,6 +6091,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            remove_E
                             {
                               // Code size       41 (0x29)
                               .maxstack  3
@@ -5799,6 +6116,7 @@ class C
                               IL_0026:  bne.un.s   IL_0007
                               IL_0028:  ret
                             }
+                            add_F, remove_F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -11935,7 +12253,8 @@ public interface IB
                             Handle(4, TableIndex.CustomAttribute)
                         ]);
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            op_LogicalNot
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -11944,6 +12263,7 @@ public interface IB
                               IL_0007:  newobj     0x06000003
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -11956,10 +12276,7 @@ public interface IB
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -12192,8 +12509,9 @@ class C
                     badStream,
                     ilStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12207,8 +12525,9 @@ class C
                     mdStream,
                     badStream,
                     pdbStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
@@ -12222,8 +12541,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -12277,8 +12597,9 @@ class C
                     mdStream,
                     ilStream,
                     badStream,
+                    EmitDifferenceOptions.Default,
                     new CompilationTestData(),
-                    default);
+                    CancellationToken.None);
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
@@ -15735,6 +16056,7 @@ namespace N
                         });
 
                         g.VerifyIL("""
+                        .ctor
                         {
                           // Code size       29 (0x1d)
                           .maxstack  8
@@ -15752,6 +16074,7 @@ namespace N
                           IL_001b:  nop
                           IL_001c:  ret
                         }
+                        get_Q
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -15759,6 +16082,7 @@ namespace N
                           IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
+                        set_Q
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -15767,6 +16091,7 @@ namespace N
                           IL_0002:  stfld      0x04000005
                           IL_0007:  ret
                         }
+                        Deconstruct
                         {
                           // Code size       25 (0x19)
                           .maxstack  8
@@ -15853,6 +16178,7 @@ namespace N
                         });
 
                         g.VerifyIL("""
+                        get_Q
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
@@ -15860,6 +16186,7 @@ namespace N
                           IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
+                        set_Q
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
@@ -16096,7 +16423,8 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
-                             {
+                            F
+                            {
                               // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
@@ -16104,6 +16432,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16162,6 +16491,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
+                            F1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16190,6 +16520,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
+                            F2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16245,6 +16576,7 @@ class C
                         g.VerifyTypeRefNames("Exception", "Object");
 
                         g.VerifyIL("""
+                            F1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16253,6 +16585,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -16283,6 +16616,7 @@ class C
                         g.VerifyTypeRefNames("Object");
 
                         g.VerifyIL("""
+                            F2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16336,6 +16670,84 @@ class C
                         Diagnostic(ErrorCode.ERR_ModuleEmitFailure)
                             .WithArguments("TestAssembly", string.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, "System.Runtime.CompilerServices.HotReloadException"))
                     ])
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            var exceptionSource = """
+                namespace System.Runtime.CompilerServices
+                {
+                    public class HotReloadException : Exception
+                    {
+                        public HotReloadException(string message, int code) : base(message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.FailsPEVerify, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F1() {}
+                            void F2() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: exceptionSource + """
+                        class C
+                        {
+                            void F2() {}
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F1"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers();
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=163", "<S>A70F5C822D3106BF474269B4991AB592");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "ValueType", "Encoding");
+
+                        g.VerifyIL("""
+                        F1
+                        {
+                            // Code size       13 (0xd)
+                            .maxstack  8
+                            IL_0000:  ldsfld     0x04000002
+                            IL_0005:  ldc.i4.s   -2
+                            IL_0007:  newobj     0x06000004
+                            IL_000c:  throw
+                        }
+                        BytesToString
+                        {
+                            // Code size       13 (0xd)
+                            .maxstack  8
+                            IL_0000:  call       0x0A000008
+                            IL_0005:  ldarg.0
+                            IL_0006:  ldarg.1
+                            IL_0007:  callvirt   0x0A000009
+                            IL_000c:  ret
+                        }
+                        .cctor
+                        {
+                            // Code size       21 (0x15)
+                            .maxstack  8
+                            IL_0000:  ldsflda    0x04000001
+                            IL_0005:  ldc.i4     0xa3
+                            IL_000a:  call       0x06000005
+                            IL_000f:  stsfld     0x04000002
+                            IL_0014:  ret
+                        }
+                        """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
                 .Verify();
         }
 
@@ -16410,7 +16822,8 @@ class C
                             Handle(4, TableIndex.CustomAttribute)
                         ]);
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16419,6 +16832,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16431,10 +16845,7 @@ class C
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -16482,17 +16893,15 @@ class C
                             Handle(3, TableIndex.MethodDef),
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M2
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
@@ -16529,7 +16938,8 @@ class C
                             Handle(4, TableIndex.CustomAttribute)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M2
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16538,6 +16948,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16550,10 +16961,7 @@ class C
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -16608,7 +17016,8 @@ class C
                             Handle(4, TableIndex.CustomAttribute)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16617,6 +17026,7 @@ class C
                               IL_0007:  newobj     0x06000003
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16629,10 +17039,7 @@ class C
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
@@ -16659,6 +17066,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M1
                             {
                               // Code size        9 (0x9)
                               .maxstack  8
@@ -16737,8 +17145,9 @@ class C
                             new CustomAttributeRow(Handle(5, TableIndex.TypeDef), Handle(6, TableIndex.MemberRef))
                         ]);
 
-                        var expectedIL = """
-                             {
+                        g.VerifyIL("""
+                            M1
+                            {
                               // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000005
@@ -16746,6 +17155,7 @@ class C
                               IL_0007:  newobj     0x06000005
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16758,10 +17168,7 @@ class C
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
@@ -16809,17 +17216,15 @@ class C
                             new CustomAttributeRow(Handle(3, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef))
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  nop
                               IL_0001:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -16873,7 +17278,8 @@ class C
                             Handle(1, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -16884,10 +17290,7 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
 
                 .AddGeneration(
@@ -16926,7 +17329,8 @@ class C
                             Handle(4, TableIndex.CustomAttribute)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -16935,6 +17339,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -16947,10 +17352,7 @@ class C
                               IL_000a:  stfld      0x04000001
                               IL_000f:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
 
                     })
 
@@ -16983,7 +17385,8 @@ class C
                             Handle(2, TableIndex.StandAloneSig)
                         });
 
-                        var expectedIL = """
+                        g.VerifyIL("""
+                            M1
                             {
                               // Code size       14 (0xe)
                               .maxstack  1
@@ -16997,10 +17400,7 @@ class C
                               IL_000c:  ldloc.0
                               IL_000d:  ret
                             }
-                            """;
-
-                        // Can't verify the IL of individual methods because that requires IMethodSymbolInternal implementations
-                        g.VerifyIL(expectedIL);
+                            """);
                     })
                 .Verify();
         }
@@ -17069,6 +17469,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17077,6 +17478,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            <F>b__0_0
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17085,6 +17487,7 @@ class C
                               IL_0006:  newobj     0x06000006
                               IL_000b:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -17143,6 +17546,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
@@ -17155,6 +17559,7 @@ class C
                               IL_0018:  stsfld     0x04000004
                               IL_001d:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -17163,6 +17568,7 @@ class C
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>b__0#2_0#2
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -17212,6 +17618,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17220,6 +17627,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            <F>b__0#2_0#2
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17321,7 +17729,8 @@ class C
                         });
 
                         g.VerifyIL("""
-                             {
+                            F
+                            {
                               // Code size       13 (0xd)
                               .maxstack  8
                               IL_0000:  ldstr      0x70000009
@@ -17329,6 +17738,7 @@ class C
                               IL_0007:  newobj     0x06000006
                               IL_000c:  throw
                             }
+                            <F>b__0#1_0#1
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17337,6 +17747,7 @@ class C
                               IL_0006:  newobj     0x06000006
                               IL_000b:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -17499,6 +17910,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17507,6 +17919,7 @@ class C
                               IL_0007:  newobj     0x0600000C
                               IL_000c:  throw
                             }
+                            <F>b__0_0, <F>b__0_1#1, <F>b__0_2#2
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17515,6 +17928,7 @@ class C
                               IL_0006:  newobj     0x0600000C
                               IL_000b:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -17561,6 +17975,7 @@ class C
                         g.VerifyMemberRefNames(".ctor", "<>9__0#4_0#4", "<>9", "<F>b__0#4_0#4", ".ctor", ".ctor", "<>9", ".ctor", "WriteLine");
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       30 (0x1e)
                               .maxstack  8
@@ -17573,6 +17988,7 @@ class C
                               IL_0018:  stsfld     0x0A000026
                               IL_001d:  ret
                             }
+                            .cctor
                             {
                               // Code size       11 (0xb)
                               .maxstack  8
@@ -17580,6 +17996,7 @@ class C
                               IL_0005:  stsfld     0x0A00002B
                               IL_000a:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -17588,6 +18005,7 @@ class C
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>b__0#4_0#4
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -17641,6 +18059,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17649,6 +18068,7 @@ class C
                               IL_0007:  newobj     0x0600000C
                               IL_000c:  throw
                             }
+                            <F>b__0#4_0#4
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17774,6 +18194,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17782,6 +18203,7 @@ class C
                               IL_0007:  newobj     0x06000009
                               IL_000c:  throw
                             }
+                            <F>g__L|0_0, <F>g__M|0_1#1
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17790,6 +18212,7 @@ class C
                               IL_0006:  newobj     0x06000009
                               IL_000b:  throw
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -17841,6 +18264,7 @@ class C
                         g.VerifyMemberRefNames(".ctor", ".ctor", "x", "<F>g__O|0#3", ".ctor", "<F>g__N|0#3_1#3");
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       29 (0x1d)
                               .maxstack  2
@@ -17858,12 +18282,14 @@ class C
                               IL_001b:  pop
                               IL_001c:  ret
                             }
+                            <F>g__N|0#3_1#3
                             {
                               // Code size        2 (0x2)
                               .maxstack  8
                               IL_0000:  ldarg.0
                               IL_0001:  ret
                             }
+                            .ctor
                             {
                               // Code size        8 (0x8)
                               .maxstack  8
@@ -17872,6 +18298,7 @@ class C
                               IL_0006:  nop
                               IL_0007:  ret
                             }
+                            <F>g__O|0#3
                             {
                               // Code size        9 (0x9)
                               .maxstack  1
@@ -17884,6 +18311,7 @@ class C
                               IL_0007:  ldloc.0
                               IL_0008:  ret
                             }
+                            <F>b__2#3
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -17932,6 +18360,7 @@ class C
                         ]);
 
                         g.VerifyIL("""
+                            F
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -17940,6 +18369,7 @@ class C
                               IL_0007:  newobj     0x06000009
                               IL_000c:  throw
                             }
+                            <F>g__N|0#3_1#3, <F>g__O|0#3, <F>b__2#3
                             {
                               // Code size       12 (0xc)
                               .maxstack  8
@@ -18079,6 +18509,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18087,6 +18518,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -18096,6 +18528,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -18143,6 +18576,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -18152,6 +18586,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18228,6 +18663,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18236,6 +18672,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            M
                             {
                               // Code size        7 (0x7)
                               .maxstack  1
@@ -18246,6 +18683,7 @@ class C
                               IL_0005:  ldloc.0
                               IL_0006:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -18294,6 +18732,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  1
@@ -18305,6 +18744,7 @@ class C
                               IL_000b:  ldloc.0
                               IL_000c:  ret
                             }
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18382,6 +18822,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18390,6 +18831,7 @@ class C
                               IL_0007:  newobj     0x06000004
                               IL_000c:  throw
                             }
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -18399,6 +18841,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            .ctor
                             {
                               // Code size       16 (0x10)
                               .maxstack  8
@@ -18445,6 +18888,7 @@ class C
                         });
 
                         g.VerifyIL("""
+                            M
                             {
                               // Code size       10 (0xa)
                               .maxstack  8
@@ -18454,6 +18898,7 @@ class C
                               IL_0008:  pop
                               IL_0009:  ret
                             }
+                            M
                             {
                               // Code size       13 (0xd)
                               .maxstack  8
@@ -18874,7 +19319,7 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Arrays()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest()
                 .AddBaseline(
@@ -18978,7 +19423,95 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_StackAlloc()
+        public void PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10");
+                        g.VerifyFieldDefNames("b", "1F825AA2F0020EF7CF91DFA30DA4668D791C5D4824FC8E41354B89EC05795AB3");
+                        g.VerifyMethodDefNames(".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            byte[] b = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetParameterlessConstructor("C")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD");
+                        g.VerifyMethodDefNames(".ctor");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C..ctor", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldc.i4.s   11
+                          IL_0003:  newarr     "byte"
+                          IL_0008:  dup
+                          IL_0009:  ldtoken    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=11 <PrivateImplementationDetails>#1.78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD"
+                          IL_000e:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                          IL_0013:  stfld      "byte[] C.b"
+                          IL_0018:  ldarg.0
+                          IL_0019:  call       "object..ctor()"
+                          IL_001e:  nop
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData("""
+                            78A6273103D17C39A0B6126E226CEC70E33337F4BC6A38067401B54A33E78EAD: 00-01-02-03-04-05-06-07-08-09-0A-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19087,7 +19620,98 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        public void PrivateImplDetails_DataFields_Utf8()
+        public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6 }; }
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=7");
+                        g.VerifyFieldDefNames("57355AC3303C148F11AEF7CB179456B9232CDE33A818DFDA2C2FCB9325749A6B");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            void F() { System.ReadOnlySpan<byte> b = stackalloc byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }; }
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1");
+                        g.VerifyFieldDefNames("8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.StandAloneSig),
+                            Handle(2, TableIndex.FieldRva)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       32 (0x20)
+                          .maxstack  4
+                          .locals init (System.ReadOnlySpan<byte> V_0, //b
+                                        System.Span<byte> V_1)
+                          IL_0000:  nop
+                          IL_0001:  ldc.i4.8
+                          IL_0002:  conv.u
+                          IL_0003:  localloc
+                          IL_0005:  dup
+                          IL_0006:  ldsflda    "long <PrivateImplementationDetails>#1.8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45"
+                          IL_000b:  ldc.i4.8
+                          IL_000c:  unaligned. 1
+                          IL_000f:  cpblk
+                          IL_0011:  ldc.i4.8
+                          IL_0012:  newobj     "System.Span<byte>..ctor(void*, int)"
+                          IL_0017:  stloc.1
+                          IL_0018:  ldloc.1
+                          IL_0019:  call       "System.ReadOnlySpan<byte> System.Span<byte>.op_Implicit(System.Span<byte>)"
+                          IL_001e:  stloc.0
+                          IL_001f:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData("""
+                            8A851FF82EE7048AD09EC3847F1DDF44944104D2CBD17EF4E3DB22C6785A0D45: 00-01-02-03-04-05-06-07
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaNotSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
                 .AddBaseline(
@@ -19188,6 +19812,493 @@ file class C
                         }
                         """);
                     })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataFields_Utf8_FieldRvaSupported()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789"u8;
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=11");
+                        g.VerifyFieldDefNames("BEB0DBD1C6FAC1140DD817514F2FBDF501E246BF16C8E877E71187E9EB008189");
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            System.ReadOnlySpan<byte> F() => "0123456789X"u8;
+                        }
+                        """,
+                    edits: new[]
+                    {
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    },
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=12");
+                        g.VerifyFieldDefNames("AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB");
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(new[]
+                        {
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        });
+
+                        g.VerifyEncMapDefinitions(new[]
+                        {
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(2, TableIndex.NestedClass)
+                        });
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       13 (0xd)
+                          .maxstack  2
+                          IL_0000:  ldsflda    "<PrivateImplementationDetails>#1.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>#1.AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB"
+                          IL_0005:  ldc.i4.s   11
+                          IL_0007:  newobj     "System.ReadOnlySpan<byte>..ctor(void*, int)"
+                          IL_000c:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            AFB1C33C5229BFF7EF739BA44DA795A2B68A49E06001C07C5B026CAA6C6322BB: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789X"))}-00-00-00-00-00-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=11", "<S>6D2201523542AEFFB91657B2AEBDC84B");
+                        g.VerifyFieldDefNames("ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(6, TableIndex.TypeDef),
+                            Handle(7, TableIndex.TypeDef),
+                            Handle(8, TableIndex.TypeDef),
+                            Handle(3, TableIndex.Field),
+                            Handle(4, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(6, TableIndex.MethodDef),
+                            Handle(3, TableIndex.Param),
+                            Handle(4, TableIndex.Param),
+                            Handle(6, TableIndex.CustomAttribute),
+                            Handle(2, TableIndex.ClassLayout),
+                            Handle(2, TableIndex.FieldRva),
+                            Handle(3, TableIndex.NestedClass),
+                            Handle(4, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>6D2201523542AEFFB91657B2AEBDC84B.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            ACE59E7D984CCEB2D860A056A3386344236CE5C42C978E26ECE3F35956DAC3AD: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789X"))}-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaNotSupported()
+        {
+            var parseOptions = TestOptions.Regular.WithFeature("experimental-data-section-string-literals", "0");
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped, parseOptions: parseOptions)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C", "<PrivateImplementationDetails>", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", ".ctor", "BytesToString", ".cctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789X";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames();
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldstr      "0123456789X"
+                          IL_0005:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
+        {
+            // The longest string that can fit in the #US heap. The next string would overflow the heap.
+            var baseString = new string('x', (1 << 23) - 3);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "0123456789";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=10", "<S>E353667619EC664B49655FC9692165FB");
+                        g.VerifyFieldDefNames("84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(1, TableIndex.MethodDef),
+                            Handle(3, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(1, TableIndex.Param),
+                            Handle(2, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size        6 (0x6)
+                          .maxstack  1
+                          IL_0000:  ldsfld     "string <PrivateImplementationDetails>#1.<S>E353667619EC664B49655FC9692165FB.s"
+                          IL_0005:  ret
+                        }
+                        """);
+
+                        // trailing zeros for alignment:
+                        g.VerifyEncFieldRvaData($"""
+                            84D89877F0D4041EFB6BF91A16F0248F2FD573E6AF05C19F96BEDB9F882F7882: {BitConverter.ToString(Encoding.UTF8.GetBytes("0123456789"))}-00-00
+                            """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_StringReuse_FieldRvaSupported()
+        {
+            // Literals are currently only reused within generation.
+
+            var baseString = new string('x', (1 << 23) - 100);
+            var newString1 = new string('1', 40);
+            var newString2 = new string('2', 80);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+                        
+                            void F() => G("{{baseString}}", "{{newString1}}", "");
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("G", "F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: $$"""
+                        class C
+                        {
+                            void G(string a, string b, string c) {}
+
+                            void F() => G("{{newString2}}", "{{newString2}}", "{{newString1}}");
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<PrivateImplementationDetails>#1", "__StaticArrayInitTypeSize=40", "<S>62CF64E173E5BF9EF5312BB6D57CC26C");
+                        g.VerifyFieldDefNames("468D019EA81224AECA7EE270B11959D8A187F6F0B6A3FEBFF1C34DC1D66C8D85", "s");
+                        g.VerifyMethodDefNames("F", "BytesToString", ".cctor");
+
+                        g.VerifyEncLogDefinitions(
+                        [
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(4, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.AddParameter),
+                            Row(5, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.ClassLayout, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.FieldRva, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                        ]);
+
+                        g.VerifyEncMapDefinitions(
+                        [
+                            Handle(3, TableIndex.TypeDef),
+                            Handle(4, TableIndex.TypeDef),
+                            Handle(5, TableIndex.TypeDef),
+                            Handle(1, TableIndex.Field),
+                            Handle(2, TableIndex.Field),
+                            Handle(2, TableIndex.MethodDef),
+                            Handle(4, TableIndex.MethodDef),
+                            Handle(5, TableIndex.MethodDef),
+                            Handle(4, TableIndex.Param),
+                            Handle(5, TableIndex.Param),
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.ClassLayout),
+                            Handle(1, TableIndex.FieldRva),
+                            Handle(1, TableIndex.NestedClass),
+                            Handle(2, TableIndex.NestedClass)
+                        ]);
+
+                        g.VerifyIL("C.F", """
+                        {
+                          // Code size       23 (0x17)
+                          .maxstack  4
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_0006:  ldstr      "22222222222222222222222222222222222222222222222222222222222222222222222222222222"
+                          IL_000b:  ldsfld     "string <PrivateImplementationDetails>#1.<S>62CF64E173E5BF9EF5312BB6D57CC26C.s"
+                          IL_0010:  call       "void C.G(string, string, string)"
+                          IL_0015:  nop
+                          IL_0016:  ret
+                        }
+                        """);
+                    },
+                    options: new EmitDifferenceOptions() { EmitFieldRva = true })
+                .Verify();
+        }
+
+        [Fact]
+        public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaNotSupported()
+        {
+            // The max number of bytes that can fit into #US the heap is 2^29 - 1,
+            // but each string also needs to have an offset < 0x1000000 (2^24) to be addressable by a token.
+            // If the string is larger than that the next string can't be emitted.
+            var baseString = new string('x', 1 << 23);
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net90, verification: Verification.Skipped)
+                .AddBaseline(
+                    source: $$"""
+                        class C
+                        {
+                            string F() => "{{baseString}}";
+                        }
+                        """,
+                    validator: g =>
+                    {
+                        g.VerifyTypeDefNames("<Module>", "C");
+                        g.VerifyFieldDefNames();
+                        g.VerifyMethodDefNames("F", ".ctor");
+                    })
+                .AddGeneration(
+                    source: """
+                        class C
+                        {
+                            string F() => "new string that doesn't fit";
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, symbolProvider: c => c.GetMember("C.F")),
+                    ],
+                    expectedErrors:
+                    [
+                        // (3,19): error CS9307: Combined length of user strings used by the program exceeds allowed limit. Adding a string literal requires restarting the application.
+                        //     string F() => "new string that doesn't fit";
+                        Diagnostic(ErrorCode.ERR_TooManyUserStrings_RestartRequired, @"""new string that doesn't fit""").WithLocation(3, 19)
+                    ])
                 .Verify();
         }
 

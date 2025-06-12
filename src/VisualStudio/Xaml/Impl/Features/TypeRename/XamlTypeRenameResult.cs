@@ -5,11 +5,10 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.TypeRename;
+
+internal sealed class XamlTypeRenameResult
 {
-    internal class XamlTypeRenameResult
-    {
-        public ImmutableArray<TextSpan> Ranges { get; set; }
-        public string? WordPattern { get; set; }
-    }
+    public ImmutableArray<TextSpan> Ranges { get; set; }
+    public string? WordPattern { get; set; }
 }
