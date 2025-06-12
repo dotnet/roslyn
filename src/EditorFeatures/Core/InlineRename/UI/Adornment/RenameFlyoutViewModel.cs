@@ -325,7 +325,10 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
                 Session.ReplacementsComputed -= OnReplacementsComputed;
                 Session.CommitStateChange -= CommitStateChange;
 
-                SmartRenameViewModel?.Dispose();
+                if (SmartRenameViewModel is not null)
+                {
+                    SmartRenameViewModel.Dispose();
+                }
 
                 UnregisterOleComponent();
             }

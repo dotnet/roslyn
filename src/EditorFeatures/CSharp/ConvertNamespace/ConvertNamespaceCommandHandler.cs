@@ -40,7 +40,8 @@ internal sealed class ConvertNamespaceCommandHandler(
     ITextUndoHistoryRegistry textUndoHistoryRegistry,
     IEditorOperationsFactoryService editorOperationsFactoryService,
     EditorOptionsService editorOptionsService,
-    IGlobalOptionService globalOptions) : IChainedCommandHandler<TypeCharCommandArgs>
+    IGlobalOptionService globalOptions,
+    IIndentationManagerService indentationManager) : IChainedCommandHandler<TypeCharCommandArgs>
 {
     /// <summary>
     /// Option setting 'use file scoped'.  That way we can call into the helpers
@@ -53,6 +54,7 @@ internal sealed class ConvertNamespaceCommandHandler(
     private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry = textUndoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+    private readonly IIndentationManagerService _indentationManager = indentationManager;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public CommandState GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextCommandHandler)

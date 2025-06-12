@@ -198,6 +198,13 @@ public sealed class EditorTestHostDocument : TestHostDocument
     public SourceTextContainer GetOpenTextContainer()
         => this.GetTextBuffer().AsTextContainer();
 
+    private void Update(string newText)
+    {
+        using var edit = this.GetTextBuffer().CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+        edit.Replace(new Span(0, this.GetTextBuffer().CurrentSnapshot.Length), newText);
+        edit.Apply();
+    }
+
     internal void CloseTextView()
     {
         if (_textView != null && !_textView.IsClosed)

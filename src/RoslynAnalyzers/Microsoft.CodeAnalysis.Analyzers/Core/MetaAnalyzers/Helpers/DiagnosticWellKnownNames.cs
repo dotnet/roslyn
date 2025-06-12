@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Helpers
         internal const string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
         internal const string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
         internal const string RegisterCodeBlockStartActionName = nameof(AnalysisContext.RegisterCodeBlockStartAction);
-        internal const string RegisterCodeBlockEndActionName = nameof(CodeBlockStartAnalysisContext<>.RegisterCodeBlockEndAction);
+        internal const string RegisterCodeBlockEndActionName = nameof(CodeBlockStartAnalysisContext<int>.RegisterCodeBlockEndAction);
         internal const string RegisterCodeBlockActionName = nameof(AnalysisContext.RegisterCodeBlockAction);
         internal const string RegisterOperationBlockStartActionName = nameof(AnalysisContext.RegisterOperationBlockStartAction);
         internal const string RegisterOperationBlockEndActionName = nameof(OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction);

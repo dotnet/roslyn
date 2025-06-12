@@ -314,7 +314,7 @@ internal sealed partial class UnusedReferencesTableProvider
                 };
             }
 
-            combobox.SelectionChanged += (sender, e) =>
+            combobox.SelectionChanged += (object sender, SelectionChangedEventArgs e) =>
             {
                 var action = combobox.SelectedIndex switch
                 {
