@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Copilot;
@@ -136,5 +138,25 @@ internal static class CopilotChangeAnalysisUtilities
             return timeSpan.TotalMilliseconds.ToString("G17");
 
         return value.ToString() ?? "";
+    }
+
+    public static SourceText GetNewText(
+        SourceText oldText, ImmutableArray<TextChange> changes, ArrayBuilder<TextSpan> newSpans)
+    {
+        // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
+        // move to in the forked doucment, as that is what we will want to analyze.
+        var newText = oldText.WithChanges(changes);
+
+        var totalDelta = 0;
+
+        foreach (var change in changes)
+        {
+            var newTextLength = change.NewText!.Length;
+
+            newSpans.Add(new TextSpan(change.Span.Start + totalDelta, newTextLength));
+            totalDelta += newTextLength - change.Span.Length;
+        }
+
+        return newText;
     }
 }
