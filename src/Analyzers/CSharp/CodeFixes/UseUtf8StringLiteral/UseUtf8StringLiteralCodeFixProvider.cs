@@ -206,7 +206,7 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
                  MemberAccessExpression(
                      SyntaxKind.SimpleMemberAccessExpression,
                      stringLiteral,
-                     IdentifierName(nameof(ReadOnlySpan<>.ToArray))))
+                     IdentifierName(nameof(ReadOnlySpan<byte>.ToArray))))
                .WithTrailingTrivia(trailingTrivia);
     }
 }
