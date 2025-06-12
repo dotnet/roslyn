@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -265,7 +266,10 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 var firstAction = GetFirstAction(codeFixCollection.Fixes[0]);
 
                 var applicationTimeStopWatch = SharedStopwatch.StartNew();
-                var result = await firstAction.GetPreviewOperationsAsync(solution, cancellationToken).ConfigureAwait(false);
+                await firstAction
+                    .GetPreviewOperationsAsync(solution, cancellationToken)
+                    .ReportNonFatalErrorUnlessCancelledAsync(cancellationToken)
+                    .ConfigureAwait(false);
                 callback((codeFixCollection, applicationTimeStopWatch.Elapsed));
             },
             consumeItems: static async (values, args, cancellationToken) =>
