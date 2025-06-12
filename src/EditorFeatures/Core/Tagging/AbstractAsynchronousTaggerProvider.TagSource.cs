@@ -56,11 +56,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         private readonly AbstractAsynchronousTaggerProvider<TTag> _dataSource;
 
         /// <summary>
-        /// Information about what workspace the buffer we're tagging is associated with.
-        /// </summary>
-        private readonly WorkspaceRegistration _workspaceRegistration;
-
-        /// <summary>
         /// Work queue that collects high priority requests to call TagsChanged with.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<NormalizedSnapshotSpanCollection> _highPriTagsChangedQueue;
