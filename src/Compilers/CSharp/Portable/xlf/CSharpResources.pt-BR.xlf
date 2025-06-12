@@ -752,6 +752,11 @@
         <target state="translated">Uma árvore de expressão não pode conter uma expressão de coleção.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator">
+        <source>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</source>
+        <target state="new">An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsExtensionPropertyAccess">
         <source>An expression tree may not contain an extension property access</source>
         <target state="new">An expression tree may not contain an extension property access</target>
