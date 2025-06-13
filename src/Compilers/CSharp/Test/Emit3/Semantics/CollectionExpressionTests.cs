@@ -14077,9 +14077,9 @@ namespace System
                     {
                         S<object?> x = [1];
                         x[0].ToString(); // 1
-                        S<object> y = [null];
+                        S<object> y = [null]; // 2
                         y[0].ToString();
-                        y = [2, null];
+                        y = [2, null]; // 3
                         y[1].ToString();
                     }
                 }
@@ -14088,7 +14088,13 @@ namespace System
             comp.VerifyEmitDiagnostics(
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
                 //         x[0].ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x[0]").WithLocation(14, 9),
+                // (15,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S<object> y = [null]; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 24),
+                // (17,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = [2, null]; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 17));
         }
 
         [Fact]
@@ -31966,8 +31972,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(src).VerifyEmitDiagnostics();
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (5,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // CNotNull x1 = [null];
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 16));
         }
 
         [Fact]
@@ -31990,7 +31998,7 @@ partial class Program
                 M(CreateUnannotated(maybeNull), [maybeNull]);
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]);
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32011,8 +32019,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // M(CreateUnannotated(notNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32041,8 +32051,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
+                // M(new C(), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -32088,15 +32100,10 @@ partial class Program
                 }
                 """;
 
-            // note that the nullability of the Add parameter doesn't matter at all for collection expr analysis.
-            // We simply infer an element type and then convert the elements to it.
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (11,30): warning CS8601: Possible null reference assignment.
-                // M(CreateAnnotated(notNull), [maybeNull]);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(11, 30),
-                // (17,32): warning CS8601: Possible null reference assignment.
-                // M(CreateUnannotated(notNull), [maybeNull]);
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(17, 32));
+                // (17,32): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // M(CreateUnannotated(notNull), [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(17, 32));
         }
 
         [Fact]
@@ -32110,7 +32117,7 @@ partial class Program
                 object? maybeNull = null;
                 object? notNull = new object();
 
-                M(new C(), [maybeNull]);
+                M(new C(), [maybeNull]); // 1
                 C c1 = [maybeNull];
 
                 M(new C(), [notNull]);
@@ -32126,8 +32133,10 @@ partial class Program
                 }
                 """;
 
-            // We don't analyze the Add methods
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (8,13): warning CS8604: Possible null reference argument for parameter 't' in 'void C.Add<object>(object t)'.
+                // M(new C(), [maybeNull]); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void C.Add<object>(object t)").WithLocation(8, 13));
         }
 
         [Fact]
@@ -32141,13 +32150,13 @@ partial class Program
                 object? maybeNull = null;
                 object notNull = new object();
 
-                CAnnotated<object> c1 = [maybeNull]; // 1
+                CAnnotated<object> c1 = [maybeNull];
                 CAnnotated<object?> c2 = [maybeNull];
 
                 CAnnotated<object> c3 = [notNull];
                 CAnnotated<object?> c4 = [notNull];
 
-                CUnannotated<object> c5 = [maybeNull]; // 2
+                CUnannotated<object> c5 = [maybeNull]; // 1
                 CUnannotated<object?> c6 = [maybeNull];
 
                 CUnannotated<object> c7 = [notNull];
@@ -32169,12 +32178,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (8,26): warning CS8601: Possible null reference assignment.
-                // CAnnotated<object> c1 = [maybeNull]; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(8, 26),
-                // (14,28): warning CS8601: Possible null reference assignment.
-                // CUnannotated<object> c5 = [maybeNull]; // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(14, 28));
+                // (14,28): warning CS8604: Possible null reference argument for parameter 't' in 'void CUnannotated<object>.Add(object t)'.
+                // CUnannotated<object> c5 = [maybeNull]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("t", "void CUnannotated<object>.Add(object t)").WithLocation(14, 28));
         }
 
         [Fact]
@@ -32191,13 +32197,13 @@ partial class Program
                 M(CreateAnnotated(maybeNull), [maybeNull]);
                 M(CreateAnnotated(maybeNull), [notNull]);
 
-                M(CreateAnnotated(notNull), [maybeNull]); // 1
+                M(CreateAnnotated(notNull), [maybeNull]);
                 M(CreateAnnotated(notNull), [notNull]);
 
-                M(CreateUnannotated(maybeNull), [maybeNull]);
+                M(CreateUnannotated(maybeNull), [maybeNull]); // 1
                 M(CreateUnannotated(maybeNull), [notNull]);
 
-                M(CreateUnannotated(notNull), [maybeNull]); // 2
+                M(CreateUnannotated(notNull), [maybeNull]); // 1
                 M(CreateUnannotated(notNull), [notNull]);
 
                 void M<T>(T t1, T t2) { }
@@ -32221,12 +32227,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (11,30): warning CS8601: Possible null reference assignment.
-                // M(CreateAnnotated(notNull), [maybeNull]); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(11, 30),
-                // (17,32): warning CS8601: Possible null reference assignment.
-                // M(CreateUnannotated(notNull), [maybeNull]); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "maybeNull").WithLocation(17, 32));
+                // (14,34): warning CS8604: Possible null reference argument for parameter 'u' in 'void CUnannotated<object?>.Add<object>(object u)'.
+                // M(CreateUnannotated(maybeNull), [maybeNull]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "maybeNull").WithArguments("u", "void CUnannotated<object?>.Add<object>(object u)").WithLocation(14, 34));
         }
 
         [Fact]
@@ -32490,9 +32493,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(src).VerifyEmitDiagnostics(
-                // (6,26): warning CS8619: Nullability of reference types in value of type 'Container<string?>' doesn't match target type 'Container<string>'.
+                // (6,26): warning CS8620: Argument of type 'Container<string?>' cannot be used for parameter 'item' of type 'Container<string>' in 'void List<Container<string>>.Add(Container<string> item)' due to differences in the nullability of reference types.
                 // var collection = IdList([element1, element2]); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "element1").WithArguments("Container<string?>", "Container<string>").WithLocation(6, 26));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "element1").WithArguments("Container<string?>", "Container<string>", "item", "void List<Container<string>>.Add(Container<string> item)").WithLocation(6, 26));
 
             var tree = comp.SyntaxTrees.First();
             var invocation = GetSyntax<InvocationExpressionSyntax>(tree, "IdList([element1, element2])");

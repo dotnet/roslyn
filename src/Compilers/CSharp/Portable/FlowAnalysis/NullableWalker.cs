@@ -3850,7 +3850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
-            var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
+            var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/, TypeWithState>>.GetInstance();
             foreach (var element in node.Elements)
             {
                 visitElement(element);
@@ -3867,27 +3867,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnknownResultNullability(node.Placeholder);
 
                         var addArgument = Binder.GetUnderlyingCollectionExpressionElement(node, initializer, throwOnErrors: false);
-                        var addArgumentOrdinal = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
-                        var addParamOrdinal = !initializer.ArgsToParamsOpt.IsDefaultOrEmpty ? initializer.ArgsToParamsOpt[addArgumentOrdinal] : addArgumentOrdinal;
-                        var addParam = initializer.AddMethod.Parameters[addParamOrdinal];
-                        if (addParam.IsParams && !initializer.Expanded)
+                        VisitRvalue(addArgument);
+                        var addArgumentResult = _visitResult;
+
+                        elementConversionCompletions.Add((_, targetCollectionType) =>
                         {
-                            // Corner case: the collection element is calling `Add(params CollectionType coll)` in non-expanded form.
-                            // The challenge here is that there's a need to dig thru the 'addArgument' to find zero or more "user-authored" elements and try to convert them.
-                            // See 'CollectionExpressionTests.Add_ParamsArray_07'.
-                            Debug.Assert(addParam.IsParams);
-                            VisitRvalue(addArgument);
-                        }
-                        else
-                        {
-                            Debug.Assert(!initializer.AddMethod.IsExtensionMethod
-                                || (object)initializer.Arguments[0] == node.Placeholder
-                                || (object?)(initializer.Arguments[0] as BoundConversion)?.Operand == node.Placeholder);
-                            var completion = VisitOptionalImplicitConversion(addArgument, targetElementType,
-                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                            Debug.Assert(completion is not null);
-                            elementConversionCompletions.Add(completion);
-                        }
+                            // Reinfer the addMethod signature and convert the argument to parameter type
+                            var addMethod = initializer.AddMethod;
+                            MethodSymbol reinferredAddMethod;
+                            if (addMethod.IsExtensionMethod)
+                            {
+                                // TODO: do a type argument reinference?
+                                reinferredAddMethod = addMethod;
+                            }
+                            else
+                            {
+                                reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
+                            }
+
+                            var parameterOrdinal = reinferredAddMethod.IsExtensionMethod ? 1 : 0;
+                            var reinferredParameter = reinferredAddMethod.Parameters[parameterOrdinal];
+                            var resultType = VisitConversion(
+                                conversionOpt: null,
+                                addArgument,
+                                Conversion.Identity, // as only a nullable reinference is being done we expect an identity conversion
+                                reinferredParameter.TypeWithAnnotations,
+                                addArgumentResult.RValueType,
+                                checkConversion: true,
+                                fromExplicitCast: false,
+                                useLegacyWarnings: false,
+                                parameterOpt: reinferredParameter,
+                                assignmentKind: AssignmentKind.Argument,
+                                reportTopLevelWarnings: true,
+                                reportRemainingWarnings: true,
+                                trackMembers: false);
+                            return resultType;
+                        });
 
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
@@ -3924,7 +3939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
 
                             Debug.Assert(completion1 is not null);
-                            elementConversionCompletions.Add(completion1);
+                            elementConversionCompletions.Add((elementType, _) => completion1(elementType));
                         }
                         break;
                 }
@@ -3951,7 +3966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetResult(node, visitResult, updateAnalyzedNullability: !node.WasTargetTyped, isLvalue: false);
             return null;
 
-            TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>> completions)
+            TypeWithState convertCollection(BoundCollectionExpression node, TypeWithAnnotations targetCollectionType, ArrayBuilder<Func<TypeWithAnnotations, TypeSymbol, TypeWithState>> completions)
             {
                 var strippedTargetCollectionType = targetCollectionType.Type.StrippedType();
                 Debug.Assert(TypeSymbol.Equals(strippedTargetCollectionType, node.Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -3967,7 +3982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var completion in completions)
                 {
-                    _ = completion(targetElementType);
+                    _ = completion(targetElementType, strippedTargetCollectionType);
                 }
                 completions.Free();
 
