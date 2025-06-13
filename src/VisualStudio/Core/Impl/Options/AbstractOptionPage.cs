@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
@@ -107,7 +108,7 @@ internal abstract class AbstractOptionPage : UIElementDialogPage
         var changedOptions = s_optionStore.GetChangedOptions();
         OptionLogger.Log(changedOptions);
 
-        s_optionStore.GlobalOptions.SetGlobalOptions(changedOptions.SelectAsArray(entry => KeyValuePairUtil.Create(entry.key, entry.newValue)));
+        s_optionStore.GlobalOptions.SetGlobalOptions(changedOptions.SelectAsArray(entry => KeyValuePair.Create(entry.key, entry.newValue)));
 
         // Make sure we load the next time a page is activated, in case that options changed
         // programmatically between now and the next time the page is activated

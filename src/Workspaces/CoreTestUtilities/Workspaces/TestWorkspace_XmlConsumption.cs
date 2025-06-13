@@ -284,7 +284,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
         else if (language == LanguageNames.VisualBasic)
         {
             return new VisualBasicParseOptions(preprocessorSymbols: preprocessorSymbolsAttribute.Value
-                .Split(',').Select(v => KeyValuePairUtil.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))).ToImmutableArray());
+                .Split(',').Select(v => KeyValuePair.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))).ToImmutableArray());
         }
         else
         {
@@ -302,7 +302,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             var key = split[0];
             var value = split.Length == 2 ? split[1] : "true";
 
-            return KeyValuePairUtil.Create(key, value);
+            return KeyValuePair.Create(key, value);
         });
 
         return parseOptions.WithFeatures(features);

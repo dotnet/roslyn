@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                                source.IndexOf(s_endSpanMark, start, length, StringComparison.Ordinal))
                 End If
 
-                Yield KeyValuePairUtil.Create(position, span)
+                Yield KeyValuePair.Create(position, span)
                 i = [end] + 1
             End While
         End Function
@@ -481,7 +481,7 @@ End Class
                 Dim baseActiveStatements = New ActiveStatementsMap(
                     ImmutableDictionary.CreateRange(
                     {
-                        KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
+                        KeyValuePair.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
                                 New ActiveStatementId(0),
                                 ActiveStatementFlags.LeafFrame,
