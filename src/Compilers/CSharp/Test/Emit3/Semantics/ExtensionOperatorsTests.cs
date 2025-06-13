@@ -2589,7 +2589,7 @@ class Program
 
         [Theory]
         [CombinatorialData]
-        public void Unary_035_Consumption_TupleComparison(bool fromMetadata)
+        public void Unary_046_Consumption_TupleComparison(bool fromMetadata)
         {
             var src1 = $$$"""
 public static class Extensions1
@@ -2645,6 +2645,250 @@ class Program
                 //         if ((s1, 1) == (s1, 1))
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(s1, 1) == (s1, 1)").WithArguments("S1", "bool").WithLocation(6, 13)
                 );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_047_Consumption_ExpressionTree([CombinatorialValues("+", "-", "!", "~")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op}}}(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public void Test()
+        {
+            Expression<System.Func<S1, S1>> ex = (s1) => {{{op}}}s1;
+            ex.Compile()(s1);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => {{{op}}}s1;
+
+        var s1 = new S1();
+        ex.Compile()(s1);
+
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:s1 => " + (op is "!" or "~" ? "Not(" : op) + "s1" + (op is "!" or "~" ? ")" : "")).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Unary_048_Consumption_Lifted_ExpressionTree([CombinatorialValues("+", "-", "!", "~")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op}}}(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public void Test()
+        {
+            Expression<System.Func<S1?, S1?>> ex = (s1) => {{{op}}}s1;
+            var d = ex.Compile();
+            
+            d(s1);
+            System.Console.Write(":");
+            d(null);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, S1?>> ex = (s1) => {{{op}}}s1;
+
+        var s1 = new S1();
+        var d = ex.Compile();
+            
+        d(s1);
+        System.Console.Write(":");
+        d(null);
+
+        System.Console.Write(":");
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1::operator1::s1 => " + (op is "!" or "~" ? "Not(" : op) + "s1" + (op is "!" or "~" ? ")" : "")).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_049_Consumption_True_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1 x) => throw null;
+
+        public void Test()
+        {
+            Expression<System.Func<S1, int>> ex = (s1) => s1 ? 1 : 0;
+            ex.Compile()(s1);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, int>> ex = (s1) => s1 ? 1 : 0;
+
+        var s1 = new S1();
+        ex.Compile()(s1);
+
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:s1 => IIF(op_True(s1), 1, 0)").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Unary_050_Consumption_True_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, int>> ex = (s1) => s1 ? 1 : 0;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (23,56): error CS0029: Cannot implicitly convert type 'S1?' to 'bool'
+                //         Expression<System.Func<S1?, int>> ex = (s1) => s1 ? 1 : 0;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "bool").WithLocation(23, 56)
+                );
+        }
+
+        [Fact]
+        public void Unary_051_Consumption_True_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1? s1)
+    {
+        public static bool operator true(S1? x)
+        {
+            System.Console.Write("operator1");
+            return true;
+        }
+        public static bool operator false(S1? x) => throw null;
+
+        public void Test()
+        {
+            Expression<System.Func<S1?, int>> ex = (s1) => s1 ? 1 : 0;
+            ex.Compile()(s1);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, int>> ex = (s1) => s1 ? 1 : 0;
+
+        S1? s1 = new S1();
+        ex.Compile()(s1);
+
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:s1 => IIF(op_True(s1), 1, 0)").VerifyDiagnostics();
         }
 
         [Theory]
@@ -6584,6 +6828,82 @@ class Program
                 // (6,13): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
                 //         _ = s1++;
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void Increment_072_Consumption_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1)
+    {
+        public static S1 operator ++(S1 x)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => ++s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,54): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Func<S1, S1>> ex = (s1) => ++s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "++s1").WithLocation(22, 54)
+                );
+        }
+
+        [Fact]
+        public void Increment_073_Consumption_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(ref S1 x)
+    {
+        public void operator --()
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => --s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (21,54): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Func<S1, S1>> ex = (s1) => --s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "--s1").WithLocation(21, 54)
                 );
         }
 
@@ -11864,6 +12184,284 @@ class Program
 
         [Theory]
         [CombinatorialData]
+        public void Binary_087_Consumption_ExpressionTree([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public void Test()
+        {
+            Expression<System.Func<S1, S1>> ex = (s1) => s1 {{{op}}} s1;
+            ex.Compile()(s1);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => s1 {{{op}}} s1;
+
+        var s1 = new S1();
+        ex.Compile()(s1);
+
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1operator1:s1 => (s1 " + op + " s1)").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_088_Consumption_ExpressionTree_Lifted([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public void Test()
+        {
+            Expression<System.Func<S1?, S1?>> ex = (s1) => s1 {{{op}}} s1;
+            var d = ex.Compile();
+            d(s1);
+            System.Console.Write(":");
+            d(null);
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, S1?>> ex = (s1) => s1 {{{op}}} s1;
+
+        var s1 = new S1();
+        var d = ex.Compile();
+        d(s1);
+        System.Console.Write(":");
+        d(null);
+
+        System.Console.Write(":");
+        s1.Test();
+
+        System.Console.Write(":");
+        System.Console.Write(ex);
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "operator1::operator1::s1 => (s1 " + op + " s1)").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Binary_089_Consumption_UnsignedRightShift_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator >>>(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => s1 >>> s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,54): error CS7053: An expression tree may not contain '>>>'
+                //         Expression<System.Func<S1, S1>> ex = (s1) => s1 >>> s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "s1 >>> s1").WithArguments(">>>").WithLocation(22, 54)
+                );
+        }
+
+        [Fact]
+        public void Binary_090_Consumption_UnsignedRightShift_Lifted_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator >>>(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, S1?>> ex = (s1) => s1 >>> s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,56): error CS7053: An expression tree may not contain '>>>'
+                //         Expression<System.Func<S1?, S1?>> ex = (s1) => s1 >>> s1;
+                Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "s1 >>> s1").WithArguments(">>>").WithLocation(22, 56)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_091_Consumption_Logical_ExpressionTree([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+
+        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1 x)
+        {
+            System.Console.Write("operator2");
+            return false;
+        }
+
+        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1 x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => s1 {{{op}}} s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (30,54): error CS9558: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
+                //         Expression<System.Func<S1, S1>> ex = (s1) => s1 && s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator, "s1 " + op + " s1").WithLocation(30, 54)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Binary_092_Consumption_Logical_Lifted_ExpressionTree([CombinatorialValues("&&", "||")] string op)
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator {{{op[0]}}}(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+
+    extension(S1? s1)
+    {
+        public static bool operator {{{(op == "&&" ? "false" : "true")}}}(S1? x)
+        {
+            System.Console.Write("operator2");
+            return false;
+        }
+
+        public static bool operator {{{(op == "&&" ? "true" : "false")}}}(S1? x) => throw null;
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1?, S1?>> ex = (s1) => s1 {{{op}}} s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (33,56): error CS9558: An expression tree may not contain '&&' or '||' operators that use extension user defined operators.
+                //         Expression<System.Func<S1?, S1?>> ex = (s1) => s1 && s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator, "s1 " + op + " s1").WithLocation(33, 56)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void CompoundAssignment_001_Declaration([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
         {
             var src = $$$"""
@@ -16188,6 +16786,82 @@ class Program
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "regularchecked").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void CompoundAssignment_079_Consumption_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(S1 s1)
+    {
+        public static S1 operator +(S1 x, S1 y)
+        {
+            System.Console.Write("operator1");
+            return x;
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => s1 += s1;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (22,54): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Func<S1, S1>> ex = (s1) => s1 += s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "s1 += s1").WithLocation(22, 54)
+                );
+        }
+
+        [Fact]
+        public void CompoundAssignment_080_Consumption_ExpressionTree()
+        {
+            var src = $$$"""
+using System.Linq.Expressions;
+
+public static class Extensions1
+{
+    extension(ref S1 s1)
+    {
+        public void operator +=(S1 y)
+        {
+            System.Console.Write("operator1");
+        }
+    }
+}
+
+public struct S1
+{}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<System.Func<S1, S1>> ex = (s1) => s1 += s1;
+    }
+}
+
+""" + CompilerFeatureRequiredAttribute;
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (21,54): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<System.Func<S1, S1>> ex = (s1) => s1 += s1;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "s1 += s1").WithLocation(21, 54)
+                );
+        }
     }
 }
 
@@ -16195,4 +16869,3 @@ class Program
 //            Assert result of operator for basic consumption scenarios
 //            Cover ErrorCode.ERR_ExtensionDisallowsMember for conversion operators
 //            Ref safety analysis?
-//            "An extension operator may not have the same signature as a predefined operator." not yet implemented

@@ -2417,6 +2417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OperatorInExtensionOfStaticClass = 9555,
         ERR_InstanceOperatorStructExtensionWrongReceiverRefKind = 9556,
         ERR_InstanceOperatorExtensionWrongReceiverType = 9557,
+        ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator = 9558,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

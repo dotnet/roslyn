@@ -755,6 +755,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
                 }
+
+                if (binary.GetIsNewExtensionMember())
+                {
+                    // PROTOTYPE: Communicate to LDM
+                    // An expression tree factory isn't happy in this case. It throws
+                    //            System.ArgumentException : The user-defined operator method 'op_BitwiseOr' for operator 'OrElse' must have associated boolean True and False operators.
+                    // or
+                    //            System.ArgumentException : The user-defined operator method 'op_BitwiseAnd' for operator 'AndAlso' must have associated boolean True and False operators.
+                    //
+                    // from Expression.ValidateUserDefinedConditionalLogicOperator(ExpressionType nodeType, Type left, Type right, MethodInfo method)
+                    Error(ErrorCode.ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator, node);
+                }
+                else
+                {
+                    Debug.Assert(!node.TrueOperator.GetIsNewExtensionMember());
+                    Debug.Assert(!node.FalseOperator.GetIsNewExtensionMember());
+                }
             }
 
             return base.VisitUserDefinedConditionalLogicalOperator(node);

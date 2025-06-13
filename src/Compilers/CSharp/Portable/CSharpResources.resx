@@ -8206,4 +8206,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InstanceOperatorExtensionWrongReceiverType" xml:space="preserve">
     <value>Cannot declare instance extension operator for a type that is not known to be a struct and is not known to be a class</value>
   </data>
+  <data name="ERR_ExpressionTreeContainsExtensionBasedConditionalLogicalOperator" xml:space="preserve">
+    <value>An expression tree may not contain '&amp;&amp;' or '||' operators that use extension user defined operators.</value>
+  </data>
 </root>
