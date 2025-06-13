@@ -116,14 +116,19 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var newDocument = await provider.AddImportAsync(
                 node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-            var cleanedDocument = cleanupDocument
-                ? await CodeAction.CleanupDocumentAsync(newDocument, options, cancellationToken).ConfigureAwait(false)
-                : newDocument;
+            var cleanedDocument = await CleanDocumentAsync(newDocument, cleanupDocument, options, cancellationToken).ConfigureAwait(false);
 
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 originalDocument, cancellationToken).ConfigureAwait(false);
 
             return [.. textChanges];
+        }
+
+        protected static async Task<Document> CleanDocumentAsync(Document newDocument, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
+        {
+            return cleanupDocument
+                ? await CodeAction.CleanupDocumentAsync(newDocument, options, cancellationToken).ConfigureAwait(false)
+                : await CodeAction.CleanupSyntaxAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

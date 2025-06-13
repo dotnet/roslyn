@@ -63,9 +63,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 newContextNode, SymbolResult.Symbol, newDocument,
                 options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-            var cleanedDocument = cleanupDocument
-                ? await CodeAction.CleanupDocumentAsync(updatedDocument, options, cancellationToken).ConfigureAwait(false)
-                : updatedDocument;
+            var cleanedDocument = await CleanDocumentAsync(
+                updatedDocument, cleanupDocument, options, cancellationToken).ConfigureAwait(false);
 
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 document, cancellationToken).ConfigureAwait(false);
