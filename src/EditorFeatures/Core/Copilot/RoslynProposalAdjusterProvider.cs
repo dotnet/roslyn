@@ -31,7 +31,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
     {
         // Ensure we're only operating on one solution.  It makes the logic much simpler, as we don't have to
         // worry about edits that touch multiple solutions.
-        var solution = CopilotUtilities.TryGetAffectedSolution(proposal);
+        var solution = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
         if (solution is null)
             return proposal;
 
@@ -40,6 +40,7 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         using var _1 = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
         using var _2 = PooledObjects.ArrayBuilder<ProposedEdit>.GetInstance(out var finalEdits);
 
+        var adjustmentsProposed = false;
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -50,34 +51,40 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             // Checked in TryGetAffectedSolution
             Contract.ThrowIfNull(document);
 
-            using var _3 = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var textChanges);
-            foreach (var edit in editGroup)
-                textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
+            var proposedEdits = await TryAdjustProposalDisplayAsync(
+                document, CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup), cancellationToken).ConfigureAwait(false);
 
-            var proposedEdits = await AdjustProposalDisplayAsync(
-                document, textChanges.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
-
-            foreach (var proposedEdit in proposedEdits)
+            if (proposedEdits.IsDefault)
             {
-                finalEdits.Add(new ProposedEdit(
-                    new(snapshot, proposedEdit.Span.ToSpan()),
-                    proposedEdit.NewText!));
+                // No changes were made to the proposal.  Just add the original edits.
+                finalEdits.AddRange(editGroup);
+            }
+            else
+            {
+                // Changes were made to the proposal.  Add the new edits.
+                adjustmentsProposed = true;
+                foreach (var proposedEdit in proposedEdits)
+                {
+                    finalEdits.Add(new ProposedEdit(
+                        new(snapshot, proposedEdit.Span.ToSpan()),
+                        proposedEdit.NewText!));
+                }
             }
         }
 
-        if (finalEdits.Count == proposal.Edits.Count)
-            // No edits were added.  Don't touch anything.
+        // No adjustments were made.  Don't touch anything.
+        if (!adjustmentsProposed)
             return proposal;
 
         var newProposal = Proposal.TryCreateProposal(proposal, finalEdits);
         return newProposal ?? proposal;
     }
 
-    private async Task<ImmutableArray<TextChange>> AdjustProposalDisplayAsync(
-        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<TextChange>> TryAdjustProposalDisplayAsync(
+        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
         var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
-        return await proposalAdjusterService.AdjustProposalAsync(
-            document, textChanges, cancellationToken).ConfigureAwait(false);
+        return await proposalAdjusterService.TryAdjustProposalAsync(
+            document, normalizedChanges, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Host;
@@ -22,14 +21,15 @@ namespace Microsoft.CodeAnalysis.Copilot;
 
 internal interface ICopilotProposalAdjusterService : IWorkspaceService
 {
-    ValueTask<ImmutableArray<TextChange>> AdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken);
+    /// <returns><c>default</c> if the proposal was not adjusted</returns>
+    ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
 {
-    ValueTask<ImmutableArray<TextChange>> AdjustProposalAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICopilotProposalAdjusterService), ServiceLayer.Default), Shared]
@@ -37,44 +37,39 @@ internal interface IRemoteCopilotProposalAdjusterService
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
 {
-    public async ValueTask<ImmutableArray<TextChange>> AdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<TextChange>> TryAdjustProposalAsync(
+        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
+        if (normalizedChanges.IsDefaultOrEmpty)
+            return default;
+
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client is not null)
         {
             var result = await client.TryInvokeAsync<IRemoteCopilotProposalAdjusterService, ImmutableArray<TextChange>>(
                 document.Project,
-                (service, checksum, cancellationToken) => service.AdjustProposalAsync(checksum, document.Id, textChanges, cancellationToken),
+                (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-            return result.HasValue ? result.Value : textChanges;
+            return result.HasValue ? result.Value : default;
         }
         else
         {
-            return await AdjustProposalInCurrentProcessAsync(
-                document, textChanges, cancellationToken).ConfigureAwait(false);
+            return await TryAdjustProposalInCurrentProcessAsync(
+                document, normalizedChanges, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private static async Task<ImmutableArray<TextChange>> AdjustProposalInCurrentProcessAsync(
-        Document originalDocument, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TextChange>> TryAdjustProposalInCurrentProcessAsync(
+        Document originalDocument, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken)
     {
-        var normalizedChanges = CopilotUtilities.NormalizeCopilotTextChanges(changes);
-        if (normalizedChanges.IsDefaultOrEmpty)
-            return changes;
+        CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
-        return await AdjustProposalInCurrentProcessWorkerAsync(originalDocument, normalizedChanges, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<ImmutableArray<TextChange>> AdjustProposalInCurrentProcessWorkerAsync(
-        Document originalDocument, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
-    {
         // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(changes.Length, out var newSpans);
-        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, changes, newSpans);
+        using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
+        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, normalizedChanges, newSpans);
 
         // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
         var forkedDocument = originalDocument.WithText(newText);
@@ -82,16 +77,16 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         var totalNewSpan = GetSpanToAnalyze(forkedRoot, newSpans);
 
         var (success, addImportChanges) = await TryGetAddImportTextChangesAsync(
-            originalDocument, forkedDocument, changes.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
+            originalDocument, forkedDocument, normalizedChanges.First(), totalNewSpan, cancellationToken).ConfigureAwait(false);
         if (!success)
-            return changes;
+            return default;
 
         // Keep the new root around, in case something needs it while processing.  This way we don't throw it away unnecessarily.
         GC.KeepAlive(forkedRoot);
 
         // Reurn the add-import changes concatenated with the original changes.  This way we ensure
         // that the copilot changes themselves are not themselves modified by the add-import changes.
-        return addImportChanges.Concat(changes);
+        return addImportChanges.Concat(normalizedChanges);
     }
 
     private static async Task<(bool success, ImmutableArray<TextChange> addImportChanges)> TryGetAddImportTextChangesAsync(

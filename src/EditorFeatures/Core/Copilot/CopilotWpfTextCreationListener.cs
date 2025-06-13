@@ -125,12 +125,10 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             if (document is null)
                 continue;
 
-            using var _2 = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var textChanges);
-            foreach (var edit in editGroup)
-                textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
+            var normalizedEdits = CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup);
 
             await CopilotChangeAnalysisUtilities.AnalyzeCopilotChangeAsync(
-                document, accepted, featureId, proposalId, textChanges, cancellationToken).ConfigureAwait(false);
+                document, accepted, featureId, proposalId, normalizedEdits, cancellationToken).ConfigureAwait(false);
         }
     }
 }
