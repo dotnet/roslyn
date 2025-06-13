@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Language.Proposals;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
-internal static class CopilotUtilities
+internal static class CopilotEditorUtilities
 {
     public static Solution? TryGetAffectedSolution(ProposalBase proposal)
     {
