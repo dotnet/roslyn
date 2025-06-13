@@ -5392,7 +5392,7 @@ static class E
     public static void M2() { }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : cref, such unqualified references in CREF should work within context of enclosing static type
+        // Tracked by https://github.com/dotnet/roslyn/issues/78967 : cref, such unqualified references in CREF should work within context of enclosing static type
         var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreviewWithDocumentationComments);
         comp.VerifyEmitDiagnostics(
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).Method' that could not be resolved
