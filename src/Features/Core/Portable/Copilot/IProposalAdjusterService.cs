@@ -5,12 +5,17 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Copilot;
 
@@ -50,8 +55,45 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         }
     }
 
-    private async Task<ImmutableArray<TextChange>> AdjustProposalInCurrentProcessAsync(Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    private static async Task<ImmutableArray<TextChange>> AdjustProposalInCurrentProcessAsync(
+        Document originalDocument, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var earliestTextChangeStart = changes.Min(change => change.Span.Start);
+
+        // Fork the starting document with the changes copilot wants to make.  Keep track of where the edited spans
+        // move to in the forked doucment, as that is what we will want to analyze.
+        var oldText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        using var _ = ArrayBuilder<TextSpan>.GetInstance(changes.Length, out var newSpans);
+        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, changes, newSpans);
+
+        // Get the semantic model and keep it alive so none of the work we do causes it to be dropped.
+        var forkedDocument = originalDocument.WithText(newText);
+
+        var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
+
+        var totalNewSpan = TextSpan.FromBounds(
+            newSpans.Min(span => span.Start),
+            newSpans.Max(span => span.End));
+
+        var withImportsDocument = await missingImportsService.AddMissingImportsAsync(
+            forkedDocument, totalNewSpan, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+
+        var allChanges = await withImportsDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
+        var addImportChanges = allChanges.AsImmutableOrEmpty();
+
+        // If there are no add-import changes, then we can just return the original changes.
+        if (addImportChanges.IsEmpty)
+            return changes;
+
+        // We only want to use the add-import changes if they're all before the earliest text change.
+        // Otherwise, we might have a situation where the add-import changes intersect the copilot
+        // changes and all bets are off.
+        if (!addImportChanges.All(textChange => textChange.Span.End < earliestTextChangeStart))
+            return changes;
+
+        // Reurn the add-import changes concatenated with the original changes.  This way we ensure
+        // that the copilot changes themselves are not themselves modified by the add-import changes.
+        return addImportChanges.Concat(changes);
     }
 }
