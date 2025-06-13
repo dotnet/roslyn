@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -31,11 +30,11 @@ internal interface ICopilotChangeAnalysisService : IWorkspaceService
 {
     /// <summary>
     /// Kicks of work to analyze a change that copilot suggested making to a document. <paramref name="document"/> is
-    /// the state of the document prior to the edits, and <paramref name="changes"/> are the changes Copilot wants to
-    /// make to it.  <paramref name="changes"/> must be sorted and normalized before calling this.
+    /// the state of the document prior to the edits, and <paramref name="normalizedChanges"/> are the changes Copilot wants to
+    /// make to it.  <paramref name="normalizedChanges"/> must be sorted and normalized before calling this.
     /// </summary>
     Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
-        Document document, ImmutableArray<TextChange> changes, CancellationToken cancellationToken);
+        Document document, ImmutableArray<TextChange> normalizedChanges, CancellationToken cancellationToken);
 }
 
 [ExportWorkspaceService(typeof(ICopilotChangeAnalysisService)), Shared]
@@ -50,13 +49,12 @@ internal sealed class DefaultCopilotChangeAnalysisService(
 
     public async Task<CopilotChangeAnalysis> AnalyzeChangeAsync(
         Document document,
-        ImmutableArray<TextChange> changes,
+        ImmutableArray<TextChange> normalizedChanges,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(document.SupportsSemanticModel);
 
-        Contract.ThrowIfTrue(!changes.IsSorted(static (c1, c2) => c1.Span.Start - c2.Span.Start), "'changes' was not sorted.");
-        Contract.ThrowIfTrue(new NormalizedTextSpanCollection(changes.Select(c => c.Span)).Count != changes.Length, "'changes' was not normalized.");
+        CopilotUtilities.ThrowIfNotNormalized(normalizedChanges);
 
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
@@ -66,20 +64,20 @@ internal sealed class DefaultCopilotChangeAnalysisService(
                 // Don't need to sync the entire solution over.  Just the cone of projects this document it contained within.
                 document.Project,
                 (service, checksum, cancellationToken) => service.AnalyzeChangeAsync(
-                    checksum, document.Id, changes, cancellationToken),
+                    checksum, document.Id, normalizedChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             return value.HasValue ? value.Value : default;
         }
         else
         {
             return await AnalyzeChangeInCurrentProcessAsync(
-                document, changes, cancellationToken).ConfigureAwait(false);
+                document, normalizedChanges, cancellationToken).ConfigureAwait(false);
         }
     }
 
     private async Task<CopilotChangeAnalysis> AnalyzeChangeInCurrentProcessAsync(
         Document document,
-        ImmutableArray<TextChange> changes,
+        ImmutableArray<TextChange> normalizedChanges,
         CancellationToken cancellationToken)
     {
         // Keep track of how long our analysis takes entirely.
@@ -91,8 +89,8 @@ internal sealed class DefaultCopilotChangeAnalysisService(
         // move to in the forked doucment, as that is what we will want to analyze.
         var oldText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<TextSpan>.GetInstance(changes.Length, out var newSpans);
-        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, changes, newSpans);
+        using var _ = ArrayBuilder<TextSpan>.GetInstance(normalizedChanges.Length, out var newSpans);
+        var newText = CopilotChangeAnalysisUtilities.GetNewText(oldText, normalizedChanges, newSpans);
 
         var forkingTime = forkingTimeStopWatch.Elapsed;
 

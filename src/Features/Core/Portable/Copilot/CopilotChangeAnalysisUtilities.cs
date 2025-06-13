@@ -40,7 +40,7 @@ internal static class CopilotChangeAnalysisUtilities
         bool accepted,
         string featureId,
         string proposalId,
-        IEnumerable<TextChange> textChanges,
+        ImmutableArray<TextChange> textChanges,
         CancellationToken cancellationToken)
     {
         // Currently we do not support analyzing languges other than C# and VB.  This is because we only want to do
@@ -49,7 +49,10 @@ internal static class CopilotChangeAnalysisUtilities
         if (!document.SupportsSemanticModel)
             return;
 
-        var normalizedEdits = CopilotUtilities.NormalizeCopilotTextChanges(textChanges);
+        if (textChanges.IsDefaultOrEmpty)
+            return;
+
+        var normalizedEdits = CopilotUtilities.TryNormalizeCopilotTextChanges(textChanges);
         if (normalizedEdits.IsDefaultOrEmpty)
             return;
 

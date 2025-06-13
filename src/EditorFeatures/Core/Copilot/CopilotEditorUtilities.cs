@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Proposals;
 
@@ -34,5 +39,14 @@ internal static class CopilotEditorUtilities
         }
 
         return solution;
+    }
+
+    public static ImmutableArray<TextChange> TryGetNormalizedTextChanges(IEnumerable<ProposedEdit> edits)
+    {
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var textChanges);
+        foreach (var edit in edits)
+            textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
+
+        return CopilotUtilities.TryNormalizeCopilotTextChanges(textChanges);
     }
 }
