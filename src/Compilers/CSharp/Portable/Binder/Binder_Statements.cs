@@ -617,7 +617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // It's a bit of code duplication, but refactoring would make things worse.
                     // However, we don't need to report diagnostics here. They will be reported when analyzing the parent method.
                     var ignored = DiagnosticBag.GetInstance();
-                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored);
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, ignored, out PooledDictionary<BoundNode, bool> asyncTryFinallyEndsReachable);
                     ignored.Free();
                     if (endIsReachable)
                     {
@@ -629,6 +629,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.GetFirstLocation(), localSymbol);
                         }
+                    }
+
+                    if (asyncTryFinallyEndsReachable != null)
+                    {
+                        block = FlowAnalysisPass.AsyncTryFinallyEndsReachableRewriter.Rewrite(block, asyncTryFinallyEndsReachable);
+                        asyncTryFinallyEndsReachable.Free();
                     }
                 }
 
@@ -3220,7 +3226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tryBlock = BindEmbeddedBlock(node.Block, diagnostics);
             var catchBlocks = BindCatchBlocks(node.Catches, diagnostics);
             var finallyBlockOpt = (node.Finally != null) ? BindEmbeddedBlock(node.Finally.Block, diagnostics) : null;
-            return new BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt);
+            return new BoundTryStatement(node, tryBlock, catchBlocks, finallyBlockOpt, AsyncTryFinallyEndReachable.Unknown);
         }
 
         private ImmutableArray<BoundCatchBlock> BindCatchBlocks(SyntaxList<CatchClauseSyntax> catchClauses, BindingDiagnosticBag diagnostics)

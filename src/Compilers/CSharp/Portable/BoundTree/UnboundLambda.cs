@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ValidateUnsafeParameters(diagnostics, cacheKey.ParameterTypes);
 
-            bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics.DiagnosticBag);
+            bool reachableEndpoint = ControlFlowPass.Analyze(compilation, lambdaSymbol, block, diagnostics.DiagnosticBag, out PooledDictionary<BoundNode, bool>? asyncTryFinallyEndsReachable);
             if (reachableEndpoint)
             {
                 if (Binder.MethodOrLambdaRequiresValue(lambdaSymbol, this.Binder.Compilation))
@@ -879,6 +879,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     block = FlowAnalysisPass.AppendImplicitReturn(block, lambdaSymbol);
                 }
+            }
+
+            if (asyncTryFinallyEndsReachable != null)
+            {
+                // If the lambda is async, we need to ensure that the async try-finally endpoints are reachable.
+                // This is necessary for correct code generation.
+                block = FlowAnalysisPass.AsyncTryFinallyEndsReachableRewriter.Rewrite(block, asyncTryFinallyEndsReachable);
+                asyncTryFinallyEndsReachable.Free();
             }
 
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics.DiagnosticBag))

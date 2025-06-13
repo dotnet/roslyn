@@ -1676,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureOnlyEvalStack();
 
-            return node.Update(tryBlock, catchBlocks, finallyBlock, finallyLabelOpt: node.FinallyLabelOpt, node.PreferFaultHandler);
+            return node.Update(tryBlock, catchBlocks, finallyBlock, finallyLabelOpt: node.FinallyLabelOpt, node.PreferFaultHandler, node.EndIsReachable);
         }
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)

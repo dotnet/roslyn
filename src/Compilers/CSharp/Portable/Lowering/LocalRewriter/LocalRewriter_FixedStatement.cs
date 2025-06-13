@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax,
                         _factory.Block(statementBuilder.ToImmutableAndFree()),
                         ImmutableArray<BoundCatchBlock>.Empty,
-                        _factory.Block(cleanup)));
+                        _factory.Block(cleanup),
+                        endIsReachable: AsyncTryFinallyEndReachable.Ignored));
             }
             else
             {

@@ -153,6 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBlock rewrittenFinally;
 
                 var finallyContainsAwaits = _analysis.FinallyContainsAwaits(node);
+                Debug.Assert(node.EndIsReachable is not AsyncTryFinallyEndReachable.Unknown
+                             // We can get into the async rewriter when a local function or lambda inside the current
+                             // function is async, or if the function containing this local function or lambda is async.
+                             // In either case, we can have TryStatements without calculating reachability, and we should
+                             // not need to rewrite them.
+                             || (!_F.CurrentFunction.IsAsync && !finallyContainsAwaits),
+                    $"{node.Syntax} does not have a valid EndIsReachable value. EndIsReachable should have been calculated during flow analysis and propagated during LocalRewriting.");
                 if (!finallyContainsAwaits)
                 {
                     finalizedRegion = RewriteFinalizedRegion(node);
@@ -163,19 +170,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return finalizedRegion;
                     }
 
-                    var asTry = finalizedRegion as BoundTryStatement;
-                    if (asTry != null)
+                    if (finalizedRegion is BoundTryStatement asTry)
                     {
                         // since finalized region is a try we can just attach finally to it
                         Debug.Assert(asTry.FinallyBlockOpt == null);
-                        return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler);
+                        return asTry.Update(asTry.TryBlock, asTry.CatchBlocks, rewrittenFinally, asTry.FinallyLabelOpt, asTry.PreferFaultHandler, asTry.EndIsReachable);
                     }
                     else
                     {
                         // wrap finalizedRegion into a Try with a finally.
-                        return _F.Try((BoundBlock)finalizedRegion, ImmutableArray<BoundCatchBlock>.Empty, rewrittenFinally);
+                        return _F.Try((BoundBlock)finalizedRegion, ImmutableArray<BoundCatchBlock>.Empty, node.EndIsReachable, rewrittenFinally);
                     }
                 }
+
+                Debug.Assert(node.EndIsReachable is AsyncTryFinallyEndReachable.Reachable or AsyncTryFinallyEndReachable.Unreachable,
+                    $"{node.Syntax} cannot have a reachable status of Ignored. Make sure this was calculated during the flow analysis phase and propagated during LocalRewriting.");
 
                 // rewrite finalized region (try and catches) in the current frame
                 var frame = PushFrame(node);
@@ -197,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _F.Goto(finallyLabel),
                         PendBranches(frame, pendingBranchVar, finallyLabel)),
                     ImmutableArray.Create(catchAll),
+                    AsyncTryFinallyEndReachable.Ignored,
                     finallyLabel: finallyLabel);
 
                 BoundBlock syntheticFinallyBlock = _F.Block(
@@ -207,7 +217,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     UnpendException(pendingExceptionLocal),
                     UnpendBranches(
                         frame,
-                        pendingBranchVar));
+                        pendingBranchVar,
+                        endOfBlockIsReachable: node.EndIsReachable == AsyncTryFinallyEndReachable.Reachable));
 
                 BoundStatement syntheticFinally = syntheticFinallyBlock;
                 if (_F.CurrentFunction.IsAsync && _F.CurrentFunction.IsIterator)
@@ -295,7 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement UnpendBranches(
             AwaitFinallyFrame frame,
-            SynthesizedLocal pendingBranchVar)
+            SynthesizedLocal pendingBranchVar,
+            bool endOfBlockIsReachable)
         {
             var parent = frame.ParentOpt;
 
@@ -317,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            BoundStatement unconditionalReturn = null;
             if (frame.returnProxyLabel != null)
             {
                 BoundLocal pendingValue = null;
@@ -350,11 +363,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var caseStatement = _F.SwitchSection(i, unpendReturn);
-                cases.Add(caseStatement);
+                if (endOfBlockIsReachable)
+                {
+                    var caseStatement = _F.SwitchSection(i, unpendReturn);
+                    cases.Add(caseStatement);
+                }
+                else
+                {
+                    unconditionalReturn = unpendReturn;
+                }
             }
 
-            return _F.Switch(_F.Local(pendingBranchVar), cases.ToImmutableAndFree());
+            if (!endOfBlockIsReachable && unconditionalReturn is null && !_F.CurrentFunction.IsIterator)
+            {
+                // An example of this is a try block that unconditionally throws an exception.
+                // In this case, we just add `throw null;` to the end of the block to ensure that
+                // all possible cases are handled.
+                // We don't do this for iterators because their returns are handled within their own state
+                // machine, and adding this throw would simply cause an unconditional throw at the end of the finally,
+                // changing iterator behavior.
+                unconditionalReturn = _F.Throw(_F.Null(_F.SpecialType(SpecialType.System_Object)));
+            }
+
+            var @switch = _F.Switch(_F.Local(pendingBranchVar), cases.ToImmutableAndFree());
+            return unconditionalReturn is not null
+                ? _F.Block(@switch, unconditionalReturn)
+                : @switch;
         }
 
         public override BoundNode VisitGotoStatement(BoundGotoStatement node)
@@ -478,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             },
             (this, origAwaitCatchFrame));
 
-            BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
+            BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches, AsyncTryFinallyEndReachable.Ignored);
 
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
             if (currentAwaitCatchFrame != null)
@@ -746,6 +780,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = _currentAwaitFinallyFrame;
             _currentAwaitFinallyFrame = result.ParentOpt;
         }
+
+#if DEBUG
+        /// <summary>
+        /// Used for validation of BoundTryStatements only.
+        /// </summary>
+        internal static bool AwaitsInFinally(BoundTryStatement @try)
+        {
+            var analysis = new AwaitInFinallyAnalysis(@try);
+            return analysis.FinallyContainsAwaits(@try);
+        }
+#endif
 
         /// <summary>
         /// Analyzes method body for try blocks with awaits in finally blocks 

@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected virtual BoundStatement GenerateTopLevelTry(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks)
-            => F.Try(tryBlock, catchBlocks);
+            => F.Try(tryBlock, catchBlocks, AsyncTryFinallyEndReachable.Ignored);
 
         protected virtual BoundStatement GenerateSetResultCall()
         {

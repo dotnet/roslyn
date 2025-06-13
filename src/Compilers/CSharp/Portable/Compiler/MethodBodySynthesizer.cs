@@ -567,14 +567,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new BoundTryStatement(
                             syntax,
                             block,
-                            ImmutableArray<BoundCatchBlock>.Empty,
-                            new BoundBlock(
+                            catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
+                            finallyBlockOpt: new BoundBlock(
                                 syntax,
                                 ImmutableArray<LocalSymbol>.Empty,
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )
-                            { WasCompilerGenerated = true }
+                            { WasCompilerGenerated = true },
+                            AsyncTryFinallyEndReachable.Ignored
                         )
                         { WasCompilerGenerated = true }));
             }

@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ),
                 F.HiddenSequencePoint());
 
-            BoundStatement result = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
+            BoundStatement result = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler, node.EndIsReachable);
 
             if ((object)dispatchLabel != null)
             {

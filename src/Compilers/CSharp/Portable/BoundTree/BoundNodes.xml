@@ -40,6 +40,7 @@
   <ValueType Name="CollectionExpressionTypeKind"/>
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
+  <ValueType Name="AsyncTryFinallyEndReachable"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1119,6 +1120,7 @@
   <Node Name="BoundUsingLocalDeclarations" Base="BoundMultipleLocalDeclarationsBase">
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
+    <Field Name="EndIsReachable" Type="AsyncTryFinallyEndReachable" />
   </Node>
 
   <!-- 
@@ -1280,6 +1282,7 @@
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep?"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="Body" Type="BoundStatement"/>
+    <Field Name="EndIsReachable" Type="AsyncTryFinallyEndReachable" />
   </Node>
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
@@ -1296,6 +1299,7 @@
     <Field Name="Body" Type="BoundStatement"/>
     <Field Name="AwaitOpt" Type="BoundAwaitableInfo?"/>
     <Field Name="PatternDisposeInfoOpt" Type="MethodArgumentInfo?"/>
+    <Field Name="EndIsReachable" Type="AsyncTryFinallyEndReachable" />
   </Node>
 
   <Node Name="BoundFixedStatement" Base="BoundStatement">
@@ -1309,7 +1313,7 @@
     <Field Name="Body" Type="BoundStatement"/>
   </Node>
 
-  <Node Name="BoundTryStatement" Base="BoundStatement">
+  <Node Name="BoundTryStatement" Base="BoundStatement" HasValidate="true">
     <Field Name="TryBlock" Type="BoundBlock"/>
     <Field Name="CatchBlocks" Type="ImmutableArray&lt;BoundCatchBlock&gt;"/>
     <Field Name="FinallyBlockOpt" Type="BoundBlock?"/>
@@ -1349,6 +1353,8 @@
     -->
     
     <Field Name="PreferFaultHandler" Type="bool"/>
+
+    <Field Name="EndIsReachable" Type="AsyncTryFinallyEndReachable" />
   </Node>
 
   <Node Name="BoundCatchBlock" Base="BoundNode">

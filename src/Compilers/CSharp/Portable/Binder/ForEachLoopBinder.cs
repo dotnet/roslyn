@@ -455,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     deconstructStep,
                     awaitInfo,
                     body,
+                    AsyncTryFinallyEndReachable.Unknown,
                     this.BreakLabel,
                     this.ContinueLabel,
                     hasErrors);
@@ -596,6 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructStep,
                 awaitInfo,
                 body,
+                AsyncTryFinallyEndReachable.Unknown,
                 this.BreakLabel,
                 this.ContinueLabel,
                 hasErrors);
