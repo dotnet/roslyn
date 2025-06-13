@@ -26,7 +26,13 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProviderBase
 {
-    public override async Task<ProposalBase> AdjustProposalBeforeDisplayAsync(
+    public override Task<ProposalBase> AdjustProposalBeforeDisplayAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
+        => AdjustProposalAsync(proposal, providerName, cancellationToken);
+
+    public override Task<ProposalBase> AdjustProposalAfterAcceptAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
+        => AdjustProposalAsync(proposal, providerName, cancellationToken);
+
+    private async Task<ProposalBase> AdjustProposalAsync(
         ProposalBase proposal, string providerName, CancellationToken cancellationToken)
     {
         // Ensure we're only operating on one solution.  It makes the logic much simpler, as we don't have to
