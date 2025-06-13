@@ -103,6 +103,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.ImageCatalog" Version="18.0.1306-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.0.1299-preview.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Language" Version="18.0.231-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="18.0.231-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.0.12-preview" />
