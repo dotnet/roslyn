@@ -16,13 +16,16 @@ using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 [Trait(Traits.Feature, Traits.Features.SourceGenerators)]
-public sealed class CSharpSourceGenerators()
+public sealed class CSharpSourceGenerators(ITestOutputHelper testOutputHelper)
     : AbstractEditorTest(nameof(CSharpSourceGenerators), WellKnownProjectTemplates.ConsoleApplication)
 {
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+
     protected override string LanguageName => LanguageNames.CSharp;
 
     public override async Task InitializeAsync()

@@ -16,15 +16,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 /// </summary>
 internal readonly partial struct HashCodeAnalyzer
 {
+    private readonly Compilation _compilation;
     private readonly IMethodSymbol _objectGetHashCodeMethod;
     private readonly INamedTypeSymbol? _equalityComparerType;
 
     public readonly INamedTypeSymbol SystemHashCodeType;
 
     private HashCodeAnalyzer(
-        IMethodSymbol objectGetHashCodeMethod,
+        Compilation compilation, IMethodSymbol objectGetHashCodeMethod,
         INamedTypeSymbol? equalityComparerType, INamedTypeSymbol systemHashCodeType)
     {
+        _compilation = compilation;
         _objectGetHashCodeMethod = objectGetHashCodeMethod;
         _equalityComparerType = equalityComparerType;
         SystemHashCodeType = systemHashCodeType;
@@ -45,7 +47,7 @@ internal readonly partial struct HashCodeAnalyzer
         if (systemHashCodeType == null)
             return false;
 
-        analyzer = new HashCodeAnalyzer(objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
+        analyzer = new HashCodeAnalyzer(compilation, objectGetHashCodeMethod, equalityComparerType, systemHashCodeType);
         return true;
     }
 

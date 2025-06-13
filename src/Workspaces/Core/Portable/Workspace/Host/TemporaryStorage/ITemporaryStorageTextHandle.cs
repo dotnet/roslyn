@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface ITemporaryStorageTextHandle
 {
-    TemporaryStorageIdentifier Identifier { get; }
+    public TemporaryStorageIdentifier Identifier { get; }
 
     SourceText ReadFromTemporaryStorage(CancellationToken cancellationToken);
     Task<SourceText> ReadFromTemporaryStorageAsync(CancellationToken cancellationToken);

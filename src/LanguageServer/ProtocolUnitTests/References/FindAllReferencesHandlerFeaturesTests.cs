@@ -11,7 +11,6 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
-
 public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
