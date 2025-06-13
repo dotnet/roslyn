@@ -2,10 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
-Imports Microsoft.CodeAnalysis.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
@@ -46,6 +45,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                 AssertEx.Equal(expected, adjustedDocumentText.ToString())
             End Using
         End Function
+
+#Region "C#"
 
         Private Shared Async Function TestCSharp(code As String, expected As String) As Task
             Await Test(code, expected, LanguageNames.CSharp)
@@ -197,5 +198,143 @@ class C
     }
 }")
         End Function
+
+#End Region
+
+#Region "Visual Basic"
+
+        Private Shared Async Function TestVisualBasic(code As String, expected As String) As Task
+            Await Test(code, expected, LanguageNames.VisualBasic)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic1() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        [|Console.WriteLine(1)|]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_ExistingImportsAfter() As Task
+            Await TestVisualBasic("
+Imports Test
+
+class C
+{
+    sub M()
+        [|Console.WriteLine(1)|]
+    end sub
+end class", "
+Imports System
+Imports Test
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_ExistingImportsBefore() As Task
+            Await TestVisualBasic("
+Imports System
+
+class C
+    sub M()
+        [|Task.Yield()|]
+    end sub
+end class", "
+Imports System
+Imports System.Threading.Tasks
+
+class C
+    sub M()
+        Task.Yield()
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_PartiallyWritten() As Task
+            Await TestVisualBasic("
+class C
+    sub M()
+        Con[|sole.WriteLine(1)|]
+    end sub
+end class", "
+Imports System
+
+class C
+    sub M()
+        Console.WriteLine(1)
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_AddMultiple_Different() As Task
+            Await TestVisualBasic("
+Imports System.Collections.Generic
+
+class C
+    sub M()
+        [|Console.WriteLine(1)|]
+        if (true)
+        end if
+        [|Task.Yield()|]
+    end sub
+end class", "
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (true)
+        end if
+        Task.Yield()
+    end sub
+end class")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestVisualBasic_AddMultiple_Same() As Task
+            Await TestVisualBasic("
+Imports System.Collections.Generic
+
+class C
+    sub M()
+        [|Console.WriteLine(1)|]
+        if (true)
+        end if
+        [|Console.WriteLine()|]
+    end sub
+end class", "
+Imports System
+Imports System.Collections.Generic
+
+class C
+    sub M()
+        Console.WriteLine(1)
+        if (true)
+        end if
+        Console.WriteLine()
+    end sub
+end class")
+        End Function
+
+#End Region
     End Class
 End Namespace
