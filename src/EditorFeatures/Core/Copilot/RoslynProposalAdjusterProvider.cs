@@ -1,0 +1,100 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.ComponentModel.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Proposals;
+using Microsoft.VisualStudio.Utilities;
+
+namespace Microsoft.CodeAnalysis.Copilot;
+
+// The entire AdjusterProvider api is marked as obsolete since this is a preview API.  So we do the same here as well.
+[Obsolete("This is a preview api and subject to change")]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProviderBase
+{
+    public override async Task<ProposalBase> AdjustProposalBeforeDisplayAsync(
+        ProposalBase proposal, string providerName, CancellationToken cancellationToken)
+    {
+        // Ensure we're only operating on one solution.  It makes the logic much simpler, as we don't have to
+        // worry about edits that touch multiple solutions.
+        var solution = CopilotUtilities.TryGetAffectedSolution(proposal);
+        if (solution is null)
+            return proposal;
+
+        // We're potentially making multiple calls to oop here.  So keep a session alive to avoid
+        // resyncing the solution and recomputing compilations.
+        using var _1 = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
+        using var _2 = PooledObjects.ArrayBuilder<ProposedEdit>.GetInstance(out var finalEdits);
+
+        foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var snapshot = editGroup.Key;
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+            // Checked in TryGetAffectedSolution
+            Contract.ThrowIfNull(document);
+
+            using var _3 = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var textChanges);
+            foreach (var edit in editGroup)
+                textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
+
+            var proposedEdits = await AdjustProposalDisplayAsync(
+                document, textChanges.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
+
+            foreach (var proposedEdit in proposedEdits)
+            {
+                finalEdits.Add(new ProposedEdit(
+                    new(snapshot, proposedEdit.Span.ToSpan()),
+                    proposedEdit.NewText!));
+            }
+        }
+
+        if (finalEdits.Count == proposal.Edits.Count)
+            // No edits were added.  Don't touch anything.
+            return proposal;
+
+        return new Proposal(
+            proposal.Description,
+            finalEdits,
+            proposal.Caret,
+            proposal.CompletionState,
+            proposal.Flags,
+            proposal.CommitAction,
+            proposal.ProposalId,
+            proposal.AcceptText,
+            proposal.PreviewText,
+            proposal.NextText,
+            proposal.UndoDescription,
+            proposal.Scope);
+    }
+
+    private async Task<ImmutableArray<TextChange>> AdjustProposalDisplayAsync(
+        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
+    {
+        var proposalAdjusterService = document.GetRequiredService<IProposalAdjusterService>();
+        return proposalAdjusterService.AdjustProposalAsync(
+            document, textChanges, cancellationToken);
+    }
+}
+
+internal interface IRemoteProposalAdjusterService
+{
+    ImmutableArray<TextChange> AdjustProposalAsync(
+        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
+}
