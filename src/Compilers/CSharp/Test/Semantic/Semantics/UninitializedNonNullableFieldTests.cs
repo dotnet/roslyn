@@ -2126,16 +2126,19 @@ class C
                 // (5,20): warning CS0169: The field 'C._f' is never used
                 //     private object _f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("C._f").WithLocation(5, 20),
-                // (11,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
+                // (11,14): warning CS8618: Non-nullable field '_f' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     internal C(object o) { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(11, 14),
-                // (13,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
+                // (13,14): warning CS8618: Non-nullable field '_f' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     internal C(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(13, 14),
-                // (19,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
+                // (16,9): warning CS0162: Unreachable code detected
+                //         throw new NotImplementedException();
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "throw").WithLocation(16, 9),
+                // (19,14): warning CS8618: Non-nullable field '_f' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     internal C(int x)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(19, 14),
-                // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized. Consider declaring the field as nullable.
+                // (28,14): warning CS8618: Non-nullable field '_f' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     internal C(char c)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
         }
