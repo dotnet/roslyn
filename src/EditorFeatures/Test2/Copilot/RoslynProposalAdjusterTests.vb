@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
+Imports Microsoft.CodeAnalysis.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
@@ -18,20 +19,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
                     EditorTestWorkspace.CreateCSharp(code, composition:=s_composition),
                     EditorTestWorkspace.CreateVisualBasic(code, composition:=s_composition))
                 Dim documentId = workspace.Documents.First().Id
-                Dim proposalSpan = workspace.Documents.First().SelectedSpans.Single()
+                Dim proposalSpans = workspace.Documents.First().SelectedSpans
 
                 Dim sourceText = Await workspace.CurrentSolution.GetDocument(documentId).GetTextAsync()
-                Dim addedText = sourceText.ToString(proposalSpan)
 
                 ' Get the original document without the proposal edit in it.
                 Dim originalDocument = workspace.CurrentSolution.GetDocument(documentId).WithText(
-                    sourceText.WithChanges(New TextChange(proposalSpan, newText:="")))
+                    sourceText.WithChanges(proposalSpans.Select(Function(s) New TextChange(s, newText:=""))))
 
-                ' workspace.TryApplyChanges(originalDocument.Project.Solution)
+                Dim changes = New List(Of TextChange)()
+                Dim delta = 0
+                For Each selectionSpan In proposalSpans
+                    changes.Add(New TextChange(
+                        New TextSpan(selectionSpan.Start + delta, 0), newText:=sourceText.ToString(selectionSpan)))
+
+                    delta -= selectionSpan.Length
+                Next
 
                 Dim service = workspace.Services.GetRequiredService(Of ICopilotProposalAdjusterService)
                 Dim adjustedChanges = Await service.TryAdjustProposalAsync(
-                    originalDocument, ImmutableArray.Create(New TextChange(New TextSpan(proposalSpan.Start, 0), addedText)), CancellationToken.None)
+                    originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), CancellationToken.None)
 
                 Dim originalDocumentText = Await originalDocument.GetTextAsync()
                 Dim adjustedDocumentText = originalDocumentText.WithChanges(adjustedChanges)
@@ -130,6 +137,63 @@ class C
     void M()
     {
         Console.WriteLine(1);
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_AddMultiple_Different() As Task
+            Await TestCSharp("
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+        if (true) { }
+        [|Task.Yield();|]
+    }
+}", "
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+        if (true) { }
+        Task.Yield();
+    }
+}")
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCSharp_AddMultiple_Same() As Task
+            Await TestCSharp("
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        [|Console.WriteLine(1);|]
+        if (true) { }
+        [|Console.WriteLine();|]
+    }
+}", "
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        Console.WriteLine(1);
+        if (true) { }
+        Console.WriteLine();
     }
 }")
         End Function
