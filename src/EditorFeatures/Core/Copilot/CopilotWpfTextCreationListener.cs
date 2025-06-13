@@ -107,7 +107,7 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         const string featureId = "Completion";
         var proposalId = proposal.ProposalId;
 
-        var solution = CopilotUtilities.TryGetAffectedSolution(proposal);
+        var solution = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
         if (solution is null)
             return;
 
