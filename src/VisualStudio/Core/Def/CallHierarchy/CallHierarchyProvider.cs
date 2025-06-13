@@ -44,7 +44,7 @@ internal sealed partial class CallHierarchyProvider
 
             return field;
         }
-        set { field = value; }
+        set { field = value!; }
     }
 
     [ImportingConstructor]
