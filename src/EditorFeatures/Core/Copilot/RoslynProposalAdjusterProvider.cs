@@ -76,8 +76,8 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
     private async Task<ImmutableArray<TextChange>> AdjustProposalDisplayAsync(
         Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
     {
-        var proposalAdjusterService = document.GetRequiredService<IProposalAdjusterService>();
-        return proposalAdjusterService.AdjustProposalAsync(
-            document, textChanges, cancellationToken);
+        var proposalAdjusterService = document.Project.Solution.Services.GetRequiredService<ICopilotProposalAdjusterService>();
+        return await proposalAdjusterService.AdjustProposalAsync(
+            document, textChanges, cancellationToken).ConfigureAwait(false);
     }
 }
