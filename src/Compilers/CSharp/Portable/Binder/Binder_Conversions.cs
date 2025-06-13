@@ -1439,13 +1439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(!resolution.OverloadResolutionResult.Succeeded);
 
-                            resolution.OverloadResolutionResult.ReportDiagnostics(
-                                binder: addMethodBinder, location: GetLocationForOverloadResolutionDiagnostic(syntax, expression), nodeOpt: syntax, diagnostics: diagnostics, name: WellKnownMemberNames.CollectionInitializerAddMethodName,
-                                receiver: resolution.MethodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: resolution.MethodGroup.Methods.ToImmutable(),
-                                typeContainingConstructor: null, delegateTypeBeingInvoked: null, queryClause: null);
-
-                            addMethods = [];
-                            result = false;
+                            result = bindInvocationExpressionContinued(
+                                addMethodBinder, syntax, expression, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
+                                resolution.MethodGroup, diagnostics: diagnostics, out var addMethod);
+                            addMethods = addMethod is null ? [] : [addMethod];
                         }
                     }
                 }
@@ -1560,6 +1557,84 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return resultBuilder.ToImmutableAndFree();
+            }
+
+            // This is what BindInvocationExpressionContinued is doing in terms of reporting diagnostics and detecting a failure
+            static bool bindInvocationExpressionContinued(
+                Binder addMethodBinder,
+                SyntaxNode node,
+                SyntaxNode expression,
+                OverloadResolutionResult<MethodSymbol> result,
+                AnalyzedArguments analyzedArguments,
+                MethodGroup methodGroup,
+                BindingDiagnosticBag diagnostics,
+                out MethodSymbol? addMethod)
+            {
+                Debug.Assert(node != null);
+                Debug.Assert(methodGroup != null);
+                Debug.Assert(methodGroup.Error == null);
+                Debug.Assert(methodGroup.Methods.Count > 0);
+
+                var invokedAsExtensionMethod = methodGroup.IsExtensionMethodGroup;
+
+                // We have already determined that we are not in a situation where we can successfully do
+                // a dynamic binding. We might be in one of the following situations:
+                //
+                // * There were dynamic arguments but overload resolution still found zero applicable candidates.
+                // * There were no dynamic arguments and overload resolution found zero applicable candidates.
+                // * There were no dynamic arguments and overload resolution found multiple applicable candidates
+                //   without being able to find the best one.
+                //
+                // In those three situations we might give an additional error.
+
+                if (!result.Succeeded)
+                {
+                    // Since there were no argument errors to report, we report an error on the invocation itself.
+                    result.ReportDiagnostics(
+                        binder: addMethodBinder, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: WellKnownMemberNames.CollectionInitializerAddMethodName,
+                        receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
+                        typeContainingConstructor: null, delegateTypeBeingInvoked: null, queryClause: null);
+
+                    addMethod = null;
+                    return false;
+                }
+
+                // Otherwise, there were no dynamic arguments and overload resolution found a unique best candidate. 
+                // We still have to determine if it passes final validation.
+
+                var methodResult = result.ValidResult;
+                var method = methodResult.Member;
+
+                // Tracked by https://github.com/dotnet/roslyn/issues/76130: It looks like we added a bunch of code in BindInvocationExpressionContinued at this position
+                //            that specifically deals with new extension methods. It adjusts analyzedArguments, etc.
+                //            It is very likely we need to do the same here. 
+
+                // It is possible that overload resolution succeeded, but we have chosen an
+                // instance method and we're in a static method. A careful reading of the
+                // overload resolution spec shows that the "final validation" stage allows an
+                // "implicit this" on any method call, not just method calls from inside
+                // instance methods. Therefore we must detect this scenario here, rather than in
+                // overload resolution.
+
+                var receiver = methodGroup.Receiver;
+
+                // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
+                // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
+                // Note: final validation wants the receiver that corresponds to the source representation
+                // (i.e. the first argument, if invokedAsExtensionMethod).
+                var gotError = addMethodBinder.MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
+
+                addMethodBinder.ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+                ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
+                ReportDiagnosticsIfDisallowedExtension(diagnostics, method, node);
+
+                // No use site errors, but there could be use site warnings.
+                // If there are any use site warnings, they have already been reported by overload resolution.
+                Debug.Assert(!method.HasUseSiteError, "Shouldn't have reached this point if there were use site errors.");
+                Debug.Assert(!method.IsRuntimeFinalizer());
+
+                addMethod = method;
+                return !gotError;
             }
         }
 
