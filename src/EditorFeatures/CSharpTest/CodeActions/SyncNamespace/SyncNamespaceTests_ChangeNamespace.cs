@@ -1449,6 +1449,72 @@ public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
     }
 
     [Fact]
+    public async Task ChangeFromGlobalNamespace_DoNotSimplifyUnrelatedCode()
+    {
+        var defaultNamespace = "A";
+        var (folder, filePath) = CreateDocumentFilePath(["B", "C"], "File1.cs");
+        var documentPath2 = CreateDocumentFilePath([], "File2.cs");
+        var code =
+            $$"""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" FilePath="{{ProjectFilePath}}" RootNamespace="{{defaultNamespace}}" CommonReferences="true">
+                    <Document Folders="{{folder}}" FilePath="{{filePath}}"> 
+            class [||]Class1 
+            { 
+                private A.Class2 c2;
+                private A.B.Class3 c3;
+                private A.B.C.Class4 c4;
+
+                void M1()
+                {
+                    int i = 0;
+                    // This cast should not be touched.
+                    int j = (int)i;
+                }
+            }</Document>
+
+            <Document Folders="{{documentPath2.folder}}" FilePath="{{documentPath2.filePath}}"> 
+            namespace A
+            {
+                class Class2{}
+
+                namespace B
+                {
+                    class Class3 {}
+
+                    namespace C
+                    {
+                        class Class4 {}    
+                    }
+                }
+            }</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var expectedSourceOriginal =
+            """
+            namespace A.B.C
+            {
+                class Class1
+                {
+                    private Class2 c2;
+                    private Class3 c3;
+                    private Class4 c4;
+            
+                    void M1()
+                    {
+                        int i = 0;
+                        // This cast should not be touched.
+                        int j = (int)i;
+                    }
+                }
+            }
+            """;
+        await TestChangeNamespaceAsync(code, expectedSourceOriginal);
+    }
+
+    [Fact]
     public async Task ChangeFromGlobalNamespace_ChangeUsingsInMultipleContainers()
     {
         var defaultNamespace = "A";
