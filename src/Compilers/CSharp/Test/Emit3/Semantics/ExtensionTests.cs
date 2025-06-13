@@ -13869,7 +13869,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -13912,7 +13912,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -16642,7 +16642,7 @@ public class C
             Diagnostic(ErrorCode.ERR_BadDynamicQuery, "where i is not null").WithLocation(2, 9));
     }
 
-    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/76130 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
+    [Fact(Skip = "Tracked by https://github.com/dotnet/roslyn/issues/78968 : WasPropertyBackingFieldAccessChecked asserts that we're setting twice")]
     public void ResolveAll_Query_Cast()
     {
         var source = """
@@ -19165,7 +19165,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -19211,7 +19211,7 @@ static class E2
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics();
 
@@ -19254,7 +19254,7 @@ static class E
     }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : missing ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver
         var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
         comp.VerifyEmitDiagnostics(
             //// (5,9): error CS9106: Identifier 'Color' is ambiguous between type 'Color' and parameter 'Color Color' in this context.
@@ -33375,7 +33375,7 @@ static class E
 
     public partial class RegionAnalysisTests : FlowTestBase
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider removing `this` from the region analysis tests
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : consider removing `this` from the region analysis tests
         [Fact]
         public void RegionAnalysis_01()
         {
@@ -36702,7 +36702,7 @@ static class E
 
         Assert.Equal("<>E__0", comp.GetTypeByMetadataName("E").GetTypeMembers().Single().ExtensionName);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we should find the unspeakable nested type
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : we should find the unspeakable nested type
         Assert.Null(comp.GetTypeByMetadataName("E+<>E__0"));
     }
 
@@ -39654,7 +39654,7 @@ class C
     public object? P => null;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : we shouldn't care about static/instance mismatch in nameof
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should disallow usage of extension members in nameof
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
         comp.VerifyEmitDiagnostics(
             // (5,5): warning CS8602: Dereference of a possibly null reference.

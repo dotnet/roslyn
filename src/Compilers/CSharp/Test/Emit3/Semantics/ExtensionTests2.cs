@@ -597,7 +597,7 @@ public static class E
     public static void M2<T>(this T t) { System.Console.Write("method2 "); }
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : should work
+        // Tracked by https://github.com/dotnet/roslyn/issues/78968 : should work
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
             // (4,12): error CS1061: '<anonymous type: string Name, int Age>' does not contain a definition for 'P' and no accessible extension method 'P' accepting a first argument of type '<anonymous type: string Name, int Age>' could be found (are you missing a using directive or an assembly reference?)
