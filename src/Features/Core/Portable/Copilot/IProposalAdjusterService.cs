@@ -46,7 +46,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
                 document.Project,
                 (service, checksum, cancellationToken) => service.AdjustProposalAsync(checksum, document.Id, textChanges, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
-            return result.HasValue ? result.Value : [];
+            return result.HasValue ? result.Value : textChanges;
         }
         else
         {
