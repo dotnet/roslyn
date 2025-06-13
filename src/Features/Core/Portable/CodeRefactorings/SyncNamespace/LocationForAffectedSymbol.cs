@@ -6,20 +6,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.ChangeNamespace;
 
-internal abstract partial class AbstractChangeNamespaceService<
-    TCompilationUnitSyntax,
-    TMemberDeclarationSyntax,
-    TNamespaceDeclarationSyntax,
-    TNameSyntax,
-    TSimpleNameSyntax,
-    TCrefSyntax> where TCompilationUnitSyntax : SyntaxNode
-    where TMemberDeclarationSyntax : SyntaxNode
-    where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
-    where TNameSyntax : SyntaxNode
-    where TSimpleNameSyntax : TNameSyntax
-    where TCrefSyntax : SyntaxNode
+internal abstract partial class AbstractChangeNamespaceService
 {
-    private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
+    protected readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
     {
         public ReferenceLocation ReferenceLocation { get; } = location;
 
