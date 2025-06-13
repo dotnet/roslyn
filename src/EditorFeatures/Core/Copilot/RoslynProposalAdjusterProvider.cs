@@ -69,19 +69,8 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
             // No edits were added.  Don't touch anything.
             return proposal;
 
-        return new Proposal(
-            proposal.Description,
-            finalEdits,
-            proposal.Caret,
-            proposal.CompletionState,
-            proposal.Flags,
-            proposal.CommitAction,
-            proposal.ProposalId,
-            proposal.AcceptText,
-            proposal.PreviewText,
-            proposal.NextText,
-            proposal.UndoDescription,
-            proposal.Scope);
+        var newProposal = Proposal.TryCreateProposal(proposal, finalEdits);
+        return newProposal ?? proposal;
     }
 
     private async Task<ImmutableArray<TextChange>> AdjustProposalDisplayAsync(
@@ -91,10 +80,4 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
         return proposalAdjusterService.AdjustProposalAsync(
             document, textChanges, cancellationToken);
     }
-}
-
-internal interface IRemoteProposalAdjusterService
-{
-    ImmutableArray<TextChange> AdjustProposalAsync(
-        Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> edits, CancellationToken cancellationToken);
 }
