@@ -2417,7 +2417,7 @@ class Driver
             CompileAndVerify(source, expected);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         public void SpillArglist()
         {
             var source = @"
@@ -2474,12 +2474,12 @@ class Driver
         Console.WriteLine(Result);
     }
 }";
-            var expected = @"
+            var expected = ExecutionConditionUtil.IsDesktop ? @"
 1
 2
 0
-";
-            CompileAndVerify(source, expectedOutput: expected);
+" : null;
+            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: expected, verify: Verification.FailsILVerify);
         }
 
         [Fact]

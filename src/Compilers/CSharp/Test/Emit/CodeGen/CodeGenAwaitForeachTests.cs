@@ -3300,7 +3300,7 @@ public class C
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Got(2) NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithPattern_WithUnsealed_WithIAsyncDisposable()
         {
             string source = @"
@@ -5066,7 +5066,7 @@ class C
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithInterfaceImplementingPattern()
         {
             string source = @"
@@ -5289,7 +5289,7 @@ class C
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void TestWithInterfaceImplementingPattern_ChildImplementsDisposeAsync()
         {
             string source = @"
