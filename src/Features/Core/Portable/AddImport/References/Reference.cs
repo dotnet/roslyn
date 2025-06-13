@@ -98,10 +98,10 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         }
 
         public abstract Task<AddImportFixData> TryGetFixDataAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken);
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
 
         protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             // Within an import, we're only adding a package/nuget reference (and we're not going to add another
             // using/import as we're already in one).  So no need for text changes.
@@ -116,8 +116,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             var newDocument = await provider.AddImportAsync(
                 node, SearchResult.NameParts, document, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
 
-            var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                newDocument, options, cancellationToken).ConfigureAwait(false);
+            var cleanedDocument = cleanupDocument
+                ? await CodeAction.CleanupDocumentAsync(newDocument, options, cancellationToken).ConfigureAwait(false)
+                : newDocument;
 
             var textChanges = await cleanedDocument.GetTextChangesAsync(
                 originalDocument, cancellationToken).ConfigureAwait(false);
