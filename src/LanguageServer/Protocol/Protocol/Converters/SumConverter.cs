@@ -13,7 +13,6 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
 
 namespace Roslyn.LanguageServer.Protocol;
-
 internal sealed class SumConverter : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert)

@@ -9,5 +9,5 @@ internal interface IInlineRenameColorUpdater
     /// <summary>
     /// Implemented by a host to set the properties on <see cref="InlineRenameColors"/>.
     /// </summary>
-    void UpdateColors();
+    public void UpdateColors();
 }

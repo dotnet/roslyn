@@ -150,8 +150,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             _nonFrozenComputationCancellationSeries = new(_disposalTokenSource.Token);
             _tagSpanSetPool = new ObjectPool<HashSet<TagSpan<TTag>>>(() => new HashSet<TagSpan<TTag>>(this), trimOnFree: false);
 
-            Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
-
             // PERF: Use AsyncBatchingWorkQueue<_, VoidResult> instead of AsyncBatchingWorkQueue<_> because the latter
             // has an async state machine that rethrows a very common cancellation exception.
             _eventChangeQueue = new AsyncBatchingWorkQueue<TagSourceQueueItem, VoidResult>(
