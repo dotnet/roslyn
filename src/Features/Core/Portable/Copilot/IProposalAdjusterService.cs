@@ -97,7 +97,7 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
         var withImportsDocument = await missingImportsService.AddMissingImportsAsync(
             forkedDocument, totalNewSpan, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
-        var allChanges = await withImportsDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
+        var allChanges = await withImportsDocument.GetTextChangesAsync(forkedDocument, cancellationToken).ConfigureAwait(false);
         var addImportChanges = allChanges.AsImmutableOrEmpty();
 
         // If there are no add-import changes, then we can just return the original changes.
