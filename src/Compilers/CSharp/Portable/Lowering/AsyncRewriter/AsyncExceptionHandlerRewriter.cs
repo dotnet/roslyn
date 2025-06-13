@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement UnpendException(LocalSymbol pendingExceptionLocal)
         {
             // create a temp. 
-            // pendingExceptionLocal will certainly be captured, no need to access it over and over.
+            // pendingExceptionLocal will certainly be captured to the async state machine, no need to access it over and over.
             LocalSymbol obj = _F.SynthesizedLocal(_F.SpecialType(SpecialType.System_Object));
             var objInit = _F.Assignment(_F.Local(obj), _F.Local(pendingExceptionLocal));
 
