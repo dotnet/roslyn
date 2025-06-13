@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Notification;
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Notification;
 
 internal partial class AbstractGlobalOperationNotificationService
 {

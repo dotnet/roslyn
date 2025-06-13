@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Fakes;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
@@ -57,7 +56,6 @@ public static class EditorTestCompositions
             typeof(TestObscuringTipManager));         // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569
 
     public static readonly TestComposition EditorFeatures = FeaturesTestCompositions.Features
-        .AddParts(typeof(TestGlobalOperationNotificationService))
         .Add(Editor)
         .AddAssemblies(
             typeof(TextEditorResources).Assembly,
