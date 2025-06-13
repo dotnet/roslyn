@@ -94,8 +94,12 @@ internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposal
     {
         var missingImportsService = originalDocument.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 
+        // Add the missing imports, but do not clean up the document.  We don't want the cleanup phase making edits that
+        // may interfere with the changes copilot is making.  For example, in VB this may cause us to try to case correct
+        // things.  This can conflict with the other edits, and also cause a more confusing experience for the user.  We
+        // really just want to add the imports and let copilot handle anything else.
         var withImportsDocument = await missingImportsService.AddMissingImportsAsync(
-            forkedDocument, totalNewSpan, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
+            forkedDocument, totalNewSpan, cleanupDocument: false, CodeAnalysisProgress.None, cancellationToken).ConfigureAwait(false);
 
         var allChanges = await withImportsDocument.GetTextChangesAsync(forkedDocument, cancellationToken).ConfigureAwait(false);
         var addImportChanges = allChanges.AsImmutableOrEmpty();

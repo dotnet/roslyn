@@ -2,21 +2,24 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
     <UseExportProvider>
     Public NotInheritable Class RoslynProposalAdjusterTests
         Private Shared ReadOnly s_composition As TestComposition = FeaturesTestCompositions.Features
-        'Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures
 
-        Private Shared Async Function Test(code As String, expected As String, language As String) As Task
+        Private Shared Async Function Test(
+                code As String,
+                expected As String,
+                language As String,
+                Optional compilationOptions As CompilationOptions = Nothing) As Task
             Using workspace = If(language Is LanguageNames.CSharp,
-                    EditorTestWorkspace.CreateCSharp(code, composition:=s_composition),
-                    EditorTestWorkspace.CreateVisualBasic(code, composition:=s_composition))
+                    EditorTestWorkspace.CreateCSharp(code, compilationOptions:=compilationOptions, composition:=s_composition),
+                    EditorTestWorkspace.CreateVisualBasic(code, compilationOptions:=compilationOptions, composition:=s_composition))
                 Dim documentId = workspace.Documents.First().Id
                 Dim proposalSpans = workspace.Documents.First().SelectedSpans
 
@@ -204,7 +207,7 @@ class C
 #Region "Visual Basic"
 
         Private Shared Async Function TestVisualBasic(code As String, expected As String) As Task
-            Await Test(code, expected, LanguageNames.VisualBasic)
+            Await Test(code, expected, LanguageNames.VisualBasic, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication))
         End Function
 
         <WpfFact>
