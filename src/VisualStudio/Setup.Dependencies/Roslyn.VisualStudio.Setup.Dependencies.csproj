@@ -48,7 +48,6 @@
     <PackageReference Include="System.Composition.Runtime" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     <PackageReference Include="System.Composition.TypedParts" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" VersionOverride="$(SystemCompositionVersion)" />
     
-    <PackageReference Include="System.Drawing.Common" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.Diagnostics.EventLog" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="System.IO.Hashing" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
