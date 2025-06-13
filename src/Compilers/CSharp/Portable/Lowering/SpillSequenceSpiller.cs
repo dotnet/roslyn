@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.Local:
                         var local = (BoundLocal)expression;
-                        if (local.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.Spill || refKind != RefKind.None)
+                        if (local.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.Spill || refKind != RefKind.None || local.Type.IsReferenceType)
                         {
                             return local;
                         }
