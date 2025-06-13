@@ -34,8 +34,7 @@ using static SyntaxFactory;
 internal sealed class CSharpChangeNamespaceService() :
     AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
 {
-    protected override AbstractReducer GetNameReducer()
-        => new CSharpNameReducer();
+    public override AbstractReducer NameReducer { get; } = new CSharpNameReducer();
 
     protected override async Task<ImmutableArray<(DocumentId, SyntaxNode)>> GetValidContainersFromAllLinkedDocumentsAsync(
         Document document,

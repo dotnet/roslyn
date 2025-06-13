@@ -23,9 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetNameReducer() As AbstractReducer
-            Return New VisualBasicNameReducer()
-        End Function
+        Public Overrides ReadOnly Property NameReducer As AbstractReducer = New VisualBasicNameReducer()
 
         Public Overrides Function TryGetReplacementReferenceSyntax(reference As SyntaxNode, newNamespaceParts As ImmutableArray(Of String), syntaxFacts As ISyntaxFactsService, ByRef old As SyntaxNode, ByRef [new] As SyntaxNode) As Boolean
             Dim nameRef = TryCast(reference, SimpleNameSyntax)
