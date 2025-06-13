@@ -11,5 +11,5 @@ internal interface ITelemetryLog
     /// <summary>
     /// Adds a telemetry event with values obtained from context message <paramref name="logMessage"/>
     /// </summary>
-    void Log(KeyValueLogMessage logMessage);
+    public void Log(KeyValueLogMessage logMessage);
 }

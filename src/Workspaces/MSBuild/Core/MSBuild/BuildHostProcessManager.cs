@@ -398,7 +398,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
 
-            _process.ErrorDataReceived += Process_ErrorDataReceived;
+            _process.OutputDataReceived += (_, e) => LogProcessOutput(e, "stdout");
+            _process.ErrorDataReceived += (_, e) => LogProcessOutput(e, "stderr");
 
             var pipeClient = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
             pipeClient.Connect(TimeOutMsNewProcess);
@@ -412,7 +413,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             _rpcClient.Disconnected += Process_Exited;
             BuildHost = new RemoteBuildHost(_rpcClient);
 
-            // Call this last so our type is fully constructed before we start firing events
+            // Close the standard input stream so that if any build tasks were to try reading from the console, they won't deadlock waiting for input.
+            _process.StandardInput.Close();
+
+            // Call Begin*ReadLine methods last so so our type is fully constructed before we start firing events.
+            _process.BeginOutputReadLine();
             _process.BeginErrorReadLine();
         }
 
@@ -421,14 +426,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             Disconnected?.Invoke(this, EventArgs.Empty);
         }
 
-        private void Process_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        private void LogProcessOutput(DataReceivedEventArgs e, string outputName)
         {
             if (e.Data is not null)
             {
                 lock (_processLogMessages)
                     _processLogMessages.AppendLine(e.Data);
 
-                _logger?.LogTrace($"Message from Process: {e.Data}");
+                _logger?.LogTrace($"Message on {outputName}: {e.Data}");
             }
         }
 

@@ -29,9 +29,7 @@ namespace Roslyn.Test.Utilities;
 /// </summary>
 public sealed class WpfTestRunner : XunitTestRunner
 {
-#pragma warning disable IDE0052 // Remove unread private members.  Can be used for debugging purposes.
     private static string s_wpfFactRequirementReason;
-#pragma warning restore IDE0052 // Remove unread private members
 
     public WpfTestSharedData SharedData { get; }
 

@@ -1873,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             reportMismatchInParameterType,
                             (implementingType, isExplicit));
 
-                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
+                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod, implementingMethod.TryGetThisParameter(out var thisParameter) ? thisParameter : null))
                         {
                             SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                                 implementedMethod,

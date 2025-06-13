@@ -1,13 +1,13 @@
 {
   "sdk": {
-    "version": "10.0.100-preview.5.25277.114",
+    "version": "9.0.106",
     "allowPrerelease": false,
     "rollForward": "patch"
   },
   "tools": {
-    "dotnet": "10.0.100-preview.5.25277.114",
+    "dotnet": "9.0.106",
     "vs": {
-      "version": "17.14.0"
+      "version": "17.8.0"
     },
     "vswhere": "3.1.7"
   },

@@ -946,6 +946,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.ExplicitKeyword:
                 case SyntaxKind.ImplicitKeyword:
                     return ParseConversionOperatorMemberCref();
+                case SyntaxKind.IdentifierToken when CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword:
+                    return ParsePossibleExtensionMemberCref();
                 default:
                     return ParseNameMemberCref();
             }
@@ -974,6 +976,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return SyntaxFactory.IndexerMemberCref(thisKeyword, parameters);
         }
+
+#nullable enable
+        /// <summary>
+        /// If we have `extension` (with optional type arguments) and parameter list and a dot, then we have an extension member cref.
+        /// Otherwise, we fall back to producing the same result as <see cref="ParseNameMemberCref"/>
+        /// </summary>
+        private MemberCrefSyntax ParsePossibleExtensionMemberCref()
+        {
+            Debug.Assert(CurrentToken.ContextualKind == SyntaxKind.ExtensionKeyword);
+
+            SyntaxToken identifierToken = EatToken();
+            TypeArgumentListSyntax? typeArguments = (CurrentToken.Kind == SyntaxKind.LessThanToken) ? ParseTypeArguments(typeArgumentsMustBeIdentifiers: true) : null;
+            CrefParameterListSyntax? parameters = (CurrentToken.Kind == SyntaxKind.OpenParenToken) ? ParseCrefParameterList() : null;
+
+            if (parameters is null || CurrentToken.Kind != SyntaxKind.DotToken)
+            {
+                SimpleNameSyntax name = typeArguments is not null
+                    ? SyntaxFactory.GenericName(identifierToken, typeArguments)
+                    : SyntaxFactory.IdentifierName(identifierToken);
+
+                return SyntaxFactory.NameMemberCref(name, parameters);
+            }
+
+            SyntaxToken dotToken = EatToken(SyntaxKind.DotToken);
+            MemberCrefSyntax member = ParseMemberCref();
+            if (member is ExtensionMemberCrefSyntax)
+            {
+                member = AddErrorAsWarning(member, ErrorCode.ERR_MisplacedExtension);
+            }
+
+            return SyntaxFactory.ExtensionMemberCref(ConvertToKeyword(identifierToken), typeArguments, parameters, dotToken, member);
+        }
+#nullable disable
 
         /// <summary>
         /// Parse an overloadable operator, with optional parameters.
@@ -1323,6 +1358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return SyntaxFactory.IdentifierName(identifierToken);
             }
 
+            return SyntaxFactory.GenericName(identifierToken, ParseTypeArguments(typeArgumentsMustBeIdentifiers));
+        }
+
+        private TypeArgumentListSyntax ParseTypeArguments(bool typeArgumentsMustBeIdentifiers)
+        {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.LessThanToken);
             var open = EatToken();
 
             var list = _pool.AllocateSeparated<TypeSyntax>();
@@ -1358,7 +1399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 open = CheckFeatureAvailability(open, MessageID.IDS_FeatureGenerics, forceWarning: true);
 
-                return SyntaxFactory.GenericName(identifierToken, SyntaxFactory.TypeArgumentList(open, list, close));
+                return SyntaxFactory.TypeArgumentList(open, list, close);
             }
             finally
             {

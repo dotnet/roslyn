@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(info.Kind);
-                }
+                };
             }
 
             info.Text = TextWindow.GetText(intern: true);

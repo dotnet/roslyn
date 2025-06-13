@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.Services.WebApi;
 using Xunit;
 
 namespace RunTests;
-
 internal class TestHistoryManager
 {
     /// <summary>

@@ -162,7 +162,7 @@ public partial class AbstractLanguageServerClientTests
             {
                 var logger = _loggerFactory.CreateLogger($"LSP {method}");
 
-                return (type, message) =>
+                return (int type, string message) =>
                 {
                     var logLevel = (MessageType)type switch
                     {
