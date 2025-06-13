@@ -59,7 +59,7 @@ internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, [NotNullWhen(returnValue: true)] out SyntaxNode? old, [NotNullWhen(returnValue: true)] out SyntaxNode? @new);
 }
 
-internal abstract class AbstractChangeNamespaceService<
+internal abstract partial class AbstractChangeNamespaceService<
     TCompilationUnitSyntax,
     TMemberDeclarationSyntax,
     TNamespaceDeclarationSyntax,
@@ -503,15 +503,6 @@ internal abstract class AbstractChangeNamespaceService<
         return (solutionWithFixedReferences, refLocationGroups.SelectAsArray(g => g.Key));
     }
 
-    private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
-    {
-        public ReferenceLocation ReferenceLocation { get; } = location;
-
-        public bool IsReferenceToExtensionMethod { get; } = isReferenceToExtensionMethod;
-
-        public Document Document => ReferenceLocation.Document;
-    }
-
     private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbolAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
@@ -699,8 +690,8 @@ internal abstract class AbstractChangeNamespaceService<
             cancellationToken).ConfigureAwait(false);
 
         // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-        var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken)
-            .ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(
+            documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
         return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
     }
