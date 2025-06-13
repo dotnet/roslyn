@@ -26413,7 +26413,7 @@ static class Extensions
 ";
         var comp = CreateCompilation(src);
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : We do not allow complex forms of IndexerName attribute due to a possible binding cycle
+        // Tracked by https://github.com/dotnet/roslyn/issues/78829 : indexers, We do not allow complex forms of IndexerName attribute due to a possible binding cycle
         comp.VerifyEmitDiagnostics(
             // (7,54): error CS8078: An expression is too long or complex to compile
             //         [System.Runtime.CompilerServices.IndexerName(Str)]
