@@ -19,7 +19,7 @@ public class ExtensionsParsingTests : ParsingTests
     [Fact]
     public void LangVer13()
     {
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : consider giving a LangVer error to trigger UpgradeProject
+        // Tracked by https://github.com/dotnet/roslyn/issues/78961 : consider giving a LangVer error to trigger UpgradeProject
         UsingTree("""
 class C
 {
