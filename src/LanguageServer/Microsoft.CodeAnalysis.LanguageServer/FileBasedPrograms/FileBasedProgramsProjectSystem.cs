@@ -132,7 +132,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string documentPath, CancellationToken cancellationToken)
     {
-        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, cancellationToken);
+        var content = await _projectXmlProvider.GetVirtualProjectContentAsync(documentPath, _logger, cancellationToken);
         if (content is not var (virtualProjectContent, diagnostics))
         {
             // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
