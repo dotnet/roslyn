@@ -8,13 +8,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Features;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -23,6 +23,24 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     /// </summary>
     internal static class RazorCSharpFormattingInteractionService
     {
+        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
+        public static Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
+            Document document,
+            char typedChar,
+            int position,
+            RazorIndentationOptions indentationOptions,
+            RazorAutoFormattingOptions autoFormattingOptions,
+            FormattingOptions.IndentStyle indentStyle,
+            CancellationToken cancellationToken)
+            => GetFormattingChangesAsync(
+                document,
+                typedChar,
+                position,
+                indentationOptions,
+                autoFormattingOptions,
+                indentStyle,
+                csharpSyntaxFormattingOptionsOverride: null,
+                cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
@@ -36,6 +54,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             RazorIndentationOptions indentationOptions,
             RazorAutoFormattingOptions autoFormattingOptions,
             FormattingOptions.IndentStyle indentStyle,
+            RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
@@ -44,10 +63,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 
             if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, typedChar, position, cancellationToken))
             {
-                return ImmutableArray<TextChange>.Empty;
+                return [];
             }
 
-            var formattingOptions = GetFormattingOptions(document.Project.Solution.Services, indentationOptions);
+            var formattingOptions = GetFormattingOptions(document.Project.Solution.Services, indentationOptions, csharpSyntaxFormattingOptionsOverride);
             var roslynIndentationOptions = new IndentationOptions(formattingOptions)
             {
                 AutoFormattingOptions = autoFormattingOptions.UnderlyingObject,
@@ -57,33 +76,63 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             return formattingService.GetFormattingChangesOnTypedCharacter(documentSyntax, position, roslynIndentationOptions, cancellationToken);
         }
 
+        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
         public static IList<TextChange> GetFormattedTextChanges(
             HostWorkspaceServices services,
             SyntaxNode root,
             TextSpan span,
             RazorIndentationOptions indentationOptions,
             CancellationToken cancellationToken)
+            => GetFormattedTextChanges(
+                services,
+                root,
+                span,
+                indentationOptions,
+                csharpSyntaxFormattingOptionsOverride: null,
+                cancellationToken);
+
+        public static IList<TextChange> GetFormattedTextChanges(
+            HostWorkspaceServices services,
+            SyntaxNode root,
+            TextSpan span,
+            RazorIndentationOptions indentationOptions,
+            RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.GetFormattedTextChanges(root, span, services.SolutionServices, GetFormattingOptions(services.SolutionServices, indentationOptions), cancellationToken);
+            return Formatter.GetFormattedTextChanges(root, span, services.SolutionServices, GetFormattingOptions(services.SolutionServices, indentationOptions, csharpSyntaxFormattingOptionsOverride), cancellationToken);
         }
 
+        [Obsolete("This overload is for binary compat only. Use GetFormattingChangesAsync with all parameters instead.")]
         public static SyntaxNode Format(
             HostWorkspaceServices services,
             SyntaxNode root,
             RazorIndentationOptions indentationOptions,
             CancellationToken cancellationToken)
+            => Format(
+                services,
+                root,
+                indentationOptions,
+                csharpSyntaxFormattingOptionsOverride: null,
+                cancellationToken);
+
+        public static SyntaxNode Format(
+            HostWorkspaceServices services,
+            SyntaxNode root,
+            RazorIndentationOptions indentationOptions,
+            RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride,
+            CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(root.Language is LanguageNames.CSharp);
-            return Formatter.Format(root, services.SolutionServices, GetFormattingOptions(services.SolutionServices, indentationOptions), cancellationToken: cancellationToken);
+            return Formatter.Format(root, services.SolutionServices, GetFormattingOptions(services.SolutionServices, indentationOptions, csharpSyntaxFormattingOptionsOverride), cancellationToken: cancellationToken);
         }
 
-        private static SyntaxFormattingOptions GetFormattingOptions(SolutionServices services, RazorIndentationOptions indentationOptions)
+        private static SyntaxFormattingOptions GetFormattingOptions(SolutionServices services, RazorIndentationOptions indentationOptions, RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride)
         {
             var legacyOptionsService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
-            var formattingOptions = legacyOptionsService is null
-                ? new CSharpSyntaxFormattingOptions()
-                : legacyOptionsService.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp));
+            var formattingOptions = csharpSyntaxFormattingOptionsOverride?.ToCSharpSyntaxFormattingOptions()
+                ?? legacyOptionsService?.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp))
+                ?? new CSharpSyntaxFormattingOptions();
 
             return formattingOptions with
             {
