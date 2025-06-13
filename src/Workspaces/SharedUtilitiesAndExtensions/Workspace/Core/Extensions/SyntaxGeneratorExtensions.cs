@@ -77,7 +77,7 @@ internal static partial class SyntaxGeneratorExtensions
     {
         var equalityComparerType = compilation.EqualityComparerOfTType();
         var typeExpression = equalityComparerType == null
-            ? factory.GenericName(nameof(EqualityComparer<int>), type)
+            ? factory.GenericName(nameof(EqualityComparer<>), type)
             : generatorInternal.Type(equalityComparerType.Construct(type), typeContext: false);
 
         return factory.MemberAccessExpression(typeExpression, factory.IdentifierName(DefaultName));
