@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -41,6 +42,8 @@ internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
 
     public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
+
+    protected abstract AbstractReducer GetNameReducer();
 
     /// <summary>
     /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -222,9 +225,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         foreach (var documentId in documentIds)
         {
-            var (newSolution, refDocumentIds) =
-                await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
-                    .ConfigureAwait(false);
+            var (newSolution, refDocumentIds) = await ChangeNamespaceInSingleDocumentAsync(
+                solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken).ConfigureAwait(false);
             solutionAfterNamespaceChange = newSolution;
             referenceDocuments.AddRange(refDocumentIds);
         }
@@ -463,8 +465,8 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             }
         }
 
-        var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken)
-            .ConfigureAwait(false);
+        var documentWithNewNamespace = await FixDeclarationDocumentAsync(
+            document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken).ConfigureAwait(false);
         var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
         var refLocationsInSolution = refLocationsInOtherDocuments
@@ -486,15 +488,15 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             source: refLocationGroups,
             produceItems: static async (refInOneDocument, callback, args, cancellationToken) =>
             {
-                var (solutionWithChangedNamespace, newNamespace) = args;
-                var result = await FixReferencingDocumentAsync(
+                var (@this, solutionWithChangedNamespace, newNamespace) = args;
+                var result = await @this.FixReferencingDocumentAsync(
                     solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
                     refInOneDocument,
                     newNamespace,
                     cancellationToken).ConfigureAwait(false);
                 callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
             },
-            args: (solutionWithChangedNamespace, newNamespace),
+            args: (this, solutionWithChangedNamespace, newNamespace),
             cancellationToken).ConfigureAwait(false);
 
         var solutionWithFixedReferences = solutionWithChangedNamespace.WithDocumentSyntaxRoots(fixedDocuments);
@@ -631,12 +633,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         var services = documentWithAddedImports.Project.Solution.Services;
         root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
-        root = root.WithAdditionalAnnotations(Simplifier.Annotation);
         var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
-        return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Document> FixReferencingDocumentAsync(
+    private async Task<Document> FixReferencingDocumentAsync(
         Document document,
         IEnumerable<LocationForAffectedSymbol> refLocations,
         string newNamespace,
@@ -669,7 +670,16 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken)
             .ConfigureAwait(false);
 
-        return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<Document> SimplifyTypeNamesAsync(
+        Document document, CodeCleanupOptions documentOptions, CancellationToken cancellationToken)
+    {
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var service = document.GetRequiredLanguageService<ISimplificationService>();
+        return await service.ReduceAsync(
+            document, [new TextSpan(0, text.Length)], documentOptions.SimplifierOptions, [GetNameReducer()], cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
