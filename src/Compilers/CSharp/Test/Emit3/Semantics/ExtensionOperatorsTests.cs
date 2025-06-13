@@ -642,9 +642,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS0023: Operator '+' cannot be applied to operand of type 'S1'
+                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = +s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+s1").WithArguments("extensions").WithLocation(6, 13)
                 );
 
             var src3 = $$$"""
@@ -2083,9 +2083,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS0029: Cannot implicitly convert type 'S1' to 'bool'
+                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if (s1)
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1", "bool").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1").WithArguments("extensions").WithLocation(6, 13)
                 );
 
             var src3 = $$$"""
@@ -2641,9 +2641,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS0029: Cannot implicitly convert type 'S1' to 'bool'
+                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         if ((s1, 1) == (s1, 1))
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(s1, 1) == (s1, 1)").WithArguments("S1", "bool").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(s1, 1) == (s1, 1)").WithArguments("extensions").WithLocation(6, 13)
                 );
         }
 
@@ -3355,9 +3355,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         ++s1;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++s1").WithArguments("++", "S1").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "++s1").WithArguments("extensions").WithLocation(6, 9)
                 );
 
             var src3 = $$$"""
@@ -6746,9 +6746,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'S1'
+                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         s1++;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "s1++").WithArguments("++", "S1").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1++").WithArguments("extensions").WithLocation(6, 9)
                 );
         }
 
@@ -7897,9 +7897,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,13): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'S1'
+                // (6,13): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = s1 + s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 + s1").WithArguments("+", "S1", "S1").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 + s1").WithArguments("extensions").WithLocation(6, 13)
                 );
 
             var src3 = $$$"""
@@ -9960,9 +9960,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,14): error CS0019: Operator '&&' cannot be applied to operands of type 'S1' and 'S1'
+                // (6,14): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         s1 = s1 && s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 " + op + " s1").WithArguments(op, "S1", "S1").WithLocation(6, 14)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 " + op + " s1").WithArguments("extensions").WithLocation(6, 14)
                 );
         }
 
@@ -12901,9 +12901,9 @@ class Program
 
             comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS0019: Operator '+=' cannot be applied to operands of type 'S1' and 'S1'
+                // (6,9): error CS8652: The feature 'extensions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         s1 += s1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "s1 += s1").WithArguments("+=", "S1", "S1").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "s1 += s1").WithArguments("extensions").WithLocation(6, 9)
                 );
 
             var src3 = $$$"""

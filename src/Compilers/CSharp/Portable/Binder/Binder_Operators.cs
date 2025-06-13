@@ -469,6 +469,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (isExtension)
                     {
                         Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+
+                        if (Compilation.SourceModule != method.ContainingModule)
+                        {
+                            // While this code path is reachable, its effect is not observable
+                            // because instance operators are simply not considered when the target 
+                            // version is C#13 or earlier. Coincidentally the following line
+                            // would produce diagnostics only for C#13 or earlier.
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureExtensions, diagnostics);
+                        }
+
                         Conversion conversion = overloadResolutionResult.ValidResult.Result.ConversionForArg(0);
 
                         if (conversion.Kind is not ConversionKind.Identity)
@@ -555,11 +565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 staticBest = null;
                 staticResultKind = LookupResultKind.Empty;
                 staticOriginalUserDefinedOperators = [];
-
-                if (!this.Compilation.LanguageVersion.AllowNewExtensions())
-                {
-                    return null;
-                }
 
                 var result = BinaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -1944,8 +1949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = LookupResultKind.Empty;
                 originalUserDefinedOperators = [];
 
-                if ((left.Type is null && right.Type is null) ||
-                    !this.Compilation.LanguageVersion.AllowNewExtensions())
+                if (left.Type is null && right.Type is null)
                 {
                     return null;
                 }
@@ -2218,8 +2222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             originalUserDefinedOperators = [];
 
             if (operand.IsLiteralDefault() || // Reported not being able to target-type `default` elsewhere, so we can avoid doing more work
-                operand.Type is null || // GetUserDefinedOperators performs this check too, let's optimize early
-                !this.Compilation.LanguageVersion.AllowNewExtensions())
+                operand.Type is null) // GetUserDefinedOperators performs this check too, let's optimize early
             {
                 return null;
             }
@@ -3342,6 +3345,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (isExtension)
                     {
                         Debug.Assert(method.ContainingType.ExtensionParameter is not null);
+
+                        if (Compilation.SourceModule != method.ContainingModule)
+                        {
+                            // While this code path is reachable, its effect is not observable
+                            // because instance operators are simply not considered when the target 
+                            // version is C#13 or earlier. Coincidentally the following line
+                            // would produce diagnostics only for C#13 or earlier.
+                            CheckFeatureAvailability(node, MessageID.IDS_FeatureExtensions, diagnostics);
+                        }
+
                         Conversion conversion = overloadResolutionResult.ValidResult.Result.ConversionForArg(0);
 
                         if (conversion.Kind is not ConversionKind.Identity)
@@ -3431,11 +3444,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 staticBest = null;
                 staticResultKind = LookupResultKind.Empty;
                 staticOriginalUserDefinedOperators = [];
-
-                if (!this.Compilation.LanguageVersion.AllowNewExtensions())
-                {
-                    return null;
-                }
 
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
@@ -3757,6 +3765,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (isUnsignedRightShift)
                     {
                         result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureUnsignedRightShift, diagnostics);
+                    }
+                    else if (methodOpt.GetIsNewExtensionMember())
+                    {
+                        result &= CheckFeatureAvailability(node, MessageID.IDS_FeatureExtensions, diagnostics);
                     }
                 }
             }
