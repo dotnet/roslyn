@@ -221,6 +221,12 @@ static CommandLineConfiguration CreateCommandLineParser()
         Required = false
     };
 
+    var razorSourceGeneratorOption = new Option<string?>("--razorSourceGenerator")
+    {
+        Description = "Full path to the Razor source generator (optional).",
+        Required = false
+    };
+
     var razorDesignTimePathOption = new Option<string?>("--razorDesignTimePath")
     {
         Description = "Full path to the Razor design time target path (optional).",
@@ -251,6 +257,7 @@ static CommandLineConfiguration CreateCommandLineParser()
         sessionIdOption,
         extensionAssemblyPathsOption,
         devKitDependencyPathOption,
+        razorSourceGeneratorOption,
         razorDesignTimePathOption,
         extensionLogDirectoryOption,
         serverPipeNameOption,
