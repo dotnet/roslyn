@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal interface ICopilotProposalAdjusterService : IWorkspaceService
 {
     ValueTask<ImmutableArray<TextChange>> AdjustProposalAsync(
-        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken); 
+        Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
@@ -24,7 +26,10 @@ internal interface IRemoteCopilotProposalAdjusterService
         Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken);
 }
 
-internal sealed class DefaultCopilotProposalAdjusterService : ICopilotProposalAdjusterService
+[ExportWorkspaceService(typeof(ICopilotProposalAdjusterService), ServiceLayer.Default), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultCopilotProposalAdjusterService() : ICopilotProposalAdjusterService
 {
     public async ValueTask<ImmutableArray<TextChange>> AdjustProposalAsync(
         Document document, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken)
