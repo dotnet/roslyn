@@ -233,7 +233,6 @@ end class")
 Imports Test
 
 class C
-{
     sub M()
         [|Console.WriteLine(1)|]
     end sub

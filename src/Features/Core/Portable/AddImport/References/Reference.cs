@@ -126,6 +126,8 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         protected static async Task<Document> CleanDocumentAsync(Document newDocument, bool cleanupDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
+            // We always need to at least cleanup syntax (this ensures spacing of elastic trivia on the new import).
+            // Optionally cleanup the rest of the document if that is requested.
             return cleanupDocument
                 ? await CodeAction.CleanupDocumentAsync(newDocument, options, cancellationToken).ConfigureAwait(false)
                 : await CodeAction.CleanupSyntaxAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
