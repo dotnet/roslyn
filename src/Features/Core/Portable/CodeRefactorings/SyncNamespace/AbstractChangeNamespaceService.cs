@@ -638,6 +638,14 @@ internal abstract partial class AbstractChangeNamespaceService<
     private static SyntaxNode AddSimplifierAnnotationToPotentialReferences(
         ISyntaxFactsService syntaxFacts, SyntaxNode root, HashSet<string> allNamespaceNameParts)
     {
+        // Find all identifiers in this tree that use at least one of the namespace names of either the old or new
+        // namespace.  Mark those as needing potential complexification/simplification to preserve meaning.
+        //
+        // Note: we could go further here and actually bind these nodes to make sure they are actually references
+        // to one of the namespaces in question.  But that doesn't seem super necessary as the chance that these names
+        // are actually to something else *and* they would reduce without issue seems very low.  This can be revisited
+        // if we get feedback on this.
+
         using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var namesToUpdate);
         foreach (var descendent in root.DescendantNodes(descendIntoTrivia: true))
         {
