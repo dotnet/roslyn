@@ -122,6 +122,8 @@ internal static class CopilotChangeAnalysisUtilities
             d["CodeFixAnalysis_DiagnosticIdToProviderName"] = StringifyDictionary(analysisResult.CodeFixAnalysis.DiagnosticIdToProviderName);
             d["CodeFixAnalysis_ProviderNameToApplicationTime"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToApplicationTime);
             d["CodeFixAnalysis_ProviderNameToHasConflict"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToHasConflict);
+            d["CodeFixAnalysis_ProviderNameToTotalCount"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToTotalCount);
+            d["CodeFixAnalysis_ProviderNameToSuccessCount"] = StringifyDictionary(analysisResult.CodeFixAnalysis.ProviderNameToSuccessCount);
         }, args: (featureId, accepted, proposalId, analysisResult)),
         cancellationToken);
     }
