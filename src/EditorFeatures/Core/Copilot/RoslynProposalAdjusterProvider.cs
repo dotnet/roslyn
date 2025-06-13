@@ -9,8 +9,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Copilot;
 internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProviderBase
 {
     public override Task<ProposalBase> AdjustProposalBeforeDisplayAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
-        => AdjustProposalAsync(proposal, providerName, cancellationToken);
+        => AdjustProposalAsync(proposal, providerName, before: true, cancellationToken);
 
     public override Task<ProposalBase> AdjustProposalAfterAcceptAsync(ProposalBase proposal, string providerName, CancellationToken cancellationToken)
-        => AdjustProposalAsync(proposal, providerName, cancellationToken);
+        => AdjustProposalAsync(proposal, providerName, before: false, cancellationToken);
 
     private async Task<ProposalBase> AdjustProposalAsync(
-        ProposalBase proposal, string providerName, CancellationToken cancellationToken)
+        ProposalBase proposal, string providerName, bool before, CancellationToken cancellationToken)
     {
         // Ensure we're only operating on one solution.  It makes the logic much simpler, as we don't have to
         // worry about edits that touch multiple solutions.
@@ -80,9 +80,33 @@ internal sealed class RoslynProposalAdjusterProvider() : ProposalAdjusterProvide
 
         // No adjustments were made.  Don't touch anything.
         if (!adjustmentsProposed)
+        {
+            using var _3 = Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
+            {
+                var (providerName, before) = args;
+                d["ProviderName"] = providerName;
+                d["Before"] = before;
+                d["AdjustmentsProposed"] = false;
+            },
+            args: (providerName, before)),
+            cancellationToken);
+
             return proposal;
+        }
 
         var newProposal = Proposal.TryCreateProposal(proposal, finalEdits);
+
+        using var _4 = Logger.LogBlock(FunctionId.Copilot_AdjustProposal, KeyValueLogMessage.Create(static (d, args) =>
+        {
+            var (providerName, before, newProposal) = args;
+            d["ProviderName"] = providerName;
+            d["Before"] = before;
+            d["AdjustmentsProposed"] = true;
+            d["AdjustmentsAccepted"] = newProposal != null;
+        },
+        args: (providerName, before, newProposal)),
+        cancellationToken);
+
         return newProposal ?? proposal;
     }
 
