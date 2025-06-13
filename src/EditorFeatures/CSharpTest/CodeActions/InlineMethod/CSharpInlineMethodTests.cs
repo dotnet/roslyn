@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineMethod;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -23,10 +24,10 @@ public sealed class CSharpInlineMethodTests
         private const string Marker = "##";
 
         public static async Task TestInRegularScriptsInDifferentFilesAsync(
-            string initialMarkUpForFile1,
-            string initialMarkUpForFile2,
-            string expectedMarkUpForFile1,
-            string expectedMarkUpForFile2,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForFile1,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForFile2,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForFile1,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForFile2,
             List<DiagnosticResult> diagnosticResults = null,
             bool keepInlinedMethod = true)
         {
@@ -58,8 +59,8 @@ public sealed class CSharpInlineMethodTests
         }
 
         public static async Task TestInRegularAndScriptInTheSameFileAsync(
-            string initialMarkUp,
-            string expectedMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUp,
             List<DiagnosticResult> diagnosticResults = null,
             bool keepInlinedMethod = true)
         {
@@ -83,10 +84,10 @@ public sealed class CSharpInlineMethodTests
         }
 
         public static async Task TestBothKeepAndRemoveInlinedMethodInDifferentFileAsync(
-            string initialMarkUpForCaller,
-            string initialMarkUpForCallee,
-            string expectedMarkUpForCaller,
-            string expectedMarkUpForCallee,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForCaller,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUpForCallee,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForCaller,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUpForCallee,
             List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
             List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
         {
@@ -119,8 +120,8 @@ public sealed class CSharpInlineMethodTests
         }
 
         public static async Task TestBothKeepAndRemoveInlinedMethodInSameFileAsync(
-            string initialMarkUp,
-            string expectedMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkUp,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkUp,
             List<DiagnosticResult> diagnosticResultsWhenKeepInlinedMethod = null,
             List<DiagnosticResult> diagnosticResultsWhenRemoveInlinedMethod = null)
         {
@@ -3852,6 +3853,50 @@ public sealed class CSharpInlineMethodTests
                 {
                     System.Console.WriteLine("10");
                 }
+            }
+            """, keepInlinedMethod: true);
+
+    [Fact]
+    public Task TestForMultipleFieldsInFieldDeclaration()
+        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+        """
+        static class C
+        {
+            static readonly object A = [||]M(),
+                                   B = M();
+
+            private static object M() => null!;
+        }
+        """,
+            """
+            static class C
+            {
+                static readonly object A = null!,
+                                       B = M();
+            
+                private static object M() => null!;
+            }
+            """, keepInlinedMethod: true);
+
+    [Fact]
+    public Task TestForMultipleFieldsInFieldDeclaration2()
+        => TestVerifier.TestInRegularAndScriptInTheSameFileAsync(
+        """
+        static class C
+        {
+            static readonly object A = M(),
+                                   B = [||]M();
+
+            private static object M() => null!;
+        }
+        """,
+            """
+            static class C
+            {
+                static readonly object A = M(),
+                                       B = null!;
+            
+                private static object M() => null!;
             }
             """, keepInlinedMethod: true);
 }

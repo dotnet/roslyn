@@ -580,10 +580,28 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<
                 return declaredSymbol;
             }
 
-            if (IsFieldDeclarationSyntax(node)
-                && semanticModel.GetAllDeclaredSymbols(node, cancellationToken).SingleOrDefault() is IFieldSymbol fieldSymbol)
+            if (IsFieldDeclarationSyntax(node))
             {
-                return fieldSymbol;
+                var symbols = semanticModel.GetAllDeclaredSymbols(node, cancellationToken);
+                if (symbols.Count == 1 && symbols.First() is IFieldSymbol fieldSymbol)
+                {
+                    return fieldSymbol;
+                }
+                else if (symbols.Count > 1)
+                {
+                    // Find which specific variable declarator contains our invocation
+                    foreach (var declarator in node.DescendantNodes().OfType<SyntaxNode>()
+                        .Where(n => _syntaxFacts.IsVariableDeclarator(n)))
+                    {
+                        if (_syntaxFacts.GetInitializerOfVariableDeclarator(declarator)?.DescendantNodesAndSelf()
+                            .Contains(calleeMethodInvocationNode) == true)
+                        {
+                            var fieldName = _syntaxFacts.GetIdentifierOfVariableDeclarator(declarator).ValueText;
+                            return symbols.OfType<IFieldSymbol>()
+                                .FirstOrDefault(f => f.Name == fieldName);
+                        }
+                    }
+                }
             }
 
             if (_syntaxFacts.IsAnonymousFunctionExpression(node))
