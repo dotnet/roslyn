@@ -1448,7 +1448,7 @@ public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
         await TestChangeNamespaceAsync(code, expectedSourceOriginal);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34707")]
     public async Task ChangeFromGlobalNamespace_DoNotSimplifyUnrelatedCode()
     {
         var defaultNamespace = "A";
@@ -2235,7 +2235,7 @@ public sealed partial class SyncNamespaceTests : CSharpSyncNamespaceTestsBase
             {
                 public static class Extensions
                 {
-                    public static bool Foo(this string s) => true;
+                    public static bool Foo(this String s) => true;
                 }
             }
             """;

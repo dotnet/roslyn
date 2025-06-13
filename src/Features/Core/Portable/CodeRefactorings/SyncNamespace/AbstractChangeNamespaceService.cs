@@ -59,11 +59,20 @@ internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
     public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, [NotNullWhen(returnValue: true)] out SyntaxNode? old, [NotNullWhen(returnValue: true)] out SyntaxNode? @new);
 }
 
-internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
+internal abstract class AbstractChangeNamespaceService<
+    TCompilationUnitSyntax,
+    TMemberDeclarationSyntax,
+    TNamespaceDeclarationSyntax,
+    TNameSyntax,
+    TSimpleNameSyntax,
+    TCrefSyntax>
     : AbstractChangeNamespaceService
-    where TNamespaceDeclarationSyntax : SyntaxNode
     where TCompilationUnitSyntax : SyntaxNode
     where TMemberDeclarationSyntax : SyntaxNode
+    where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
+    where TNameSyntax : SyntaxNode
+    where TSimpleNameSyntax : TNameSyntax
+    where TCrefSyntax : SyntaxNode
 {
     private static readonly char[] s_dotSeparator = ['.'];
 
@@ -624,9 +633,41 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         var services = documentWithAddedImports.Project.Solution.Services;
         root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
-        root = root.WithAdditionalAnnotations(Simplifier.Annotation);
+        using var _ = PooledHashSet<string>.GetInstance(out var allNamespaceNameParts);
+        allNamespaceNameParts.AddRange(oldNamespaceParts);
+        allNamespaceNameParts.AddRange(newNamespaceParts);
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        root = AddSimplifierAnnotationToPotentialReferences(syntaxFacts, root, allNamespaceNameParts);
+
         var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
         return await SimplifyTypeNamesAsync(formattedDocument, documentOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static SyntaxNode AddSimplifierAnnotationToPotentialReferences(
+        ISyntaxFactsService syntaxFacts, SyntaxNode root, HashSet<string> allNamespaceNameParts)
+    {
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var namesToUpdate);
+        foreach (var descendent in root.DescendantNodes(descendIntoTrivia: true))
+        {
+            if (descendent is TSimpleNameSyntax simpleName &&
+                allNamespaceNameParts.Contains(syntaxFacts.GetIdentifierOfSimpleName(simpleName).ValueText))
+            {
+                namesToUpdate.Add(GetHighestNameOrCref(simpleName));
+            }
+        }
+
+        return root.ReplaceNodes(
+            namesToUpdate,
+            (_, current) => current.WithAdditionalAnnotations(Simplifier.Annotation));
+
+        static SyntaxNode GetHighestNameOrCref(TNameSyntax name)
+        {
+            while (name.Parent is TNameSyntax parentName)
+                name = parentName;
+
+            return name.Parent is TCrefSyntax ? name.Parent : name;
+        }
     }
 
     private static async Task<Document> FixReferencingDocumentAsync(

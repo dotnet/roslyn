@@ -16,7 +16,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
     <ExportLanguageService(GetType(IChangeNamespaceService), LanguageNames.VisualBasic), [Shared]>
     Friend NotInheritable Class VisualBasicChangeNamespaceService
-        Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
+        Inherits AbstractChangeNamespaceService(Of
+            CompilationUnitSyntax,
+            StatementSyntax,
+            NamespaceStatementSyntax,
+            NameSyntax,
+            SimpleNameSyntax,
+            CrefReferenceSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>

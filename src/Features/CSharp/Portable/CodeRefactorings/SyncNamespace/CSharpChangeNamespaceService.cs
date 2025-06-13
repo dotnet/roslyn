@@ -32,7 +32,13 @@ using static SyntaxFactory;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpChangeNamespaceService() :
-    AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
+    AbstractChangeNamespaceService<
+        CompilationUnitSyntax,
+        MemberDeclarationSyntax,
+        BaseNamespaceDeclarationSyntax,
+        NameSyntax,
+        SimpleNameSyntax,
+        QualifiedCrefSyntax>
 {
     public override AbstractReducer NameReducer { get; } = new CSharpNameReducer();
 
