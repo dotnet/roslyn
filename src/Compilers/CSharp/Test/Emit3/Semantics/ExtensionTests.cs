@@ -23103,7 +23103,6 @@ static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
-        // Tracked by https://github.com/dotnet/roslyn/issues/76130 : confirm whether we want extension Length/Count to contribute to list-patterns
         comp.VerifyEmitDiagnostics(
             // (1,33): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
             // System.Console.Write(new C() is ["hi"]);
