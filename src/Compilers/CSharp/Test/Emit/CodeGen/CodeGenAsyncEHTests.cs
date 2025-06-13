@@ -1268,6 +1268,9 @@ class Test
 
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         Task<int> t2 = G();
         try
         {
@@ -1277,9 +1280,17 @@ class Test
         {
             Console.WriteLine(ex.Message);
         }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }";
-            var expected = "One or more errors occurred. (2)";
+            var expected = "One or more errors occurred.";
+            if (!ExecutionConditionUtil.IsDesktop)
+            {
+                expected += " (2)";
+            }
             var verifier = CompileAndVerify(source, expectedOutput: expected);
             verifier.VerifyIL("Test.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
                 {
