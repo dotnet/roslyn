@@ -15,31 +15,28 @@ internal sealed partial class RoslynSearchItemsSourceProvider
     /// cref="INavigateToSearchResult"/> object we got back from the search so we can present the UI with the data
     /// from it.
     /// </summary>
-    private sealed class RoslynCodeSearchResult : CodeSearchResult
+    private sealed class RoslynCodeSearchResult(
+        RoslynSearchItemsSourceProvider provider,
+        INavigateToSearchResult searchResult,
+        string resultType,
+        string primarySortText,
+        string secondarySortText,
+        IReadOnlyCollection<PatternMatch> patternMatches,
+        string? location,
+        float perProviderItemPriority,
+        string language,
+        bool isActiveDocument)
+        : CodeSearchResult(
+            provider._viewFactory,
+            resultType,
+            primarySortText,
+            secondarySortText,
+            patternMatches,
+            location,
+            perProviderItemPriority: perProviderItemPriority,
+            language: language,
+            isActiveDocument: isActiveDocument)
     {
-        public readonly INavigateToSearchResult SearchResult;
-
-        public RoslynCodeSearchResult(
-            RoslynSearchItemsSourceProvider provider,
-            INavigateToSearchResult searchResult,
-            string resultType,
-            string primarySortText,
-            string secondarySortText,
-            IReadOnlyCollection<PatternMatch> patternMatches,
-            string? location,
-            float perProviderItemPriority,
-            string language)
-            : base(
-                  provider._viewFactory,
-                  resultType,
-                  primarySortText,
-                  secondarySortText,
-                  patternMatches,
-                  location,
-                  perProviderItemPriority: perProviderItemPriority,
-                  language: language)
-        {
-            SearchResult = searchResult;
-        }
+        public readonly INavigateToSearchResult SearchResult = searchResult;
     }
 }
