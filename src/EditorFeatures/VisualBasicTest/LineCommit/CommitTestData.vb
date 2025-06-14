@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
 
-                Public Function CommitAsync(previewChanges As Boolean, Optional editorOperationContext As IUIThreadOperationContext = Nothing) As Task Implements IInlineRenameSession.CommitAsync
+                Public Function CommitAsync(previewChanges As Boolean, Optional editorOperationContext As IUIThreadOperationContext = Nothing) As Task(Of Boolean) Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
                 End Function
             End Class
