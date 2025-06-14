@@ -3870,6 +3870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnknownResultNullability(node.Placeholder);
 
                         var argIndex = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
+                        Debug.Assert(initializer.ArgsToParamsOpt.IsDefault);
                         var addArgument = initializer.Arguments[argIndex];
                         VisitRvalue(addArgument);
                         var addArgumentResult = _visitResult;
@@ -3878,14 +3879,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Reinfer the addMethod signature and convert the argument to parameter type
                             var addMethod = initializer.AddMethod;
-                            MethodSymbol reinferredAddMethod = addMethod;
+                            MethodSymbol reinferredAddMethod;
                             if (!addMethod.IsExtensionMethod)
                             {
                                 reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
                             }
-                            // TODO: test extension method scenario
+                            else
+                            {
+                                // https://github.com/dotnet/roslyn/issues/68786: reinfer type arguments of a generic extension Add method
+                                reinferredAddMethod = addMethod;
+                            }
 
-                            Debug.Assert(initializer.ArgsToParamsOpt.IsDefault);
                             var reinferredParameter = reinferredAddMethod.Parameters[argIndex];
                             var resultType = VisitConversion(
                                 conversionOpt: null,

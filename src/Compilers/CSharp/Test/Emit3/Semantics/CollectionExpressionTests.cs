@@ -40123,6 +40123,63 @@ partial class Program
         }
 
         [Fact]
+        public void AddMethod_Extension_Nullability()
+        {
+            string sourceA = """
+                using System.Collections;
+                using System.Collections.Generic;
+                public class MyCollection<T> : IEnumerable
+                {
+                    private readonly List<T> _list = new();
+                    IEnumerator IEnumerable.GetEnumerator() => _list.GetEnumerator();
+                    internal void __AddInternal(T t) { _list.Add(t); }
+                }
+                namespace N
+                {
+                    internal static class Extensions
+                    {
+                        public static void Add<T>(this MyCollection<T> collection, T t) { collection.__AddInternal(t); }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                using N;
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<string> c1 = [null]; // missing warning
+                        c1.Report();
+                        c1 = ["a"];
+                        c1.Report();
+                        c1 = [..(string[])["a"], "b"];
+                        c1.Report();
+                    }
+                }
+                """;
+
+            // https://github.com/dotnet/roslyn/issues/68786
+            // Warnings for element conversions to reinferred extension Add parameter types are not implemented.
+            var verifier = CompileAndVerify([sourceB, sourceA, s_collectionExtensions], expectedOutput: "[null], [a], [a, b],");
+            verifier.VerifyDiagnostics();
+
+            comp = CreateCompilation([sourceB, s_collectionExtensions], references: [refA]);
+            comp.VerifyEmitDiagnostics(
+                // (6,35): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         MyCollection<string> c1 = [null];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("MyCollection<string>", "Add").WithLocation(6, 35),
+                // (8,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         c1 = ["a"];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[""a""]").WithArguments("MyCollection<string>", "Add").WithLocation(8, 14),
+                // (10,14): error CS1061: 'MyCollection<string>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'MyCollection<string>' could be found (are you missing a using directive or an assembly reference?)
+                //         c1 = [..(string[])["a"], "b"];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"[..(string[])[""a""], ""b""]").WithArguments("MyCollection<string>", "Add").WithLocation(10, 14));
+        }
+
+        [Fact]
         public void AddMethod_08()
         {
             string sourceA = """
