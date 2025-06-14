@@ -36,6 +36,7 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\BrokeredServices\ServiceBrokerProvider.cs" Link="BrokeredServices\ServiceBrokerProvider.cs" />

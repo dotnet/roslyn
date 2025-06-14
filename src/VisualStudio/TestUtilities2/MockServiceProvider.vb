@@ -19,6 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Friend Class MockServiceProvider
         Implements IServiceProvider
         Implements SVsServiceProvider ' The shell service provider actually implements this too for people using that type directly
+        Implements SVsRunningDocumentTable
         Implements IAsyncServiceProvider
         Implements IAsyncServiceProvider2
 
@@ -26,6 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _fileChangeEx As New MockVsFileChangeEx
 
         Public MockMonitorSelection As IVsMonitorSelection
+        Public MockRunningDocumentTable As New MockVsRunningDocumentTable
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -54,6 +56,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
                 Case GetType(SVsFileChangeEx)
                     Return _fileChangeEx
+
+                Case GetType(SVsRunningDocumentTable)
+                    Return MockRunningDocumentTable
 
                 Case Else
                     Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
