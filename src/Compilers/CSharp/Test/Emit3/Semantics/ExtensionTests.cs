@@ -40059,12 +40059,11 @@ public class MyCollection : IEnumerable<object>
     IEnumerator IEnumerable.GetEnumerator() => throw null!;
 }
 """;
-        // Tracked by https://github.com/dotnet/roslyn/issues/78828 : missing nullability diagnostic
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,19): warning CS8601: Possible null reference assignment.
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void extension(MyCollection).Add(object o)'.
             // MyCollection c = [oNull, oNotNull];
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(7, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void extension(MyCollection).Add(object o)").WithLocation(7, 19));
     }
 
     [Fact]
@@ -40092,9 +40091,9 @@ public class MyCollection : IEnumerable<object>
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (7,19): warning CS8601: Possible null reference assignment.
+            // (7,19): warning CS8604: Possible null reference argument for parameter 'o' in 'void E.Add(MyCollection c, object o)'.
             // MyCollection c = [oNull, oNotNull];
-            Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "oNull").WithLocation(7, 19));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "oNull").WithArguments("o", "void E.Add(MyCollection c, object o)").WithLocation(7, 19));
     }
 
     [Fact]

@@ -3862,11 +3862,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (element)
                 {
                     case BoundCollectionElementInitializer initializer:
+                        // The initializer generally represents a call to an Add method.
+                        // We do not analyze the full call or all the arguments.
+                        // We only analyze the single argument that represents the collection-expression element.
                         SetUnknownResultNullability(initializer);
-                        Debug.Assert(node.Placeholder is { });
+                        Debug.Assert(node.Placeholder is not null);
                         SetUnknownResultNullability(node.Placeholder);
 
-                        var addArgument = Binder.GetUnderlyingCollectionExpressionElement(node, initializer, throwOnErrors: false);
+                        var argIndex = initializer.AddMethod.IsExtensionMethod ? 1 : 0;
+                        var addArgument = initializer.Arguments[argIndex];
                         VisitRvalue(addArgument);
                         var addArgumentResult = _visitResult;
 
@@ -3874,19 +3878,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Reinfer the addMethod signature and convert the argument to parameter type
                             var addMethod = initializer.AddMethod;
-                            MethodSymbol reinferredAddMethod;
-                            if (addMethod.IsExtensionMethod)
-                            {
-                                // TODO: do a type argument reinference?
-                                reinferredAddMethod = addMethod;
-                            }
-                            else
+                            MethodSymbol reinferredAddMethod = addMethod;
+                            if (!addMethod.IsExtensionMethod)
                             {
                                 reinferredAddMethod = (MethodSymbol)AsMemberOfType(targetCollectionType, addMethod);
                             }
+                            // TODO: test extension method scenario
 
-                            var parameterOrdinal = reinferredAddMethod.IsExtensionMethod ? 1 : 0;
-                            var reinferredParameter = reinferredAddMethod.Parameters[parameterOrdinal];
+                            Debug.Assert(initializer.ArgsToParamsOpt.IsDefault);
+                            var reinferredParameter = reinferredAddMethod.Parameters[argIndex];
                             var resultType = VisitConversion(
                                 conversionOpt: null,
                                 addArgument,
