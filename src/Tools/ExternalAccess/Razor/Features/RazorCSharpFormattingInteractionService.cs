@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var legacyOptionsService = services.GetService<ILegacyGlobalOptionsWorkspaceService>();
             var formattingOptions = csharpSyntaxFormattingOptionsOverride?.ToCSharpSyntaxFormattingOptions()
                 ?? legacyOptionsService?.GetSyntaxFormattingOptions(services.GetLanguageServices(LanguageNames.CSharp))
-                ?? new CSharpSyntaxFormattingOptions();
+                ?? CSharpSyntaxFormattingOptions.Default;
 
             return formattingOptions with
             {

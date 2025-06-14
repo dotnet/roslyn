@@ -11,61 +11,42 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
     /// <summary>
     /// Wrapper for CSharpSyntaxFormattingOptions for Razor external access.
     /// </summary>
-    internal sealed record class RazorCSharpSyntaxFormattingOptions
+    internal sealed record class RazorCSharpSyntaxFormattingOptions(
+        RazorSpacePlacement Spacing,
+        RazorBinaryOperatorSpacingOptions SpacingAroundBinaryOperator,
+        RazorNewLinePlacement NewLines,
+        RazorLabelPositionOptions LabelPositioning,
+        RazorIndentationPlacement Indentation,
+        bool WrappingKeepStatementsOnSingleLine,
+        bool WrappingPreserveSingleLine,
+        RazorNamespaceDeclarationPreference NamespaceDeclarations,
+        bool PreferTopLevelStatements,
+        int CollectionExpressionWrappingLength)
     {
-        public RazorSpacePlacement Spacing { get; init; }
-        public RazorBinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; }
-        public RazorNewLinePlacement NewLines { get; init; }
-        public RazorLabelPositionOptions LabelPositioning { get; init; }
-        public RazorIndentationPlacement Indentation { get; init; }
-        public bool WrappingKeepStatementsOnSingleLine { get; init; }
-        public bool WrappingPreserveSingleLine { get; init; }
-        public RazorNamespaceDeclarationPreference NamespaceDeclarations { get; init; }
-        public bool PreferTopLevelStatements { get; init; }
-        public int CollectionExpressionWrappingLength { get; init; }
+        public static readonly RazorCSharpSyntaxFormattingOptions Default = new();
 
-        public RazorCSharpSyntaxFormattingOptions(
-            RazorSpacePlacement spacing,
-            RazorBinaryOperatorSpacingOptions spacingAroundBinaryOperator,
-            RazorNewLinePlacement newLines,
-            RazorLabelPositionOptions labelPositioning,
-            RazorIndentationPlacement indentation,
-            bool wrappingKeepStatementsOnSingleLine,
-            bool wrappingPreserveSingleLine,
-            RazorNamespaceDeclarationPreference namespaceDeclarations,
-            bool preferTopLevelStatements,
-            int collectionExpressionWrappingLength)
+        private RazorCSharpSyntaxFormattingOptions()
+            : this(CSharpSyntaxFormattingOptions.Default)
         {
-            Spacing = spacing;
-            SpacingAroundBinaryOperator = spacingAroundBinaryOperator;
-            NewLines = newLines;
-            LabelPositioning = labelPositioning;
-            Indentation = indentation;
-            WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine;
-            WrappingPreserveSingleLine = wrappingPreserveSingleLine;
-            NamespaceDeclarations = namespaceDeclarations;
-            PreferTopLevelStatements = preferTopLevelStatements;
-            CollectionExpressionWrappingLength = collectionExpressionWrappingLength;
         }
 
-        public RazorCSharpSyntaxFormattingOptions()
+        public RazorCSharpSyntaxFormattingOptions(CSharpSyntaxFormattingOptions options)
+            : this(
+                (RazorSpacePlacement)options.Spacing,
+                (RazorBinaryOperatorSpacingOptions)options.SpacingAroundBinaryOperator,
+                (RazorNewLinePlacement)options.NewLines,
+                (RazorLabelPositionOptions)options.LabelPositioning,
+                (RazorIndentationPlacement)options.Indentation,
+                options.WrappingKeepStatementsOnSingleLine,
+                options.WrappingPreserveSingleLine,
+                (RazorNamespaceDeclarationPreference)options.NamespaceDeclarations.Value,
+                options.PreferTopLevelStatements.Value,
+                options.CollectionExpressionWrappingLength)
         {
-            var options = CSharpSyntaxFormattingOptions.Default;
-            Spacing = (RazorSpacePlacement)options.Spacing;
-            SpacingAroundBinaryOperator = (RazorBinaryOperatorSpacingOptions)options.SpacingAroundBinaryOperator;
-            NewLines = (RazorNewLinePlacement)options.NewLines;
-            LabelPositioning = (RazorLabelPositionOptions)options.LabelPositioning;
-            Indentation = (RazorIndentationPlacement)options.Indentation;
-            WrappingKeepStatementsOnSingleLine = options.WrappingKeepStatementsOnSingleLine;
-            WrappingPreserveSingleLine = options.WrappingPreserveSingleLine;
-            NamespaceDeclarations = (RazorNamespaceDeclarationPreference)options.NamespaceDeclarations.Value;
-            PreferTopLevelStatements = options.PreferTopLevelStatements.Value;
-            CollectionExpressionWrappingLength = options.CollectionExpressionWrappingLength;
         }
 
         public CSharpSyntaxFormattingOptions ToCSharpSyntaxFormattingOptions()
-        {
-            return new CSharpSyntaxFormattingOptions
+            => new()
             {
                 Spacing = (SpacePlacement)Spacing,
                 SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptions)SpacingAroundBinaryOperator,
@@ -82,7 +63,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Features
                     CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements.Notification),
                 CollectionExpressionWrappingLength = CollectionExpressionWrappingLength
             };
-        }
     }
 
     [Flags]
